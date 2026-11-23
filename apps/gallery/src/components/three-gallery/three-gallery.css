@@ -1,0 +1,11 @@
+.s3-viewer-stage {
+  background:
+    radial-gradient(120% 90% at 50% 38%, color-mix(in srgb, var(--s3-surface) 92%, #fff) 0%, var(--s3-surface-2) 62%, color-mix(in srgb, var(--s3-surface-2) 86%, #000) 100%);
+}
+[data-theme='dark'] .s3-viewer-stage {
+  background: radial-gradient(120% 90% at 50% 38%, #3a3933 0%, #24241f 58%, #151512 100%);
+}
+.s3-viewer-stage:fullscreen { width: 100vw; height: 100vh; aspect-ratio: auto; }
+.s3-viewer-stage canvas:focus-visible { outline: 2px solid var(--s3-focus); outline-offset: -4px; }
+.s3-range, .s3-progress { accent-color: var(--s3-ink); }
+.s3-progress:indeterminate { opacity: 0.7; }

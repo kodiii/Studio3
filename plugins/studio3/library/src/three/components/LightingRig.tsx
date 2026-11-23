@@ -38,9 +38,9 @@ export const lightingPresets = {
   'studio-soft': {
     label: 'Studio soft', description: 'Large overhead softbox with a broad fill — even, low-contrast product light.', exposure: 1,
     ambient: { color: '#ffffff', intensity: 0.25 },
-    key: { color: '#fff6ea', intensity: 2.2, position: [3, 6, 4] },
+    key: { color: '#fff6ea', intensity: 1.7, position: [3, 6, 4] },
     fill: { color: '#dfe8ff', intensity: 0.7, position: [-5, 2.5, 3] },
-    env: { room: '#3b3a37', intensity: 1, panels: [
+    env: { room: '#2a2927', intensity: 0.5, panels: [
       { color: '#ffffff', intensity: 9, position: [0, 6, 0], size: [9, 9] },
       { color: '#fff1dc', intensity: 4, position: [6, 2, 3], size: [4, 6] },
       { color: '#dce6ff', intensity: 3, position: [-6, 2, 2], size: [4, 6] },
@@ -50,9 +50,9 @@ export const lightingPresets = {
   'product-contrast': {
     label: 'Product contrast', description: 'Hard key, narrow strip lights and a strong rim — defines edges and metal.', exposure: 1.05,
     ambient: { color: '#ffffff', intensity: 0.06 },
-    key: { color: '#ffffff', intensity: 3.4, position: [4.5, 5, 2.5] },
+    key: { color: '#ffffff', intensity: 2.6, position: [4.5, 5, 2.5] },
     rim: { color: '#cfe0ff', intensity: 2.4, position: [-3.5, 3, -5] },
-    env: { room: '#0b0b0c', intensity: 1.1, panels: [
+    env: { room: '#0b0b0c', intensity: 0.8, panels: [
       { color: '#ffffff', intensity: 22, position: [5, 3.5, 1], size: [1.1, 7] },
       { color: '#ffffff', intensity: 14, position: [-5.5, 3, -1.5], size: [0.8, 6] },
       { color: '#e9f0ff', intensity: 7, position: [0, 6.5, -2], size: [6, 1.4] },
@@ -63,7 +63,7 @@ export const lightingPresets = {
     ambient: { color: '#ffd9b0', intensity: 0.16 },
     key: { color: '#ffb46b', intensity: 2.8, position: [5, 2.4, 3] },
     fill: { color: '#7f9bd6', intensity: 0.55, position: [-4, 4, -2] },
-    env: { room: '#1d1612', intensity: 0.95, panels: [
+    env: { room: '#1d1612', intensity: 0.65, panels: [
       { color: '#ffae5e', intensity: 13, position: [6.5, 1.6, 2.5], size: [5, 3] },
       { color: '#ff7a3d', intensity: 4, position: [3, 0.8, -6], size: [8, 1.6] },
       { color: '#6f8fd4', intensity: 3.2, position: [-5, 5, 0], size: [7, 5] },
@@ -71,10 +71,10 @@ export const lightingPresets = {
   },
   'technical-flat': {
     label: 'Technical flat', description: 'Shadowless, neutral and even — for reading form and part boundaries.', exposure: 1,
-    ambient: { color: '#ffffff', intensity: 0.9 },
+    ambient: { color: '#ffffff', intensity: 0.5 },
     key: { color: '#ffffff', intensity: 1.1, position: [2, 6, 5] },
     fill: { color: '#ffffff', intensity: 0.9, position: [-4, 3, -4] },
-    env: { room: '#8d8d8d', intensity: 0.8, panels: [
+    env: { room: '#8d8d8d', intensity: 0.45, panels: [
       { color: '#ffffff', intensity: 3, position: [0, 6, 0], size: [12, 12] },
       { color: '#ffffff', intensity: 2, position: [0, -5, 0], size: [12, 12] },
     ] },

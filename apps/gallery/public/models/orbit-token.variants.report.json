@@ -1,6 +1,6 @@
 {
   "generator": "Studio³ Asset Pipeline",
-  "generatedAt": "2026-11-23T08:52:22.398Z",
+  "generatedAt": "2026-11-23T11:44:05.270Z",
   "tools": {
     "@gltf-transform/core": "4.5.1",
     "meshoptimizer": "1.3.0",
@@ -30,7 +30,7 @@
   "variants": [
     {
       "generator": "Studio³ Asset Pipeline",
-      "generatedAt": "2026-11-23T08:52:18.762Z",
+      "generatedAt": "2026-11-23T11:44:00.472Z",
       "tools": {
         "@gltf-transform/core": "4.5.1",
         "meshoptimizer": "1.3.0",
@@ -176,7 +176,7 @@
             "textureBytes": 0,
             "animations": 1
           },
-          "ms": 2
+          "ms": 1
         },
         {
           "id": "prune",
@@ -279,7 +279,7 @@
             "textureBytes": 0,
             "animations": 1
           },
-          "ms": 16
+          "ms": 13
         },
         {
           "id": "simplify",
@@ -347,7 +347,7 @@
             "textureBytes": 0,
             "animations": 1
           },
-          "ms": 10
+          "ms": 17
         },
         {
           "id": "quantize",
@@ -392,7 +392,7 @@
             "textureBytes": 0,
             "animations": 1
           },
-          "ms": 34
+          "ms": 48
         },
         {
           "id": "textures",
@@ -425,7 +425,7 @@
             "textureBytes": 0,
             "animations": 1
           },
-          "ms": 1
+          "ms": 11
         },
         {
           "id": "compress",
@@ -497,7 +497,7 @@
             "textureBytes": 0,
             "animations": 1
           },
-          "ms": 18
+          "ms": 64
         }
       ],
       "notes": [],

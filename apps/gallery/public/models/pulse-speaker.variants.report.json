@@ -1,6 +1,6 @@
 {
   "generator": "Studio³ Asset Pipeline",
-  "generatedAt": "2026-11-23T08:52:18.278Z",
+  "generatedAt": "2026-11-23T11:43:59.470Z",
   "tools": {
     "@gltf-transform/core": "4.5.1",
     "meshoptimizer": "1.3.0",
@@ -30,7 +30,7 @@
   "variants": [
     {
       "generator": "Studio³ Asset Pipeline",
-      "generatedAt": "2026-11-23T08:52:09.024Z",
+      "generatedAt": "2026-11-23T11:43:49.793Z",
       "tools": {
         "@gltf-transform/core": "4.5.1",
         "meshoptimizer": "1.3.0",
@@ -176,7 +176,7 @@
             "textureBytes": 6683936,
             "animations": 2
           },
-          "ms": 8
+          "ms": 5
         },
         {
           "id": "prune",
@@ -279,7 +279,7 @@
             "textureBytes": 6683936,
             "animations": 2
           },
-          "ms": 112
+          "ms": 106
         },
         {
           "id": "simplify",
@@ -312,7 +312,7 @@
             "textureBytes": 6683936,
             "animations": 2
           },
-          "ms": 1
+          "ms": 0
         },
         {
           "id": "reorder",
@@ -347,7 +347,7 @@
             "textureBytes": 6683936,
             "animations": 2
           },
-          "ms": 111
+          "ms": 90
         },
         {
           "id": "quantize",
@@ -392,7 +392,7 @@
             "textureBytes": 6683936,
             "animations": 2
           },
-          "ms": 193
+          "ms": 118
         },
         {
           "id": "textures",
@@ -435,7 +435,7 @@
             "textureBytes": 570422,
             "animations": 2
           },
-          "ms": 1829
+          "ms": 1285
         },
         {
           "id": "compress",
@@ -507,7 +507,7 @@
             "textureBytes": 570422,
             "animations": 2
           },
-          "ms": 67
+          "ms": 46
         }
       ],
       "notes": [],
@@ -1285,7 +1285,7 @@
     },
     {
       "generator": "Studio³ Asset Pipeline",
-      "generatedAt": "2026-11-23T08:52:11.027Z",
+      "generatedAt": "2026-11-23T11:43:51.240Z",
       "tools": {
         "@gltf-transform/core": "4.5.1",
         "meshoptimizer": "1.3.0",
@@ -1434,7 +1434,7 @@
             "textureBytes": 6683936,
             "animations": 2
           },
-          "ms": 2
+          "ms": 1
         },
         {
           "id": "prune",
@@ -1537,7 +1537,7 @@
             "textureBytes": 6683936,
             "animations": 2
           },
-          "ms": 109
+          "ms": 81
         },
         {
           "id": "simplify",
@@ -1579,7 +1579,7 @@
             "textureBytes": 6683936,
             "animations": 2
           },
-          "ms": 153
+          "ms": 104
         },
         {
           "id": "reorder",
@@ -1614,7 +1614,7 @@
             "textureBytes": 6683936,
             "animations": 2
           },
-          "ms": 60
+          "ms": 53
         },
         {
           "id": "quantize",
@@ -1659,7 +1659,7 @@
             "textureBytes": 6683936,
             "animations": 2
           },
-          "ms": 81
+          "ms": 83
         },
         {
           "id": "textures",
@@ -1702,7 +1702,7 @@
             "textureBytes": 216052,
             "animations": 2
           },
-          "ms": 631
+          "ms": 488
         },
         {
           "id": "compress",
@@ -1774,7 +1774,7 @@
             "textureBytes": 216052,
             "animations": 2
           },
-          "ms": 43
+          "ms": 26
         }
       ],
       "notes": [],
@@ -2552,7 +2552,7 @@
     },
     {
       "generator": "Studio³ Asset Pipeline",
-      "generatedAt": "2026-11-23T08:52:12.500Z",
+      "generatedAt": "2026-11-23T11:43:52.282Z",
       "tools": {
         "@gltf-transform/core": "4.5.1",
         "meshoptimizer": "1.3.0",
@@ -2701,7 +2701,7 @@
             "textureBytes": 6683936,
             "animations": 2
           },
-          "ms": 1
+          "ms": 2
         },
         {
           "id": "prune",
@@ -2804,7 +2804,7 @@
             "textureBytes": 6683936,
             "animations": 2
           },
-          "ms": 81
+          "ms": 65
         },
         {
           "id": "simplify",
@@ -2846,7 +2846,7 @@
             "textureBytes": 6683936,
             "animations": 2
           },
-          "ms": 123
+          "ms": 86
         },
         {
           "id": "reorder",
@@ -2881,7 +2881,7 @@
             "textureBytes": 6683936,
             "animations": 2
           },
-          "ms": 45
+          "ms": 31
         },
         {
           "id": "quantize",
@@ -2926,7 +2926,7 @@
             "textureBytes": 6683936,
             "animations": 2
           },
-          "ms": 49
+          "ms": 40
         },
         {
           "id": "textures",
@@ -2969,7 +2969,7 @@
             "textureBytes": 99752,
             "animations": 2
           },
-          "ms": 317
+          "ms": 241
         },
         {
           "id": "compress",
@@ -3041,7 +3041,7 @@
             "textureBytes": 99752,
             "animations": 2
           },
-          "ms": 28
+          "ms": 16
         }
       ],
       "notes": [],

@@ -343,7 +343,7 @@ describe('semantic validation catches broken documents', () => {
 });
 
 describe('exports', () => {
-  const doc = generateDesign(brief({ specialty: 'data', requires3d: true }), { seed: 21 });
+  const doc = generateDesign(brief({ specialty: 'data', requires3d: true }), { seed: 21, direction: 'scientific-precision' });
   it('CSS: every referenced custom property is defined; both modes and reduced motion are present', () => {
     for (const fmt of ['hex', 'oklch']) {
       const css = toCss(doc, { colorFormat: fmt });

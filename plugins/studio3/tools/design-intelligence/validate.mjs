@@ -13,6 +13,14 @@ import { isReactStack } from './brief.mjs';
  * @returns {{ valid: boolean, errors: { path: string, message: string, kind: 'schema' | 'semantic' }[], warnings: { path: string, message: string }[], checks: Record<string, number> }}
  */
 export function validateDesign(input) {
+  try { return validateDesignInner(input); } catch (e) {
+    // Semantic checks assume the schema-required structure; report rather than crash on a malformed file.
+    const schema = input && typeof input === 'object' ? validateSchema(input, loadSchema('studio3.design')) : { errors: [{ path: '', message: 'document must be a JSON object' }] };
+    if (!schema.errors.length) throw e;
+    return { valid: false, errors: [...schema.errors.map((x) => ({ ...x, kind: /** @type {'schema'} */ ('schema') })), { path: '', message: `semantic checks could not complete because the structure is invalid (${/** @type {Error} */ (e).message})`, kind: /** @type {'semantic'} */ ('semantic') }], warnings: [], checks: { schemaErrors: schema.errors.length, contrastPairs: 0, tokenReferences: 0, scales: 0, colorTokens: 0 } };
+  }
+}
+function validateDesignInner(input) {
   /** @type {{ path: string, message: string, kind: 'schema' | 'semantic' }[]} */
   const errors = [];
   /** @type {{ path: string, message: string }[]} */

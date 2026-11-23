@@ -120,8 +120,7 @@ async function worldPositions(file) {
       const el = [0, 0, 0];
       for (let i = 0; i < pos.getCount(); i++) {
         pos.getElement(i, el);
-        let [x, y, z] = el;
-        if (pos.getNormalized()) { const d = pos.getComponentSize() === 1 ? 127 : 32767; x /= d; y /= d; z /= d; }
+        const [x, y, z] = el; // getElement() already decodes normalized integers
         out.push([m[0] * x + m[4] * y + m[8] * z + m[12], m[1] * x + m[5] * y + m[9] * z + m[13], m[2] * x + m[6] * y + m[10] * z + m[14]]);
       }
     }

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "generator": "Studio³ Asset Pipeline",
-  "generatedAt": "2026-11-23T08:52:22.398Z",
+  "generatedAt": "2026-11-23T11:44:05.270Z",
   "notes": {
     "triangles": "Triangles rendered per frame, counting every instance of shared meshes. vertices = unique vertices uploaded.",
     "gpuTextureBytesEstimate": "Estimate: uncompressed RGBA8 with mip chain.",

@@ -38,8 +38,9 @@ responds the way they expect. Decoration does not create desire; a believable pr
 
 Studio³ tools run through one dispatcher: `node "${CLAUDE_PLUGIN_ROOT}/tools/studio3.mjs" <command>`. On hosts
 that do not substitute that variable (Codex), the same file is `../../tools/studio3.mjs` relative to this
-SKILL.md. Below, `studio3 <command>` is shorthand for that invocation. Run `studio3 <command> --help` for exact
-flags; do not guess them. If a tool fails to start, hand over to `studio-setup` (`studio3 doctor`).
+SKILL.md. Below, `studio3 <command>` is shorthand for that invocation. Details, dependencies and exit codes:
+`${CLAUDE_PLUGIN_ROOT}/shared/tooling.md`. Run `studio3 <command> --help` for exact flags; do not guess them.
+If a tool fails to start, hand over to `studio-setup` (`studio3 doctor`).
 
 Shared rules live in `${CLAUDE_PLUGIN_ROOT}/shared/` (fallback `../../shared/`): `design-principles.md`,
 `accessibility.md`, `performance.md`, `experience-profiles.md`, `workflow.md`.

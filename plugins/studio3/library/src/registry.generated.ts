@@ -7,6 +7,7 @@ import { meta as e_commandMenuReveal } from './effects/command-menu-reveal/meta'
 import { meta as e_cssCubeCarousel } from './effects/css-cube-carousel/meta';
 import { meta as e_flipCard3d } from './effects/flip-card-3d/meta';
 import { meta as e_fullscreenMenuCurtain } from './effects/fullscreen-menu-curtain/meta';
+import { meta as e_horizontalScrollGallery } from './effects/horizontal-scroll-gallery/meta';
 import { meta as e_kineticMarquee } from './effects/kinetic-marquee/meta';
 import { meta as e_layeredDepthStack } from './effects/layered-depth-stack/meta';
 import { meta as e_lineChartMorph } from './effects/line-chart-morph/meta';
@@ -14,6 +15,7 @@ import { meta as e_morphingNavPill } from './effects/morphing-nav-pill/meta';
 import { meta as e_numberTicker } from './effects/number-ticker/meta';
 import { meta as e_parallaxDepthLayers } from './effects/parallax-depth-layers/meta';
 import { meta as e_scrambleDecode } from './effects/scramble-decode/meta';
+import { meta as e_scrollCameraDolly } from './effects/scroll-camera-dolly/meta';
 import { meta as e_scrollPinChapters } from './effects/scroll-pin-chapters/meta';
 import { meta as e_scrollProgressRail } from './effects/scroll-progress-rail/meta';
 import { meta as e_shaderAuroraPlane } from './effects/shader-aurora-plane/meta';
@@ -28,6 +30,7 @@ export const effects: readonly EffectEntry[] = [
   { meta: e_cssCubeCarousel, load: () => import('./effects/css-cube-carousel/index') },
   { meta: e_flipCard3d, load: () => import('./effects/flip-card-3d/index') },
   { meta: e_fullscreenMenuCurtain, load: () => import('./effects/fullscreen-menu-curtain/index') },
+  { meta: e_horizontalScrollGallery, load: () => import('./effects/horizontal-scroll-gallery/index') },
   { meta: e_kineticMarquee, load: () => import('./effects/kinetic-marquee/index') },
   { meta: e_layeredDepthStack, load: () => import('./effects/layered-depth-stack/index') },
   { meta: e_lineChartMorph, load: () => import('./effects/line-chart-morph/index') },
@@ -35,6 +38,7 @@ export const effects: readonly EffectEntry[] = [
   { meta: e_numberTicker, load: () => import('./effects/number-ticker/index') },
   { meta: e_parallaxDepthLayers, load: () => import('./effects/parallax-depth-layers/index') },
   { meta: e_scrambleDecode, load: () => import('./effects/scramble-decode/index') },
+  { meta: e_scrollCameraDolly, load: () => import('./effects/scroll-camera-dolly/index') },
   { meta: e_scrollPinChapters, load: () => import('./effects/scroll-pin-chapters/index') },
   { meta: e_scrollProgressRail, load: () => import('./effects/scroll-progress-rail/index') },
   { meta: e_shaderAuroraPlane, load: () => import('./effects/shader-aurora-plane/index') },

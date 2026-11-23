@@ -5,7 +5,7 @@
 - Manifest: `orbit-token.manifest.json`
 - Thumbnail: ok — `orbit-token.png`, fallback `orbit-token.webp`
 - Profiles are default starting points unless overridden by a budgets/profile file; they are not universal budgets.
-- Generated: 2026-11-23T08:52:22.398Z by Studio³ Asset Pipeline
+- Generated: 2026-11-23T11:44:05.270Z by Studio³ Asset Pipeline
 
 | Variant | File | Size | vs source | Triangles | Vertices | Textures (largest) | GPU texture memory (estimate) | Compression | Verified |
 | --- | --- | ---: | ---: | ---: | ---: | --- | ---: | --- | --- |
