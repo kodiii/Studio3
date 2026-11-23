@@ -16,8 +16,11 @@ from scratch; there is no migration path from older releases.
   studio-motion, studio-review, studio-experience, studio-design-system, studio-components, studio-setup,
   studio-asset-optimizer.
 - **Motion Lab**: motion tokens (durations, easings, role-named springs, stagger, distances, experience-profile
-  scaling, spring → CSS `linear()`), a dependency-free orchestration engine (`createSequence`, `flip`,
-  `viewTransition`), React hooks, a motion-preference provider, and the effect recipe catalogue.
+  scaling, spring → CSS `linear()`), a dependency-free orchestration engine (`createSequence` with labels, positions,
+  stagger, seek, reverse and progress; `flip`; `viewTransition`), React hooks, a motion-preference provider, and
+  **47 effect recipes across all 16 categories** (CSS/WAAPI, Motion, GSAP + ScrollTrigger, D3, SVG, canvas, CSS 3D,
+  three.js/R3F/GLSL), each with metadata, parameters, a reduced-motion path and cleanup.
+- **22 demos**: 3D Studio 5, Product 4, Cinematic 4, Data 4, Social 5.
 - **Component & Effect Library** with a generated catalogue (`catalog.json`, `CATALOG.md`) and the `studio3 catalog`
   search command.
 - **three-kit**: capability detection (WebGL/WebGPU), quality profiles and adaptive DPR, disposal helpers,

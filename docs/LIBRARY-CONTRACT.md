@@ -18,7 +18,10 @@ plugins/studio3/library/src/
   registry.generated.ts     generated — never edit
 ```
 
-After adding/renaming a recipe or demo run `node scripts/build-catalog.mjs` (also runs before `dev`/`build`).
+After adding/renaming a recipe or demo run `node scripts/build-catalog.mjs` (also runs before `dev`/`build`). It skips
+incomplete folders (no `meta.ts`/`index.tsx`, a meta that fails to load, an unresolved relative import, an unknown
+recipe id) with a warning so work in progress elsewhere never blocks you; `--strict` and `--check` (CI, release) turn
+those into errors.
 
 ## Effect rules
 
@@ -50,7 +53,12 @@ After adding/renaming a recipe or demo run `node scripts/build-catalog.mjs` (als
    imperatively. WebGPU only behind `detectWebGPU()` with a WebGL path.
 10. **Honesty.** No fabricated metrics in UI copy (no made-up FPS, "10x faster", fake customer logos). Sample data is
     labelled as sample data.
-11. **Params** declared in `meta.params` are the only inputs; every param must visibly do something.
+11. **Params** declared in `meta.params` are the only inputs of the default export; every param must visibly do
+    something. The default export is a *reference implementation*: it renders sample content so the gallery can show
+    it. When the recipe is a natural UI primitive (a ticker, a toggle, a list, a chart), also export a content-agnostic
+    named component with typed data/callback props (`export function NumberTicker({ value, format })`) and make the
+    default export a thin wrapper that feeds it sample content — demos and apps then import the named export instead of
+    re-implementing the technique.
 12. **Dependencies** listed in `meta.dependencies` must match the imports exactly (react/react-dom are implicit).
     Pick the lightest tool: CSS → WAAPI/`createSequence` → Motion (React state/gesture/layout animation) → GSAP
     (scrubbed scroll timelines, pinning, complex sequencing) → three.js/R3F (genuine 3D only).
@@ -63,7 +71,9 @@ the tokens are allowed (`bg-bg`, `bg-surface`, `bg-surface-2`, `text-ink`, `text
 `border-line-strong`, `text-signal`/`bg-signal`, `text-on-signal`, `text-accent`/`bg-accent`, `font-display`,
 `font-sans`, `font-mono`, `font-serif`, `.s3-label`, `.s3-display`) alongside CSS modules. Use `@container` variants
 (`@md:`, `@lg:` …) rather than viewport breakpoints. Demos should compose recipes from `effects/` where one exists
-(import the default export and pass `params`), and list them in `meta.uses`. All copy, brands and data are original and
+(import the default export and pass `params`), and list them in `meta.uses`. `uses` means *imported and rendered* — the
+contract test fails if an id in `uses` is not imported. When you re-implement a recipe's technique locally (for example
+against your own data), list it in `meta.adapts` instead. All copy, brands and data are original and
 fictional; simulated data is labelled in the UI and described in `meta.dataNote`. No external network requests
 (no remote images/fonts/CDNs): draw imagery with CSS, SVG or canvas.
 
@@ -72,3 +82,10 @@ fictional; simulated data is labelled in the UI and described in `meta.dataNote`
 - Typecheck: `npx tsc --noEmit -p plugins/studio3/library/tsconfig.json`
 - Live: dev server on http://localhost:3333 → `/effects/<id>` and `/demos/<specialty>/<id>`
 - Screenshot + console errors: `node scripts/shot.mjs /effects/<id> out.png [width] [height] [--reduced] [--dark] [--full] [--wait ms]`
+- Accessibility with measured values, light and dark: `node scripts/axe-report.mjs <effect-id | /route>`
+- Acceptance gates: `npx playwright test tests/e2e/effects.spec.ts -g "effect <id> "` (mount + replay cleanup + axe in light
+  and dark, reduced motion, 390 px) and `tests/e2e/demos.spec.ts -g "demo <specialty>/<id> "` (adds keyboard focus and the
+  no-WebGL fallback for 3D demos)
+- Lifecycle: `npx vitest run tests/unit/library` mounts every non-WebGL recipe in StrictMode and fails on any listener,
+  timer, rAF loop, observer or GSAP trigger left alive after unmount.
+- Previews mount client-side only (`EffectStage`, `DemoStage`), so server-rendered HTML never contains recipe markup.
