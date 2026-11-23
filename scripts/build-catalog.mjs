@@ -8,8 +8,10 @@
  *   apps/gallery/public/sources/<kind>/<id>.json        source files for the gallery code viewer
  * Usage: node scripts/build-catalog.mjs [--check] [--strict]
  *   --check   exit 1 if generated files are stale (implies --strict)
- *   --strict  incomplete folders (missing meta.ts/index.tsx, meta that fails to load, unknown `uses`) are errors.
- *             Without it they are skipped with a warning, so work in progress in one folder does not block the rest.
+ *   --strict  incomplete folders (missing meta.ts/index.tsx, meta that fails to load, unknown `uses`, a relative
+ *             import in a .ts/.tsx file that does not resolve) are errors. Without it they are skipped with a
+ *             warning, so work in progress in one folder does not block the rest (a registered folder with a
+ *             missing import would break compilation of every gallery route).
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -35,6 +37,94 @@ function listFiles(dir, base = dir) {
   return out.sort((a, b) => rank(a.file) - rank(b.file) || a.file.localeCompare(b.file));
 }
 
+/**
+ * Relative module specifiers of a TS/TSX source: static `import … from`, `import type`, side-effect `import '…'`,
+ * `export … from` and dynamic `import('…')`. Comments, string contents, template text and regex literals are masked
+ * first, so code samples inside strings or comments are not mistaken for imports.
+ */
+function relativeImports(code) {
+  const strs = [];
+  let out = '';
+  let i = 0;
+  const n = code.length;
+  const tpl = []; // brace depth at each open `${`
+  let depth = 0;
+  let prev = ''; // last significant code character (regex-vs-division heuristic)
+  const scanTemplate = () => { // from just after a backtick or a closing `}` of `${…}`
+    while (i < n) {
+      if (code[i] === '\\') { i += 2; continue; }
+      if (code[i] === '`') { i++; out += '`'; prev = '`'; return; }
+      if (code[i] === '$' && code[i + 1] === '{') { i += 2; out += '${'; tpl.push(depth); depth++; prev = '{'; return; }
+      if (code[i] === '\n') out += '\n';
+      i++;
+    }
+  };
+  while (i < n) {
+    const c = code[i];
+    const d = code[i + 1];
+    if (c === '/' && d === '/') { const e = code.indexOf('\n', i); i = e < 0 ? n : e; continue; }
+    if (c === '/' && d === '*') { const e = code.indexOf('*/', i + 2); out += code.slice(i, e < 0 ? n : e).replace(/[^\n]/g, '') + ' '; i = e < 0 ? n : e + 2; continue; }
+    if (c === "'" || c === '"') {
+      let j = i + 1;
+      let s = '';
+      while (j < n && code[j] !== c && code[j] !== '\n') { if (code[j] === '\\') { s += code[j + 1] ?? ''; j += 2; } else s += code[j++]; }
+      strs.push(s);
+      out += `${c}${strs.length - 1}${c}`;
+      i = code[j] === c ? j + 1 : j;
+      prev = c;
+      continue;
+    }
+    if (c === '`') { i++; out += '`'; scanTemplate(); continue; }
+    if (c === '/' && (prev === '' || '(,=:[!&|?{};+-*%~^'.includes(prev))) { // regex literal
+      let j = i + 1;
+      let cls = false;
+      while (j < n && code[j] !== '\n' && (cls || code[j] !== '/')) { if (code[j] === '\\') j++; else if (code[j] === '[') cls = true; else if (code[j] === ']') cls = false; j++; }
+      i = j + 1;
+      out += ' ';
+      prev = ')';
+      continue;
+    }
+    if (c === '{') depth++;
+    if (c === '}') {
+      depth--;
+      if (tpl.length && depth === tpl[tpl.length - 1]) { tpl.pop(); i++; out += '}'; scanTemplate(); continue; }
+    }
+    out += c;
+    if (!/\s/.test(c)) prev = c;
+    i++;
+  }
+  const specs = [];
+  const patterns = [
+    /(?:^|[;\n])\s*import\s*(?:type\s+)?(?:(?:[\w$]+\s*,?\s*)?(?:\{[^{}]*\}|\*\s*as\s+[\w$]+)?\s*from\s*)?(['"])(\d+)\1/g,
+    /(?:^|[;\n])\s*export\s+(?:type\s+)?(?:\{[^{}]*\}|\*(?:\s*as\s+[\w$]+)?)\s*from\s*(['"])(\d+)\1/g,
+    /(?<![\w$.])import\s*\(\s*(['"])(\d+)\1\s*[,)]/g,
+  ];
+  for (const re of patterns) for (const m of out.matchAll(re)) specs.push(strs[Number(m[2])]);
+  return specs.filter((s) => s.startsWith('./') || s.startsWith('../'));
+}
+
+const isFile = (p) => { try { return fs.statSync(p).isFile(); } catch { return false; } };
+/** Exact file, then + .ts/.tsx/.js/.mjs, then /index.ts(x); `.css` must exist exactly; './a.js' may name a.ts(x). */
+function resolvesImport(fromFile, spec) {
+  const target = path.resolve(path.dirname(fromFile), spec.replace(/[?#].*$/, ''));
+  if (target.endsWith('.css')) return isFile(target);
+  if (isFile(target) || ['.ts', '.tsx', '.js', '.mjs'].some((x) => isFile(target + x))) return true;
+  if (['index.ts', 'index.tsx'].some((x) => isFile(path.join(target, x)))) return true;
+  const js = /\.(m?js|jsx)$/.exec(target);
+  return !!js && ['.ts', '.tsx'].some((x) => isFile(target.slice(0, -js[0].length) + x));
+}
+
+/** "file → spec" for every relative import in the folder's .ts/.tsx files that does not resolve. */
+function unresolvedImports(dir, files) {
+  const out = [];
+  for (const f of files) {
+    if (!/\.tsx?$/.test(f.file)) continue;
+    const abs = path.join(dir, f.file);
+    for (const spec of new Set(relativeImports(f.code))) if (!resolvesImport(abs, spec)) out.push(`${f.file} → ${spec}`);
+  }
+  return out;
+}
+
 async function loadMeta(file) {
   const mod = await import(pathToFileURL(file).href + `?t=${Date.now()}`);
   if (!mod.meta) throw new Error(`${file} must export "meta"`);
@@ -51,10 +141,13 @@ for (const id of fs.existsSync(effectsDir) ? fs.readdirSync(effectsDir).sort() :
   const dir = path.join(effectsDir, id);
   if (!fs.statSync(dir).isDirectory()) continue;
   if (!fs.existsSync(path.join(dir, 'meta.ts')) || !fs.existsSync(path.join(dir, 'index.tsx'))) { incomplete(`effects/${id}: needs meta.ts and index.tsx`); continue; }
+  const files = listFiles(dir);
+  const missing = unresolvedImports(dir, files);
+  if (missing.length) { incomplete(`effects/${id}: unresolved import(s): ${missing.join(', ')}`); continue; }
   try {
     const meta = await loadMeta(path.join(dir, 'meta.ts'));
     if (meta.id !== id) errors.push(`effects/${id}: meta.id "${meta.id}" must equal folder name`);
-    effects.push({ id, meta, files: listFiles(dir) });
+    effects.push({ id, meta, files });
   } catch (e) { incomplete(`effects/${id}: ${e.message}`); }
 }
 
@@ -67,11 +160,14 @@ for (const sp of fs.existsSync(demosDir) ? fs.readdirSync(demosDir).sort() : [])
     const dir = path.join(spDir, id);
     if (!fs.statSync(dir).isDirectory()) continue;
     if (!fs.existsSync(path.join(dir, 'meta.ts')) || !fs.existsSync(path.join(dir, 'index.tsx'))) { incomplete(`demos/${sp}/${id}: needs meta.ts and index.tsx`); continue; }
+    const files = listFiles(dir);
+    const missing = unresolvedImports(dir, files);
+    if (missing.length) { incomplete(`demos/${sp}/${id}: unresolved import(s): ${missing.join(', ')}`); continue; }
     try {
       const meta = await loadMeta(path.join(dir, 'meta.ts'));
       if (meta.id !== id) errors.push(`demos/${sp}/${id}: meta.id "${meta.id}" must equal folder name`);
       if (meta.specialty !== sp) errors.push(`demos/${sp}/${id}: meta.specialty "${meta.specialty}" must equal "${sp}"`);
-      demos.push({ id, specialty: sp, meta, files: listFiles(dir) });
+      demos.push({ id, specialty: sp, meta, files });
     } catch (e) { incomplete(`demos/${sp}/${id}: ${e.message}`); }
   }
 }

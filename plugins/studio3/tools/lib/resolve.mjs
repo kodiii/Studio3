@@ -41,6 +41,8 @@ function searchRoots() {
  * @returns {string | null}
  */
 export function resolveDep(specifier) {
+  // Simulate an environment without a browser stack (tests of the "unavailable" paths, CI dry runs).
+  if (process.env.STUDIO3_DISABLE_PLAYWRIGHT === '1' && /^(@playwright\/test|playwright(-core)?)(\/|$)/.test(specifier)) return null;
   for (const root of searchRoots()) {
     try {
       return createRequire(path.join(root, 'noop.js')).resolve(specifier);

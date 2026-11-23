@@ -154,7 +154,7 @@ export function scoreExperience(input) {
   };
   overall.headline = headline(overall, profile);
 
-  const recommendations = buildRecommendations(rows, dimensions, gates, wScored, cap);
+  const recommendations = buildRecommendations(rows, dimensions, gates, wScored, cap, overall.capApplied);
   const agentRows = rows.filter((r) => r.source === 'agent');
   const unanswered = agentRows.filter((r) => r.status === 'unanswered').map((r) => ({ id: r.id, dimension: r.dimension, weight: r.weight, impact: r3(((dimensions[r.dimension]?.weight ?? 0) * r.weight) / 100) }))
     .sort((a, b) => b.impact - a.impact);
@@ -238,6 +238,7 @@ export function evaluateGate(g, R, answers, spatialApplicable) {
     }
     case 'spatialClarity': {
       if (!spatialApplicable) return res('not-applicable', 'No 3D canvas on the assessed routes.');
+      /** @type {[string, (r: any) => boolean][]} */
       const checks = [['spatialInteractionClarity.instructions', (r) => r.normalised < 1], ['spatialInteractionClarity.keyboardAlternatives', (r) => r.normalised < 0.5], ['spatialInteractionClarity.fallback', (r) => r.normalised < 1]];
       const failing = checks.filter(([id, bad]) => isAvail(R[id]) && bad(R[id])).map(([id]) => id);
       if (failing.length) return res('fail', `Immersive requires instructions, DOM controls and a no-WebGL fallback for every 3D view; failing: ${failing.map((id) => String(id).split('.')[1]).join(', ')}.`, failing, failing.flatMap((id) => ex(R[id])));
@@ -261,7 +262,8 @@ export function evaluateGate(g, R, answers, spatialApplicable) {
 /**
  * @param {any[]} rows @param {Record<string, any>} dims @param {any[]} gates @param {number} wScored @param {number|null} cap
  */
-function buildRecommendations(rows, dims, gates, wScored, cap) {
+function buildRecommendations(rows, dims, gates, wScored, cap, binding) {
+  const capText = (id) => `Required to pass the "${id}" gate${binding ? ` (failed gates currently cap the score at ${cap})` : ` (failed gates cap the score at ${cap}; the raw score is already below that)`}.`;
   const failedBySignal = new Map();
   for (const g of gates) if (g.status === 'fail') for (const id of g.failingSignals) failedBySignal.set(id, g);
   const recs = [];
@@ -286,7 +288,7 @@ function buildRecommendations(rows, dims, gates, wScored, cap) {
         expectedEffect: {
           overallPoints: r1(overallPoints), dimensionPoints: r1(dimPoints),
           ...(gate ? { gate: gate.id, liftsCap: cap } : {}),
-          note: `${gate ? `Required to pass the "${gate.id}" gate (currently capping the score at ${cap}). ` : ''}Estimated if fully resolved with everything else unchanged: +${r1(dimPoints)} on ${d.title}, +${r1(overallPoints)} overall before caps.`,
+          note: `${gate ? `${capText(gate.id)} ` : ''}Estimated if fully resolved with everything else unchanged: +${r1(dimPoints)} on ${d.title}, +${r1(overallPoints)} overall before caps.`,
         },
       });
     }
@@ -300,7 +302,7 @@ function buildRecommendations(rows, dims, gates, wScored, cap) {
       id: `rec:gate:${g.id}`, priority: 'P0', dimension: def?.dimension ?? null, signal: def?.id ?? null, source: 'gate',
       what: g.id === 'motionControls' ? 'Add a visible "Pause animations" control for everything that plays by itself' : def?.what ?? g.title,
       why: `${g.title} (${g.standard}). ${def?.why ?? ''}`.trim(), how: def?.how ?? '', evidence: [g.message, ...g.evidence].filter(Boolean),
-      expectedEffect: { overallPoints: null, dimensionPoints: null, gate: g.id, liftsCap: cap, note: `Required to pass the "${g.id}" gate (currently capping the score at ${cap}).` },
+      expectedEffect: { overallPoints: null, dimensionPoints: null, gate: g.id, liftsCap: cap, note: capText(g.id) },
     });
   }
   const order = { P0: 0, P1: 1, P2: 2, P3: 3 };

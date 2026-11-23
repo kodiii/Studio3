@@ -25,7 +25,13 @@ export function serveStatic(root, opts = {}) {
       let file = path.normalize(path.join(base, pathname));
       if (file !== base && !file.startsWith(base + path.sep)) { res.writeHead(403).end('Forbidden'); return; }
       if (fs.existsSync(file) && fs.statSync(file).isDirectory()) file = path.join(file, 'index.html');
-      if (!fs.existsSync(file)) { res.writeHead(404, { 'content-type': 'text/plain' }).end('Not found'); return; }
+      if (!fs.existsSync(file)) {
+        // Like most static hosts: serve <root>/404.html with status 404 when the site provides one.
+        const page404 = path.join(base, '404.html');
+        if (fs.existsSync(page404)) { res.writeHead(404, { 'content-type': TYPES['.html'], 'cache-control': 'no-store' }); fs.createReadStream(page404).pipe(res); return; }
+        res.writeHead(404, { 'content-type': 'text/plain' }).end('Not found');
+        return;
+      }
       res.writeHead(200, { 'content-type': TYPES[path.extname(file).toLowerCase()] ?? 'application/octet-stream', 'cache-control': 'no-store' });
       fs.createReadStream(file).pipe(res);
     } catch {

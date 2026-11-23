@@ -36,14 +36,17 @@ needs Playwright (exit code 3 → `studio-setup`); `rubric` and `score` need not
    cinematic or 3D showpieces → Immersive) and say which you chose. Definitions:
    `${CLAUDE_PLUGIN_ROOT}/shared/experience-profiles.md`.
 2. **Measure.** `studio3 experience assess --url http://localhost:<port> --routes /,/pricing --profile expressive`
-   (or `--serve <dir>`). Include at least two routes so navigation consistency can be measured, and a route with a
-   form if the product has one.
+   (or `--serve <dir>`; `--url` must be a loopback address). Include at least two routes so navigation consistency
+   can be measured, and a route with a form if the product has one. Viewports default to `mobile,desktop`; without
+   `--profile` the profile comes from `studio3.design.json`, else Expressive. Besides `experience.{json,md}` it writes
+   `.studio3/experience/signals.json` — the input for re-scoring.
 3. **Answer the rubric.** `studio3 experience rubric --profile expressive` prints the questions automation cannot
    answer. Look at the screenshots and the code, then write `answers.json` — every answer cites evidence (a
    screenshot, a selector, a file and line). Unanswered questions lower confidence; they are never assumed.
    Guidance: `references/rubric.md`.
-4. **Score with answers.** Re-run `assess … --answers answers.json` (or `score --signals … --answers …` to re-score
-   without a browser).
+4. **Score with answers.** Re-run `assess … --answers answers.json`, or re-score without a browser:
+   `studio3 experience score --signals .studio3/experience/signals.json --answers answers.json --profile expressive --out .studio3/experience`
+   (`score` writes files only with `--out`). Both `assess` and `score` exit 1 when any gate fails.
 5. **Read the result** (`.studio3/experience/experience.md`): overall score and band, gates, per-dimension scores
    with confidence, and the recommendations. A failed gate caps the overall grade whatever the profile.
    How to interpret: `references/scoring.md`.

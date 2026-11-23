@@ -1,7 +1,7 @@
 'use client';
 import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useMemo, useRef, type RefObject } from 'react';
-import { CanvasTexture, LinearFilter, SRGBColorSpace, Vector2, type ShaderMaterial } from 'three';
+import { CanvasTexture, LinearFilter, ShaderMaterial, SRGBColorSpace, Vector2 } from 'three';
 import { useQuality } from '../../three';
 import { POSTERS, posterCanvas, type Theme } from './posters';
 import { fragmentShader, vertexShader } from './shader';
@@ -22,13 +22,11 @@ export interface SceneProps {
   kick: RefObject<(() => void) | null>;
 }
 
-function uniforms_dbg() { return 0; }
 const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
 export function Scene({ index, origin, theme, version, duration, amp, chroma, freq, hover, fade, pointer, kick }: SceneProps) {
   const invalidate = useThree((s) => s.invalidate);
   const { textureMax } = useQuality();
-  const mat = useRef<ShaderMaterial>(null);
   const anim = useRef({ t: 1, from: index, to: index, hover: 0, time: 0 });
 
   // Poster textures in the current theme: regenerated on theme/font changes, the old set disposed.
@@ -44,13 +42,17 @@ export function Scene({ index, origin, theme, version, duration, amp, chroma, fr
     });
   }, [theme, version, textureMax]);
   useEffect(() => () => { for (const t of textures ?? []) t.dispose(); }, [textures]);
-  (globalThis as unknown as { __rdbg: unknown }).__rdbg = { theme: !!theme, textures: textures?.length ?? null, textureMax, version, from: uniforms_dbg() };
 
   const uniforms = useMemo(() => ({
     uFrom: { value: null as CanvasTexture | null }, uTo: { value: null as CanvasTexture | null },
     uProgress: { value: 0 }, uAmp: { value: 0.05 }, uChroma: { value: 1 }, uFreq: { value: 3 }, uTime: { value: 0 },
     uHover: { value: 0 }, uAspect: { value: 0.75 }, uFade: { value: 0 }, uOrigin: { value: new Vector2(0.5, 0.5) }, uPointer: { value: new Vector2(0.5, 0.5) },
   }), []);
+
+  // Built imperatively on purpose: R3F copies each uniform object when `uniforms` is passed as a JSX prop, so writes
+  // to `.value` on our object would never reach the material.
+  const material = useMemo(() => new ShaderMaterial({ uniforms, vertexShader, fragmentShader, depthTest: false, depthWrite: false }), [uniforms]);
+  useEffect(() => () => material.dispose(), [material]);
 
   useEffect(() => { kick.current = invalidate; return () => { kick.current = null; }; }, [kick, invalidate]);
   useEffect(() => {
@@ -98,9 +100,8 @@ export function Scene({ index, origin, theme, version, duration, amp, chroma, fr
   });
 
   return (
-    <mesh frustumCulled={false}>
+    <mesh frustumCulled={false} material={material}>
       <planeGeometry args={[2, 2]} />
-      <shaderMaterial ref={mat} uniforms={uniforms} vertexShader={vertexShader} fragmentShader={fragmentShader} depthTest={false} depthWrite={false} />
     </mesh>
   );
 }

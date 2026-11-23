@@ -126,6 +126,20 @@ test.describe('effect playground', () => {
   });
 });
 
+test.describe('shader recipes animate', () => {
+  // Regression: R3F 9 copies <shaderMaterial uniforms> on apply, so time must be written via the material instance.
+  test('shader-aurora-plane advances its time uniform (rendered pixels change)', async ({ page }) => {
+    await page.goto('/effects/shader-aurora-plane');
+    const canvas = page.locator('[data-effect-stage="shader-aurora-plane"] canvas');
+    await expect(canvas).toBeVisible();
+    await page.waitForTimeout(1500);
+    const a = await canvas.screenshot();
+    await page.waitForTimeout(1500);
+    const b = await canvas.screenshot();
+    expect(a.equals(b), 'two frames 1.5 s apart are identical — the shader is frozen').toBe(false);
+  });
+});
+
 test.describe('visual regression', () => {
   test.use({ reducedMotion: 'reduce', colorScheme: 'light' });
   test('system page', async ({ page }) => {

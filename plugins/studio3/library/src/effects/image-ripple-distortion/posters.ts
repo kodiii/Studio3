@@ -40,8 +40,8 @@ export function drawPoster(g: CanvasRenderingContext2D, i: number, w: number, h:
     g.fillStyle = t.signal; g.beginPath(); g.arc(410 * u, 250 * u, 150 * u, 0, Math.PI * 2); g.fill();
     g.fillStyle = t.ink;
     for (let k = 0; k < 11; k++) { const y = (430 + k * 26) * u; g.fillRect(0, y, w, Math.max(1, (14 - k * 1.1) * u)); }
-    setFont(g, `700 ${118 * u}px ${t.display}`, `700 ${118 * u}px sans-serif`);
-    g.fillStyle = t.ink; g.textAlign = 'left'; g.fillText('Tidewater', 34 * u, 760 * u);
+    setFont(g, `700 ${100 * u}px ${t.display}`, `700 ${100 * u}px sans-serif`);
+    g.fillStyle = t.ink; g.textAlign = 'left'; g.fillText('Tidewater', 34 * u, 760 * u, 532 * u);
     label(POSTERS[0].subtitle, 36 * u, 56 * u, t.ink);
     label('Sample poster', 564 * u, 56 * u, t.ink, 'right');
   } else if (i === 1) {
@@ -53,7 +53,7 @@ export function drawPoster(g: CanvasRenderingContext2D, i: number, w: number, h:
     g.fillStyle = t.signal; g.fillRect(300 * u, 0, 60 * u, h);
     g.fillStyle = t.paper; g.beginPath(); g.arc(330 * u, 330 * u, 92 * u, 0, Math.PI * 2); g.fill();
     setFont(g, `italic 400 ${150 * u}px ${t.serif}`, `italic 400 ${150 * u}px serif`);
-    g.fillStyle = t.paper; g.textAlign = 'center'; g.fillText('Meridian', 300 * u, 640 * u);
+    g.fillStyle = t.paper; g.textAlign = 'center'; g.fillText('Meridian', 300 * u, 640 * u, 540 * u);
     label(POSTERS[1].subtitle, 300 * u, 720 * u, t.paper, 'center');
     label('Sample poster', 300 * u, 56 * u, t.paper, 'center');
   } else {
@@ -63,7 +63,7 @@ export function drawPoster(g: CanvasRenderingContext2D, i: number, w: number, h:
       g.beginPath(); g.moveTo(0, h); g.arc(0, h, k * 78 * u, -Math.PI / 2, 0); g.closePath(); g.fill();
     }
     setFont(g, `700 ${104 * u}px ${t.display}`, `700 ${104 * u}px sans-serif`);
-    g.fillStyle = t.paper; g.textAlign = 'right'; g.fillText('Field', 566 * u, 150 * u); g.fillText('Notes', 566 * u, 250 * u);
+    g.fillStyle = t.paper; g.textAlign = 'right'; g.fillText('Field', 566 * u, 150 * u, 400 * u); g.fillText('Notes', 566 * u, 250 * u, 400 * u);
     label(POSTERS[2].subtitle, 566 * u, 300 * u, t.paper, 'right');
     label('Sample poster', 36 * u, 56 * u, t.paper);
   }

@@ -4,7 +4,8 @@ Generated from `${CLAUDE_PLUGIN_ROOT}/library/src/three/` (re-checked against th
 written). Everything is re-exported from `library/src/three/index.ts` (package path `@studio3/library/three` in the
 Studio³ repository; in a project, wherever the folder was copied). React parts need `react`, `three` and
 `@react-three/fiber`; `capabilities`, `quality`, `dispose` and `vanilla` need only `three`. If an export below is
-missing in your copy, the copy is older: re-copy the folder.
+missing in your copy, the copy is older: re-copy the folder. The kit's own overview is
+`library/src/three/README.md`.
 
 ## capabilities.ts
 

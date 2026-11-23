@@ -14,25 +14,31 @@ function Aurora({ params, animate }: { params: Params; animate: boolean }) {
   const invalidate = useThree((s) => s.invalidate);
   const size = useThree((s) => s.size);
   const pointer = useRef(new Vector2(0.5, 0.5));
+  // Initial values only. R3F 9 copies each uniform into the material's own `uniforms` object when the prop is
+  // applied, so later writes must go through the material instance (mat.current.uniforms), never this object.
   const uniforms = useMemo(() => ({
-    uTime: { value: 0 }, uBands: { value: 2.4 }, uGrain: { value: 0.06 }, uAspect: { value: 1 },
-    uPointer: { value: new Vector2(0.5, 0.5) }, uColorA: { value: new Color() }, uColorB: { value: new Color() },
+    uTime: { value: 0 }, uBands: { value: params.bands }, uGrain: { value: params.grain }, uAspect: { value: 1 },
+    uPointer: { value: new Vector2(0.5, 0.5) }, uColorA: { value: new Color(params.colorA) }, uColorB: { value: new Color(params.colorB) },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }), []);
 
   useEffect(() => {
-    uniforms.uBands.value = params.bands;
-    uniforms.uGrain.value = params.grain;
-    uniforms.uColorA.value.set(params.colorA);
-    uniforms.uColorB.value.set(params.colorB);
-    uniforms.uAspect.value = size.width / Math.max(1, size.height);
+    const u = mat.current?.uniforms;
+    if (!u) return;
+    u.uBands.value = params.bands;
+    u.uGrain.value = params.grain;
+    (u.uColorA.value as Color).set(params.colorA);
+    (u.uColorB.value as Color).set(params.colorB);
+    u.uAspect.value = size.width / Math.max(1, size.height);
     invalidate();
-  }, [params.bands, params.grain, params.colorA, params.colorB, size, uniforms, invalidate]);
+  }, [params.bands, params.grain, params.colorA, params.colorB, size, invalidate]);
 
   useFrame((state, dt) => {
-    if (!animate) return;
-    uniforms.uTime.value += dt * params.speed;
+    const u = mat.current?.uniforms;
+    if (!animate || !u) return;
+    u.uTime.value += dt * params.speed;
     pointer.current.set(state.pointer.x * 0.5 + 0.5, state.pointer.y * 0.5 + 0.5);
-    uniforms.uPointer.value.lerp(pointer.current, 1 - Math.exp(-dt * 3));
+    (u.uPointer.value as Vector2).lerp(pointer.current, 1 - Math.exp(-dt * 3));
   });
 
   return (

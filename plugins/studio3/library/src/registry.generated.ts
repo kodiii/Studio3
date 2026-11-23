@@ -7,6 +7,7 @@ import { meta as e_cameraPresetRig } from './effects/camera-preset-rig/meta';
 import { meta as e_commandMenuReveal } from './effects/command-menu-reveal/meta';
 import { meta as e_cssCubeCarousel } from './effects/css-cube-carousel/meta';
 import { meta as e_dotGridPointerField } from './effects/dot-grid-pointer-field/meta';
+import { meta as e_dragReorderList } from './effects/drag-reorder-list/meta';
 import { meta as e_expandingCardDetail } from './effects/expanding-card-detail/meta';
 import { meta as e_explodedView } from './effects/exploded-view/meta';
 import { meta as e_flipCard3d } from './effects/flip-card-3d/meta';
@@ -30,6 +31,7 @@ import { meta as e_particleFieldGpu } from './effects/particle-field-gpu/meta';
 import { meta as e_pollResultBars } from './effects/poll-result-bars/meta';
 import { meta as e_pressDepthButton } from './effects/press-depth-button/meta';
 import { meta as e_progressOrbitLoader } from './effects/progress-orbit-loader/meta';
+import { meta as e_pullToRevealSheet } from './effects/pull-to-reveal-sheet/meta';
 import { meta as e_reactionBurst } from './effects/reaction-burst/meta';
 import { meta as e_scrambleDecode } from './effects/scramble-decode/meta';
 import { meta as e_scrollCameraDolly } from './effects/scroll-camera-dolly/meta';
@@ -47,7 +49,12 @@ import { meta as d__3d_particleExperience } from './demos/3d/particle-experience
 import { meta as d__3d_physicsPlayground } from './demos/3d/physics-playground/meta';
 import { meta as d__3d_productConfigurator } from './demos/3d/product-configurator/meta';
 import { meta as d__3d_spatialData } from './demos/3d/spatial-data/meta';
+import { meta as d_cinematic_kineticTypography } from './demos/cinematic/kinetic-typography/meta';
+import { meta as d_cinematic_scrollNarrative } from './demos/cinematic/scroll-narrative/meta';
 import { meta as d_data_financialDashboard } from './demos/data/financial-dashboard/meta';
+import { meta as d_data_liveMonitoring } from './demos/data/live-monitoring/meta';
+import { meta as d_product_productConfigurator } from './demos/product/product-configurator/meta';
+import { meta as d_social_creatorFeed } from './demos/social/creator-feed/meta';
 
 export const effects: readonly EffectEntry[] = [
   { meta: e_barRaceTransition, load: () => import('./effects/bar-race-transition/index') },
@@ -57,6 +64,7 @@ export const effects: readonly EffectEntry[] = [
   { meta: e_commandMenuReveal, load: () => import('./effects/command-menu-reveal/index') },
   { meta: e_cssCubeCarousel, load: () => import('./effects/css-cube-carousel/index') },
   { meta: e_dotGridPointerField, load: () => import('./effects/dot-grid-pointer-field/index') },
+  { meta: e_dragReorderList, load: () => import('./effects/drag-reorder-list/index') },
   { meta: e_expandingCardDetail, load: () => import('./effects/expanding-card-detail/index') },
   { meta: e_explodedView, load: () => import('./effects/exploded-view/index') },
   { meta: e_flipCard3d, load: () => import('./effects/flip-card-3d/index') },
@@ -80,6 +88,7 @@ export const effects: readonly EffectEntry[] = [
   { meta: e_pollResultBars, load: () => import('./effects/poll-result-bars/index') },
   { meta: e_pressDepthButton, load: () => import('./effects/press-depth-button/index') },
   { meta: e_progressOrbitLoader, load: () => import('./effects/progress-orbit-loader/index') },
+  { meta: e_pullToRevealSheet, load: () => import('./effects/pull-to-reveal-sheet/index') },
   { meta: e_reactionBurst, load: () => import('./effects/reaction-burst/index') },
   { meta: e_scrambleDecode, load: () => import('./effects/scramble-decode/index') },
   { meta: e_scrollCameraDolly, load: () => import('./effects/scroll-camera-dolly/index') },
@@ -100,5 +109,10 @@ export const demos: readonly DemoEntry[] = [
   { meta: d__3d_physicsPlayground, load: () => import('./demos/3d/physics-playground/index') },
   { meta: d__3d_productConfigurator, load: () => import('./demos/3d/product-configurator/index') },
   { meta: d__3d_spatialData, load: () => import('./demos/3d/spatial-data/index') },
+  { meta: d_cinematic_kineticTypography, load: () => import('./demos/cinematic/kinetic-typography/index') },
+  { meta: d_cinematic_scrollNarrative, load: () => import('./demos/cinematic/scroll-narrative/index') },
   { meta: d_data_financialDashboard, load: () => import('./demos/data/financial-dashboard/index') },
+  { meta: d_data_liveMonitoring, load: () => import('./demos/data/live-monitoring/index') },
+  { meta: d_product_productConfigurator, load: () => import('./demos/product/product-configurator/index') },
+  { meta: d_social_creatorFeed, load: () => import('./demos/social/creator-feed/index') },
 ];

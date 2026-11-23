@@ -171,82 +171,32 @@ One draw call for many copies of the same geometry and material. Working referen
 - Changing `args` recreates the mesh; to vary the visible number, allocate the maximum and set `mesh.count`.
 - Different geometries sharing one material: `BatchedMesh`. Drei's `<Instances>`/`<Merged>` are declarative
   wrappers when per-instance React components are worth their cost.
-- Instances moved every frame: update only the changed range, and call `computeBoundingSphere()` or set
-  `frustumCulled={false}` (the `scroll-camera-dolly` recipe does the latter).
 
 ## 8. GPU particles
 
 Move particles in the vertex shader from time and a per-particle seed; the CPU writes one uniform per frame.
 
-```tsx
-'use client';
-import { useFrame, useThree } from '@react-three/fiber';
-import { useEffect, useMemo } from 'react';
-import { AdditiveBlending, BufferGeometry, Float32BufferAttribute } from 'three';
-import { useStudioMotion } from './motion';
-import { useQuality } from './three';
-
-const vert = /* glsl */ `
-attribute float aSeed;
-uniform float uTime;
-uniform float uSize;
-uniform float uPixelRatio;
+```glsl
+attribute float aSeed;               // per-particle random in 0..1, generated once (seeded)
+uniform float uTime, uSize, uPixelRatio;
 varying float vFade;
 void main() {
   vec3 p = position;
   float t = uTime * (0.2 + aSeed * 0.3);
-  p.y = mod(p.y + 2.0 + t, 4.0) - 2.0;           // rise and wrap, entirely on the GPU
+  p.y = mod(p.y + 2.0 + t, 4.0) - 2.0;            // rise and wrap, entirely on the GPU
   p.x += sin(t * 2.0 + aSeed * 6.2831) * 0.15;
   vec4 mv = modelViewMatrix * vec4(p, 1.0);
   gl_Position = projectionMatrix * mv;
-  gl_PointSize = uSize * uPixelRatio / -mv.z;     // size attenuation
+  gl_PointSize = uSize * uPixelRatio / -mv.z;      // size attenuation; uPixelRatio from useThree(s => s.viewport.dpr)
   vFade = 1.0 - abs(p.y) / 2.0;
-}`;
-const frag = /* glsl */ `
-varying float vFade;
-void main() {
-  float d = length(gl_PointCoord - 0.5);
-  if (d > 0.5) discard;
-  gl_FragColor = vec4(1.0, 0.72, 0.45, (1.0 - d * 2.0) * vFade);
-  #include <colorspace_fragment>
-}`;
-
-export function Embers({ base = 4000 }: { base?: number }) {
-  const { density } = useQuality();
-  const { reduced } = useStudioMotion();
-  const dpr = useThree((s) => s.viewport.dpr);
-  const invalidate = useThree((s) => s.invalidate);
-  const count = Math.round(base * density);
-  const geometry = useMemo(() => {
-    const g = new BufferGeometry();
-    const pos = new Float32Array(count * 3);
-    const seed = new Float32Array(count);
-    for (let i = 0; i < count; i++) {
-      const h = Math.sin(i * 78.233) * 43758.5453;
-      const r = h - Math.floor(h);
-      pos.set([(r - 0.5) * 6, ((i * 0.618) % 1) * 4 - 2, ((i * 0.381) % 1) * 3 - 1.5], i * 3);
-      seed[i] = r;
-    }
-    g.setAttribute('position', new Float32BufferAttribute(pos, 3));
-    g.setAttribute('aSeed', new Float32BufferAttribute(seed, 1));
-    return g;
-  }, [count]);
-  useEffect(() => () => geometry.dispose(), [geometry]);
-  const uniforms = useMemo(() => ({ uTime: { value: 0 }, uSize: { value: 40 }, uPixelRatio: { value: 1 } }), []);
-  useEffect(() => { uniforms.uPixelRatio.value = dpr; invalidate(); }, [dpr, uniforms, invalidate]);
-  useEffect(() => { invalidate(); }, [reduced, invalidate]);
-  useFrame((state, dt) => {
-    if (reduced) return; // decorative: holds still under reduced motion
-    uniforms.uTime.value += Math.min(dt, 1 / 30);
-    state.invalidate();
-  });
-  return (
-    <points geometry={geometry} frustumCulled={false}>
-      <shaderMaterial uniforms={uniforms} vertexShader={vert} fragmentShader={frag} transparent depthWrite={false} blending={AdditiveBlending} />
-    </points>
-  );
 }
 ```
+
+On the CPU side: build the `BufferGeometry` (positions plus the `aSeed` attribute) in `useMemo` keyed on the count
+and dispose it in an effect cleanup (a prop-passed geometry is not disposed by R3F); render `<points>` with a
+`shaderMaterial` (`transparent`, `depthWrite={false}`, `AdditiveBlending`, `frustumCulled={false}`); in `useFrame`
+add the clamped `dt` to `uTime` and call `invalidate()` unless reduced motion holds the field still. Working code:
+the `particle-field-gpu` recipe and the `particle-experience` demo (three forms morphing in the vertex shader).
 
 - Count from `useQuality().density` (1 / 0.6 / 0.3 by default); fill rate, not vertex count, is the usual limit:
   large soft sprites with additive blending cost the most.

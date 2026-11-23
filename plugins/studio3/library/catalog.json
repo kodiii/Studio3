@@ -670,6 +670,109 @@
       ]
     },
     {
+      "id": "drag-reorder-list",
+      "name": "Drag Reorder List",
+      "description": "A running order you rearrange by its drag handles: the picked-up row lifts on a token spring, its neighbours make room with layout animation (Motion Reorder) and every start time is recalculated. The handle is also a full keyboard control (Space to pick up, arrows to move, Space to drop, Escape to cancel) with live announcements.",
+      "category": "gestures",
+      "specialties": [
+        "product",
+        "data"
+      ],
+      "technology": [
+        "motion",
+        "css"
+      ],
+      "interaction": [
+        "drag",
+        "keyboard",
+        "press"
+      ],
+      "complexity": 3,
+      "intensity": "subtle",
+      "applications": [
+        "playlist or agenda ordering",
+        "priority and backlog lists",
+        "form-builder field order",
+        "navigation or dashboard customisation"
+      ],
+      "dependencies": [
+        {
+          "name": "motion",
+          "version": "^14.14.0"
+        }
+      ],
+      "params": [
+        {
+          "key": "lift",
+          "label": "Lift scale",
+          "type": "number",
+          "default": 1.03,
+          "min": 1,
+          "max": 1.08,
+          "step": 0.01
+        },
+        {
+          "key": "spring",
+          "label": "Spring token",
+          "type": "select",
+          "default": "settle",
+          "options": [
+            "settle",
+            "press",
+            "release",
+            "glide"
+          ]
+        },
+        {
+          "key": "dragFrom",
+          "label": "Drag from",
+          "type": "select",
+          "default": "handle",
+          "options": [
+            "handle",
+            "row"
+          ]
+        },
+        {
+          "key": "times",
+          "label": "Show start times",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "key": "density",
+          "label": "Density",
+          "type": "select",
+          "default": "comfortable",
+          "options": [
+            "comfortable",
+            "compact"
+          ]
+        }
+      ],
+      "accessibility": [
+        "Each row has a real handle button (44 px) named \"Move <segment>, position n of N\" and described by the keyboard instructions; aria-pressed shows when it is picked up.",
+        "Space or Enter picks up and drops, Up/Down move one place, Home/End jump to the ends, Escape restores the original order and leaving the handle drops the row.",
+        "An assertive live region announces pick-up, every move (with the new start time), drops, cancels and the result of pointer drags.",
+        "Focus stays on the moving handle throughout; the list is an ordered list, so position is also conveyed by the list semantics."
+      ],
+      "reducedMotion": "Rows swap places instantly and the picked-up row is marked by its border and shadow instead of scaling; a pointer drag still follows the pointer because that movement is user-controlled.",
+      "performance": [
+        "Motion Reorder moves rows with transforms (layout projection); only the dragged row follows the pointer and nothing animates layout properties.",
+        "Start times are derived from the order in one pass per change; no timers or observers.",
+        "Per-row drag controls start the gesture from the handle only, so text selection and scrolling elsewhere stay native."
+      ],
+      "preview": {
+        "height": 620
+      },
+      "path": "library/src/effects/drag-reorder-list",
+      "files": [
+        "index.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
       "id": "expanding-card-detail",
       "name": "Expanding Card Detail",
       "description": "A programme of poster cards where the chosen card grows into a detail panel: card surface, poster and headline are shared elements (Motion layoutId) that travel on a token spring, the details fade in behind them, and focus moves into the panel while the grid goes inert.",
@@ -2950,6 +3053,123 @@
       ]
     },
     {
+      "id": "pull-to-reveal-sheet",
+      "name": "Pull-to-Reveal Sheet",
+      "description": "A transit-stop bottom sheet over a drawn map: pull its header between peek, half and full snap points, push past the ends to feel it rubber-band, and fling it to skip a stop. Release velocity picks the snap, a token spring carries that velocity, and the map dims in proportion to how far the sheet is open.",
+      "category": "gestures",
+      "specialties": [
+        "product"
+      ],
+      "technology": [
+        "motion",
+        "css",
+        "svg"
+      ],
+      "interaction": [
+        "drag",
+        "press",
+        "keyboard"
+      ],
+      "complexity": 3,
+      "intensity": "moderate",
+      "applications": [
+        "map or location details",
+        "mobile filters and sort panels",
+        "player or queue drawer",
+        "checkout summary on small screens"
+      ],
+      "dependencies": [
+        {
+          "name": "motion",
+          "version": "^14.14.0"
+        }
+      ],
+      "params": [
+        {
+          "key": "snaps",
+          "label": "Snap points",
+          "type": "select",
+          "default": "peek-half-full",
+          "options": [
+            "peek-half-full",
+            "peek-full"
+          ]
+        },
+        {
+          "key": "spring",
+          "label": "Spring token",
+          "type": "select",
+          "default": "settle",
+          "options": [
+            "settle",
+            "release",
+            "glide",
+            "press"
+          ]
+        },
+        {
+          "key": "elastic",
+          "label": "Rubber band",
+          "type": "number",
+          "default": 0.18,
+          "min": 0,
+          "max": 0.5,
+          "step": 0.02
+        },
+        {
+          "key": "flick",
+          "label": "Flick velocity",
+          "type": "number",
+          "default": 650,
+          "min": 200,
+          "max": 1600,
+          "step": 50,
+          "unit": "px/s"
+        },
+        {
+          "key": "peek",
+          "label": "Peek height",
+          "type": "number",
+          "default": 112,
+          "min": 88,
+          "max": 168,
+          "step": 4,
+          "unit": "px"
+        },
+        {
+          "key": "dim",
+          "label": "Map dim at full",
+          "type": "number",
+          "default": 45,
+          "min": 0,
+          "max": 70,
+          "step": 5,
+          "unit": "%"
+        }
+      ],
+      "accessibility": [
+        "The sheet header is a button with aria-expanded and aria-controls: Enter/Space toggles peek ↔ open, Up/Down step between snap points, Home/End jump to full or peek.",
+        "Visible Expand and Collapse step buttons do everything a drag does with a single press (WCAG 2.5.7); they stay focusable at the limits (aria-disabled) so focus is never dropped.",
+        "Escape collapses the sheet from anywhere inside it and returns focus to the header; at peek the hidden content is inert, and when open the list scrolls within the visible part, so nothing focusable is ever off-screen.",
+        "A polite status line reports the sheet position after drags, presses and keys; the map is decorative (aria-hidden) and every departure is written as text."
+      ],
+      "reducedMotion": "No spring travel: snap points, buttons and keys jump straight to the target and the scrim follows instantly. Dragging still tracks the pointer because that movement is under the user’s control.",
+      "performance": [
+        "The sheet moves by one motion value (translateY); the scrim opacity is derived from it, so dragging causes no React renders.",
+        "Snap offsets are recomputed only when the frame is resized (ResizeObserver), and the list height changes only when a snap settles.",
+        "The map is a single static SVG; no layout properties are animated."
+      ],
+      "preview": {
+        "height": 680
+      },
+      "path": "library/src/effects/pull-to-reveal-sheet",
+      "files": [
+        "index.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
       "id": "reaction-burst",
       "name": "Reaction Burst",
       "description": "Reaction toggles that throw a short burst of matching shapes on a ballistic arc — launch cone, gravity, air drag and spin — while the count pops. Particles are drawn from a fixed pool on one canvas that sleeps when nothing is in the air.",
@@ -4313,6 +4533,95 @@
       ]
     },
     {
+      "id": "kinetic-typography",
+      "name": "Radio Haar — the night forecast",
+      "specialty": "cinematic",
+      "summary": "A kinetic type piece staged as a late-night shipping forecast for a fictional coast: every cue uses a different type technique, and one pause control stills them all.",
+      "highlights": [
+        "Variable-font axis choreography: wind force drives weight, width and optical size of each sea area (wght 380–800, wdth 100–77, opsz 12–96), scrubbed by scroll; scroll velocity leans the list like a gust.",
+        "Composes four recipes with the piece's own copy: variable-weight-wave (pointer and keyboard), scramble-decode (tuning in), split-line-reveal (sea state) and kinetic-marquee (gale warnings, mirrored to the global pause).",
+        "Type on an SVG path: the area names run along a drawn coastline as a slow, pausable ticker that borrows speed from scrolling.",
+        "A tuning dial needle sweeps onto the station as the hero scrolls away; a timecode gutter sticks beside each cue like a transcript.",
+        "The gallery font only exposes Bricolage's wght axis, so the demo declares the local three-axis cut under its own family name, scoped to this page."
+      ],
+      "technology": [
+        "gsap",
+        "css",
+        "svg",
+        "waapi"
+      ],
+      "uses": [
+        "variable-weight-wave",
+        "scramble-decode",
+        "split-line-reveal",
+        "kinetic-marquee"
+      ],
+      "has3d": false,
+      "accessibility": [
+        "One accessible copy of every animated line: the recipes expose their sentence once (aria-label or visually hidden copy), the coastline is an image with a title and a description listing the areas, and a plain list of areas follows it.",
+        "A visible Pause motion toggle (aria-pressed) in the sticky bar stops the idle weight wave, the coastline ticker and the marquee (WCAG 2.2.2).",
+        "The weight-wave headline is focusable and responds to arrow keys; every pointer-reactive moment has a keyboard or scroll equivalent.",
+        "Wind force is stated in words in every row; the axis changes only reinforce it. Gale rows add weight and signal colour plus the word \"gale\"."
+      ],
+      "reducedMotion": "Everything is still: rows sit at their force axes without scrubbing or skew, the coastline shows one static run of names, the dial rests on the station, recipes show their final states, and the pause control is replaced by a note.",
+      "performance": [
+        "Axis changes are confined to six short, nowrap display lines (one reflow per frame while scrubbing), driven by one scrubbed timeline; the gust uses a single quickTo on the list.",
+        "The coastline ticker and recipes run on useRafLoop, so they stop offscreen, in hidden tabs and when paused.",
+        "All triggers are created inside useGSAP and reverted on unmount; one ResizeObserver and a fonts-ready listener refresh them."
+      ],
+      "path": "library/src/demos/cinematic/kinetic-typography",
+      "files": [
+        "index.tsx",
+        "Coastline.tsx",
+        "styles.module.css",
+        "Winds.tsx",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "scroll-narrative",
+      "name": "The Long Bend — a river in five stages",
+      "specialty": "cinematic",
+      "summary": "An editorial scroll story about how a fictional river carves, widens and furnishes its valley: stepped text in normal flow beside a sticky survey drawing that is scrubbed from stage to stage.",
+      "highlights": [
+        "Sticky-graphic scrollytelling: the step text stays in the normal document flow, so it is also the reduced-motion and no-script version of the story.",
+        "The figure is a pure function of the stage t (0–4): meanders are a sine-generated curve whose angle grows, a neck cut-off leaves an oxbow lake, terraces and a channel scar appear — all redrawn from one scrubbed GSAP timeline with rest zones on every stage.",
+        "One ScrollTrigger (window scroller) owns the timeline; React state changes only when the current stage changes. The trigger refreshes after web fonts load and whenever the demo frame changes width.",
+        "A progress rail of named stage buttons (aria-current=\"step\") jumps to each stage and moves focus to its heading; a skip link passes the whole sequence.",
+        "At narrow widths the figure sticks above the text and the reading line moves below it."
+      ],
+      "technology": [
+        "gsap",
+        "svg",
+        "css",
+        "waapi"
+      ],
+      "uses": [
+        "split-line-reveal"
+      ],
+      "has3d": false,
+      "accessibility": [
+        "Every stage is a section with its own heading in reading order; the drawing has one text description and a visible caption naming the current stage.",
+        "Stage buttons have visible names that match their accessible names, carry aria-current and are at least 40 px tall; focus goes to the stage heading after a jump.",
+        "Nothing is conveyed by motion alone: each stage has its text, a \"look for\" note and a caption.",
+        "Text uses theme tokens; the water colour passes 4.5:1 on all three surfaces in both themes."
+      ],
+      "reducedMotion": "No sticky figure and no scrubbing: each stage gets its own still drawing next to its text, the rail follows the stage in view, buttons jump without smooth scrolling and the closing title appears without its word reveal.",
+      "performance": [
+        "Scroll work is one scrubbed timeline; per frame the painter rewrites about twenty path attributes, skipping unchanged values. No layout reads inside the loop.",
+        "Geometry generation is O(n) apart from a small neck search (about 20k distance checks) and only runs while the stage changes.",
+        "useGSAP with revertOnUpdate kills the trigger and timeline on unmount or reduced-motion change; the ResizeObserver and font listener are released with it."
+      ],
+      "path": "library/src/demos/cinematic/scroll-narrative",
+      "files": [
+        "index.tsx",
+        "styles.module.css",
+        "valley.ts",
+        "ValleySvg.tsx",
+        "meta.ts"
+      ]
+    },
+    {
       "id": "financial-dashboard",
       "name": "Fernhollow fund terminal",
       "specialty": "data",
@@ -4359,6 +4668,150 @@
         "RangeBrush.tsx",
         "styles.module.css",
         "Ticker.tsx",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "live-monitoring",
+      "name": "Switchyard agent fleet",
+      "specialty": "data",
+      "summary": "Simulated live monitoring of a fictional freight company’s AI-agent fleet: a one-second seeded stream, lamp-lit status cells with latency sparklines, anomaly rules with stated thresholds, an event log that holds still while you read it, and a pause that freezes the view while data keeps arriving.",
+      "highlights": [
+        "The stream is stateless: every sample is a pure function of seed, agent and wall-clock second, so history, catch-up after a background tab and live ticks all agree.",
+        "Anomaly rules run on the stream as it arrives — latency z-score against a frozen 2-minute baseline, a 10-second error rate, throughput against its own average — and every event states the rule and the numbers.",
+        "Selecting an agent swaps the fleet chart for that agent’s p95 with its expected band and anomalous spans; switching the 1/5/15-minute window morphs values and domain together (the line-chart-morph technique, adapted locally because the recipe component ships its own dataset).",
+        "Restrained live emphasis: one ring per received tick on the status lamp, no tweening of live values, no re-sorting, nothing that flashes; the log freezes under pointer or focus and offers “Show N new”.",
+        "Designed states: connecting (before the first sample), live, paused with “N s behind”, stale, and an operator-paused agent with no samples rather than zeros."
+      ],
+      "technology": [
+        "d3",
+        "svg",
+        "waapi",
+        "css"
+      ],
+      "uses": [
+        "line-chart-morph"
+      ],
+      "has3d": false,
+      "accessibility": [
+        "Pause stream is a real button (aria-pressed) and freezes every visual update (WCAG 2.2.2); pausing and resuming are announced.",
+        "One polite status region announces new anomalies only, summarised, at most once every 15 seconds — never every tick.",
+        "Status is word + shape + colour (square healthy, triangle degraded, octagon failing, bars paused); anomalies also carry a text chip.",
+        "Agent cells are buttons with their full readout as text; “View as table” lists every agent’s current values; the chart is an image with a computed summary that is also printed below it.",
+        "The event log is a focusable scroll region that holds still while focused or hovered."
+      ],
+      "reducedMotion": "The live lamp stops ringing, window changes cut instead of morphing, and nothing else animates; values still update every second unless paused.",
+      "performance": [
+        "One 1 s interval drives everything; a tick appends 11 samples, runs three O(120) rules per agent and re-renders once.",
+        "Windows are resampled to 240 points (max-preserving for latency so spikes survive); sparklines draw 60 points each.",
+        "Buffers hold 15 minutes (900 ticks) per agent and are trimmed in place; a long background gap rebuilds instead of replaying."
+      ],
+      "dataNote": "Simulated stream (seed 4127): seeded value noise, jitter and hashed incidents per agent and second, timestamped with your clock in UTC. Agent names, the company and every figure are invented; no real models, customers or systems.",
+      "path": "library/src/demos/data/live-monitoring",
+      "files": [
+        "index.tsx",
+        "FleetChart.tsx",
+        "sim.ts",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "product-configurator",
+      "name": "Hollin Drover Build Sheet",
+      "specialty": "product",
+      "summary": "A lightweight bike configurator with no WebGL: a parametric SVG side elevation that redraws from the frame geometry, native radio groups, a running price, URL-shareable state and a link to the 3D Studio for the case where 3D is worth it.",
+      "highlights": [
+        "Choosing the cheaper technique on purpose: bikes are judged side-on, so a computed SVG elevation answers every question a 3D model would, with no download and no GPU budget.",
+        "The drawing is generated from a geometry table (stack, reach, angles, tyre width): changing size tweens the frame itself and its live dimension lines instead of swapping pictures.",
+        "Parts, paints and fitted extras change with cross-fades of layered SVG groups; paint is a colour transition on the tube strokes.",
+        "Page-owned state serialised to the URL hash (replaceState), restored on load and on hashchange; one polite status line per change; build code and price recomputed in the same frame.",
+        "An incompatibility handled in words: 45 mm tyres remove fenders with a visible notice and Undo, and the blocked option explains itself and offers a one-press fix.",
+        "Price total rolls with an odometer (the number-ticker recipe’s digit-column technique, re-implemented to accept any value because the recipe only plays its own preset series)."
+      ],
+      "technology": [
+        "svg",
+        "css",
+        "waapi"
+      ],
+      "uses": [],
+      "collaborates": [
+        "3d",
+        "motion-lab"
+      ],
+      "has3d": false,
+      "accessibility": [
+        "Every option group is a fieldset with a legend; options are native radios (checkboxes for independent extras) whose labels carry the name, note and price, so colour is never the only signal.",
+        "The drawing is role=\"img\" with a title and a description of the current build and its key dimensions; the overlaid dimension labels are aria-hidden duplicates of a visible geometry table.",
+        "Each change is announced once through a polite status line (\"Paint: Marigold. Total $1,950.\"); the rolling price digits are aria-hidden with the plain value in text.",
+        "The blocked fender option stays focusable (aria-disabled) and is described by the reason plus a button that resolves the conflict.",
+        "Sticky drawing on narrow screens: option inputs carry scroll-margin so a focused control is never hidden under it."
+      ],
+      "reducedMotion": "The geometry tween, part cross-fades and paint transitions are skipped (state applies instantly); the price swaps without rolling.",
+      "performance": [
+        "No WebGL, no model or image downloads: the drawing is about two hundred SVG elements computed from a dozen numbers.",
+        "The size tween re-renders the SVG for 360 ms through one requestAnimationFrame loop that is cancelled on retarget or unmount.",
+        "Cross-fades animate opacity and transform only; spokes and dimension lines use non-scaling strokes so they stay crisp at every width."
+      ],
+      "dataNote": "Hollin Cycles, the Drover, its geometry, prices and lead time are fictional sample data. The number of valid builds is computed from the option data.",
+      "path": "library/src/demos/product/product-configurator",
+      "files": [
+        "index.tsx",
+        "bike.ts",
+        "Drawing.tsx",
+        "styles.module.css",
+        "Ticker.tsx",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "creator-feed",
+      "name": "Creator Feed",
+      "specialty": "social",
+      "summary": "A risograph printer’s profile and field-note feed where every like, save, follow and comment answers in the same frame, reconciles with a simulated server, rolls back with a reason, and the feed ends with “You’re all caught up”.",
+      "highlights": [
+        "Optimistic toggles send the final intended state (debounced, with an idempotency key), reconcile counts with the server value and roll back visibly with a reason — switch on “Simulate failed requests” to watch it.",
+        "Like and save morph instead of swapping icons (like-heart-morph technique, made controllable so a rollback plays the quiet reverse); the pinned note composes the reaction-burst recipe as-is.",
+        "Comments drawer: optimistic insertion with Sending… / Posted / Not posted + Retry and Edit, drafts kept per post, the audience stated before posting, focus trapped and returned.",
+        "Share uses navigator.share when the browser has it; otherwise a copy-link sheet with a polite confirmation (and a select-the-text fallback when the clipboard is blocked).",
+        "A chronological feed with a natural end; suggested reading sits after the caught-up marker, is labelled “not from accounts you follow” and can be hidden. “Hide like counts” is one tap away.",
+        "Ethics checklist (studio-social §9): no ticking or invented activity, counts labelled sample data, no gated content, unfollow as easy as follow, comment audience visible before posting."
+      ],
+      "technology": [
+        "svg",
+        "waapi",
+        "css",
+        "canvas2d"
+      ],
+      "uses": [
+        "reaction-burst",
+        "like-heart-morph"
+      ],
+      "has3d": false,
+      "accessibility": [
+        "ARIA feed pattern: role=\"feed\" with labelled articles, aria-posinset/aria-setsize; Page Down / Page Up move between posts.",
+        "Like, save, follow and the settings are toggle buttons (aria-pressed / role=\"switch\") with stable names; counts are text.",
+        "Double-tap on a print likes it (touch and mouse) — a shortcut only; the Like button is always visible.",
+        "The proofs carousel scrolls natively with snap points, has Previous/Next buttons and a “1/3” position in words; the track is focusable for arrow-key scrolling.",
+        "Sheets are modal dialogs contained in the demo: the page behind is inert, Tab wraps inside, Esc and the scrim close, focus returns to the opener.",
+        "Failures are shown next to the control and announced once in a polite status region; user-written text uses dir=\"auto\" (one comment is right-to-left)."
+      ],
+      "reducedMotion": "Like and save cross-fade their fill in 160 ms (no spring, ring or rays); the double-tap heart and reaction particles are removed; sheets and new comments fade instead of sliding; the carousel jumps instead of smooth-scrolling.",
+      "performance": [
+        "Prints are inline SVG (the halftone moon is a single path) with reserved 4:5 aspect ratios, so nothing shifts while the feed renders.",
+        "All motion is WAAPI on transform and opacity; every running sequence is cancelled on unmount or on the next toggle.",
+        "The simulated server uses timers only; all of them are cleared on unmount."
+      ],
+      "dataNote": "Sample content: Ines Varga, Tidewater Print Club, Wrenmouth, every comment and every like/follower count are fictional. Requests go to an in-memory simulated server with ~0.7 s latency; nothing leaves the page.",
+      "path": "library/src/demos/social/creator-feed",
+      "files": [
+        "index.tsx",
+        "data.ts",
+        "MorphToggle.tsx",
+        "Prints.tsx",
+        "Sheet.tsx",
+        "store.ts",
+        "styles.module.css",
         "meta.ts"
       ]
     }

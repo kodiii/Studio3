@@ -150,7 +150,7 @@ export function deriveSignals(pages, site) {
     else { const w = maxBy(vals, (p) => -p.dom.text.bodyTextPx); put('usability.bodyTextSize', w.dom.text.bodyTextPx, `Body text is ${w.dom.text.bodyTextPx}px on ${at(w)} (smallest page; character-weighted median).`, vals.map((p) => `${at(p)}: ${p.dom.text.bodyTextPx}px`)); } }
   { const vals = primary.filter((p) => p.dom.lineLength.medianChars != null).map((p) => p.dom.lineLength.medianChars).sort((a, b) => a - b);
     if (!vals.length) na('usability.lineLength', 'no multi-line paragraphs of 120+ characters');
-    else { const m = vals[Math.floor(vals.length / 2)]; put('usability.lineLength', m, `Paragraphs run about ${m} characters per line (median over routes).`, primary.filter((p) => p.dom.lineLength.medianChars != null).map((p) => `${p.route}: ${p.dom.lineLength.medianChars} chars/line over ${p.dom.lineLength.paragraphs} paragraph(s)`)); } }
+    else { const mid = vals.length / 2; const m = Math.round(vals.length % 2 ? vals[Math.floor(mid)] : (vals[mid - 1] + vals[mid]) / 2); put('usability.lineLength', m, `Paragraphs run about ${m} characters per line (median over routes).`, primary.filter((p) => p.dom.lineLength.medianChars != null).map((p) => `${p.route}: ${p.dom.lineLength.medianChars} chars/line over ${p.dom.lineLength.paragraphs} paragraph(s)`)); } }
   { const over = pages.filter((p) => p.dom.overflowPx > 1);
     put('usability.noHorizontalScroll', r3(1 - over.length / pages.length), over.length ? `${over.length} of ${pages.length} pages scroll horizontally.` : `No page scrolls horizontally (${pages.length} checked).`, over.map((p) => `${at(p)}: ${p.dom.overflowPx}px wider than the viewport`)); }
 
@@ -273,7 +273,7 @@ export function deriveSignals(pages, site) {
   // ---- cognitive load ------------------------------------------------------------------
   { const w = maxBy(primary, (p) => p.dom.text.fontSizes.length); put('cognitiveLoad.fontSizes', w.dom.text.fontSizes.length, `${w.dom.text.fontSizes.length} distinct font sizes on ${w.route} (${w.dom.text.fontSizes.join(', ')} px).`, primary.map((p) => `${p.route}: ${p.dom.text.fontSizes.length} sizes`)); }
   { const w = maxBy(primary, (p) => p.dom.text.colorCount); put('cognitiveLoad.textColors', w.dom.text.colorCount, `${w.dom.text.colorCount} distinct text colours on ${w.route}.`, primary.map((p) => `${p.route}: ${p.dom.text.colorCount} colours`)); }
-  { const w = maxBy(pages, (p) => p.dom.actionsAboveFold.count); put('cognitiveLoad.competingActions', w.dom.actionsAboveFold.count, `${w.dom.actionsAboveFold.count} button-like action(s) compete in the first viewport of ${at(w)}.`, w.dom.actionsAboveFold.examples.map((e) => `${at(w)}: ${e.selector} "${e.text}"`)); }
+  { const w = maxBy(pages, (p) => p.dom.actionsAboveFold.prominent); put('cognitiveLoad.competingActions', w.dom.actionsAboveFold.prominent, `${w.dom.actionsAboveFold.prominent} prominent (filled) action(s) compete in the first viewport of ${at(w)}.`, w.dom.actionsAboveFold.prominentExamples.map((e) => `${at(w)}: ${e.selector} "${e.text}"`)); }
   { const w = maxBy(pages, (p) => p.dom.wordsAboveFold); put('cognitiveLoad.wordsAboveFold', w.dom.wordsAboveFold, `${w.dom.wordsAboveFold} words above the fold on ${at(w)} (worst page).`, pages.map((p) => `${at(p)}: ${p.dom.wordsAboveFold} words`)); }
   { const sc = primary.map((p) => (p.dom.headings.h1 === 1 ? 0.5 : 0) + (p.dom.headings.skips === 0 ? 0.5 : 0));
     const bad = primary.filter((p, i) => sc[i] < 1);

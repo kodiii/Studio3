@@ -185,7 +185,7 @@ export function pageMeasure(opts) {
     if (el.matches(NATIVE) || el.closest(NATIVE)) continue;
     if (el.querySelector('a[href],button,input,select,textarea,summary,[role="button"],[role="link"],[tabindex]:not([tabindex="-1"])')) continue;
     if (hidden(el) || !H.visible(el) || !X.onPage(el)) continue;
-    fake.push({ selector: H.sel(el), text: H.text(el, 40), why, focusable: el.tabIndex >= 0 });
+    fake.push({ selector: H.sel(el), text: H.text(el, 40), why, focusable: /** @type {any} */ (el).tabIndex >= 0 });
   }
   out.fakeControls = fake;
 
@@ -197,7 +197,7 @@ export function pageMeasure(opts) {
     const cs = getComputedStyle(a);
     if (!cs.display.startsWith('inline') || a.closest('nav,[role="navigation"],header,footer,button,[role="button"],h1,h2,h3,h4,h5,h6')) continue;
     const p = a.parentElement; if (!p) continue;
-    const aText = X.clean(a.innerText); const pText = X.clean(p.innerText);
+    const aText = X.clean(/** @type {any} */ (a).innerText); const pText = X.clean(p.innerText);
     if (!aText || pText.length < aText.length + 15) continue;
     const ps = getComputedStyle(p);
     const underline = /underline/.test(cs.textDecorationLine) || /underline/.test(ps.textDecorationLine);
@@ -249,6 +249,7 @@ export function pageMeasure(opts) {
     const t = X.clean(p.innerText);
     if (t.length < 120) continue;
     const cs = getComputedStyle(p);
+    if ((cs.webkitLineClamp && cs.webkitLineClamp !== 'none') || p.scrollHeight > p.clientHeight + 2) continue; // clamped/truncated: visible lines ≠ text
     const lh = cs.lineHeight === 'normal' ? parseFloat(cs.fontSize) * 1.2 : parseFloat(cs.lineHeight);
     const n = Math.round(p.getBoundingClientRect().height / (lh || 1));
     if (n >= 2) lines.push(Math.round(t.length / n));
@@ -308,16 +309,22 @@ export function pageMeasure(opts) {
   };
   const buttons = Array.from(document.querySelectorAll('a[href],button,[role="button"],input[type="submit"],input[type="button"],input[type="reset"]'))
     .filter((el) => !hidden(el) && H.visible(el) && X.onPage(el) && btnLike(el)).slice(0, 300);
-  const fold = []; const styles = new Map();
+  const effectiveBg = (el) => { for (let q = el; q; q = q.parentElement) { const c = X.rgba(getComputedStyle(q).backgroundColor); if (c && c[3] >= 0.5) return c; } return [255, 255, 255, 1]; };
+  /** filled control whose fill stands out from what is behind it (a CTA, not a ghost/chip/text button) */
+  const prominent = (el) => { const c = X.rgba(getComputedStyle(el).backgroundColor); if (!c || c[3] < 0.5) return false; const b = el.parentElement ? effectiveBg(el.parentElement) : [255, 255, 255, 1]; return Math.abs(c[0] - b[0]) + Math.abs(c[1] - b[1]) + Math.abs(c[2] - b[2]) > 60; };
+  const fold = []; const ctas = []; const styles = new Map();
   for (const el of buttons) {
     const r = el.getBoundingClientRect();
-    if (r.width * r.height >= 1200 && X.accName(el).length >= 2 && r.top < vh && r.bottom > 0) fold.push({ selector: H.sel(el), text: H.text(el, 30) });
+    if (r.width * r.height >= 1200 && X.accName(el).length >= 2 && r.top < vh && r.bottom > 0) {
+      fold.push({ selector: H.sel(el), text: H.text(el, 30) });
+      if (r.width * r.height >= 2000 && prominent(el)) ctas.push({ selector: H.sel(el), text: H.text(el, 30) });
+    }
     if (r.width < 24 || r.height < 16) continue;
     const cs = getComputedStyle(el); const bg = X.rgba(cs.backgroundColor);
     const key = [Math.round(parseFloat(cs.borderTopLeftRadius) / 2) * 2, Math.round(r.height / 4) * 4, cs.fontWeight, Math.round(parseFloat(cs.fontSize)), bg && bg[3] > 0.15 ? 'filled' : 'ghost', parseFloat(cs.borderTopWidth) > 0 && cs.borderTopStyle !== 'none' ? 'border' : 'no-border'].join('|');
     if (!styles.has(key)) styles.set(key, H.sel(el));
   }
-  out.actionsAboveFold = { count: fold.length, examples: fold.slice(0, 10) };
+  out.actionsAboveFold = { count: fold.length, examples: fold.slice(0, 10), prominent: ctas.length, prominentExamples: ctas.slice(0, 10) };
   out.buttonStyles = { count: styles.size, variants: Array.from(styles.entries()).slice(0, 12).map(([k, s]) => `${k} (${s})`) };
 
   // ---- words above the fold --------------------------------------------------------------
@@ -563,7 +570,7 @@ export function pageFormAfter() {
   const ai = fields.indexOf(a);
   const activeInvalid = ai >= 0 && (info[ai].ariaInvalid || info[ai].nativeInvalid);
   const activeAlert = !!(a && a.closest && a.closest('[role="alert"],[role="alertdialog"]')) || !!(a && a !== document.body && a.getAttribute && a.getAttribute('tabindex') === '-1' && /error|problem|invalid|required|fix/i.test(a.textContent || ''));
-  const visibleErrorText = Array.from(f.querySelectorAll('*')).filter((el) => /error|invalid|required/i.test(`${el.className && el.className.baseVal === undefined ? el.className : ''} ${el.id}`) && H.visible(el) && (el.textContent || '').trim()).length;
+  const visibleErrorText = Array.from(f.querySelectorAll('*')).filter((el) => /error|invalid|required/i.test(`${typeof el.className === 'string' ? el.className : ''} ${el.id}`) && H.visible(el) && (el.textContent || '').trim()).length;
   return { submitFired: rec.submitFired, prevented: rec.prevented, invalidEvents: rec.invalid.length, invalidFields: rec.invalid.slice(0, 5), fields: info.slice(0, 12), activeInvalid, activeAlert, active: a && a !== document.body ? H.sel(a) : 'body', liveBefore: rec.liveBefore, liveAfter: live(), requiredBefore: rec.requiredBefore, visibleErrorText };
 }
 

@@ -1,0 +1,1 @@
+export const meta = { id: 'zz-tmp-import-check', name: 'tmp', description: '', category: 'cards', technology: ['css'], specialties: [], interaction: [], applications: [], dependencies: [], complexity: 1, intensity: 'subtle', params: [], reducedMotion: '', performance: [] };

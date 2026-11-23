@@ -93,7 +93,7 @@ export function Scene({ amount, smooth, spread, stagger, accent, highlight, cut,
       { id: 'glass', base: [LENS[0], LENS[1], FRONT + 0.1 + 0.75 + 0.03], meshes: [{ geo: geos.glass, mat: m(COLORS.glass, 0.04, 0.3), rot: [Math.PI / 2, 0, 0] }] },
       { id: 'battery', base: [-0.5, -0.42, 0], meshes: [{ geo: geos.battery, mat: m(COLORS.battery, 0.5, 0.2) }] },
     ];
-    const floor = new MeshBasicMaterial({ map: blob, transparent: true, depthWrite: false, toneMapped: false, opacity: 0.5 });
+    const floor = new MeshBasicMaterial({ map: blob, transparent: true, depthWrite: false, toneMapped: false, opacity: 0.32 });
     return { parts, geos, floor, blob, accented: [parts[1].meshes[2].mat, parts[4].meshes[1].mat] };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps -- accent is applied below
   useEffect(() => () => {
@@ -139,8 +139,8 @@ export function Scene({ amount, smooth, spread, stagger, accent, highlight, cut,
     }
     // Frame the assembly: step back (and towards the lens) as it opens; narrow canvases step back further.
     const e = a.value * spread;
-    const d = (6.4 + 3.4 * e) * Math.min(1.9, Math.max(1, 1.25 / aspect));
-    tmp.target.set(0.15 + 0.2 * e, -0.05, 0.25 + 0.75 * e);
+    const d = (7.2 + 4.4 * e) * Math.min(2, Math.max(1, 1.3 / aspect));
+    tmp.target.set(0.2 + 0.35 * e, -0.05, 0.3 + 1.2 * e);
     camera.position.copy(tmp.pos.copy(tmp.dir).multiplyScalar(d).add(tmp.target));
     camera.lookAt(tmp.target);
   });
