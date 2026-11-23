@@ -67,7 +67,7 @@ function Control({ kind, params }: { kind: Kind; params: Params }) {
   const rays = Math.round(params.rays);
   const d = kind === 'like' ? HEART : BOOKMARK;
   return (
-    <button ref={ref} type="button" className={styles.control} data-kind={kind} aria-pressed={on} aria-label={kind === 'like' ? 'Like' : 'Save'} onClick={toggle}>
+    <button ref={ref} type="button" className={styles.control} data-kind={kind} aria-pressed={on} onClick={toggle}>
       <svg data-icon viewBox="0 0 48 48" width={params.size} height={params.size} aria-hidden="true" className={styles.icon}>
         {kind === 'like' && (
           <g className={styles.burst}>
@@ -80,11 +80,12 @@ function Control({ kind, params }: { kind: Kind; params: Params }) {
         <path data-fill d={d} className={styles.fill} />
         <path data-outline d={d} className={styles.outline} />
       </svg>
-      <span className={styles.caption} aria-hidden="true">
-        <span>{kind === 'like' ? (on ? 'Liked' : 'Like') : on ? 'Saved' : 'Save'}</span>
+      {/* Constant visible label = accessible name (WCAG 2.5.3); aria-pressed carries the state, the fill shows it. */}
+      <span className={styles.caption}>
+        <span>{kind === 'like' ? 'Like' : 'Save'}</span>{' '}
         {kind === 'like' && <span className={styles.count}><span data-count>{BASE_LIKES + (on ? 1 : 0)}</span></span>}
       </span>
-      {kind === 'like' && <span className={styles.srOnly}>, {BASE_LIKES + (on ? 1 : 0)} likes</span>}
+      {kind === 'like' && <span className={styles.srOnly}> likes</span>}
     </button>
   );
 }

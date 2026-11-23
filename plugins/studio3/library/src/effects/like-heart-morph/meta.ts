@@ -19,7 +19,7 @@ export const meta: EffectMeta = {
     { key: 'speed', label: 'Speed', type: 'number', default: 1, min: 0.5, max: 2, step: 0.1, unit: '×' },
   ],
   accessibility: [
-    'Both controls are toggle buttons with aria-pressed and a stable accessible name; the visible caption changes (Like → Liked, Save → Saved) and the like count is text.',
+    'Both controls are toggle buttons with aria-pressed: the constant visible caption ("Like 128", "Save") is the accessible name (WCAG 2.5.3), state is conveyed by aria-pressed and the filled icon, and the like count is real text.',
     'State is carried by fill and caption, not colour alone; the burst is aria-hidden decoration.',
     'Works with Enter/Space; focus ring is visible on the whole control; targets are at least 44 px.',
   ],
