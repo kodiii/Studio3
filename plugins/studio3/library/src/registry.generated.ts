@@ -62,9 +62,12 @@ import { meta as d_data_liveMonitoring } from './demos/data/live-monitoring/meta
 import { meta as d_data_spatialDataViz } from './demos/data/spatial-data-viz/meta';
 import { meta as d_product_animatedOnboarding } from './demos/product/animated-onboarding/meta';
 import { meta as d_product_productConfigurator } from './demos/product/product-configurator/meta';
+import { meta as d_product_productShowcase } from './demos/product/product-showcase/meta';
 import { meta as d_social__3dSocialPost } from './demos/social/3d-social-post/meta';
 import { meta as d_social_campaignLanding } from './demos/social/campaign-landing/meta';
 import { meta as d_social_creatorFeed } from './demos/social/creator-feed/meta';
+import { meta as d_social_interactivePoll } from './demos/social/interactive-poll/meta';
+import { meta as d_social_stories } from './demos/social/stories/meta';
 
 export const effects: readonly EffectEntry[] = [
   { meta: e_accordionHeightAuto, load: () => import('./effects/accordion-height-auto/index') },
@@ -132,7 +135,10 @@ export const demos: readonly DemoEntry[] = [
   { meta: d_data_spatialDataViz, load: () => import('./demos/data/spatial-data-viz/index') },
   { meta: d_product_animatedOnboarding, load: () => import('./demos/product/animated-onboarding/index') },
   { meta: d_product_productConfigurator, load: () => import('./demos/product/product-configurator/index') },
+  { meta: d_product_productShowcase, load: () => import('./demos/product/product-showcase/index') },
   { meta: d_social__3dSocialPost, load: () => import('./demos/social/3d-social-post/index') },
   { meta: d_social_campaignLanding, load: () => import('./demos/social/campaign-landing/index') },
   { meta: d_social_creatorFeed, load: () => import('./demos/social/creator-feed/index') },
+  { meta: d_social_interactivePoll, load: () => import('./demos/social/interactive-poll/index') },
+  { meta: d_social_stories, load: () => import('./demos/social/stories/index') },
 ];

@@ -5317,6 +5317,54 @@
       ]
     },
     {
+      "id": "product-showcase",
+      "name": "Pulse Product Page",
+      "specialty": "product",
+      "summary": "A storytelling product page for the fictional Pulse speaker that is complete as a photo page and offers real-time 3D only on request: a colourway picker that recolours the 2D render and the 3D materials alike, numbered details in both modes, chapters that dolly in on each detail, and a specification table.",
+      "highlights": [
+        "Poster first: the studio render is the hero and the page never waits for WebGL; “Explore in 3D” lazy-loads a separate chunk with StudioCanvas, the device-appropriate model build from the asset manifest, orbit with limits, named camera presets and tracked hotspots.",
+        "One colourway picker for both modes: in 3D it drives PartController material overrides (the same values as the 3D Studio’s configurator); in 2D the single render is tinted in the browser, so four colourways cost no extra images.",
+        "The 2D tint isolates the hardware by hue and the shell by masks derived from the image itself (the grille’s convex hull, the driver disc, the strap’s column runs and stitching), then shades in linear light so highlights survive.",
+        "Details work in both modes: numbered DOM markers over the photo, the three-kit HotspotLayer over the model, the same data and descriptions; choosing one in 3D moves the camera to a preset that shows it.",
+        "Chapters open on the whole product and dolly in on their detail as they enter the viewport (a reveal that explains where the part is), then a semantic specification table that marks which values are measured from the model.",
+        "The stage, chapter frames and closing band take the colourway’s own paper tint, defined per theme so text contrast holds in light and dark."
+      ],
+      "technology": [
+        "r3f",
+        "three",
+        "canvas2d",
+        "css"
+      ],
+      "uses": [],
+      "collaborates": [
+        "3d"
+      ],
+      "has3d": true,
+      "accessibility": [
+        "Colourways are a radio group with written names and notes; the price change and colourway are announced once in a polite status line.",
+        "Photo markers are buttons named “Detail n: …” with aria-expanded; their description appears in a polite live region. In 3D the kit’s hotspot buttons and the canvas’s own keyboard orbit take over.",
+        "Every 3D action has a DOM button (camera views, zoom in and out, reset, back to photo); load progress and readiness are announced as text.",
+        "Without WebGL 2 the 3D button is replaced by a sentence saying why, and the photo stage is the marked fallback; every detail and the specification remain.",
+        "Image alt text says when the photo is a browser-tinted render rather than a separate photograph."
+      ],
+      "reducedMotion": "Chapters show their close-up immediately (no dolly or text rise), the poster swaps colourway without a cross-fade, and the 3D camera cuts between presets instead of travelling.",
+      "performance": [
+        "Nothing 3D is downloaded until the visitor asks: three.js, R3F and the 1.0–2.0 MB model (low-power, mobile or desktop build by device) arrive with the button press.",
+        "The tinted posters are computed once in an idle callback from the one 66 KB render and cached as object URLs (revoked on unmount).",
+        "One canvas at most, render-on-demand, disposed with the viewer when returning to the photo."
+      ],
+      "dataNote": "Pulse, its maker, prices and most specifications are fictional sample content; the size is measured from the generated 3D model and the tinted colourway photos are computed from its single studio render.",
+      "path": "library/src/demos/product/product-showcase",
+      "files": [
+        "index.tsx",
+        "data.ts",
+        "recolour.ts",
+        "styles.module.css",
+        "Viewer3D.tsx",
+        "meta.ts"
+      ]
+    },
+    {
       "id": "3d-social-post",
       "name": "3D Social Post",
       "specialty": "social",
@@ -5464,6 +5512,95 @@
         "Sheet.tsx",
         "store.ts",
         "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "interactive-poll",
+      "name": "Interactive Poll",
+      "specialty": "social",
+      "summary": "A community radio station’s listener polls: a single-choice poll with animated results, a multiple-choice poll with honest percentages and clearly labelled simulated live votes you can pause, a no-timer quiz with explanations, and a ranking poll whose ballot is a drag-to-reorder running order.",
+      "highlights": [
+        "Single choice composes poll-result-bars: results grow from zero on one scale, your vote is marked in words, the result is announced once, and you can change your vote.",
+        "Multiple choice states its promises up front (results after voting, a real closing time) and explains why “of respondents” percentages don’t add up to 100.",
+        "Simulated live tallies are labelled as generated in your browser, finite (40 votes), pausable, and start paused under reduced motion — nothing pretends to be real activity.",
+        "Quiz: one question at a time, no timer, the same button turns from Check answer into Next question so focus never jumps; feedback is words and a mark, not colour.",
+        "Ranking composes drag-reorder-list as the ballot (pointer drag or Space + arrows + Space); sending adds your order to the sample ballots and shows average positions next to yours."
+      ],
+      "technology": [
+        "css",
+        "waapi",
+        "motion",
+        "svg"
+      ],
+      "uses": [
+        "poll-result-bars",
+        "drag-reorder-list"
+      ],
+      "has3d": false,
+      "accessibility": [
+        "Each poll is a fieldset with its question as the legend; options are native radios or checkboxes with 48 px rows.",
+        "After voting, focus moves to the results heading; “Change my answer” returns focus to the first option. Results are announced once, politely.",
+        "Meter bars are aria-hidden; each row carries its label, percentage and count as text, and your picks are tagged “Your pick”.",
+        "The ranking ballot has a full keyboard path (Space to pick up, ↑/↓ to move, Space to drop, Esc to cancel) and the results are an ordered list."
+      ],
+      "reducedMotion": "Result bars appear at their final width and meter segments switch without fading; simulated live votes start paused (Resume is still available); the ranking rows swap without gliding.",
+      "performance": [
+        "Meters are 24 plain elements per row toggled by data attributes; the simulation updates React state once per 1.4 s and stops itself after 40 votes.",
+        "No canvas or WebGL; the only animation library loaded is Motion, inside the composed reorder list."
+      ],
+      "dataNote": "Sample content: Quay FM, The Early Edit and every count are fictional — 640 sample respondents, 312 sample ballots, and live votes generated in the browser from a seeded random sequence. Nothing is sent anywhere.",
+      "path": "library/src/demos/social/interactive-poll",
+      "files": [
+        "index.tsx",
+        "data.ts",
+        "MultiPoll.tsx",
+        "Quiz.tsx",
+        "Ranking.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "stories",
+      "name": "Stories",
+      "specialty": "social",
+      "summary": "Mobile-first stories for a fictional harbour town: a tray of accounts, a full-screen viewer with segmented progress, tap zones, hold to pause, swipes between accounts and down to close — every one mirrored by a button and a key — plus a story embedded in the page.",
+      "highlights": [
+        "The current progress segment’s animation is the clock (the story-progress-segments technique): pausing it pauses the story; it stops for the Pause button, a held press, reply focus and a hidden tab.",
+        "Gestures with twins: tap left/right ↔ Previous/Next card buttons and ←/→; swipe sideways ↔ account buttons and Shift+←/→; hold ↔ Pause and Space; swipe down ↔ Close and Esc. Tap zones mirror in right-to-left layouts.",
+        "Swipes follow the finger with resistance at the ends and commit past 30 % of the width or 0.5 px/ms; short of that the card springs back.",
+        "A natural end: after the last account the viewer says “You’re all caught up” and nothing else plays. Rings show “3 new” or “Seen” in words, not only by colour.",
+        "The story-progress-segments recipe is composed as an embedded single story (a newsletter embed), themed to the harbour red."
+      ],
+      "technology": [
+        "waapi",
+        "css",
+        "svg"
+      ],
+      "uses": [
+        "story-progress-segments"
+      ],
+      "has3d": false,
+      "accessibility": [
+        "The viewer is a modal dialog contained in the demo: the page behind is inert and does not scroll, focus starts on Pause and returns to the ring that opened it.",
+        "Each card is a labelled group (“Card 2 of 3 from Ellery Bakery, 3 h ago”) with real text; drawings have their own descriptions. Manual moves are announced politely, automatic ones are not.",
+        "The reply field is labelled, pauses the story while focused, and states that replies are private.",
+        "All controls are 44 px; focus rings turn flag-yellow on the dark viewer so they keep contrast."
+      ],
+      "reducedMotion": "No clock at all: cards never advance on their own (the Pause button is not needed and is removed), progress shows position statically, account changes cross-fade in 160 ms instead of sliding, and the embedded story waits for its step buttons.",
+      "performance": [
+        "Cards are DOM and inline SVG — nothing to download or preload, so the progress never runs ahead of content.",
+        "One WAAPI animation per visible card drives the clock; transforms only for drags and transitions; everything is cancelled on close."
+      ],
+      "dataNote": "Sample content: Port Ellery, its accounts, notices, times and the “214 hours” figure are fictional. Replies are not sent anywhere.",
+      "path": "library/src/demos/social/stories",
+      "files": [
+        "index.tsx",
+        "art.tsx",
+        "data.ts",
+        "styles.module.css",
+        "Viewer.tsx",
         "meta.ts"
       ]
     }

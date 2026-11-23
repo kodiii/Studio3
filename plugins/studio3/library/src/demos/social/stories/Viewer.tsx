@@ -41,6 +41,7 @@ export function Viewer({ start, onClose, onSeen }: { start: number; onClose: () 
   const pauseBtn = useRef<HTMLButtonElement>(null);
   const nextBtn = useRef<HTMLButtonElement>(null);
   const endHead = useRef<HTMLHeadingElement>(null);
+  const replyField = useRef<HTMLInputElement>(null);
   const drag = useRef<{ id: number; x: number; y: number; t: number; w: number; h: number; mode: 'none' | 'x' | 'y' } | null>(null);
   const enter = useRef<{ dir: 1 | -1 } | null>(null);
   const manual = useRef(false);
@@ -190,7 +191,17 @@ export function Viewer({ start, onClose, onSeen }: { start: number; onClose: () 
     if (!text) return;
     setReply('');
     setSent(`Sent privately to ${creator.name}. Demo: nothing leaves this page.`);
+    replyField.current?.focus(); // Send disables once the field is empty; keep focus in the viewer
   };
+
+  // Esc closes even if focus has fallen out of the dialog (e.g. onto <body> after a control was disabled).
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
+  useEffect(() => {
+    const onDocKey = (e: globalThis.KeyboardEvent) => { if (e.key === 'Escape' && !e.defaultPrevented) closeRef.current(); };
+    document.addEventListener('keydown', onDocKey);
+    return () => document.removeEventListener('keydown', onDocKey);
+  }, []);
 
   const prevName = ci > 0 ? CREATORS[ci - 1].name : null;
   const nextName = ci < CREATORS.length - 1 ? CREATORS[ci + 1].name : null;
@@ -267,7 +278,7 @@ export function Viewer({ start, onClose, onSeen }: { start: number; onClose: () 
             {ended ? null : (
               <form className={styles.reply} onSubmit={send}>
                 <label htmlFor="pe-reply" className="s3-sr-only">Reply privately to {creator.name}</label>
-                <input id="pe-reply" className={styles.replyInput} value={reply} placeholder={`Reply to ${creator.name}…`} autoComplete="off"
+                <input ref={replyField} id="pe-reply" className={styles.replyInput} value={reply} placeholder={`Reply to ${creator.name}…`} autoComplete="off"
                   onChange={(e) => setReply(e.target.value)} onFocus={() => setTyping(true)} onBlur={() => setTyping(false)} />
                 <button type="submit" className={styles.sendBtn} disabled={!reply.trim()}>Send</button>
               </form>

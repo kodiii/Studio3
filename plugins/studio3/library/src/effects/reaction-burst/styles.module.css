@@ -65,7 +65,7 @@
 .reaction svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linejoin: round; }
 .reaction[aria-pressed='true'] { background: var(--s3-ink, #11110f); border-color: var(--s3-ink, #11110f); color: var(--s3-surface, #fbf9f4); }
 .reaction[aria-pressed='true'] svg { fill: var(--s3-accent, #bf2f09); stroke: var(--s3-accent, #bf2f09); }
-.count { display: inline-block; min-width: 2ch; overflow: clip; font-variant-numeric: tabular-nums; text-align: right; opacity: 0.72; }
+.count { display: inline-block; min-width: 2ch; overflow: clip; font-variant-numeric: tabular-nums; text-align: right; }
 .count span { display: inline-block; }
 .note {
   margin: 16px 0 0;

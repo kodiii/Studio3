@@ -84,7 +84,8 @@ export default function Stories() {
             <p className={styles.small}>A story can live outside the tray, too. Tidewater Notes’ low-tide walk is embedded here with its own pause and step controls.</p>
           </div>
           <div className={styles.embed}>
-            <StoryProgressSegments params={{ ...defaults(storyMeta), duration: 5000, slides: 5, transition: 'slide', autoAdvance: true }} />
+            {/* Its clock stops while the full-screen viewer covers the page. */}
+            <StoryProgressSegments params={{ ...defaults(storyMeta), duration: 5000, slides: 5, transition: 'slide', autoAdvance: open === null }} />
           </div>
         </section>
 
