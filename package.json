@@ -1,0 +1,34 @@
+{
+  "name": "studio3",
+  "version": "4.0.0",
+  "private": true,
+  "description": "Studio³ — Design Intelligence. Motion Engineering. Digital Experiences. A design, motion, interaction and 3D engineering plugin for Claude Code and OpenAI Codex.",
+  "license": "MIT",
+  "type": "module",
+  "engines": { "node": ">=20.11" },
+  "workspaces": ["apps/gallery", "plugins/studio3/library", "plugins/studio3/tools"],
+  "scripts": {
+    "dev": "npm run dev -w @studio3/gallery",
+    "build": "npm run build -w @studio3/gallery",
+    "start": "npm run start -w @studio3/gallery",
+    "catalog": "node scripts/build-catalog.mjs",
+    "typecheck": "npm run typecheck -w @studio3/library && npm run typecheck -w @studio3/tools && npm run typecheck -w @studio3/gallery",
+    "test": "npm run test:unit && npm run test:plugin",
+    "test:unit": "vitest run",
+    "test:plugin": "node --test tests/plugin/*.test.mjs",
+    "test:e2e": "playwright test --trace off",
+    "validate": "node scripts/validate-plugin.mjs",
+    "doctor": "node plugins/studio3/tools/studio3.mjs doctor",
+    "release": "node scripts/package-release.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/react": "^16.3.3",
+    "@types/node": "^22.0.0",
+    "@vitejs/plugin-react": "latest",
+    "jsdom": "^31.0.1",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.1"
+  }
+}

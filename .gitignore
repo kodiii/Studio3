@@ -1,0 +1,11 @@
+node_modules
+.next
+out
+dist
+*.tsbuildinfo
+test-results
+playwright-report
+.studio3
+.DS_Store
+*.log
+next-env.d.ts
