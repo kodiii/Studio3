@@ -27,6 +27,11 @@ export function renderReportMd(report) {
   if (report.label) L.push(`- Label: ${report.label}`);
   L.push(`- Generated: ${report.generatedAt} · tool ${report.tool} v${report.version}`);
   L.push(`- Routes: ${cov.routes.map(code).join(', ')} · Viewports: ${cov.viewports.map((v) => `${v.name} (${v.width}×${v.height})`).join(', ')} · Motion modes: ${cov.motionModes.join(', ')}`);
+  if (cov.scrollThrough?.length) {
+    const byRoute = (/** @type {any[]} */ rows) => [...new Set(rows.map((s) => s.route))].map((r) => `${code(r)} (${rows.filter((s) => s.route === r).map((s) => s.viewport + (s.ran && !s.reachedBottom ? ', bounded' : '')).join(', ')})`).join(', ');
+    const ran = cov.scrollThrough.filter((/** @type {any} */ s) => s.ran); const skipped = cov.scrollThrough.filter((/** @type {any} */ s) => !s.ran);
+    L.push(`- Scroll-through before DOM/axe checks: ${ran.length ? byRoute(ran) : 'none'}${skipped.length ? ` · skipped: ${byRoute(skipped)} — ${esc([...new Set(skipped.map((/** @type {any} */ s) => s.reason))].join('; '))}` : ''}`);
+  }
   L.push('', '> Everything in **Part A** is measured by the tool in a real (headless) browser. **Part B** is a template for the agent\'s subjective visual assessment and contains no measurements.', '');
 
   // ---------------------------------------------------------------- Part A

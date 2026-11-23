@@ -132,7 +132,10 @@ function Instrumentation({ quality, frameloop, adaptive, onContextLost, onDegrad
       off();
       canvas.removeEventListener('webglcontextlost', lost);
       if (diagRef.current === diag) diagRef.current = null;
-      if (window.__STUDIO3_3D__ === diag) diag.disposed++;
+      // Count every renderer teardown exactly once, whatever the mount/unmount order: a newer canvas may already have
+      // registered its diagnostics (it inherited the running total), so increment whichever object is current.
+      const current = window.__STUDIO3_3D__;
+      if (current) current.disposed++; else diag.disposed++;
     };
   }, [gl]);
   useEffect(() => {

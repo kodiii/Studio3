@@ -119,10 +119,17 @@ test.describe('3D gallery (/3d)', () => {
       await page.getByRole('navigation', { name: 'Primary' }).getByRole('link', { name: 'System' }).click();
       await page.waitForURL('**/system');
       await expect(page.locator(`${STAGE} canvas`)).toHaveCount(0);
+      // Remember the diagnostics object of the canvas being left: after navigating back, wait for the NEW canvas to
+      // register its own object and render, otherwise the stale object (frames > 0) would satisfy the wait and the
+      // next navigation could leave before the new renderer even mounted.
+      await page.evaluate(() => { (window as unknown as { __s3PrevDiag?: unknown }).__s3PrevDiag = (window as unknown as { __STUDIO3_3D__?: unknown }).__STUDIO3_3D__; });
       await page.goBack();
       await page.waitForURL('**/3d');
       await expect(page.locator(`${STAGE} canvas`)).toBeVisible({ timeout: 30_000 });
-      await expect.poll(async () => (await diag(page))?.frames ?? 0, { timeout: 30_000 }).toBeGreaterThan(0);
+      await expect.poll(() => page.evaluate(() => {
+        const w = window as unknown as { __STUDIO3_3D__?: { frames: number }; __s3PrevDiag?: unknown };
+        return !!w.__STUDIO3_3D__ && w.__STUDIO3_3D__ !== w.__s3PrevDiag && w.__STUDIO3_3D__.frames > 0;
+      }), { timeout: 30_000 }).toBe(true);
     }
     const d = await diag(page);
     expect(d!.disposed, '__STUDIO3_3D__.disposed counts each canvas teardown').toBeGreaterThanOrEqual(first + 3);

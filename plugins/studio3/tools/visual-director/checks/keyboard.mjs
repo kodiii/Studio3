@@ -21,9 +21,19 @@ export function pageKeyboardPrep() {
   };
   const native = 'a[href],button,input:not([type="hidden"]),select,textarea,summary,[tabindex],[contenteditable=""],[contenteditable="true"],iframe,audio[controls],video[controls]';
   const focusable = []; const radios = new Set();
+  // A radio group is one tab stop, and Tab lands on its checked radio (the first one only when none is checked).
+  const radioKey = (el) => (el.form ? 'f' : '') + el.name;
+  const checkedRadio = new Map();
+  for (const r of /** @type {any[]} */ (Array.from(document.querySelectorAll('input[type="radio"][name]:checked')))) {
+    if (H.visible(r) && !r.disabled && !r.closest('[inert]') && r.tabIndex >= 0) checkedRadio.set(radioKey(r), r);
+  }
   for (const el of /** @type {any[]} */ (Array.from(document.querySelectorAll(native)))) {
     if (!H.visible(el) || el.disabled || el.closest('[inert]') || el.tabIndex < 0) continue;
-    if (el.localName === 'input' && el.type === 'radio' && el.name) { const k = (el.form ? 'f' : '') + el.name; if (radios.has(k)) continue; radios.add(k); }
+    if (el.localName === 'input' && el.type === 'radio' && el.name) {
+      const k = radioKey(el); const c = checkedRadio.get(k);
+      if ((c && c !== el) || radios.has(k)) continue;
+      radios.add(k);
+    }
     if (el.localName === 'summary' && el.parentElement && el.parentElement.querySelector(':scope > summary') !== el) continue;
     focusable.push(el);
   }

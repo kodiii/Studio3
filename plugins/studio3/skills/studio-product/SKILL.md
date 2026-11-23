@@ -1,6 +1,6 @@
 ---
 name: studio-product
-description: Product Studio. Designs and builds product interfaces people want to use - SaaS landing pages, marketing sites, pricing pages, onboarding and sign-up flows, forms with validation, settings, app shells, navigation, empty/loading/error states, product showcases and configurator pages. Use for "landing page", "pricing", "onboarding", "sign-up flow", "product page", "make this app look good", "redesign this UI". Not for scroll-driven storytelling or launch films (studio-cinematic), dashboards and charts (studio-data), feeds, stories or reactions (studio-social), or building the WebGL scene itself (studio-3d).
+description: Product Studio. Designs and builds product interfaces people want to use - SaaS landing pages, marketing sites, pricing pages, onboarding and sign-up flows, forms with validation, settings, app shells, navigation, empty/loading/error states, product showcases and configurator pages. Use when the user wants a product UI designed or improved — "landing page", "pricing", "onboarding", "sign-up flow", "product page", "make this app look good", "redesign this UI". Not for scroll-driven storytelling or launch films (studio-cinematic), dashboards and charts (studio-data), feeds, stories or reactions (studio-social), or building the WebGL scene itself (studio-3d).
 argument-hint: "[what to build or improve]"
 license: MIT
 metadata:

@@ -216,15 +216,19 @@ export default function BarRaceTransition({ params }: EffectProps<Params>) {
         </figcaption>
 
         <p className={styles.srOnly} role="status" aria-live="polite">{announce}</p>
-        <table className={styles.srOnly}>
-          <caption>Active subscriptions by bookshop, {FIRST_YEAR + period} (sample data)</caption>
-          <thead><tr><th scope="col">Rank</th><th scope="col">Bookshop</th><th scope="col">Subscriptions</th></tr></thead>
-          <tbody>
-            {NAMES.map((name, i) => [finalRanks[i], name, data[i][period]] as const).sort((a, b) => a[0] - b[0]).map(([r, name, v]) => (
-              <tr key={name}><td>{r + 1}</td><th scope="row">{name}</th><td>{nf.format(v)}</td></tr>
-            ))}
-          </tbody>
-        </table>
+        {/* Visually hidden via a wrapper: a <table> ignores width/height/overflow, so the class on the table itself
+            would leave its full-size (invisible) box in the layout. */}
+        <div className={styles.srOnly}>
+          <table>
+            <caption>Active subscriptions by bookshop, {FIRST_YEAR + period} (sample data)</caption>
+            <thead><tr><th scope="col">Rank</th><th scope="col">Bookshop</th><th scope="col">Subscriptions</th></tr></thead>
+            <tbody>
+              {NAMES.map((name, i) => [finalRanks[i], name, data[i][period]] as const).sort((a, b) => a[0] - b[0]).map(([r, name, v]) => (
+                <tr key={name}><td>{r + 1}</td><th scope="row">{name}</th><td>{nf.format(v)}</td></tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </figure>
     </div>
   );

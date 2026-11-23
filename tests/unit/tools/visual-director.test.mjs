@@ -223,6 +223,23 @@ describe('visual-director: browser runs', () => {
     for (const i of good.issues) expect(i).toMatchObject({ measured: true, id: expect.any(String), check: expect.any(String) });
   });
 
+  bit('vd-good: deliberate patterns are not defects (aria-hidden clone, sr-only table, line-clamp, checked radio, settling reveal)', () => {
+    const clip = byCheck(good, 'clipped-content');
+    expect(clip.filter((i) => i.severity !== 'info'), JSON.stringify(clip, null, 1)).toEqual([]);
+    const clamp = clip.filter((i) => i.route === '/' && /\.clamp/.test(i.selector));
+    expect(clamp.map((i) => i.viewport).sort()).toEqual(['desktop', 'mobile', 'tablet']);
+    for (const i of clamp) expect(i).toMatchObject({ severity: 'info', evidence: { ellipsis: true, lineClamp: 2 } });
+    expect(byCheck(good, 'responsive', (i) => i.key === 'wide')).toEqual([]);
+    expect(byCheck(good, 'keyboard-navigation')).toEqual([]);
+    const run = checkOf(good, 'clipped-content').runs.find((r) => r.route === '/' && r.viewport === 'mobile');
+    expect(run.details.skippedDecorativeOrHidden).toBeGreaterThanOrEqual(1);
+    // a correct reveal-on-scroll below the fold: the scroll-through reaches it, the settle waits for it, axe stays clean
+    const st = good.coverage.scrollThrough.filter((s) => s.route === '/');
+    expect(st.map((s) => [s.viewport, s.ran, s.reachedBottom])).toEqual([['desktop', true, true], ['tablet', true, true], ['mobile', true, true]]);
+    expect(byCheck(good, 'accessibility-axe')).toEqual([]);
+    expect(fs.readFileSync(path.join(goodDir, 'report.md'), 'utf8')).toMatch(/Scroll-through before DOM\/axe checks: `\/` \(desktop, tablet, mobile\)/);
+  });
+
   bit('vd-good: expected checks ran and passed; unavailable ones are labelled honestly', () => {
     for (const id of ['horizontal-overflow', 'clipped-content', 'broken-layout', 'failed-assets', 'console-errors', 'accessibility-axe', 'keyboard-navigation', 'focus-visible', 'dialog-focus', 'responsive', 'reduced-motion', 'motion-summary',
       '3d-canvas-init', '3d-context-lost', '3d-assets', '3d-budgets', '3d-render-loop', '3d-resize', '3d-interaction', '3d-fallback']) {
@@ -302,8 +319,9 @@ describe('visual-director: browser runs', () => {
     expect(ov.map((i) => i.viewport)).toEqual(['mobile']);
     expect(ov[0].selector).toMatch(/\.wide/);
     expect(ov[0].evidence.overflowPx).toBeGreaterThan(300);
-    // clipped text
-    expect(byCheck(broken, 'clipped-content', (i) => /\.clip/.test(i.selector) && i.severity === 'major').length).toBe(3);
+    // clipped text (an aria-hidden icon inside the clipping box does not exempt the visible text beside it)
+    expect(byCheck(broken, 'clipped-content', (i) => /\.clip/.test(i.selector) && i.severity === 'major').length).toBe(6);
+    expect(byCheck(broken, 'clipped-content', (i) => /\.clip-icon/.test(i.selector) && i.severity === 'major').length).toBe(3);
     // broken image
     expect(byCheck(broken, 'failed-assets', (i) => i.evidence.category === 'image' && /missing\.png/.test(i.evidence.url) && i.evidence.status === 404).length).toBe(3);
     // console error (not an uncaught exception on the index page)
@@ -314,6 +332,10 @@ describe('visual-director: browser runs', () => {
     // axe: alt, label, contrast, lang
     const rules = new Set(byCheck(broken, 'accessibility-axe').map((i) => i.evidence.rule));
     for (const r of ['image-alt', 'label', 'color-contrast', 'html-has-lang']) expect(rules.has(r), r).toBe(true);
+    // faint text below the fold, revealed only by scrolling: measured thanks to the scroll-through pass (axe skipped it at opacity 0 before)
+    expect(broken.coverage.scrollThrough.filter((s) => s.route === '/' && s.ran && s.scrollers.includes('document')).map((s) => s.viewport)).toEqual(['desktop', 'tablet', 'mobile']);
+    const late = byCheck(broken, 'accessibility-axe', (i) => i.evidence.rule === 'color-contrast' && /late-note/.test(i.selector));
+    expect(late.map((i) => i.viewport).sort()).toEqual(['desktop', 'mobile', 'tablet']);
     expect(byCheck(broken, 'accessibility-axe', (i) => i.evidence.rule === 'image-alt')[0].severity).toBe('critical');
     // tiny tap targets on touch viewports only
     const taps = byCheck(broken, 'responsive', (i) => i.key === 'tap-target');

@@ -174,30 +174,34 @@ npm run build && npm run test:e2e   # every recipe and demo in Chromium: errors,
 Graphics-dependent tests run on software WebGL (SwiftShader) in headless Chromium; WebGPU is not available there and
 is reported as unavailable rather than tested. Tests that cannot run in an environment skip with an explicit reason.
 
-### Test report — v4.0.0 release candidate (2026-11-23, Linux x64, Node 22.23, Chromium 157 headless)
+### Test report — v4.0.0 (2026-11-23, Linux x64, Node 22.23, Chromium 157 headless)
 
 | Suite | Command | Result |
 | - | - | - |
 | Catalogue (strict) | `node scripts/build-catalog.mjs --check` | up to date — 47 recipes, 22 demos |
-| Packaging, both hosts | `npm run validate` | passed, including `claude plugin validate` (Claude Code 2.1.330) for the plugin and the marketplace; Codex checked structurally (no Codex validator exists) |
+| Packaging, both hosts | `npm run validate` | passed, 0 warnings — including `claude plugin validate` (Claude Code 2.1.330) for the plugin and the marketplace; Codex checked structurally (Codex ships no manifest validator) |
 | Types | `npm run typecheck` | library, tools and gallery clean |
-| Unit (Vitest) | `npm run test:unit` | **503 passed** in 11 files — tools (Design Intelligence, Visual Director, Experience Lab, asset pipeline, catalogue) and library (catalogue contract for every recipe and demo, motion engine, three-kit, StrictMode render + leak check for every non-WebGL recipe) |
-| Plugin (node:test) | `npm run test:plugin` | **15 passed, 1 skipped** — the skip is a live Codex install (no Codex CLI available); the Codex command syntax is covered by a recording fake CLI. Includes a real Claude Code `plugin install`/`uninstall` and installing from the built release archive |
+| Unit (Vitest) | `npm run test:unit` | **504 passed** in 11 files — tools (Design Intelligence, Visual Director, Experience Lab, asset pipeline, catalogue) and library (catalogue contract for every recipe and demo, motion engine, three-kit, StrictMode render + leak check for every non-WebGL recipe) |
+| Plugin (node:test) | `npm run test:plugin` | **15 passed, 1 skipped** — the skip is a live Codex install (no Codex CLI available); Codex command syntax is covered by a recording fake CLI. Includes a real Claude Code `plugin install`/`uninstall` and installing from the built release archive |
 | Production build | `npm run build` | 81 static pages |
-| Browser (Playwright) | `npm run test:e2e` | **311 passed** — every recipe (mount, 3× remount cleanup, axe in light and dark, reduced motion, 390 px), every demo (axe light/dark, keyboard focus, reduced motion + 390 px, no-WebGL fallback for 3D), gallery behaviour, 3D initialisation/loading/missing-asset/controls/disposal, shader animation, visual regression |
+| Browser (Playwright) | `npm run test:e2e` | **311 passed, 0 flaky** — every recipe (mount, 3× remount cleanup, axe in light and dark, reduced motion, 390 px), every demo (axe light/dark, keyboard focus, reduced motion + 390 px, no-WebGL fallback for 3D), gallery behaviour, 3D initialisation/loading/missing-asset/controls/GPU disposal, shader animation, visual regression |
 
-Dogfooding the tools on the production gallery:
+Dogfooding the tools on the production gallery (5 routes × desktop/tablet/mobile × normal/reduced motion):
 
-- **Visual Director** (`review run`, 5 routes × desktop/tablet/mobile × normal/reduced motion, 61 screenshots):
-  0 critical issues. All 3D checks passed (canvas initialisation, context loss, assets, budgets, render loop, resize,
-  pointer/touch interaction, no-WebGL fallback); `3d-frame-time` and `3d-cleanup` are reported as *limited* and
-  `3d-webgpu` as *unavailable* (no adapter in headless Chromium) — by design, never as passed. Its major findings are
-  mostly heuristic (text inside intentionally clipped, inert catalogue thumbnails and scroll regions); a tablet-width
-  table-header contrast issue in the SaaS demo and one unreached control on `/3d` are being fixed.
-- **Experience Lab** (`assess`, Expressive profile, 3 routes): **84.9 / 100 (B)**, confidence 0.68; all automated
-  gates pass (reduced motion, user control, keyboard, focus visible, contrast, target size, zoom; flashing needs an
-  agent answer). Top recommendations: loading feedback, hover states on every control, 44 px touch targets, a tighter
-  type scale.
+- **Visual Director**, three passes of its own improve → retest loop:
+  pass 1 reported 0 critical / 129 major; triage found one real latent defect (two chart recipes put the
+  screen-reader-only class on a `<table>`, which ignores the 1 px box and left an invisible 412 × 792 px element), fixed
+  in the recipes; the rest were checker false positives (text in inert, aria-hidden catalogue thumbnails; the hidden copy
+  of an odometer; content measured mid-animation; a radio group's single tab stop), fixed in the checker with
+  regression fixtures. A scroll-through pass now reveals scroll-triggered content before measuring it, and a planted
+  low-contrast reveal in the fixtures proves it is caught. **Pass 3: 0 critical, 0 major**, 133 minor (small chart/SVG
+  labels, overlap hints on brush handles and the 3D toolbar), 30 info. All 3D checks that can run here passed;
+  `3d-frame-time` and `3d-cleanup` are reported *limited* and `3d-webgpu` *unavailable* (no adapter in headless
+  Chromium) — never as passed.
+- **Experience Lab** (`assess`, Expressive profile, 3 routes, before the final hover-state changes): **84.9 / 100 (B)**,
+  confidence 0.68; all automated gates pass (reduced motion, user control, keyboard, focus visible, contrast, target
+  size, zoom; flashing needs an agent answer). Recommendations it raised that were acted on: a real 404 page, hover
+  states on header and catalogue controls, a 24 px+ brand link.
 
 Not run here: Firefox and WebKit (the suite targets Chromium), real-GPU performance, a live Codex install, and the
 macOS CI job (defined in `.github/workflows/ci.yml`).

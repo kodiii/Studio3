@@ -92,7 +92,7 @@ export function EffectCatalog({ metas, initialSpecialty = null }: { metas: reado
             <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search recipes — “scroll”, “button”, “shader”…" data-effect-search=""
               className="h-11 w-full rounded-full border border-line bg-surface px-4 text-sm placeholder:text-muted focus-visible:border-line-strong" />
           </label>
-          <button type="button" aria-expanded={showFilters} aria-controls="effect-filters" onClick={() => setShowFilters((s) => !s)} className="s3-label h-11 rounded-full border border-line px-4">Filters{activeCount ? ` (${activeCount})` : ''}</button>
+          <button type="button" aria-expanded={showFilters} aria-controls="effect-filters" onClick={() => setShowFilters((s) => !s)} className="s3-label h-11 rounded-full border border-line px-4 transition-colors duration-150 hover:border-line-strong">Filters{activeCount ? ` (${activeCount})` : ''}</button>
           <p className="s3-label text-muted" role="status" aria-live="polite" data-result-count={results.length}>{results.length} of {metas.length} recipes</p>
           {activeCount ? <button type="button" className="s3-label underline underline-offset-4" onClick={() => { setFilters(EMPTY); setQ(''); }}>Clear all</button> : null}
         </div>

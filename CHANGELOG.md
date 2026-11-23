@@ -41,6 +41,9 @@ from scratch; there is no migration path from older releases.
   reduced-motion and theme toggles, code viewer with copy; specialty pages; full-page demos; a dedicated 3D gallery.
 - **Packaging**: Claude Code plugin + marketplace, Codex plugin + marketplace, local installer/uninstaller with
   backups, upgrade and downgrade protection, `studio3 doctor` and `studio3 setup`.
+- **Release verification by dogfooding**: Visual Director and Experience Lab were run against the gallery; findings
+  fixed a latent screen-reader-table layout defect in two recipes and hardened the checker (inert/aria-hidden and
+  visually-hidden exclusions, animation settle, scroll-through reveal, radio-group tab stops) with regression tests.
 - **Tests and CI**: plugin structure/manifest/marketplace validation, installer lifecycle (including a real Claude Code
   install), tool unit tests, gallery e2e tests (every recipe and demo), 3D tests, accessibility checks, visual
   regression.

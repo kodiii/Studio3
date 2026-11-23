@@ -3,6 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { resolveDep } from '../../lib/resolve.mjs';
+import { settleAnimations } from './dom.mjs';
 
 let cachedSource;
 /** @returns {{ source: string | null, reason?: string }} */
@@ -34,6 +35,7 @@ export async function runAxe(page, ctx) {
   if (!source) { col.run('accessibility-axe', { ...base, status: 'skipped', ran: false, reason }); return; }
   let results;
   try {
+    await settleAnimations(page); // contrast is computed with opacity: never read a fade mid-transition
     await page.evaluate(source);
     results = await page.evaluate(async (tags) => {
       // target-size is covered by the responsive check on touch viewports (with measured sizes)

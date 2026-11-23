@@ -20,6 +20,9 @@
     @keyframes spin { to { transform: rotate(360deg); } }
     .panel { margin-top: 8px; border: 1px solid #999; padding: 8px; }
     .panel[hidden] { display: none; }
+    .spacer { height: 160vh; }
+    .late { opacity: 0; color: #bbbbbb; background: #ffffff; }    /* defect once revealed by scrolling: contrast */
+    .late.in { opacity: 1; }
   </style>
 </head>
 <body>
@@ -29,6 +32,7 @@
 
     <div class="wide">This box is seven hundred pixels wide and causes horizontal scrolling on phones.</div>
     <p class="clip">This sentence is far too long for its fixed-size box and gets cut off.</p>
+    <p class="clip clip-icon"><span aria-hidden="true">★ </span>Visible label beside a decorative icon, still cut off.</p>  <!-- defect: aria-hidden icon must not hide it -->
     <p class="faint">This paragraph has very low colour contrast against its background.</p>
     <p class="legal">Tiny legal text at nine pixels.</p>
 
@@ -52,9 +56,16 @@
       <li role="none"><a role="menuitem" href="#one">One</a></li>
       <li role="none"><a role="menuitem" href="#two">Two</a></li>
     </ul>
+
+    <div class="spacer" aria-hidden="true"></div>
+    <p class="late" id="late-note">This note is revealed on scroll and is far too faint to read.</p>
   </main>
   <script>
     console.error('Fixture error: analytics failed to initialise');
+    // defect below the fold, revealed only by scrolling (a scroll listener, not an IntersectionObserver)
+    var late = document.getElementById('late-note');
+    function reveal() { if (late.getBoundingClientRect().top < window.innerHeight) { late.classList.add('in'); window.removeEventListener('scroll', reveal); } }
+    window.addEventListener('scroll', reveal, { passive: true });
     // defect: menu opens without moving focus, ignores Escape
     document.getElementById('options').addEventListener('click', function () {
       document.getElementById('options-menu').hidden = false;

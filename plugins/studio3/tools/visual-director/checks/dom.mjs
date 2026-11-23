@@ -39,6 +39,33 @@ export function pageDomMeasure(opts) {
     return (r.width <= 2 || r.height <= 2) || (cs.clip !== 'auto' && cs.position === 'absolute') || cs.clipPath !== 'none' && r.width <= 2;
   };
 
+  /**
+   * Content nobody can see clipped: decorative subtrees the author took out of the experience
+   * (`aria-hidden="true"`, `inert` — live thumbnails, marquee clones, odometer reels) and screen-reader-only
+   * content (absolute + degenerate `clip` rect, `clip-path: inset(50%)`, 1px boxes that hide their overflow).
+   */
+  const unseenCache = new Map();
+  const unseenBox = (el) => {
+    if (el.getAttribute('aria-hidden') === 'true' || el.hasAttribute('inert')) return true;
+    const cs = getComputedStyle(el);
+    if ((cs.position === 'absolute' || cs.position === 'fixed') && cs.clip && cs.clip !== 'auto') {
+      const v = (cs.clip.match(/-?[\d.]+px/g) || []).map(parseFloat); // rect(top, right, bottom, left)
+      if (v.length === 4 && (v[1] - v[3] <= 1 || v[2] - v[0] <= 1)) return true;
+    }
+    const inset = /^inset\(\s*([\d.]+)%\s*\)$/.exec(cs.clipPath || '');
+    if (inset && parseFloat(inset[1]) >= 50) return true;
+    const r = el.getBoundingClientRect();
+    return r.width <= 1 && r.height <= 1 && cs.overflowX !== 'visible' && cs.overflowY !== 'visible';
+  };
+  const unseen = (el) => {
+    for (let p = el; p && p !== body && p !== de; p = p.parentElement) {
+      let v = unseenCache.get(p);
+      if (v === undefined) { v = unseenBox(p); unseenCache.set(p, v); }
+      if (v) return true;
+    }
+    return false;
+  };
+
   // ---- horizontal overflow ---------------------------------------------------
   const scrollWidth = Math.max(de.scrollWidth, body ? body.scrollWidth : 0);
   const overflow = { scrollWidth, clientWidth: vw, overflowPx: Math.max(0, scrollWidth - vw), offenders: /** @type {any[]} */ ([]) };
@@ -66,8 +93,9 @@ export function pageDomMeasure(opts) {
 
   // ---- clipped text ----------------------------------------------------------
   const clipped = [];
+  let hardClips = 0; let truncations = 0; let clipSkippedUnseen = 0;
   for (const el of all) {
-    if (clipped.length >= 15) break;
+    if (hardClips >= 15) break;
     const cs = getComputedStyle(el);
     const clipX = cs.overflowX === 'hidden' || cs.overflowX === 'clip';
     const clipY = cs.overflowY === 'hidden' || cs.overflowY === 'clip';
@@ -77,6 +105,7 @@ export function pageDomMeasure(opts) {
     const overY = clipY && el.scrollHeight > el.clientHeight + 2;
     if (!overX && !overY) continue;
     if (!H.visible(el)) continue;
+    if (unseen(el)) { clipSkippedUnseen++; continue; }
     const box = el.getBoundingClientRect();
     // is the overflow caused by text? look for a text rect that leaves the clip box
     const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
@@ -85,7 +114,7 @@ export function pageDomMeasure(opts) {
       const node = walker.currentNode;
       if (!node.nodeValue || !node.nodeValue.trim()) continue;
       const parent = node.parentElement;
-      if (!parent || !H.visible(parent)) continue;
+      if (!parent || !H.visible(parent) || unseen(parent)) continue;
       const range = document.createRange();
       range.selectNodeContents(node);
       for (const r of Array.from(range.getClientRects())) {
@@ -93,8 +122,13 @@ export function pageDomMeasure(opts) {
       }
     }
     if (!hit) continue;
+    // deliberate, visibly marked truncation: text-overflow: ellipsis (one line) or line-clamp (n lines)
+    const clampValue = [cs.getPropertyValue('-webkit-line-clamp'), cs.getPropertyValue('line-clamp')].find((v) => v && v !== 'none');
+    const lineClamp = clampValue ? (parseInt(clampValue, 10) || clampValue) : null;
+    const ellipsis = (cs.textOverflow === 'ellipsis' && overX && !overY) || (!!lineClamp && overY && !overX);
+    if (ellipsis) { if (++truncations > 5) continue; } else hardClips++;
     clipped.push({
-      selector: H.sel(el), text: hit, ellipsis: cs.textOverflow === 'ellipsis' && overX && !overY,
+      selector: H.sel(el), text: hit, ellipsis, ...(lineClamp && ellipsis ? { lineClamp } : {}),
       clientWidth: el.clientWidth, scrollWidth: el.scrollWidth, clientHeight: el.clientHeight, scrollHeight: el.scrollHeight,
       hiddenPx: { x: overX ? el.scrollWidth - el.clientWidth : 0, y: overY ? el.scrollHeight - el.clientHeight : 0 },
     });
@@ -180,6 +214,7 @@ export function pageDomMeasure(opts) {
     if (xContainer(el) === 'scroll') continue;
     const meaningful = ['img', 'video', 'table', 'pre', 'input', 'textarea', 'select', 'iframe', 'canvas'].includes(el.localName) || H.text(el, 5).length > 0;
     if (!meaningful) continue;
+    if (unseen(el)) continue; // decorative or screen-reader-only: horizontal-overflow still catches page scrolling
     wideSet.add(el);
   }
   const wideParents = new Set();
@@ -214,10 +249,36 @@ export function pageDomMeasure(opts) {
 
   return {
     viewport: { width: vw, height: vh, dpr: window.devicePixelRatio }, elementCount: all.length, truncated: body ? body.querySelectorAll('*').length > all.length : false,
-    overflow, clipped, zeroMedia, overlaps, offscreen, smallText, bodyZero, brokenImages, domImageUrls,
+    overflow, clipped, clipStats: { truncations, skippedDecorativeOrHidden: clipSkippedUnseen }, zeroMedia, overlaps, offscreen, smallText, bodyZero, brokenImages, domImageUrls,
     viewportMeta, wide, tapTargets, tapChecked, tapSpacingExempt,
     hasCanvas: !!document.querySelector('canvas'), hasVideo: !!document.querySelector('video'),
   };
+}
+
+/**
+ * Wait (bounded) for finite running animations and transitions to finish, so geometry and contrast are read
+ * from a settled frame rather than mid-reveal — e.g. scroll reveals set off by the full-page screenshot's
+ * temporary viewport resize. Infinite animations are ignored. Returns the time waited in ms.
+ * @param {import('playwright').Page} page @param {number} [maxMs]
+ */
+export async function settleAnimations(page, maxMs = 2000) {
+  return page.evaluate(async (max) => {
+    const t0 = performance.now();
+    for (let round = 0; round < 3; round++) {
+      /** @type {Animation[]} */ let anims = [];
+      try {
+        anims = document.getAnimations().filter((a) => {
+          if (a.playState !== 'running') return false;
+          try { return Number.isFinite(/** @type {any} */ (a.effect).getComputedTiming().endTime); } catch { return false; }
+        });
+      } catch { break; }
+      const left = max - (performance.now() - t0);
+      if (!anims.length || left <= 0) break;
+      await Promise.race([Promise.allSettled(anims.map((a) => a.finished)), new Promise((r) => setTimeout(r, left))]);
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => r(null))));
+    }
+    return Math.round(performance.now() - t0);
+  }, maxMs).catch(() => 0);
 }
 
 /**
@@ -228,6 +289,7 @@ export async function runDomChecks(page, ctx) {
   const { route, viewport, col } = ctx;
   const base = { route, viewport };
   await page.evaluate(() => window.scrollTo(0, 0)).catch(() => {});
+  await settleAnimations(page);
   const m = await page.evaluate(pageDomMeasure, { touch: ctx.touch, maxElements: 6000, minFontPx: 11, minTapPx: 24 });
   if (m.truncated) col.limit(`DOM checks examined the first ${m.elementCount} elements of ${route} (page is larger).`);
 
@@ -244,10 +306,10 @@ export async function runDomChecks(page, ctx) {
   for (const c of m.clipped) {
     if (!c.ellipsis) clipFail = true;
     col.issue({ ...base, check: 'clipped-content', severity: c.ellipsis ? 'info' : 'major', selector: c.selector,
-      message: c.ellipsis ? `Text truncated with ellipsis ("${c.text}").` : `Text is clipped by an overflow-hidden box ("${c.text}"): ${c.hiddenPx.x}px hidden horizontally, ${c.hiddenPx.y}px vertically.`,
+      message: c.ellipsis ? (c.lineClamp ? `Text truncated with line-clamp (${c.lineClamp} lines) ("${c.text}"); keep the full text reachable.` : `Text truncated with ellipsis ("${c.text}").`) : `Text is clipped by an overflow-hidden box ("${c.text}"): ${c.hiddenPx.x}px hidden horizontally, ${c.hiddenPx.y}px vertically.`,
       evidence: c });
   }
-  col.run('clipped-content', { ...base, status: clipFail ? 'failed' : 'passed' });
+  col.run('clipped-content', { ...base, status: clipFail ? 'failed' : 'passed', details: m.clipStats });
 
   // broken layout heuristics
   let layoutFail = false;

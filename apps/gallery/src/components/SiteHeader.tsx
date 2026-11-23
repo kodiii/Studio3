@@ -66,7 +66,7 @@ export function SiteHeader() {
     <header className="sticky top-0 z-40 border-b border-line bg-bg/90 backdrop-blur-sm">
       <a href="#main" className="s3-label absolute left-3 top-3 -translate-y-16 rounded bg-ink px-3 py-2 text-bg focus:translate-y-0">Skip to content</a>
       <div className="mx-auto flex h-14 max-w-[1400px] items-center justify-between gap-4 px-4 sm:px-6">
-        <Link href="/" className="flex items-baseline gap-3 py-3">
+        <Link href="/" className="flex items-baseline gap-3 py-3 decoration-signal decoration-2 underline-offset-[6px] hover:underline">
           <Wordmark className="text-[1.35rem] leading-none" />
           <span className="s3-label hidden text-muted md:inline">v4.0 Gallery</span>
         </Link>
@@ -75,7 +75,7 @@ export function SiteHeader() {
             const active = pathname === n.href || pathname.startsWith(n.href + '/');
             return (
               <Link key={n.href} href={n.href} aria-current={active ? 'page' : undefined}
-                className="s3-label relative rounded-full px-3 py-2 text-muted transition-colors duration-150 hover:text-ink aria-[current=page]:text-ink">
+                className="s3-label relative rounded-full px-3 py-2 text-muted transition-colors duration-150 hover:bg-surface-2 hover:text-ink aria-[current=page]:text-ink">
                 {n.label}
                 {active ? <span aria-hidden="true" className="absolute inset-x-3 -bottom-[11px] h-[2px] bg-signal" /> : null}
               </Link>

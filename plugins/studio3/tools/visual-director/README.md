@@ -36,7 +36,7 @@ video/<route-slug>-<viewport>.webm (only with --video)        report.json       
 
 ```
 { tool: "studio3-visual-director", version, generatedAt, label, target, pass,
-  coverage: { routes, viewports, motionModes, states, frames, screenshots, video, checksRun, checksSkipped, matrix },
+  coverage: { routes, viewports, motionModes, states, frames, screenshots, video, scrollThrough, checksRun, checksSkipped, matrix },
   checks:  [{ id, title, category, kind: "measured"|"heuristic", status, ran, reason?, issues, runs: [{route, viewport, status, ran, reason?, details?}] }],
   issues:  [{ id, check, severity: "critical"|"major"|"minor"|"info", route, viewport, message, selector?, evidence, measured: true, fingerprint }],
   motion:  { totals, rafCadence, perRoute },
@@ -47,20 +47,31 @@ video/<route-slug>-<viewport>.webm (only with --video)        report.json       
 `status` is `passed | failed | skipped | not-applicable | limited | unavailable`. `passed` is only reported when the check executed.
 `report.md` has Part A (measured) and Part B, "Agent-led visual assessment (subjective — not measured)", a fill-in rubric.
 
+## Measurement sequence (normal motion, per route × viewport)
+
+load → fonts + 2 frames → 300 ms → fold + full-page screenshots → **scroll-through** → DOM checks → axe → motion →
+keyboard/focus (primary viewport) → states. The scroll-through scrolls the document, and the page's main inner scroller
+(`overflow: auto|scroll`, ≥ 40% of the viewport) if it has one, to the bottom in ~0.8-viewport steps with a 120 ms pause
+per step, so IntersectionObserver, scroll-event and ScrollTrigger reveals fire, then returns to the top; at most 40
+steps / 8 s per route and viewport, skipped when nothing is taller than its viewport. `coverage.scrollThrough[]` records
+`{ route, viewport, ran, reason?, scrollers, steps, scrolledPx, reachedBottom, ms }` and report.md lists the routes that
+got it. DOM geometry and axe then wait (≤ 2 s) for finite running animations and transitions to settle, so nothing is
+read mid-reveal.
+
 ## Check catalogue
 
 | Check id | What is measured | Notes |
 |---|---|---|
 | `horizontal-overflow` | `scrollWidth` vs `clientWidth`, offending elements | measured |
-| `clipped-content` | text rects leaving an `overflow: hidden/clip` box | measured; ellipsis = info |
+| `clipped-content` | text rects leaving an `overflow: hidden/clip` box | measured; ellipsis and line-clamp = info; text in `aria-hidden`/`inert` subtrees and screen-reader-only boxes is ignored |
 | `broken-layout` | zero-size media, overlapping controls, offscreen text, text < 11px, empty body | heuristic on measured geometry |
 | `failed-assets` | `<img>` with `naturalWidth` 0, failed requests, HTTP ≥ 400, categorised image/font/script/model/texture/other | measured |
 | `console-errors` | `console.error` and uncaught exceptions | measured |
 | `accessibility-axe` | axe-core, tags wcag2a/aa, 21a/aa, 22aa (`target-size` handled by `responsive`) | skipped if axe is missing/disabled |
-| `keyboard-navigation` | Tab sequence (≤ 40 stops), traps, non-focusable or unreached controls | primary viewport only; `cursor: pointer` candidates are heuristic |
+| `keyboard-navigation` | Tab sequence (≤ 40 stops), traps, non-focusable or unreached controls | primary viewport only; a radio group is one stop, expected on its checked radio; `cursor: pointer` candidates are heuristic |
 | `focus-visible` | computed outline/box-shadow/border/background change, screenshot-diff fallback | primary viewport only |
 | `dialog-focus` | focus moves in, Escape closes, focus returns (auto-discovered dialog/menu/listbox triggers) | not-applicable if none opens |
-| `responsive` | tap targets < 24×24 with spacing/inline exceptions (touch viewports), elements wider than viewport, viewport meta | measured |
+| `responsive` | tap targets < 24×24 with spacing/inline exceptions (touch viewports), elements wider than viewport, viewport meta | measured; decorative (`aria-hidden`/`inert`) and screen-reader-only elements are not "wider than the viewport" |
 | `reduced-motion` | running animations and 500 ms pixel change under `prefers-reduced-motion: reduce` | canvas/video may legitimately change |
 | `motion-summary` | CSS/WAAPI animation counts, durations, infinite, properties, layout-property hints, rAF cadence | timing is headless software rendering |
 | `state-capture` / `video-capture` | explicit states; Playwright video | video is `unavailable` without ffmpeg |
@@ -78,6 +89,11 @@ Optional cooperative hook: `window.__STUDIO3_3D__ = { renderer: {calls, triangle
 
 ## Limitations
 
+- Scroll-through: scroll-linked (scrubbed) states are measured at the position reached — the top of the page after the
+  pass — not at every scroll position; reveals that reverse when they leave the viewport are measured in their hidden
+  state (axe skips hidden content); horizontal scrollers, virtualised/infinite lists beyond the step and time bounds,
+  and scroll-jacking libraries that ignore programmatic scrolling are not traversed. `--states` with `scroll` steps
+  captures such positions as screenshots for visual review; states are not re-run through the DOM and axe checks.
 - Timing is measured in headless Chromium with SwiftShader and is not representative of user devices.
 - WebGPU is unavailable in headless builds without an adapter; WebGPU draw calls and rendering in Web Workers are not counted.
 - GPU context release on navigation is not observable; `document.hidden` behaviour is not simulated.

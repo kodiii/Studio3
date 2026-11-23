@@ -8,7 +8,7 @@ import { log, UserError } from '../lib/log.mjs';
 import { CHECKS, CHECK_BY_ID } from './guidance.mjs';
 import { TOOL, toolVersion, fingerprint, issueId, summarize, writeJson, readJson, listPasses, listFiles, SEVERITIES } from './util.mjs';
 import { installPageHelpers } from './page/helpers.mjs';
-import { captureScreenshots, captureFrames, captureStates, captureVideo, FRAME_OFFSETS_MS } from './capture.mjs';
+import { captureScreenshots, captureFrames, captureStates, captureVideo, scrollThrough, FRAME_OFFSETS_MS, SCROLL_THROUGH } from './capture.mjs';
 import { runDomChecks } from './checks/dom.mjs';
 import { attachWatchers, reportAssetsAndConsole } from './checks/assets.mjs';
 import { runAxe } from './checks/a11y.mjs';
@@ -133,6 +133,7 @@ export async function runReview(opts) {
   /** @type {any[]} */ const stateLog = [];
   /** @type {any[]} */ const frameLog = [];
   /** @type {string[]} */ const screenshots = [];
+  /** @type {any[]} */ const scrollLog = [];
   /** @type {any} */ let video = null;
   const noGpu = noGpuBrowserFactory();
   const primaryVp = viewports.find((v) => !VIEWPORTS[v].hasTouch) ?? viewports[0];
@@ -167,6 +168,8 @@ export async function runReview(opts) {
           await page.waitForTimeout(300);
           if (response && response.status() >= 400) col.limit(`${route} responded with HTTP ${response.status()}; checks ran against the error page.`);
           screenshots.push(...await captureScreenshots(page, { outDir, route, viewport, mode: 'normal' }));
+          // scroll-linked reveals fire before geometry and contrast are measured (runDomChecks then settles)
+          scrollLog.push({ route, viewport, ...await scrollThrough(page) });
           const dom = await runDomChecks(page, { route, viewport, touch: !!vp.hasTouch, emitViewportMeta: firstTouchVp ? viewport === firstTouchVp : viewport === viewports[0], col });
           await runAxe(page, { route, viewport, col, disabled: opts.a11y === false });
           normalMotion = await collectMotion(page, { sampleRaf: viewport === primaryVp });
@@ -219,6 +222,7 @@ export async function runReview(opts) {
   col.limit('Timing figures (rAF cadence, frame intervals) are measured in headless Chromium with software rendering and are not representative of user devices.');
   col.limit('Pixel-change sampling compares two above-the-fold screenshots 500ms apart; canvas and video content may legitimately change under reduced motion.');
   col.limit('CSS transitions are only observable while running; the transition count reflects those active at load plus elements that declare a transition.');
+  col.limit(`Before the DOM and axe checks each page was scrolled to the bottom in ~0.8-viewport steps and back to the top (at most ${SCROLL_THROUGH.maxSteps} steps / ${SCROLL_THROUGH.maxMs / 1000} s; document plus main inner scroller). Scroll-linked (scrubbed) states are measured at the position reached — the top — not at every position, and reveals that reverse when they leave the viewport are measured hidden.`);
   col.limit('Subjective visual quality (composition, typography, hierarchy, spacing, originality, motion purpose) is not measured by this tool — see the agent-led assessment section of report.md.');
   if (viewports.length > 1) col.limit(`Keyboard, focus-indicator and full 3D diagnostics ran on the "${primaryVp}" viewport only; touch viewports get layout, accessibility, responsive, state and (for 3D) touch-interaction checks.`);
   if (do3D && threeDRoutes.length) col.limit('3D counters come from main-thread WebGL call instrumentation; rendering inside Web Workers / OffscreenCanvas workers and WebGPU draw calls are not counted. Texture and geometry byte figures are estimates.');
@@ -233,7 +237,7 @@ export async function runReview(opts) {
     pass: passNo,
     coverage: {
       routes, viewports: viewports.map((v) => ({ name: v, ...VIEWPORTS[v] })), motionModes: ['normal', 'reduced'],
-      states: stateLog, frames: frameLog, frameOffsetsMs: FRAME_OFFSETS_MS, screenshots, video,
+      states: stateLog, frames: frameLog, frameOffsetsMs: FRAME_OFFSETS_MS, screenshots, video, scrollThrough: scrollLog,
       checksRun: checks.filter((c) => c.ran).map((c) => c.id), checksSkipped: checks.filter((c) => !c.ran).map((c) => ({ id: c.id, status: c.status, reason: c.reason ?? null })),
       matrix: routes.flatMap((r) => viewports.map((v) => ({ route: r, viewport: v, checks: col.runs.filter((x) => x.route === r && x.viewport === v).map((x) => ({ check: x.check, status: x.status })) }))),
     },

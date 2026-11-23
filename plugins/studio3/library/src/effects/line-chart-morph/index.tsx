@@ -290,13 +290,17 @@ export default function LineChartMorph({ params }: EffectProps<Params>) {
           <span>{series.name}. Generated in the browser from a seeded random walk; not real ridership.</span>
         </figcaption>
 
-        <table className={styles.srOnly}>
-          <caption>Average daily riders, tram line 7 — {series.name} (sample data)</caption>
-          <thead><tr><th scope="col">Period</th><th scope="col">Riders</th></tr></thead>
-          <tbody>
-            {series.values.map((v, i) => (<tr key={i}><th scope="row">{series.labels[i]}</th><td>{nf.format(v)}</td></tr>))}
-          </tbody>
-        </table>
+        {/* Visually hidden via a wrapper: a <table> ignores width/height/overflow, so the class on the table itself
+            would leave its full-size (invisible) box in the layout, widening the scrollable area on phones. */}
+        <div className={styles.srOnly}>
+          <table>
+            <caption>Average daily riders, tram line 7 — {series.name} (sample data)</caption>
+            <thead><tr><th scope="col">Period</th><th scope="col">Riders</th></tr></thead>
+            <tbody>
+              {series.values.map((v, i) => (<tr key={i}><th scope="row">{series.labels[i]}</th><td>{nf.format(v)}</td></tr>))}
+            </tbody>
+          </table>
+        </div>
       </figure>
     </div>
   );

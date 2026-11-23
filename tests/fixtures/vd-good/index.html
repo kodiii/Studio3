@@ -35,6 +35,41 @@
       <li class="card"><h2>Repeatable</h2><p>Every pass writes the same report shape so passes can be compared.</p></li>
       <li class="card"><h2>Honest</h2><p>Checks that cannot run are reported as skipped, never as passed.</p></li>
     </ul>
+
+    <!-- Regression cases: deliberate patterns that must not be reported as defects. -->
+    <section class="patterns" aria-labelledby="patterns-title">
+      <!-- mask reveal still running when the page is first measured (settles before geometry is read) -->
+      <h2 id="patterns-title" class="mask"><span>Patterns that are not defects</span></h2>
+      <!-- deliberate truncation: line-clamp, with the full text still in the DOM -->
+      <p class="clamp">A line-clamped summary is a deliberate, visibly marked truncation: the card shows two lines and an ellipsis, the full description stays in the document for assistive technology, and the detail page repeats it in full. Visual Director reports it as information, like a single-line ellipsis, and never as clipped content that hides meaning from readers.</p>
+      <!-- decorative clone: aria-hidden marquee track wider than its clipping box -->
+      <div class="marquee" aria-hidden="true"><span>Measured · Repeatable · Honest · Measured · Repeatable · Honest · Measured · Repeatable · Honest · Measured · Repeatable · Honest · Measured · Repeatable · Honest · Measured · Repeatable · Honest</span></div>
+      <!-- screen-reader-only data table inside a clipping box: the class sits on the table itself -->
+      <div class="data-box">
+        <p>Sessions per day, with a data table for screen readers.</p>
+        <table class="sr-only">
+          <caption>Sessions per day over the sample week, counted across every region the fixture site serves</caption>
+          <thead><tr><th scope="col">Day</th><th scope="col">Sessions</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Monday</th><td>1,204</td></tr><tr><th scope="row">Tuesday</th><td>1,310</td></tr>
+            <tr><th scope="row">Wednesday</th><td>1,288</td></tr><tr><th scope="row">Thursday</th><td>1,402</td></tr>
+            <tr><th scope="row">Friday</th><td>1,156</td></tr><tr><th scope="row">Saturday</th><td>874</td></tr>
+            <tr><th scope="row">Sunday</th><td>812</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <!-- radio group whose checked option is not the first: Tab lands on the checked one -->
+      <fieldset class="speed">
+        <legend>Playback speed</legend>
+        <label><input type="radio" name="speed" value="0.5"> 0.5×</label>
+        <label><input type="radio" name="speed" value="1" checked> 1×</label>
+        <label><input type="radio" name="speed" value="2"> 2×</label>
+      </fieldset>
+    </section>
+
+    <!-- Regression case: a correct reveal-on-scroll below the fold, measured once revealed (readable, settled). -->
+    <div class="spacer" aria-hidden="true"></div>
+    <p class="late" id="late-note">Revealed on scroll, with readable contrast once it is in view.</p>
   </main>
 
   <dialog id="contact" aria-labelledby="contact-title">
@@ -66,6 +101,11 @@
       document.addEventListener('click', function (e) { if (!menu.contains(e.target) && e.target !== button) close(false); });
       var dialog = document.getElementById('contact');
       document.getElementById('open-dialog').addEventListener('click', function () { dialog.showModal(); });
+      var late = document.getElementById('late-note');
+      if ('IntersectionObserver' in window) {
+        var io = new IntersectionObserver(function (entries) { if (entries[0].isIntersecting) { late.classList.add('in'); io.disconnect(); } });
+        io.observe(late);
+      } else late.classList.add('in');
     })();
   </script>
 </body>

@@ -6,6 +6,64 @@ import { gotoStable, newContext } from '../lib/browser.mjs';
 import { nameSlug, routeSlug } from './util.mjs';
 
 export const FRAME_OFFSETS_MS = [0, 150, 400, 900];
+export const SCROLL_THROUGH = { maxSteps: 40, pauseMs: 120, maxMs: 8000 };
+
+/**
+ * Scroll-through pass, run before the DOM and axe checks: scroll the document, and the page's main scroller
+ * (an inner overflow-auto/scroll element covering ≥ 40% of the viewport) if it has one, to the bottom in
+ * ~0.8-viewport steps with a short pause per step, so IntersectionObserver, scroll-event and ScrollTrigger
+ * reveals fire; then return to the top. Bounded by `maxSteps` and `maxMs` (shared by all scrollers). Skipped
+ * when nothing is taller than its viewport.
+ * @param {import('playwright').Page} page
+ * @param {{ maxSteps?: number, pauseMs?: number, maxMs?: number }} [opts]
+ * @returns {Promise<{ ran: boolean, reason?: string, scrollers: string[], steps: number, scrolledPx: number, reachedBottom: boolean, ms: number }>}
+ */
+export async function scrollThrough(page, opts = {}) {
+  const o = { ...SCROLL_THROUGH, ...opts };
+  return page.evaluate(async (o) => {
+    const H = /** @type {any} */ (window).__S3VD__;
+    const de = document.documentElement; const body = document.body;
+    const t0 = performance.now();
+    const frame = () => new Promise((r) => requestAnimationFrame(() => r(null)));
+    const sleep = (/** @type {number} */ ms) => new Promise((r) => setTimeout(r, ms));
+    const docRange = () => Math.max(de.scrollHeight, body ? body.scrollHeight : 0) - window.innerHeight;
+    /** @type {{ label: string, el: any, range: () => number, view: number }[]} */ const scrollers = [];
+    if (docRange() > 1) scrollers.push({ label: 'document', el: null, range: docRange, view: window.innerHeight });
+    let main = null; let mainArea = 0;
+    for (const el of /** @type {any[]} */ (Array.from(body ? body.querySelectorAll('*') : []).slice(0, 4000))) {
+      if (el.scrollHeight <= el.clientHeight + 1) continue;
+      const oy = getComputedStyle(el).overflowY;
+      if (oy !== 'auto' && oy !== 'scroll') continue;
+      const area = el.clientWidth * el.clientHeight;
+      if (area > mainArea) { main = el; mainArea = area; }
+    }
+    if (main && mainArea >= 0.4 * window.innerWidth * window.innerHeight) {
+      const m = main;
+      scrollers.push({ label: H ? H.sel(m) : m.localName, el: m, range: () => m.scrollHeight - m.clientHeight, view: m.clientHeight });
+    }
+    if (!scrollers.length) return { ran: false, reason: 'page is not taller than the viewport', scrollers: [], steps: 0, scrolledPx: 0, reachedBottom: true, ms: 0 };
+    const to = (/** @type {any} */ s, /** @type {number} */ y) => { if (s.el) s.el.scrollTop = y; else window.scrollTo({ top: y, left: 0, behavior: 'instant' }); };
+    let steps = 0; let scrolledPx = 0; let reachedBottom = true;
+    for (const s of scrollers) {
+      let range = s.range();
+      let step = Math.max(1, Math.round(s.view * 0.8));
+      if (range / step > o.maxSteps) step = Math.min(s.view, Math.ceil(range / o.maxSteps)); // never skip past a viewport
+      let y = 0; let done = false;
+      while (steps < o.maxSteps && performance.now() - t0 < o.maxMs) {
+        y = Math.min(range, y + step);
+        to(s, y); steps++;
+        await frame(); await sleep(o.pauseMs);
+        range = Math.max(range, s.range()); // lazy sections can grow the page while it is scrolled
+        if (y >= range) { done = true; break; }
+      }
+      scrolledPx += Math.round(y);
+      if (!done) reachedBottom = false;
+      to(s, 0);
+    }
+    await frame(); await frame();
+    return { ran: true, scrollers: scrollers.map((s) => s.label), steps, scrolledPx, reachedBottom, ms: Math.round(performance.now() - t0) };
+  }, o).catch((err) => ({ ran: false, reason: `scroll-through failed: ${String(err && err.message).split('\n')[0]}`, scrollers: [], steps: 0, scrolledPx: 0, reachedBottom: false, ms: 0 }));
+}
 
 /**
  * Full-page + above-the-fold screenshots.

@@ -1,6 +1,6 @@
 ---
 name: studio-cinematic
-description: Cinematic Studio. Designs and builds memorable narrative web experiences - scroll-driven storytelling (scrollytelling), launch and campaign pages, brand films for the browser, kinetic typography, pinned and scrubbed sections, parallax and layered depth, full-screen transitions, portfolio and editorial showpieces, immersive heroes. Use for "cinematic", "award-style site", "scroll animation", "storytelling page", "kinetic type", "immersive landing", "launch page". Not for conversion-first product pages, forms or app UI (studio-product), dashboards (studio-data), feeds and reactions (studio-social), single effect recipes (studio-motion), or writing the WebGL scene (studio-3d).
+description: Cinematic Studio. Designs and builds memorable narrative web experiences - scroll-driven storytelling (scrollytelling), launch and campaign pages, brand films for the browser, kinetic typography, pinned and scrubbed sections, parallax and layered depth, full-screen transitions, portfolio and editorial showpieces, immersive heroes. Use when the user wants an experience people remember — "cinematic", "award-style site", "scroll animation", "storytelling page", "kinetic type", "immersive landing", "launch page". Not for conversion-first product pages, forms or app UI (studio-product), dashboards (studio-data), feeds and reactions (studio-social), single effect recipes (studio-motion), or writing the WebGL scene (studio-3d).
 argument-hint: "[story or page to stage]"
 license: MIT
 metadata:
