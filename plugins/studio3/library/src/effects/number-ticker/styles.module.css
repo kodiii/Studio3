@@ -84,7 +84,7 @@
 }
 .arrow { font-size: 0.625rem; line-height: 1; }
 .delta[data-dir='up'] { background: var(--s3-ink, #11110f); color: var(--s3-surface, #fbf9f4); }
-.delta[data-dir='down'] .arrow { color: var(--s3-accent, #e03a0c); }
+.delta[data-dir='down'] .arrow { color: var(--s3-accent, #bf2f09); }
 .delta[data-dir='flat'] { border-color: var(--s3-line, #11110f24); color: var(--s3-ink-muted, #5c5a52); }
 .count {
   margin: 0;

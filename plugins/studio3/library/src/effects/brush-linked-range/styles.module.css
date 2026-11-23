@@ -44,8 +44,8 @@
   font-size: 10.5px;
   font-variant-numeric: tabular-nums;
 }
-.line { fill: none; stroke: var(--s3-accent, #e03a0c); stroke-width: 1.75; stroke-linejoin: round; stroke-linecap: round; }
-.area { fill: var(--s3-accent, #e03a0c); fill-opacity: 0.1; }
+.line { fill: none; stroke: var(--s3-accent, #bf2f09); stroke-width: 1.75; stroke-linejoin: round; stroke-linecap: round; }
+.area { fill: var(--s3-accent, #bf2f09); fill-opacity: 0.1; }
 
 .overviewHead {
   display: flex;

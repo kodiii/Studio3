@@ -51,7 +51,7 @@
 .pct { counter-reset: spr-pct var(--spr-pct); color: var(--s3-ink, #11110f); font-variant-numeric: tabular-nums; }
 .pct::after { content: counter(spr-pct) '%'; }
 .driver { font-size: 0.625rem; line-height: 1.5; text-wrap: balance; }
-.driverKey { display: block; opacity: 0.7; }
+.driverKey { display: block; color: var(--s3-ink-muted, #5c5a52); }
 
 .marks { display: grid; grid-auto-rows: minmax(0, 1fr); gap: 6px; margin: 0; padding: 0; list-style: none; }
 .mark { --seg: 0; display: grid; min-block-size: 0; }
@@ -79,7 +79,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: var(--s3-signal, #e03a0c);
+  background: var(--s3-signal, #bf2f09);
   transform-origin: 0 0;
   scale: 1 var(--seg);
 }
@@ -149,7 +149,7 @@
   outline: none;
 }
 .h3:focus-visible { outline: 2px solid var(--s3-focus, #1d4ed8); outline-offset: 4px; border-radius: 2px; }
-.h3Idx { font-family: var(--s3-font-mono, ui-monospace, monospace); font-size: 0.6875rem; font-weight: 400; letter-spacing: 0.08em; color: var(--s3-signal, #e03a0c); }
+.h3Idx { font-family: var(--s3-font-mono, ui-monospace, monospace); font-size: 0.6875rem; font-weight: 400; letter-spacing: 0.08em; color: var(--s3-signal, #bf2f09); }
 .colophon {
   display: grid;
   align-content: start;

@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NEXT_TELEMETRY_DISABLED: '1'
+
+jobs:
+  static:
+    name: Plugin, types and unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Catalogue is up to date
+        run: node scripts/build-catalog.mjs --check
+      - name: Validate plugin packaging (structure; claude CLI checks skip when it is not installed)
+        run: node scripts/validate-plugin.mjs
+      - run: npm run typecheck
+      - name: Install Chromium for browser-backed unit tests
+        run: npx playwright install --with-deps chromium
+      - run: npm run test:unit
+      - run: npm run test:plugin
+
+  e2e:
+    name: Gallery e2e (Chromium, software WebGL)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    needs: static
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - name: Browser tests
+        run: npx playwright test --trace off
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results
+          path: test-results/
+          retention-days: 7
+
+  install-macos:
+    name: Installer on macOS (Apple Silicon)
+    runs-on: macos-14
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Installer lifecycle tests (isolated HOME; host CLIs faked)
+        run: node --test tests/plugin/install.test.mjs
+      - name: Doctor
+        run: node plugins/studio3/tools/studio3.mjs doctor

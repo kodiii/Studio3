@@ -3,7 +3,7 @@
  * Hotspots — annotations anchored to 3D points, drawn as real DOM buttons.
  *
  * Three pieces share a store (create it with `useHotspotStore()`):
- *  - `<HotspotAnchors>`  inside the canvas: projects each anchor to screen space on every RENDERED frame (so it
+ *  - `<HotspotAnchors>`  inside the canvas: projects each anchor to screen space after every RENDERED frame (so it
  *                        costs nothing while a demand-driven scene is idle), tests occlusion with one ray per
  *                        hotspot and writes transform/opacity straight to the marker elements (no React re-render).
  *  - `<HotspotLayer>`    DOM overlay, absolutely positioned over the canvas (same positioned parent): numbered
@@ -12,7 +12,7 @@
  *                        users (and for the no-WebGL fallback, where there is nothing to anchor to).
  * Occluded markers fade (they stay clickable — the list is the stable path); markers behind the camera are hidden.
  */
-import { useFrame, useThree } from '@react-three/fiber';
+import { addAfterEffect, useThree } from '@react-three/fiber';
 import { useEffect, useMemo, useRef, type CSSProperties, type ReactNode } from 'react';
 import { Box3, Raycaster, Vector3, type Object3D } from 'three';
 import type { Vec3 } from './OrbitInspect';
@@ -46,6 +46,7 @@ export interface HotspotAnchorsProps {
 
 export function HotspotAnchors({ store, hotspots, root, occlude = true }: HotspotAnchorsProps) {
   const invalidate = useThree((s) => s.invalidate);
+  const get = useThree((s) => s.get);
   const tmp = useMemo(() => ({ world: new Vector3(), ndc: new Vector3(), dir: new Vector3(), box: new Box3(), ray: new Raycaster() }), []);
   const nodes = useMemo(() => {
     const map = new Map<string, Object3D>();
@@ -53,8 +54,16 @@ export function HotspotAnchors({ store, hotspots, root, occlude = true }: Hotspo
     return map;
   }, [root, hotspots]);
   useEffect(() => { invalidate(); }, [nodes, hotspots, invalidate]);
+  const live = useRef({ hotspots, nodes, root, occlude });
+  live.current = { hotspots, nodes, root, occlude };
 
-  useFrame(({ camera, size }) => {
+  // Project AFTER the frame is rendered: by then every useFrame (camera rigs, controls, exploded parts) has run and
+  // the matrices match the pixels. Projecting inside useFrame lags one frame, which a demand loop never corrects.
+  useEffect(() => addAfterEffect(() => {
+    const { camera, size } = get();
+    const { hotspots, nodes, root, occlude } = live.current;
+    camera.updateMatrixWorld();
+    root?.updateWorldMatrix(true, true);
     for (const h of hotspots) {
       const el = store.elements.get(h.id);
       if (!el) continue;
@@ -81,7 +90,7 @@ export function HotspotAnchors({ store, hotspots, root, occlude = true }: Hotspo
       el.style.opacity = hiddenByGeometry ? '0.28' : '1';
       el.dataset.occluded = String(hiddenByGeometry);
     }
-  });
+  }), [get, store, tmp]);
   return null;
 }
 
@@ -112,7 +121,7 @@ export function HotspotLayer({ store, hotspots, active = null, onSelect, card = 
             {open && card ? (
               <div role="note" style={cardStyle}>
                 <strong style={{ display: 'block', fontSize: 13 }}>{h.label}</strong>
-                {h.description ? <span style={{ display: 'block', marginTop: 2, fontSize: 12, lineHeight: 1.4, opacity: 0.8 }}>{h.description}</span> : null}
+                {h.description ? <span style={{ display: 'block', marginTop: 2, fontSize: 12, lineHeight: 1.4, color: 'var(--s3-ink-muted, #5c5a52)' }}>{h.description}</span> : null}
               </div>
             ) : null}
           </div>

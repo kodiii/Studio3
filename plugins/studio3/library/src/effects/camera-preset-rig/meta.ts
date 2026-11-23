@@ -19,7 +19,7 @@ export const meta: EffectMeta = {
     { key: 'preset', label: 'Opening view', type: 'select', default: 'Three-quarter', options: ['Front', 'Three-quarter', 'Top', 'Detail'] },
     { key: 'glide', label: 'Glide time', type: 'number', default: 0.55, min: 0.15, max: 1.6, step: 0.05, unit: 's' },
     { key: 'fov', label: 'Field of view', type: 'number', default: 30, min: 18, max: 55, step: 1, unit: '°' },
-    { key: 'accent', label: 'Sphere colour', type: 'color', default: '#e03a0c' },
+    { key: 'accent', label: 'Sphere colour', type: 'color', default: '#bf2f09' },
   ],
   accessibility: [
     'Views are a native radio group in a fieldset: Tab reaches it, arrow keys change the view, and the current view is announced as the checked option.',

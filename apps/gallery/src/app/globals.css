@@ -26,16 +26,16 @@
   --s3-ink-muted: #5c5a52;
   --s3-line: #11110f24;
   --s3-line-strong: #11110f;
-  --s3-signal: #e03a0c;
+  --s3-signal: #bf2f09;
   --s3-on-signal: #ffffff;
   --s3-focus: #1d4ed8;
-  --s3-success: #0b7a55;
+  --s3-success: #0a6e4d;
   --s3-danger: #b42318;
 
   --s3-accent-product: #2446d8;
-  --s3-accent-cinematic: #e03a0c;
-  --s3-accent-data: #0b7a55;
-  --s3-accent-social: #c2187a;
+  --s3-accent-cinematic: #bf2f09;
+  --s3-accent-data: #0a6e4d;
+  --s3-accent-social: #b8166f;
   --s3-accent-3d: #8a5a00;
   --s3-accent: var(--s3-signal);
 

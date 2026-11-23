@@ -49,12 +49,12 @@
 .icon { flex: none; overflow: visible; }
 .icon * { transform-box: view-box; transform-origin: 24px 24px; }
 .outline { fill: none; stroke: currentColor; stroke-width: 2.25; stroke-linejoin: round; }
-.fill { fill: var(--s3-accent, #e03a0c); opacity: 0; transform: scale(0); }
+.fill { fill: var(--s3-accent, #bf2f09); opacity: 0; transform: scale(0); }
 .control[data-kind='save'] .fill { fill: currentColor; transform: scaleY(0); transform-origin: 24px 7.500px; }
 .control[aria-pressed='true'] .fill { opacity: 1; transform: none; }
-.control[data-kind='like'][aria-pressed='true'] .outline { stroke: var(--s3-accent, #e03a0c); }
+.control[data-kind='like'][aria-pressed='true'] .outline { stroke: var(--s3-accent, #bf2f09); }
 .control:hover .outline { stroke-width: 2.75; }
-.burst circle { fill: none; stroke: var(--s3-accent, #e03a0c); stroke-width: 2; opacity: 0; }
+.burst circle { fill: none; stroke: var(--s3-accent, #bf2f09); stroke-width: 2; opacity: 0; }
 .burst line { stroke: currentColor; stroke-width: 2.25; stroke-linecap: round; opacity: 0; }
 .caption { display: inline-flex; align-items: baseline; gap: 8px; font-size: 0.9375rem; font-weight: 500; }
 .caption > span:first-child { min-width: 5ch; text-align: left; }

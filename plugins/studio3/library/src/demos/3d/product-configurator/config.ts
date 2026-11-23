@@ -1,11 +1,13 @@
 import type { CameraPose, Hotspot, MaterialOverride, PartSelector } from '../../../three';
 
 export const MANIFEST_URL = '/models/pulse-speaker.manifest.json';
-export const POSTER = '/models/pulse-speaker.png';
+/** 1024 px transparent studio render shipped with the model (the no-WebGL / "still image" view). */
+export const FALLBACK_IMAGE = '/models/pulse-speaker.webp';
+/** Assets are authored in metres; the scene works in decimetres so the camera numbers stay readable. */
 export const SCALE = 10;
 export const BASE_PRICE = 189;
 
-type Overrides = Partial<Record<PartSelector, MaterialOverride>>;
+export type Overrides = Partial<Record<PartSelector, MaterialOverride>>;
 export interface Option { id: string; name: string; note: string; price: number; swatch?: [string, string]; overrides: Overrides }
 
 export const COLOURWAYS: Option[] = [
@@ -28,18 +30,37 @@ export const STRAPS: Option[] = [
   { id: 'dyed', name: 'Dyed to match', note: 'Weave tinted towards the hardware colour.', price: 8, overrides: {} },
   { id: 'none', name: 'No strap', note: 'Strap and pins left out.', price: -9, overrides: {} },
 ];
+/** Parts removed by the "No strap" option. */
+export const STRAP_PARTS = ['Strap', 'StrapPinL', 'StrapPinR'] as const;
 
 export const PRESETS: Record<string, CameraPose & { label: string }> = {
-  hero: { label: 'Three-quarter', position: [3.1, 1.9, 4.4], target: [0, 0.8, 0] },
-  front: { label: 'Front', position: [0, 0.9, 5.7], target: [0, 0.8, 0] },
+  front: { label: 'Front', position: [0, 0.9, 5.7], target: [0, 0.75, 0] },
+  hero: { label: 'Three-quarter', position: [3.1, 1.9, 4.4], target: [0, 0.75, 0] },
   top: { label: 'Top', position: [0.01, 5.8, 1.5], target: [0, 0.7, 0] },
-  dial: { label: 'Dial detail', position: [1.6, 2.3, 1.6], target: [0.55, 1.05, 0] },
+  dial: { label: 'Detail: dial', position: [1.6, 2.3, 1.6], target: [0.55, 1.05, 0] },
 };
-/** Wider framing used while the model is exploded. */
-export const EXPLODED_POSE: CameraPose = { position: [4.4, 2.6, 5.6], target: [0, 0.85, 0.15] };
+export const PRESET_ORDER = ['front', 'hero', 'top', 'dial'] as const;
+export type PresetId = (typeof PRESET_ORDER)[number];
+/** While exploded, every preset backs off along its own direction so the travelling parts stay in frame. */
+export const EXPLODED_PULLBACK = 1.32;
+
+export function widen(pose: CameraPose, factor: number): CameraPose {
+  const [px, py, pz] = pose.position, [tx, ty, tz] = pose.target;
+  return { ...pose, position: [tx + (px - tx) * factor, ty + (py - ty) * factor, tz + (pz - tz) * factor] };
+}
 
 export const HOTSPOTS: Hotspot[] = [
   { id: 'driver', node: 'Driver', label: '52 mm full-range driver', description: 'A single wide-band driver in a rubber surround, tuned for voices and small rooms.' },
   { id: 'dial', node: 'Knob', position: [0, 0.1, 0], label: 'Knurled volume dial', description: 'One control. Turn for volume, press to pause. The ring beneath it glows while paired.' },
   { id: 'strap', node: 'Strap', position: [0, 0.42, 0], label: 'Carry strap', description: 'Woven strap on two pins. It lifts off without tools if you would rather go without.' },
 ];
+
+/** Mix two #rrggbb colours (t = 0 → a, 1 → b). */
+export function mixHex(a: string, b: string, t: number): string {
+  const pa = parseInt(a.slice(1), 16), pb = parseInt(b.slice(1), 16);
+  const ch = (s: number) => Math.round(((pa >> s) & 255) * (1 - t) + ((pb >> s) & 255) * t);
+  return `#${((1 << 24) | (ch(16) << 16) | (ch(8) << 8) | ch(0)).toString(16).slice(1)}`;
+}
+
+export const formatPrice = (n: number): string => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
+export const formatDelta = (n: number): string => (n === 0 ? 'Included' : `${n > 0 ? '+' : '−'}${formatPrice(Math.abs(n))}`);

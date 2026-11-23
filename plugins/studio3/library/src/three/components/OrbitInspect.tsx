@@ -125,7 +125,11 @@ export const OrbitInspect = forwardRef<OrbitInspectHandle, OrbitInspectProps>(fu
     };
     host?.addEventListener('wheel', gate, { capture: true, passive: true });
 
-    const prev = { tabIndex: el.getAttribute('tabindex'), role: el.getAttribute('role'), shortcuts: el.getAttribute('aria-keyshortcuts') };
+    const prev = { tabIndex: el.getAttribute('tabindex'), role: el.getAttribute('role'), shortcuts: el.getAttribute('aria-keyshortcuts'), label: el.getAttribute('aria-label') };
+    // StudioCanvas names its wrapper as role="img". An image's children are presentational, so a focusable canvas inside
+    // it would be an unnamed control for assistive tech: promote the wrapper to a group and name the canvas itself.
+    const wrapper = keyboard ? (el.closest('[role="img"]') as HTMLElement | null) : null;
+    const wrapperLabel = wrapper?.getAttribute('aria-label') ?? null;
     const key = (e: KeyboardEvent) => {
       if (!controls.enabled || e.altKey || e.ctrlKey || e.metaKey) return;
       let used = true;
@@ -146,6 +150,8 @@ export const OrbitInspect = forwardRef<OrbitInspectHandle, OrbitInspectProps>(fu
       el.tabIndex = 0;
       el.setAttribute('role', 'application');
       el.setAttribute('aria-keyshortcuts', 'ArrowLeft ArrowRight ArrowUp ArrowDown + - 0');
+      if (prev.label === null) el.setAttribute('aria-label', `${wrapperLabel ?? '3D view'}. Arrow keys rotate, plus and minus zoom, 0 resets the view.`);
+      wrapper?.setAttribute('role', 'group');
       el.addEventListener('keydown', key);
     }
     return () => {
@@ -158,6 +164,8 @@ export const OrbitInspect = forwardRef<OrbitInspectHandle, OrbitInspectProps>(fu
         prev.tabIndex === null ? el.removeAttribute('tabindex') : el.setAttribute('tabindex', prev.tabIndex);
         prev.role === null ? el.removeAttribute('role') : el.setAttribute('role', prev.role);
         prev.shortcuts === null ? el.removeAttribute('aria-keyshortcuts') : el.setAttribute('aria-keyshortcuts', prev.shortcuts);
+        prev.label === null ? el.removeAttribute('aria-label') : el.setAttribute('aria-label', prev.label);
+        if (wrapper?.getAttribute('role') === 'group') wrapper.setAttribute('role', 'img');
       }
       controls.disconnect();
       el.style.touchAction = '';

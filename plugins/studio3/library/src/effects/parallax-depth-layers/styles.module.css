@@ -78,7 +78,7 @@
     scale(calc(1 + var(--zoom) * var(--z) * (var(--p) + 1) / 2));
   will-change: transform;
 }
-.sun { fill: var(--s3-signal, #e03a0c); }
+.sun { fill: var(--s3-signal, #bf2f09); }
 .rule { fill: none; stroke: var(--s3-ink, #11110f); stroke-width: 1.25; stroke-linecap: round; opacity: 0.5; }
 .far { fill: color-mix(in oklab, var(--s3-ink, #11110f) 14%, var(--s3-bg, #f3f0e8)); }
 .mid { fill: color-mix(in oklab, var(--s3-ink, #11110f) 32%, var(--s3-bg, #f3f0e8)); }

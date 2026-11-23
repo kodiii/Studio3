@@ -153,7 +153,7 @@ export default function ScrollPinChapters({ params }: EffectProps<Params>) {
       tl.to({}, { duration: 0.2 }); // pad so the last chapter rests exactly at progress 1
 
       const st = tl.scrollTrigger ?? null;
-      trigger.current = st; (window as any).__ST = ScrollTrigger;
+      trigger.current = st;
       // The preview stage can change size without a window resize.
       let w = scroller.clientWidth;
       const ro = new ResizeObserver(() => {

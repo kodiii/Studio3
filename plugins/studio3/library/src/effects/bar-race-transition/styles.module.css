@@ -106,7 +106,7 @@
   will-change: transform;
 }
 .row:not([data-leader]) .bar { opacity: 0.82; }
-.row[data-leader] .bar { background: var(--s3-accent, #e03a0c); }
+.row[data-leader] .bar { background: var(--s3-accent, #bf2f09); }
 .val {
   position: absolute;
   inset: 0 auto 0 0;

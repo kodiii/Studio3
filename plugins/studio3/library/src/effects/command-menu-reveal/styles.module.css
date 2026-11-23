@@ -165,7 +165,7 @@
 .option[aria-selected='true'] { background: var(--s3-ink, #11110f); color: var(--s3-surface, #fbf9f4); }
 .option[aria-selected='true'] kbd { background: transparent; border-color: color-mix(in oklab, var(--s3-surface, #fbf9f4) 40%, transparent); color: inherit; }
 .optionLabel { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.optionLabel mark { background: none; color: inherit; font-weight: 700; text-decoration: underline; text-decoration-color: var(--s3-signal, #e03a0c); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+.optionLabel mark { background: none; color: inherit; font-weight: 700; text-decoration: underline; text-decoration-color: var(--s3-signal, #bf2f09); text-decoration-thickness: 2px; text-underline-offset: 3px; }
 .keys { display: inline-flex; gap: 0.25rem; flex: none; }
 .empty { margin: 0; padding: 2rem 0.75rem; text-align: center; font-size: 0.9375rem; color: var(--s3-ink-muted, #5c5a52); }
 

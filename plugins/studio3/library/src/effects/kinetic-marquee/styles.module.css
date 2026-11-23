@@ -97,7 +97,7 @@
   width: 0.42em;
   height: 0.42em;
   margin-inline: 0.42em;
-  color: var(--s3-signal, #e03a0c);
+  color: var(--s3-signal, #bf2f09);
 }
 .railSmall { color: var(--s3-ink-muted, #5c5a52); }
 .setSmall { display: flex; flex: none; }

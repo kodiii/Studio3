@@ -595,3 +595,20 @@ describe('CLI', () => {
     expect(cli(['bogus']).status).toBe(2);
   });
 });
+
+describe('library alias layer (CSS export ↔ component library contract)', () => {
+  // Variables that library recipes and demos read WITHOUT a design-system-independent default.
+  const LIBRARY_VARS = ['bg', 'surface', 'surface-2', 'ink', 'ink-muted', 'line', 'line-strong', 'signal', 'on-signal',
+    'accent', 'focus', 'font-display', 'font-text', 'font-mono', 'font-serif', 'radius-s', 'radius-m', 'radius-l'];
+  for (const direction of DIRECTIONS.map((d) => d.id)) {
+    it(`${direction}: every recipe-facing variable is defined and resolves to a defined token`, () => {
+      const doc = generateDesign(brief(), { seed: 3, direction });
+      const css = toCss(doc);
+      const defined = new Set([...css.matchAll(/(--s3-[a-z0-9-]+)\s*:/g)].map((m) => m[1]));
+      for (const v of LIBRARY_VARS) expect(defined.has(`--s3-${v}`), `--s3-${v} defined`).toBe(true);
+      for (const [, target] of css.matchAll(/--s3-(?:bg|surface|surface-2|ink|ink-muted|line|line-strong|signal|on-signal|accent|focus|success|danger|font-serif|radius-[sml]):\s*var\((--s3-[a-z0-9-]+)\)/g)) {
+        expect(defined.has(target), `alias target ${target} defined`).toBe(true);
+      }
+    });
+  }
+});

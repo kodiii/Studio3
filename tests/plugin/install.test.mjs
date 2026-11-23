@@ -9,6 +9,8 @@ import { ROOT } from '../../scripts/validate-plugin.mjs';
 
 const INSTALL = path.join(ROOT, 'scripts', 'install.mjs');
 const VERSION = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')).version;
+// The installer must link every skill present in the repo (completeness of the 12 is asserted in packaging.test.mjs).
+const SKILLS = fs.readdirSync(path.join(ROOT, 'plugins', 'studio3', 'skills')).filter((d) => fs.existsSync(path.join(ROOT, 'plugins', 'studio3', 'skills', d, 'SKILL.md')));
 
 function sandbox({ fakeClis = [] } = {}) {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 's3-home-'));
@@ -25,14 +27,14 @@ function sandbox({ fakeClis = [] } = {}) {
   return { home, log, run, s3: path.join(home, '.studio3'), cleanup: () => fs.rmSync(home, { recursive: true, force: true }) };
 }
 
-test('skills mode: install links 12 skills, tools run from the payload, uninstall removes everything', () => {
+test('skills mode: install links every skill, tools run from the payload, uninstall removes everything', () => {
   const sb = sandbox();
   try {
     const r = sb.run('install', '--host', 'all', '--mode', 'skills');
     assert.equal(r.status, 0, r.stdout + r.stderr);
     for (const dir of [path.join(sb.home, '.claude', 'skills'), path.join(sb.home, '.agents', 'skills')]) {
       const skills = fs.readdirSync(dir);
-      assert.equal(skills.length, 12, `${dir} has 12 skills`);
+      assert.equal(skills.length, SKILLS.length, `${dir} has ${SKILLS.length} skills`);
       for (const s of skills) {
         assert.ok(fs.lstatSync(path.join(dir, s)).isSymbolicLink());
         assert.ok(fs.existsSync(path.join(dir, s, 'SKILL.md')), `${s} resolves`);
@@ -48,7 +50,7 @@ test('skills mode: install links 12 skills, tools run from the payload, uninstal
     const state = JSON.parse(fs.readFileSync(path.join(sb.s3, 'install.json'), 'utf8'));
     assert.equal(state.version, VERSION);
     assert.equal(state.hosts.claude.mode, 'skills');
-    assert.equal(state.links.length, 24);
+    assert.equal(state.links.length, SKILLS.length * 2);
 
     const st = sb.run('status', '--json');
     assert.equal(JSON.parse(st.stdout).installed, true);
@@ -78,7 +80,7 @@ test('upgrade backs up the previous payload; downgrade is refused without --forc
     assert.ok(fs.existsSync(path.join(sb.s3, 'backups', backups[0], 'MARKER')), 'old payload preserved in backup');
     assert.ok(!fs.existsSync(path.join(sb.s3, 'marketplace', 'MARKER')), 'new payload is clean');
     assert.equal(JSON.parse(fs.readFileSync(stateFile, 'utf8')).previousVersion, '3.9.0');
-    assert.equal(fs.readdirSync(path.join(sb.home, '.agents', 'skills')).length, 12, 'links re-created once');
+    assert.equal(fs.readdirSync(path.join(sb.home, '.agents', 'skills')).length, SKILLS.length, 'links re-created once');
 
     fs.writeFileSync(stateFile, JSON.stringify({ ...state, version: '99.0.0' }));
     const down = sb.run('install', '--host', 'codex', '--mode', 'skills');
@@ -147,7 +149,7 @@ test('real Claude Code CLI: marketplace add → install → details → uninstal
     const list = spawnSync('claude', ['plugin', 'list'], { encoding: 'utf8', env });
     assert.match(list.stdout + list.stderr, /studio3@studio3-marketplace/);
     const details = spawnSync('claude', ['plugin', 'details', 'studio3'], { encoding: 'utf8', env });
-    assert.match(details.stdout + details.stderr, /Skills \(12\)/);
+    assert.match(details.stdout + details.stderr, new RegExp(`Skills \\(${SKILLS.length}\\)`));
     const u = spawnSync(process.execPath, [INSTALL, 'uninstall'], { encoding: 'utf8', env });
     assert.equal(u.status, 0, u.stdout + u.stderr);
     const after = spawnSync('claude', ['plugin', 'list'], { encoding: 'utf8', env });

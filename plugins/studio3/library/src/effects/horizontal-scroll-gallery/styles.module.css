@@ -88,12 +88,12 @@
   background: var(--s3-bg, #f3f0e8);
 }
 .plate svg { inline-size: min(100%, 220px); block-size: 100%; max-block-size: 100%; }
-.hot { fill: var(--s3-signal, #e03a0c); stroke: none; }
+.hot { fill: var(--s3-signal, #bf2f09); stroke: none; }
 .meta { display: flex; justify-content: space-between; align-items: baseline; padding: 14px 4px 0; }
 .no, .pinMark { font-family: var(--s3-font-mono, ui-monospace, monospace); font-size: 0.6875rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--s3-ink-muted, #5c5a52); }
 .pinMark::before { content: ''; display: inline-block; inline-size: 7px; block-size: 7px; margin-inline-end: 6px; border: 1px solid currentColor; border-radius: 999px; }
 .card[aria-pressed='true'] .pinMark { color: var(--s3-ink, #11110f); }
-.card[aria-pressed='true'] .pinMark::before { border-color: var(--s3-signal, #e03a0c); background: var(--s3-signal, #e03a0c); }
+.card[aria-pressed='true'] .pinMark::before { border-color: var(--s3-signal, #bf2f09); background: var(--s3-signal, #bf2f09); }
 .title {
   padding: 6px 4px 0;
   font-family: var(--s3-font-display, ui-sans-serif, system-ui, sans-serif);

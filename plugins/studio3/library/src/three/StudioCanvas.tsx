@@ -77,6 +77,11 @@ function Instrumentation({ quality, frameloop, adaptive, onContextLost }: { qual
   // Kept in a ref: an inline callback must not tear down and recreate the diagnostics object on every parent render.
   const lostRef = useRef(onContextLost);
   lostRef.current = onContextLost;
+  // Loop mode / quality change while the renderer lives (pause, offscreen, user quality pick). They are updated in
+  // place below; only the renderer going away counts as `disposed`.
+  const mode = useRef({ frameloop, level: quality.level });
+  mode.current = { frameloop, level: quality.level };
+  const diagRef = useRef<Studio3Diagnostics | null>(null);
 
   useEffect(() => {
     const canvas = gl.domElement;
@@ -85,8 +90,10 @@ function Instrumentation({ quality, frameloop, adaptive, onContextLost }: { qual
     const prev = window.__STUDIO3_3D__;
     const diag: Studio3Diagnostics = {
       renderer: { calls: 0, triangles: 0, points: 0, lines: 0, geometries: 0, textures: 0, programs: 0 },
-      frameloop, quality: quality.level, dpr: gl.getPixelRatio(), frames: 0, disposed: prev?.disposed ?? 0, contextLost: prev?.contextLost ?? 0,
+      frameloop: mode.current.frameloop, quality: mode.current.level, dpr: gl.getPixelRatio(), frames: frames.current,
+      disposed: prev?.disposed ?? 0, contextLost: prev?.contextLost ?? 0,
     };
+    diagRef.current = diag;
     window.__STUDIO3_3D__ = diag;
     const off = addAfterEffect(() => {
       const info = gl.info;
@@ -103,8 +110,13 @@ function Instrumentation({ quality, frameloop, adaptive, onContextLost }: { qual
     return () => {
       off();
       canvas.removeEventListener('webglcontextlost', lost);
+      if (diagRef.current === diag) diagRef.current = null;
       if (window.__STUDIO3_3D__ === diag) diag.disposed++;
     };
+  }, [gl]);
+  useEffect(() => {
+    const d = diagRef.current;
+    if (d) { d.frameloop = frameloop; d.quality = quality.level; }
   }, [gl, frameloop, quality.level]);
 
   const adaptiveRef = useMemo(() => {
@@ -207,5 +219,6 @@ export function StudioCanvas({
 
 const srOnly: CSSProperties = { position: 'absolute', width: 1, height: 1, margin: -1, padding: 0, overflow: 'hidden', clip: 'rect(0 0 0 0)', whiteSpace: 'nowrap', border: 0 };
 const fallbackStyle: CSSProperties = { position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, overflow: 'hidden' };
-const fallbackNote: CSSProperties = { margin: 0, padding: '0 16px 12px', fontSize: 13, opacity: 0.8, textAlign: 'center' };
+// Secondary text uses the muted ink token (never opacity, which drops contrast below the guaranteed level).
+const fallbackNote: CSSProperties = { margin: 0, padding: '0 16px 12px', fontSize: 13, color: 'var(--s3-ink-muted, #5c5a52)', textAlign: 'center' };
 const retryStyle: CSSProperties = { font: 'inherit', textDecoration: 'underline', background: 'none', border: 0, padding: 4, color: 'inherit', cursor: 'pointer' };

@@ -133,10 +133,11 @@ export default function ScrollProgressRail({ params }: EffectProps<Params>) {
             <ol className={styles.marks}>
               {sections.map((s, i) => (
                 <li key={s.name} className={styles.mark} data-mark={i}>
-                  <button type="button" className={styles.markBtn} aria-current={current === i ? 'location' : undefined} aria-label={`Section ${i + 1}: ${s.name}`} onClick={() => goTo(i)}>
+                  <button type="button" className={styles.markBtn} aria-current={current === i ? 'location' : undefined} onClick={() => goTo(i)}>
                     <span className={styles.seg} aria-hidden="true" />
-                    <span className={styles.idx} aria-hidden="true">{pad(i + 1)}</span>
-                    <span className={styles.name} aria-hidden="true">{s.name}</span>
+                    {/* Visible text is the accessible name (WCAG 2.5.3 Label in Name). */}
+                    <span className={styles.idx}>{pad(i + 1)}</span>
+                    <span className={styles.name}>{s.name}</span>
                   </button>
                 </li>
               ))}

@@ -1,0 +1,40 @@
+import { chromium } from 'playwright';
+const b = await chromium.launch({ args: ['--use-angle=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist'] });
+const p = await b.newPage({ viewport: { width: 1100, height: 900 } });
+const errors = [];
+p.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
+p.on('pageerror', (e) => errors.push('pageerror ' + e.message));
+await p.goto('http://localhost:3333/effects/blob-morph');
+const stage = p.locator('[data-effect-stage="blob-morph"]');
+await stage.locator('button[aria-label^="Morph"]').waitFor();
+const d0 = await stage.locator('mask path').nth(1).getAttribute('d');
+await p.waitForTimeout(700);
+const d1 = await stage.locator('mask path').nth(1).getAttribute('d');
+console.log('drift changes path at rest:', d0 !== d1);
+// hover → next
+await stage.locator('button[aria-label^="Morph"]').hover();
+await p.waitForTimeout(100);
+console.log('after hover:', await stage.locator('[aria-live]').textContent());
+// keyboard: Tab from the page to the blob button (focus-visible) → next
+await p.mouse.move(5, 5);
+await p.locator('[data-replay]').focus();
+await p.keyboard.press('Tab');
+const focused = await p.evaluate(() => document.activeElement?.getAttribute('aria-label'));
+console.log('focused:', focused);
+await p.waitForTimeout(100);
+console.log('after focus:', await stage.locator('[aria-live]').textContent());
+await p.keyboard.press('Enter');
+await p.waitForTimeout(100);
+console.log('after Enter:', await stage.locator('[aria-live]').textContent());
+await p.keyboard.press('Tab');
+console.log('next focus:', await p.evaluate(() => document.activeElement?.getAttribute('aria-label') ?? document.activeElement?.textContent));
+await p.keyboard.press('Space');
+await p.waitForTimeout(100);
+console.log('after Space on thumb 1:', await stage.locator('[aria-live]').textContent(), await stage.locator('[aria-pressed="true"]').getAttribute('aria-label'));
+// click next button
+await stage.getByRole('button', { name: 'Next form', exact: true }).click();
+await p.waitForTimeout(1500);
+console.log('after click next:', await stage.locator('[aria-live]').textContent());
+await p.screenshot({ path: '/tmp/claude-0/-home-user/77865dc0-1700-59d0-bb68-e0d68f61d45b/scratchpad/spatial/blob-after.png', clip: { x: 24, y: 390, width: 740, height: 470 } });
+console.log('errors', errors);
+await b.close();

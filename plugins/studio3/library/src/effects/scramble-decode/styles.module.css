@@ -26,7 +26,7 @@
   height: 0.5em;
   margin-right: 0.6em;
   border-radius: 50%;
-  background: var(--s3-signal, #e03a0c);
+  background: var(--s3-signal, #bf2f09);
   vertical-align: 0.05em;
 }
 .count { white-space: nowrap; }
@@ -64,7 +64,7 @@
   text-align: center;
 }
 .cell[data-cell='noise'] { color: color-mix(in oklab, var(--s3-ink-muted, #5c5a52) 62%, transparent); }
-.cell[data-cell='fresh'] { color: var(--s3-signal, #e03a0c); }
+.cell[data-cell='fresh'] { color: var(--s3-signal, #bf2f09); }
 
 .foot {
   display: flex;

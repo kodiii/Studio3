@@ -61,6 +61,35 @@ function baseDecls(doc) {
   out.push(['focus-ring', `2px solid var(${P}-color-focus-ring)`], ['focus-ring-offset', '2px']);
   return out;
 }
+/**
+ * Library alias layer: the variable names Studio³ library recipes and demos read (see docs/LIBRARY-CONTRACT.md),
+ * mapped onto this design system's role tokens. Declared on :root as var() references, so they follow the
+ * light/dark blocks automatically. Motion variables need no alias: recipes read them with fallbacks.
+ * @param {any} doc
+ * @returns {[string, string][]}
+ */
+export function libraryAliases(doc) {
+  const roles = doc.color?.light?.roles ?? {};
+  const semantic = doc.color?.light?.semantic ?? {};
+  const fam = doc.typography?.families ?? {};
+  const pick = (...keys) => keys.find((k) => k in roles);
+  /** @type {[string, string | undefined][]} */
+  const color = [
+    ['bg', pick('bg')], ['surface', pick('surface')], ['surface-2', pick('surfaceSunken', 'surfaceRaised')],
+    ['ink', pick('text')], ['ink-muted', pick('textMuted')], ['line', pick('border')], ['line-strong', pick('borderStrong', 'text')],
+    ['signal', pick('primary')], ['on-signal', pick('onPrimary')], ['accent', pick('accent', 'primary')], ['focus', pick('focusRing')],
+  ];
+  const kebab = (k) => k.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
+  /** @type {[string, string][]} */
+  const out = color.filter(([, r]) => r).map(([n, r]) => [n, `var(${P}-color-${kebab(r)})`]);
+  if (semantic.success) out.push(['success', `var(${P}-color-success-text)`]);
+  if (semantic.danger) out.push(['danger', `var(${P}-color-danger-text)`]);
+  if (!fam.serif) out.push(['font-serif', `var(${P}-font-${fam.longform ? 'longform' : 'display'})`]);
+  const rr = doc.radius?.roles ?? {};
+  for (const [n, r] of [['radius-s', 'control'], ['radius-m', 'container'], ['radius-l', 'overlay']]) if (r in rr) out.push([n, `var(${P}-radius-${r})`]);
+  return out;
+}
+
 const block = (selector, decls, indent = '') => `${indent}${selector} {\n${decls.map(([n, v, c]) => `${indent}  ${P}-${n}: ${v};${c ? ` /* ${c} */` : ''}`).join('\n')}\n${indent}}`;
 
 /** @param {any} input design document @param {{ colorFormat?: 'hex' | 'oklch' }} [opts] */
@@ -81,6 +110,8 @@ export function toCss(input, opts = {}) {
     ' * change studio3.design.json (or its "overrides") and re-export.',
     ` * Default colour mode: ${def}. Set data-theme="${alt}" or "${def}" on <html> to force a mode. */`,
     block(':root', [/** @type {[string, string]} */ (['color-scheme', def]), ...rampDecls(doc, fmt), ...colorDecls(doc, def, fmt), ...shadows(def), ...baseDecls(doc)]).replace(`${P}-color-scheme`, 'color-scheme'),
+    `/* Library aliases — the names Studio³ recipes read (docs/LIBRARY-CONTRACT.md). */`,
+    block(':root', libraryAliases(doc)),
     `@media (prefers-color-scheme: ${alt}) {\n${block(`:root:not([data-theme="${def}"])`, [/** @type {[string, string]} */ (['color-scheme', alt]), ...colorDecls(doc, alt, fmt), ...shadows(alt)], '  ').replace(`${P}-color-scheme`, 'color-scheme')}\n}`,
     block(`:root[data-theme="${alt}"]`, [/** @type {[string, string]} */ (['color-scheme', alt]), ...colorDecls(doc, alt, fmt), ...shadows(alt)]).replace(`${P}-color-scheme`, 'color-scheme'),
     `/* Reduced motion: durations capped at ${cap}ms (opacity-only replacements), stagger off, ${P}-motion-scale 0 for transform distances. */`,

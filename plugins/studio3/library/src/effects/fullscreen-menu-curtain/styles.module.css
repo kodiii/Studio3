@@ -2,7 +2,7 @@
   --fm-bg: var(--s3-ink, #11110f);
   --fm-fg: var(--s3-surface, #fbf9f4);
   --fm-muted: color-mix(in oklab, var(--fm-fg) 58%, var(--fm-bg));
-  --fm-hover: var(--s3-signal, #e03a0c);
+  --fm-hover: var(--s3-signal, #bf2f09);
   --fm-pad: clamp(1rem, 4.5cqi, 2.5rem);
   --fm-bar: 4.25rem;
   position: relative;
@@ -18,7 +18,7 @@
   font-family: var(--s3-font-text, ui-sans-serif, system-ui, sans-serif);
 }
 .root[data-tone='signal'] {
-  --fm-bg: var(--s3-signal, #e03a0c);
+  --fm-bg: var(--s3-signal, #bf2f09);
   --fm-fg: var(--s3-on-signal, #fff);
   --fm-muted: color-mix(in oklab, var(--fm-fg) 78%, var(--fm-bg));
   --fm-hover: var(--fm-fg);
@@ -52,7 +52,7 @@
   letter-spacing: -0.02em;
   white-space: nowrap;
 }
-.brandMark { width: 0.42em; height: 0.42em; border-radius: 50%; background: var(--s3-signal, #e03a0c); }
+.brandMark { width: 0.42em; height: 0.42em; border-radius: 50%; background: var(--s3-signal, #bf2f09); }
 .root[data-tone='signal'][data-open] .brandMark { background: currentColor; }
 .brandNote {
   margin-left: 0.6em;

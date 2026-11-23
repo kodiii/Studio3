@@ -30,7 +30,7 @@ export default function ReactionBurst({ params }: EffectProps<Params>) {
 
   const pool = useRef<Particle[]>([]);
   const shapes = useRef<Path2D[]>([]);
-  const colors = useRef({ accent: '#e03a0c', ink: '#11110f' });
+  const colors = useRef({ accent: '#bf2f09', ink: '#11110f' });
   const cursor = useRef(0);
   const anims = useRef(new Set<Animation>());
 
@@ -86,7 +86,7 @@ export default function ReactionBurst({ params }: EffectProps<Params>) {
     const root = rootRef.current;
     if (!root) return;
     const cs = getComputedStyle(root);
-    colors.current = { accent: cs.getPropertyValue('--s3-accent').trim() || '#e03a0c', ink: cs.getPropertyValue('--s3-ink').trim() || '#11110f' };
+    colors.current = { accent: cs.getPropertyValue('--s3-accent').trim() || '#bf2f09', ink: cs.getPropertyValue('--s3-ink').trim() || '#11110f' };
     const rb = root.getBoundingClientRect();
     const ib = (button.querySelector('svg') ?? button).getBoundingClientRect();
     const ox = ib.left + ib.width / 2 - rb.left, oy = ib.top + ib.height / 2 - rb.top;

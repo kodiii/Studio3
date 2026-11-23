@@ -93,6 +93,115 @@
       ]
     },
     {
+      "id": "blob-morph",
+      "name": "Blob Morph",
+      "description": "Seeded organic forms that morph point-for-point on a spring. Every keyframe samples the same angles, so one closed Catmull-Rom path glides between shapes without kinks; the form masks an illustration, an avatar or a solid fill.",
+      "category": "svg",
+      "specialties": [
+        "social",
+        "product",
+        "cinematic"
+      ],
+      "technology": [
+        "svg",
+        "waapi"
+      ],
+      "interaction": [
+        "hover",
+        "press",
+        "keyboard",
+        "time"
+      ],
+      "complexity": 2,
+      "intensity": "moderate",
+      "applications": [
+        "avatar or profile-picture mask",
+        "hero illustration frame",
+        "empty-state or onboarding art",
+        "playful section divider"
+      ],
+      "dependencies": [],
+      "params": [
+        {
+          "key": "points",
+          "label": "Anchor points",
+          "type": "number",
+          "default": 9,
+          "min": 6,
+          "max": 14,
+          "step": 1
+        },
+        {
+          "key": "wobble",
+          "label": "Wobble",
+          "type": "number",
+          "default": 0.2,
+          "min": 0.04,
+          "max": 0.4,
+          "step": 0.01
+        },
+        {
+          "key": "seed",
+          "label": "Seed",
+          "type": "number",
+          "default": 7,
+          "min": 1,
+          "max": 99,
+          "step": 1
+        },
+        {
+          "key": "drift",
+          "label": "Idle drift",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "key": "spring",
+          "label": "Spring",
+          "type": "select",
+          "default": "glide",
+          "options": [
+            "glide",
+            "settle",
+            "release"
+          ]
+        },
+        {
+          "key": "fill",
+          "label": "Mask content",
+          "type": "select",
+          "default": "Landscape",
+          "options": [
+            "Landscape",
+            "Portrait",
+            "Solid"
+          ]
+        }
+      ],
+      "accessibility": [
+        "The shape is a real button: hovering it, focusing it with the keyboard or pressing it picks the next form, and its label names the form that is showing.",
+        "Thumbnail buttons (aria-pressed) jump straight to any form; the form counter is a polite live region.",
+        "The masked illustration is decorative (aria-hidden) — no information depends on the shape.",
+        "Touch taps morph once (hover is ignored for touch, so a tap never skips two forms)."
+      ],
+      "reducedMotion": "Idle drift is switched off and the shape no longer morphs: forms swap with a 160 ms cross-fade from a ghost of the previous form.",
+      "performance": [
+        "One SVG path (plus its hairline echo) is rewritten per frame only while a spring is settling or drift is on; the useRafLoop loop stops at rest and pauses offscreen or in a hidden tab.",
+        "Shapes are generated once per seed / point-count / wobble change; a frame integrates 6–14 springs in fixed substeps with no layout reads.",
+        "The mask is plain SVG — no filters, no canvas."
+      ],
+      "preview": {
+        "height": 460
+      },
+      "path": "library/src/effects/blob-morph",
+      "files": [
+        "index.tsx",
+        "geometry.ts",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
       "id": "brush-linked-range",
       "name": "Brush Linked Range",
       "description": "Focus + context: an overview strip with a draggable, resizable brush drives a linked detail chart whose domain eases toward the selection. The brush is hand-built so both handles and the window itself are real keyboard sliders.",
@@ -255,7 +364,7 @@
           "key": "accent",
           "label": "Sphere colour",
           "type": "color",
-          "default": "#e03a0c"
+          "default": "#bf2f09"
         }
       ],
       "accessibility": [
@@ -552,6 +661,119 @@
       ]
     },
     {
+      "id": "flip-grid-reorder",
+      "name": "FLIP Grid Reorder",
+      "description": "A filterable, sortable swatch library: tiles glide to their new cells with first-last-invert-play on the Web Animations API (the Motion Lab flip()), entering tiles scale in, leaving tiles fade out where they stood, and a new filter can interrupt a transition mid-flight without a jump.",
+      "category": "layout",
+      "specialties": [
+        "product",
+        "data"
+      ],
+      "technology": [
+        "waapi",
+        "css"
+      ],
+      "interaction": [
+        "press",
+        "keyboard"
+      ],
+      "complexity": 2,
+      "intensity": "moderate",
+      "applications": [
+        "shop or portfolio filters",
+        "asset and media library sorting",
+        "search results re-ranking",
+        "dashboard tile rearrangement"
+      ],
+      "dependencies": [],
+      "params": [
+        {
+          "key": "duration",
+          "label": "Glide duration",
+          "type": "number",
+          "default": 520,
+          "min": 160,
+          "max": 1200,
+          "step": 20,
+          "unit": "ms"
+        },
+        {
+          "key": "stagger",
+          "label": "Stagger",
+          "type": "number",
+          "default": 18,
+          "min": 0,
+          "max": 80,
+          "step": 2,
+          "unit": "ms"
+        },
+        {
+          "key": "easing",
+          "label": "Easing token",
+          "type": "select",
+          "default": "emphasized",
+          "options": [
+            "emphasized",
+            "standard",
+            "inOut",
+            "overshoot"
+          ]
+        },
+        {
+          "key": "entrance",
+          "label": "Entering tiles",
+          "type": "select",
+          "default": "scale",
+          "options": [
+            "scale",
+            "rise",
+            "fade"
+          ]
+        },
+        {
+          "key": "tileSize",
+          "label": "Tile size",
+          "type": "number",
+          "default": 128,
+          "min": 88,
+          "max": 220,
+          "step": 4,
+          "unit": "px"
+        },
+        {
+          "key": "filterMode",
+          "label": "Filter mode",
+          "type": "select",
+          "default": "single",
+          "options": [
+            "single",
+            "multiple"
+          ]
+        }
+      ],
+      "accessibility": [
+        "Filters and sort orders are native buttons with aria-pressed inside labelled groups; every change is a click or Enter/Space away.",
+        "A polite status line announces how many of the twelve materials are shown, which filter is on and how they are sorted.",
+        "Tiles are a plain list with real text names; leaving tiles are aria-hidden while they fade out, so the list never reads stale items.",
+        "Category and tone are written as text on every tile, never implied by colour or position alone."
+      ],
+      "reducedMotion": "Tiles jump straight to their new cells with no glide; leaving tiles are removed at once and entering tiles fade in over 160 ms.",
+      "performance": [
+        "One measure pass before and one after a synchronous React commit (flushSync); everything that moves is a composited transform or opacity animation.",
+        "An interrupting change measures tiles where they visually are (mid-animation), cancels their animations and glides on from there.",
+        "Swatches are pure CSS gradients: no images, canvases or filters. Every animation is cancelled on unmount."
+      ],
+      "preview": {
+        "height": 600
+      },
+      "path": "library/src/effects/flip-grid-reorder",
+      "files": [
+        "index.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
       "id": "fullscreen-menu-curtain",
       "name": "Fullscreen Menu Curtain",
       "description": "The menu button morphs into a close icon while a clip-path curtain opens from the button, the top edge or the side, revealing oversized navigation links that rise out of masks in sequence. Everything is contained in its own stage and reverses cleanly when interrupted.",
@@ -645,6 +867,95 @@
       "path": "library/src/effects/fullscreen-menu-curtain",
       "files": [
         "index.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "grain-gradient-mesh",
+      "name": "Grain Gradient Mesh",
+      "description": "Three or four soft colour fields — paper, ink and one accent from the theme — drift very slowly on compositor transforms under a film-grain tile that is generated once with canvas2d. No per-frame canvas work and no blur filters.",
+      "category": "backgrounds",
+      "specialties": [
+        "cinematic",
+        "product"
+      ],
+      "technology": [
+        "css",
+        "canvas2d"
+      ],
+      "interaction": [
+        "time"
+      ],
+      "complexity": 1,
+      "intensity": "subtle",
+      "applications": [
+        "hero or section background",
+        "pricing or sign-up backdrop",
+        "editorial cover",
+        "empty state"
+      ],
+      "dependencies": [],
+      "params": [
+        {
+          "key": "palette",
+          "label": "Palette",
+          "type": "select",
+          "default": "Signal",
+          "options": [
+            "Signal",
+            "Moss",
+            "Ochre",
+            "Graphite"
+          ]
+        },
+        {
+          "key": "drift",
+          "label": "Drift speed",
+          "type": "number",
+          "default": 1,
+          "min": 0,
+          "max": 3,
+          "step": 0.1,
+          "unit": "×"
+        },
+        {
+          "key": "grain",
+          "label": "Grain",
+          "type": "number",
+          "default": 0.24,
+          "min": 0,
+          "max": 0.7,
+          "step": 0.02
+        },
+        {
+          "key": "fields",
+          "label": "Colour fields",
+          "type": "number",
+          "default": 4,
+          "min": 3,
+          "max": 4,
+          "step": 1
+        }
+      ],
+      "accessibility": [
+        "The gradient and grain layers are aria-hidden decoration; copy sits on a solid surface card, so text contrast never depends on where a field drifts.",
+        "Drift is slow (47–89 s periods at 1×), low-contrast and never flashes.",
+        "Colours come from theme tokens (paper = --s3-bg, ink = --s3-ink, one accent), so light, dark and always-dark stages all stay coherent."
+      ],
+      "reducedMotion": "No drift: the fields render as a still composition. The animation is gated twice — by useStudioMotion() and by a prefers-reduced-motion media query.",
+      "performance": [
+        "Each field is a single radial-gradient element animated with transform only; no filter, no per-frame JavaScript.",
+        "The grain is one 128 px PNG data URL generated once per page and cached; it tiles via background-image.",
+        "Animations are paused (animation-play-state) while the element is offscreen."
+      ],
+      "preview": {
+        "height": 440
+      },
+      "path": "library/src/effects/grain-gradient-mesh",
+      "files": [
+        "index.tsx",
+        "grain.ts",
         "styles.module.css",
         "meta.ts"
       ]
@@ -937,6 +1248,96 @@
       ]
     },
     {
+      "id": "like-heart-morph",
+      "name": "Like Heart Morph",
+      "description": "Like and save controls that morph instead of swapping icons: the heart fills from its centre on an overshoot spring with a ring and ray burst, the bookmark ribbon unrolls downward. Undoing plays a shorter, quieter reverse and rapid toggling never desynchronises.",
+      "category": "social",
+      "specialties": [
+        "social",
+        "product"
+      ],
+      "technology": [
+        "svg",
+        "waapi",
+        "css"
+      ],
+      "interaction": [
+        "press",
+        "keyboard"
+      ],
+      "complexity": 2,
+      "intensity": "moderate",
+      "applications": [
+        "feed post actions",
+        "article save for later",
+        "product wishlist",
+        "media player favourite"
+      ],
+      "dependencies": [],
+      "params": [
+        {
+          "key": "size",
+          "label": "Icon size",
+          "type": "number",
+          "default": 40,
+          "min": 24,
+          "max": 72,
+          "step": 2,
+          "unit": "px"
+        },
+        {
+          "key": "spring",
+          "label": "Spring",
+          "type": "select",
+          "default": "pop",
+          "options": [
+            "pop",
+            "settle",
+            "press"
+          ]
+        },
+        {
+          "key": "rays",
+          "label": "Burst rays",
+          "type": "number",
+          "default": 8,
+          "min": 0,
+          "max": 14,
+          "step": 1
+        },
+        {
+          "key": "speed",
+          "label": "Speed",
+          "type": "number",
+          "default": 1,
+          "min": 0.5,
+          "max": 2,
+          "step": 0.1,
+          "unit": "×"
+        }
+      ],
+      "accessibility": [
+        "Both controls are toggle buttons with aria-pressed and a stable accessible name; the visible caption changes (Like → Liked, Save → Saved) and the like count is text.",
+        "State is carried by fill and caption, not colour alone; the burst is aria-hidden decoration.",
+        "Works with Enter/Space; focus ring is visible on the whole control; targets are at least 44 px."
+      ],
+      "reducedMotion": "The icon fill cross-fades in 160 ms; no spring, ring or rays.",
+      "performance": [
+        "Transform and opacity only, on a handful of SVG nodes.",
+        "Each toggle cancels the previous sequence and starts from the current computed transform, so interruptions are seamless and nothing accumulates.",
+        "Sequences are cancelled on unmount."
+      ],
+      "preview": {
+        "height": 420
+      },
+      "path": "library/src/effects/like-heart-morph",
+      "files": [
+        "index.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
       "id": "line-chart-morph",
       "name": "Line Chart Morph",
       "description": "A line and area chart that morphs between time ranges by interpolating data values, not pixels: the y-axis rescales continuously, gridlines cross-fade and the line never tears. A crosshair reads every point by pointer or arrow keys.",
@@ -1022,6 +1423,105 @@
         "height": 520
       },
       "path": "library/src/effects/line-chart-morph",
+      "files": [
+        "index.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "magnetic-button",
+      "name": "Magnetic Button",
+      "description": "Call-to-action buttons that lean toward a nearby pointer and spring home when it leaves. The pull fades smoothly to zero at the edge of the field, the label floats a little further than the body for depth, and the physics is a hand-rolled token spring on one paused-when-idle rAF loop.",
+      "category": "buttons",
+      "specialties": [
+        "product",
+        "cinematic"
+      ],
+      "technology": [
+        "css"
+      ],
+      "interaction": [
+        "pointer",
+        "hover",
+        "press",
+        "keyboard"
+      ],
+      "complexity": 2,
+      "intensity": "moderate",
+      "applications": [
+        "hero call to action",
+        "contact or booking prompt",
+        "portfolio \"view work\" link",
+        "footer sign-off actions"
+      ],
+      "dependencies": [],
+      "params": [
+        {
+          "key": "strength",
+          "label": "Pull strength",
+          "type": "number",
+          "default": 0.3,
+          "min": 0.1,
+          "max": 0.6,
+          "step": 0.05
+        },
+        {
+          "key": "radius",
+          "label": "Field radius",
+          "type": "number",
+          "default": 72,
+          "min": 16,
+          "max": 160,
+          "step": 4,
+          "unit": "px"
+        },
+        {
+          "key": "depth",
+          "label": "Label depth",
+          "type": "number",
+          "default": 0.35,
+          "min": 0,
+          "max": 1,
+          "step": 0.05
+        },
+        {
+          "key": "spring",
+          "label": "Release spring",
+          "type": "select",
+          "default": "release",
+          "options": [
+            "press",
+            "settle",
+            "release",
+            "pop",
+            "glide"
+          ]
+        },
+        {
+          "key": "field",
+          "label": "Show field",
+          "type": "boolean",
+          "default": false
+        }
+      ],
+      "accessibility": [
+        "Real <button> elements: Enter and Space activate them and the result is announced through a polite status line.",
+        "Keyboard focus gets the same engaged state as hover (arrow turns, surface shifts, field lights up when shown) plus a 2 px focus ring that travels with the button.",
+        "Magnetism is decoration only: it never moves a button away from the pointer, and the hit area always stays under the cursor.",
+        "Both buttons are at least 56 px; the icon-only button has an accessible name."
+      ],
+      "reducedMotion": "No magnetism and no press squash: buttons stay put, and hover/focus only change colour and turn the arrow without animating.",
+      "performance": [
+        "One useRafLoop drives every magnet; it starts on pointer movement inside the stage and stops itself once all springs are at rest, so an idle page runs no frames.",
+        "Each frame reads the static anchor rects first, then writes transforms (no layout thrash; the moving element is never measured).",
+        "Springs use the motion tokens with sub-stepped semi-implicit Euler integration, stable at any frame rate.",
+        "Disabled entirely for coarse pointers (hover: none / pointer: coarse) and under reduced motion: no listeners do work."
+      ],
+      "preview": {
+        "height": 440
+      },
+      "path": "library/src/effects/magnetic-button",
       "files": [
         "index.tsx",
         "styles.module.css",
@@ -1311,6 +1811,207 @@
         "scroll": true
       },
       "path": "library/src/effects/parallax-depth-layers",
+      "files": [
+        "index.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "press-depth-button",
+      "name": "Press Depth Button",
+      "description": "Keycap buttons with real layered depth: the face sits on a visible side band over a soft contact shadow. Pressing drives the face down along Z while the shadow collapses; letting go springs it back on a CSS linear() curve sampled from a motion-token spring. Busy keys stay half-pressed, disabled keys sink flush and rise when they unlock.",
+      "category": "buttons",
+      "specialties": [
+        "product"
+      ],
+      "technology": [
+        "css"
+      ],
+      "interaction": [
+        "press",
+        "keyboard"
+      ],
+      "complexity": 2,
+      "intensity": "moderate",
+      "applications": [
+        "primary action on a device-like control panel",
+        "checkout or \"print / export\" key",
+        "game or kiosk interfaces",
+        "onboarding call to action"
+      ],
+      "dependencies": [],
+      "params": [
+        {
+          "key": "depth",
+          "label": "Key depth",
+          "type": "number",
+          "default": 8,
+          "min": 2,
+          "max": 14,
+          "step": 1,
+          "unit": "px"
+        },
+        {
+          "key": "travel",
+          "label": "Press travel",
+          "type": "number",
+          "default": 85,
+          "min": 40,
+          "max": 100,
+          "step": 5,
+          "unit": "%"
+        },
+        {
+          "key": "spring",
+          "label": "Release spring",
+          "type": "select",
+          "default": "pop",
+          "options": [
+            "press",
+            "settle",
+            "release",
+            "pop",
+            "glide"
+          ]
+        },
+        {
+          "key": "tone",
+          "label": "Primary tone",
+          "type": "select",
+          "default": "signal",
+          "options": [
+            "signal",
+            "ink",
+            "paper"
+          ]
+        },
+        {
+          "key": "loadTime",
+          "label": "Print time",
+          "type": "number",
+          "default": 1800,
+          "min": 600,
+          "max": 4000,
+          "step": 100,
+          "unit": "ms"
+        }
+      ],
+      "accessibility": [
+        "Native buttons: Space presses on keydown and activates on keyup, Enter activates once (auto-repeat is ignored); the pressed look follows the key, the pointer and blur alike.",
+        "Busy and locked keys use aria-disabled instead of disabled, so they stay focusable; the locked key explains itself through aria-describedby.",
+        "The panel display is a polite live region that announces printing and completion; the print counter is plain text.",
+        "Focus ring wraps the whole key including its depth band; every key is at least 56 px tall.",
+        "Label text keeps 4.5:1 or better against every key face in both themes."
+      ],
+      "reducedMotion": "Press, release and unlock happen instantly with no spring or shadow animation, and the progress bar is replaced by the display text.",
+      "performance": [
+        "Press and release are CSS transform/opacity transitions; the spring is precomputed once with springToLinear(), so no JavaScript runs per frame.",
+        "The progress bar is a single scaleX transition; label swaps share one grid cell, so busy states never change the key width.",
+        "Timers are cleared on unmount and on every new print."
+      ],
+      "preview": {
+        "height": 460
+      },
+      "path": "library/src/effects/press-depth-button",
+      "files": [
+        "index.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "reaction-burst",
+      "name": "Reaction Burst",
+      "description": "Reaction toggles that throw a short burst of matching shapes on a ballistic arc — launch cone, gravity, air drag and spin — while the count pops. Particles are drawn from a fixed pool on one canvas that sleeps when nothing is in the air.",
+      "category": "social",
+      "specialties": [
+        "social",
+        "product"
+      ],
+      "technology": [
+        "canvas2d",
+        "waapi",
+        "css"
+      ],
+      "interaction": [
+        "press",
+        "keyboard"
+      ],
+      "complexity": 2,
+      "intensity": "bold",
+      "applications": [
+        "post or comment reactions",
+        "live-stream applause",
+        "celebratory confirmation on a milestone"
+      ],
+      "dependencies": [],
+      "params": [
+        {
+          "key": "count",
+          "label": "Particles per burst",
+          "type": "number",
+          "default": 18,
+          "min": 4,
+          "max": 40,
+          "step": 1
+        },
+        {
+          "key": "power",
+          "label": "Launch speed",
+          "type": "number",
+          "default": 520,
+          "min": 200,
+          "max": 900,
+          "step": 20,
+          "unit": "px/s"
+        },
+        {
+          "key": "gravity",
+          "label": "Gravity",
+          "type": "number",
+          "default": 1100,
+          "min": 0,
+          "max": 2400,
+          "step": 50,
+          "unit": "px/s²"
+        },
+        {
+          "key": "spread",
+          "label": "Launch cone",
+          "type": "number",
+          "default": 70,
+          "min": 10,
+          "max": 180,
+          "step": 5,
+          "unit": "°"
+        },
+        {
+          "key": "spin",
+          "label": "Spin",
+          "type": "number",
+          "default": 6,
+          "min": 0,
+          "max": 16,
+          "step": 1,
+          "unit": "rad/s"
+        }
+      ],
+      "accessibility": [
+        "Each reaction is a real toggle button (aria-pressed) whose name includes its label and text count.",
+        "A polite status line confirms the change in words; the canvas is decorative and aria-hidden.",
+        "Pressed state is shown by a filled icon and an inverted chip, not by colour alone; targets are 44 px tall."
+      ],
+      "reducedMotion": "No particles: the count updates and the chip gives one brief opacity pulse.",
+      "performance": [
+        "Fixed pool of 160 particles, reused; a burst never allocates.",
+        "One canvas, DPR capped at 2, driven by useRafLoop and switched off as soon as the last particle dies.",
+        "Shapes are cached Path2D objects; no layout reads inside the loop."
+      ],
+      "preview": {
+        "height": 460
+      },
+      "path": "library/src/effects/reaction-burst",
       "files": [
         "index.tsx",
         "styles.module.css",
@@ -1985,5 +2686,73 @@
       ]
     }
   ],
-  "demos": []
+  "demos": [
+    {
+      "id": "product-configurator",
+      "name": "Pulse Configurator",
+      "specialty": "3d",
+      "summary": "A product configurator for a fictional portable speaker: colourways, finishes, camera presets, exploded view, annotations and a price summary that all work with or without the canvas.",
+      "highlights": [
+        "One GLB, three optimised builds: the variant is chosen from the quality profile and its real size is shown.",
+        "Per-material overrides through PartController — originals are never mutated and are restored on unmount.",
+        "Exploded view driven by glTF node extras, critically damped and staggered; camera presets are interruptible.",
+        "Every option is a native radio/range/button and is mirrored in a text summary, so the configuration is complete without WebGL."
+      ],
+      "technology": [
+        "r3f",
+        "three"
+      ],
+      "uses": [],
+      "has3d": true,
+      "accessibility": [
+        "Colourways and finishes are radio groups with text names; colour is never the only signal.",
+        "Camera: pointer drag, toolbar buttons, and arrow / + / − / 0 keys on the focused view. Wheel zoom only when the view has focus.",
+        "Parts can be selected from a list as well as by clicking the model; the selected part is announced as text.",
+        "Annotations are real buttons over the canvas plus a mirrored list; the summary region is aria-live.",
+        "Without WebGL the static render and the same controls and summary are shown."
+      ],
+      "reducedMotion": "Camera presets and the exploded view cut instead of animating; the dial clip never auto-plays and only runs from its Play button.",
+      "performance": [
+        "Render on demand: the scene draws only while the camera, explode amount or a clip is changing.",
+        "Low-power devices load the 1.0 MB build (131k triangles) and use an analytic contact shadow instead of a shadow map.",
+        "Material clones are created lazily (only for materials that are overridden) and disposed with the controller."
+      ],
+      "dataNote": "Product, brand, specifications and prices are fictional.",
+      "path": "library/src/demos/3d/product-configurator",
+      "files": [
+        "index.tsx",
+        "config.ts",
+        "controls.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "spatial-data",
+      "name": "Meridian Service Atlas",
+      "specialty": "3d",
+      "summary": "A seeded, fictional map of 43 services in five clusters: instanced nodes and one line batch in 3D, a flat 2D layout for honest comparisons, and a sortable table that stays in sync with the scene.",
+      "highlights": [],
+      "technology": [
+        "r3f",
+        "three"
+      ],
+      "uses": [],
+      "collaborates": [
+        "data"
+      ],
+      "has3d": true,
+      "accessibility": [],
+      "reducedMotion": "",
+      "performance": [],
+      "dataNote": "Simulated sample data: service names, dependencies and traffic figures are generated from a fixed seed and describe no real system.",
+      "path": "library/src/demos/3d/spatial-data",
+      "files": [
+        "index.tsx",
+        "Atlas.tsx",
+        "data.ts",
+        "meta.ts"
+      ]
+    }
+  ]
 }

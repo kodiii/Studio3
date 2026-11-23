@@ -36,7 +36,7 @@
 }
 .face[data-tone='paper'] { --face-bg: #f3f0e8; --face-ink: #11110f; --face-soft: #11110f99; }
 .face[data-tone='ink'] { --face-bg: #1b1b18; --face-ink: #f3f0e8; --face-soft: #f3f0e8a6; }
-.face[data-tone='signal'] { --face-bg: #e03a0c; --face-ink: #fffaf2; --face-soft: #fffaf2d9; }
+.face[data-tone='signal'] { --face-bg: #bf2f09; --face-ink: #fffaf2; --face-soft: #fffaf2d9; }
 .face[data-tone='green'] { --face-bg: #0f6b57; --face-ink: #f3f0e8; --face-soft: #f3f0e8d1; }
 /* Shading: faces turned away from the viewer fall into shadow, which sells the solid. */
 .face::after {
@@ -138,7 +138,7 @@
   transition: width var(--s3-duration-base, 240ms) var(--s3-ease-emphasized, ease), background-color var(--s3-duration-fast, 160ms);
 }
 .dot[data-done] span { background: currentColor; }
-.dot[aria-current] span { width: 22px; background: var(--s3-accent, #e03a0c); border-color: var(--s3-accent, #e03a0c); }
+.dot[aria-current] span { width: 22px; background: var(--s3-accent, #bf2f09); border-color: var(--s3-accent, #bf2f09); }
 .srOnly { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* Reduced motion: no turning. Faces swap with a short opacity fade. */

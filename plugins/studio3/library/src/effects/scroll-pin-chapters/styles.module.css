@@ -101,9 +101,9 @@
   overflow: clip;
 }
 .art { display: block; inline-size: 100%; block-size: 100%; padding: 5%; will-change: transform, opacity; }
-.mark { fill: var(--s3-signal, #e03a0c); stroke: none; }
-.fill { fill: var(--s3-signal, #e03a0c); stroke: none; }
-.drip { stroke: var(--s3-signal, #e03a0c); stroke-width: 4; }
+.mark { fill: var(--s3-signal, #bf2f09); stroke: none; }
+.fill { fill: var(--s3-signal, #bf2f09); stroke: none; }
+.drip { stroke: var(--s3-signal, #bf2f09); stroke-width: 4; }
 .fig {
   position: absolute;
   inset-block-end: 12px;
@@ -147,7 +147,7 @@
   transition: block-size var(--s3-duration-base, 240ms) var(--s3-ease-emphasized, cubic-bezier(0.16, 1, 0.3, 1)), opacity var(--s3-duration-fast, 160ms) linear, background-color var(--s3-duration-fast, 160ms) linear;
 }
 .dot:hover > span { opacity: 0.6; }
-.dot[aria-current] > span { block-size: 20px; opacity: 1; background: var(--s3-signal, #e03a0c); }
+.dot[aria-current] > span { block-size: 20px; opacity: 1; background: var(--s3-signal, #bf2f09); }
 .dot:focus-visible { outline: 2px solid var(--s3-focus, #1d4ed8); outline-offset: -2px; }
 
 .srOnly { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
