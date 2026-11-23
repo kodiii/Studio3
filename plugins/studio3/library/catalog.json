@@ -571,6 +571,212 @@
       ]
     },
     {
+      "id": "dot-grid-pointer-field",
+      "name": "Dot Grid Pointer Field",
+      "description": "A canvas grid of dots that leans away from the pointer, swells and warms to the accent colour, then springs back; a click sends a ripple ring through the field. The loop runs only while something is moving and stops the moment every spring has settled.",
+      "category": "backgrounds",
+      "specialties": [
+        "product",
+        "social",
+        "cinematic"
+      ],
+      "technology": [
+        "canvas2d"
+      ],
+      "interaction": [
+        "pointer",
+        "press",
+        "keyboard"
+      ],
+      "complexity": 2,
+      "intensity": "moderate",
+      "applications": [
+        "interactive hero backdrop",
+        "empty state or 404 playground",
+        "event or launch page texture",
+        "section divider with a tactile response"
+      ],
+      "dependencies": [],
+      "params": [
+        {
+          "key": "spacing",
+          "label": "Grid spacing",
+          "type": "number",
+          "default": 22,
+          "min": 12,
+          "max": 40,
+          "step": 1,
+          "unit": "px"
+        },
+        {
+          "key": "dotSize",
+          "label": "Dot radius",
+          "type": "number",
+          "default": 1.6,
+          "min": 0.8,
+          "max": 4,
+          "step": 0.1,
+          "unit": "px"
+        },
+        {
+          "key": "radius",
+          "label": "Influence radius",
+          "type": "number",
+          "default": 150,
+          "min": 60,
+          "max": 280,
+          "step": 10,
+          "unit": "px"
+        },
+        {
+          "key": "strength",
+          "label": "Push strength",
+          "type": "number",
+          "default": 18,
+          "min": 0,
+          "max": 44,
+          "step": 1,
+          "unit": "px"
+        },
+        {
+          "key": "ripple",
+          "label": "Click ripple",
+          "type": "boolean",
+          "default": true
+        }
+      ],
+      "accessibility": [
+        "Keyboard path for every pointer action: focus the field (role=\"application\", labelled and described), arrow keys move the influence point (Shift for bigger steps), Enter or Space sends a ripple, Esc clears it.",
+        "A visible \"Send ripple\" button offers the same burst without aiming, and the instruction line is always on screen.",
+        "Touch: vertical swipes keep scrolling the page (touch-action: pan-y); taps send ripples.",
+        "Purely decorative output — the canvas itself is aria-hidden and nothing is conveyed by colour alone."
+      ],
+      "reducedMotion": "The grid is drawn once as a static pattern; pointer, keyboard and ripple input do nothing and the field is no longer focusable (it becomes a labelled image).",
+      "performance": [
+        "The rAF loop (useRafLoop) runs only while springs or ripples are moving: it stops at rest, pauses offscreen and in hidden tabs, and restarts on the next pointer or key event.",
+        "Canvas backing store follows the box via ResizeObserver with devicePixelRatio capped at 2.",
+        "Dots are batched into five tint buckets: at most five fill() calls per frame, no per-dot style changes.",
+        "Springs use the shared `release` token, integrated in fixed 1/120 s substeps (frame-rate independent)."
+      ],
+      "preview": {
+        "height": 480
+      },
+      "path": "library/src/effects/dot-grid-pointer-field",
+      "files": [
+        "index.tsx",
+        "field.ts",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "expanding-card-detail",
+      "name": "Expanding Card Detail",
+      "description": "A programme of poster cards where the chosen card grows into a detail panel: card surface, poster and headline are shared elements (Motion layoutId) that travel on a token spring, the details fade in behind them, and focus moves into the panel while the grid goes inert.",
+      "category": "cards",
+      "specialties": [
+        "product",
+        "cinematic"
+      ],
+      "technology": [
+        "motion",
+        "css",
+        "svg"
+      ],
+      "interaction": [
+        "press",
+        "keyboard"
+      ],
+      "complexity": 3,
+      "intensity": "moderate",
+      "applications": [
+        "event or course listings",
+        "product cards opening a quick view",
+        "portfolio case-study previews",
+        "media library item details"
+      ],
+      "dependencies": [
+        {
+          "name": "motion",
+          "version": "^14.14.0"
+        }
+      ],
+      "params": [
+        {
+          "key": "spring",
+          "label": "Spring token",
+          "type": "select",
+          "default": "glide",
+          "options": [
+            "glide",
+            "settle",
+            "release",
+            "press"
+          ]
+        },
+        {
+          "key": "panel",
+          "label": "Panel size",
+          "type": "select",
+          "default": "fill",
+          "options": [
+            "fill",
+            "centered"
+          ]
+        },
+        {
+          "key": "scrim",
+          "label": "Scrim strength",
+          "type": "number",
+          "default": 45,
+          "min": 0,
+          "max": 80,
+          "step": 5,
+          "unit": "%"
+        },
+        {
+          "key": "contentDelay",
+          "label": "Details delay",
+          "type": "number",
+          "default": 140,
+          "min": 0,
+          "max": 500,
+          "step": 20,
+          "unit": "ms"
+        },
+        {
+          "key": "columns",
+          "label": "Max columns",
+          "type": "number",
+          "default": 3,
+          "min": 2,
+          "max": 4,
+          "step": 1
+        }
+      ],
+      "accessibility": [
+        "Each card title is a real button (stretched over the card) with aria-haspopup=\"dialog\", so the whole card is clickable but only one tab stop.",
+        "The panel is role=\"dialog\" labelled by its heading; focus moves to its Close button, and Escape or Close return focus to the card that opened it.",
+        "While the panel is open the grid is inert (out of the tab order and the accessibility tree); an exiting panel is inert too, so Tab never lands in a closing view.",
+        "Posters are decorative SVG (aria-hidden); the event type, date and place are always real text."
+      ],
+      "reducedMotion": "No shared-element travel: the panel and scrim fade in and out over 160 ms and the cards stay where they are.",
+      "performance": [
+        "Motion animates the shared elements with transforms (FLIP-style projection); nothing animates width, height or top/left.",
+        "Posters keep the same aspect ratio in card and panel, so the shared poster scales uniformly and never distorts; titles move by position only.",
+        "Only the opened card and its panel are animated; the panel unmounts after its exit animation."
+      ],
+      "preview": {
+        "height": 640
+      },
+      "path": "library/src/effects/expanding-card-detail",
+      "files": [
+        "index.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
       "id": "flip-card-3d",
       "name": "Flip Card 3D",
       "description": "A two-sided card that turns over on a real button, never on hover alone. Both sides share one grid cell so the card is always as tall as its taller side, and a moving highlight plus a breathing shadow sell the rotation.",
@@ -923,10 +1129,10 @@
           "key": "grain",
           "label": "Grain",
           "type": "number",
-          "default": 0.24,
+          "default": 0.4,
           "min": 0,
-          "max": 0.7,
-          "step": 0.02
+          "max": 1,
+          "step": 0.05
         },
         {
           "key": "fields",
@@ -1522,6 +1728,101 @@
         "height": 440
       },
       "path": "library/src/effects/magnetic-button",
+      "files": [
+        "index.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "morph-submit-button",
+      "name": "Morph Submit Button",
+      "description": "A submit button that tells the whole story of a request: the pill collapses into a circle whose progress arc fills ever more slowly while waiting, then either completes and draws a check or shakes twice with an exclamation mark before reopening as \"Try again\". Every step starts from the current on-screen state, so resets and re-submits never jump.",
+      "category": "buttons",
+      "specialties": [
+        "product"
+      ],
+      "technology": [
+        "waapi",
+        "svg",
+        "css"
+      ],
+      "interaction": [
+        "press",
+        "keyboard",
+        "time"
+      ],
+      "complexity": 3,
+      "intensity": "moderate",
+      "applications": [
+        "waitlist or newsletter sign-up",
+        "checkout \"Pay\" button",
+        "settings \"Save\" with server round trip",
+        "contact form submit"
+      ],
+      "dependencies": [],
+      "params": [
+        {
+          "key": "outcome",
+          "label": "Simulated outcome",
+          "type": "select",
+          "default": "alternate",
+          "options": [
+            "alternate",
+            "success",
+            "error"
+          ]
+        },
+        {
+          "key": "latency",
+          "label": "Simulated latency",
+          "type": "number",
+          "default": 1600,
+          "min": 400,
+          "max": 4000,
+          "step": 100,
+          "unit": "ms"
+        },
+        {
+          "key": "morph",
+          "label": "Morph duration",
+          "type": "number",
+          "default": 420,
+          "min": 200,
+          "max": 900,
+          "step": 20,
+          "unit": "ms"
+        },
+        {
+          "key": "shake",
+          "label": "Shake on error",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "key": "label",
+          "label": "Button label",
+          "type": "text",
+          "default": "Join waitlist",
+          "maxLength": 22
+        }
+      ],
+      "accessibility": [
+        "A real form with a labelled email field; the submit button keeps focus through every state and is aria-busy while the request runs.",
+        "Busy and finished states use aria-disabled (not disabled), so focus is never dropped; the button name always matches its state (\"Sending…\", \"On the list\", \"Try again\").",
+        "One polite live region announces sending, success and failure in words, with an icon as a second cue; colour is never the only signal.",
+        "Validation marks the field aria-invalid and points to the message with aria-describedby; Reset demo works from the keyboard at any moment."
+      ],
+      "reducedMotion": "The button keeps its pill shape: labels and colours change in place (no morph, arc, check drawing or shake) and the status text carries progress.",
+      "performance": [
+        "The width morph runs on one button inside a fixed-width slot, so only that box is laid out per frame; ring, check and shake are stroke/transform/opacity animations.",
+        "Each phase reads the current computed width, opacity or dash offset before animating, so interrupted runs continue from where they are instead of restarting.",
+        "All animations and timers are tracked in one set and cancelled on reset, on resubmission and on unmount."
+      ],
+      "preview": {
+        "height": 440
+      },
+      "path": "library/src/effects/morph-submit-button",
       "files": [
         "index.tsx",
         "styles.module.css",
@@ -2688,6 +2989,47 @@
   ],
   "demos": [
     {
+      "id": "particle-experience",
+      "name": "Drift — a particle study",
+      "specialty": "3d",
+      "summary": "GPU-driven particles that form and re-form a sphere, a torus and an abstract glyph, pushed around by a pointer or a finger, with live renderer readouts that are measured, never invented.",
+      "highlights": [
+        "All motion happens in the vertex shader: each particle stores its point on three forms plus a seed; the CPU only updates uniforms.",
+        "Morphs are staggered per particle and bloom outwards mid-flight; a pointer, a touch drag or the Pulse button disturbs the field.",
+        "The requested count is scaled by the quality profile (density 1 / 0.6 / 0.3) and the quality can be switched live, rebuilding the canvas.",
+        "The readout is renderer.info from the last frame; the only timing shown is the rAF interval, measured on this device and labelled as such."
+      ],
+      "technology": [
+        "r3f",
+        "three",
+        "glsl"
+      ],
+      "uses": [],
+      "has3d": true,
+      "accessibility": [
+        "Every control is a native radio, checkbox, range, select or button with a visible label; the current form is also stated in text.",
+        "The pointer disturbance has a keyboard equivalent: the Pulse button sends the same kind of push through the field.",
+        "The continuous animation has a Pause control (WCAG 2.2.2); the canvas has a text description that follows the form and count.",
+        "Without WebGL a still SVG drawing of the sphere form replaces the canvas."
+      ],
+      "reducedMotion": "The field is a still frame rendered on demand: no flow, no automatic cycling, forms cut instead of morphing, and the pointer push and Pulse are off. Intensity, count, flow (which picks the frozen phase) and form still redraw the still.",
+      "performance": [
+        "One draw call for the whole field; additive blending with depth writes off, so there is no sorting.",
+        "Count = requested × profile density; DPR is capped per profile. In headless SwiftShader the low profile renders 7,200 points.",
+        "Continuous loop only while the field animates and is on screen (StudioCanvas pauses offscreen); paused or reduced motion switches to render-on-demand.",
+        "Form buffers are generated once per count (seeded, deterministic) and the geometry is disposed when the count changes."
+      ],
+      "path": "library/src/demos/3d/particle-experience",
+      "files": [
+        "index.tsx",
+        "Field.tsx",
+        "shaders.ts",
+        "shapes.ts",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
       "id": "product-configurator",
       "name": "Pulse Configurator",
       "specialty": "3d",
@@ -2732,7 +3074,12 @@
       "name": "Meridian Service Atlas",
       "specialty": "3d",
       "summary": "A seeded, fictional map of 43 services in five clusters: instanced nodes and one line batch in 3D, a flat 2D layout for honest comparisons, and a sortable table that stays in sync with the scene.",
-      "highlights": [],
+      "highlights": [
+        "Layout is a small, deterministic force relaxation written for the demo (repulsion, springs, cluster gravity) — the same atlas on every load.",
+        "One draw call per node type (instanced spheres, cylinders, octahedra, cubes) and a single LineSegments for all 74 links.",
+        "Selecting a node in the scene, the details panel or the table selects it everywhere: neighbours light up, the camera frames it, the row is highlighted.",
+        "A 2D layout morphs in on demand, with copy on why the flat view is the accurate one for comparing sizes and distances."
+      ],
       "technology": [
         "r3f",
         "three"
@@ -2742,15 +3089,25 @@
         "data"
       ],
       "has3d": true,
-      "accessibility": [],
-      "reducedMotion": "",
-      "performance": [],
+      "accessibility": [
+        "The sortable table is the complete equivalent of the map: every service, its cluster, type, simulated figures and link count; header buttons expose aria-sort.",
+        "Selecting a row selects the node in the scene; focusing a row previews it; selecting in the scene highlights and scrolls the row.",
+        "Cluster is never encoded by colour alone: clusters are spatial neighbourhoods with on-canvas names, and the type of a node is its shape (with a text legend).",
+        "Map controls: drag, wheel after focusing, or arrow / Shift+arrow / + / − keys on the focused map. Without WebGL an SVG flat map reflects the same filters and selection."
+      ],
+      "reducedMotion": "Switching between the 3D and 2D layouts and focusing a node cut to the end state instead of animating. Nothing moves on its own.",
+      "performance": [
+        "Render on demand: frames are drawn only while the camera or the layout morph is moving, or when the selection changes.",
+        "Five draw calls for the whole graph; restyling rewrites instance colours/matrices and one vertex-colour buffer — no materials are created per node.",
+        "Both layouts are computed once (≈ 420 iterations over 43 nodes, a few milliseconds) and the labels are projected after each rendered frame, without React re-renders."
+      ],
       "dataNote": "Simulated sample data: service names, dependencies and traffic figures are generated from a fixed seed and describe no real system.",
       "path": "library/src/demos/3d/spatial-data",
       "files": [
         "index.tsx",
         "Atlas.tsx",
         "data.ts",
+        "styles.module.css",
         "meta.ts"
       ]
     }

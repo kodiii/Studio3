@@ -157,7 +157,7 @@ export function relax(planar: boolean, iterations = 420): Layout {
   const centres = new Map<ClusterId, [number, number, number]>();
   CLUSTERS.forEach((c, i) => {
     const a = (i / CLUSTERS.length) * Math.PI * 2 - Math.PI / 2;
-    centres.set(c.id, planar ? [Math.cos(a) * 6.2, -Math.sin(a) * 4.4, 0] : [Math.cos(a) * 6, (i % 2 ? 1.6 : -1.4), Math.sin(a) * 6]);
+    centres.set(c.id, planar ? [Math.cos(a) * 5.2, -Math.sin(a) * 3.7, 0] : [Math.cos(a) * 4.6, (i % 2 ? 1.2 : -1.1), Math.sin(a) * 4.6]);
   });
   NODES.forEach((node, i) => {
     const c = centres.get(node.cluster)!;
@@ -175,7 +175,7 @@ export function relax(planar: boolean, iterations = 420): Layout {
       for (let k = 0; k < 3; k++) { d[k] = pos[i * 3 + k] - pos[j * 3 + k]; d2 += d[k] * d[k]; }
       d2 = Math.max(d2, 0.04);
       const same = NODES[i].cluster === NODES[j].cluster;
-      const f = (same ? 1.15 : 2.4) / d2;
+      const f = (same ? 0.55 : 1.2) / d2;
       const inv = 1 / Math.sqrt(d2);
       for (let k = 0; k < 3; k++) { force[i * 3 + k] += d[k] * inv * f; force[j * 3 + k] -= d[k] * inv * f; }
     }
@@ -185,14 +185,14 @@ export function relax(planar: boolean, iterations = 420): Layout {
       let d2 = 0;
       for (let k = 0; k < 3; k++) { d[k] = pos[j * 3 + k] - pos[i * 3 + k]; d2 += d[k] * d[k]; }
       const dist = Math.sqrt(Math.max(d2, 1e-6));
-      const rest = e.cross ? 4.2 : 1.7;
+      const rest = e.cross ? 3.4 : 1.25;
       const f = (e.cross ? 0.05 : 0.22) * (dist - rest);
       for (let k = 0; k < 3; k++) { force[i * 3 + k] += (d[k] / dist) * f; force[j * 3 + k] -= (d[k] / dist) * f; }
     }
     // cluster gravity + weak centring
     for (let i = 0; i < n; i++) {
       const c = centres.get(NODES[i].cluster)!;
-      for (let k = 0; k < 3; k++) force[i * 3 + k] += (c[k] - pos[i * 3 + k]) * 0.09 - pos[i * 3 + k] * 0.004;
+      for (let k = 0; k < 3; k++) force[i * 3 + k] += (c[k] - pos[i * 3 + k]) * 0.16 - pos[i * 3 + k] * 0.012;
     }
     for (let i = 0; i < n * 3; i++) {
       if (planar && i % 3 === 2) continue;
@@ -208,7 +208,16 @@ export function relax(planar: boolean, iterations = 420): Layout {
 }
 
 /** Display radius from traffic (log scale), in scene units. */
-export const nodeRadius = (n: AtlasNode): number => 0.16 + 0.24 * Math.min(1, Math.max(0, (Math.log10(n.rpm) - 2.7) / 2.1));
+export const nodeRadius = (n: AtlasNode): number => 0.2 + 0.3 * Math.min(1, Math.max(0, (Math.log10(n.rpm) - 2.7) / 2.1));
+
+/** Bounding sphere of a layout: centre + radius (including the largest node). */
+export function layoutBounds(pos: Layout): { center: [number, number, number]; radius: number } {
+  const n = pos.length / 3, c = [0, 0, 0];
+  for (let i = 0; i < n; i++) for (let k = 0; k < 3; k++) c[k] += pos[i * 3 + k] / n;
+  let r = 0;
+  for (let i = 0; i < n; i++) r = Math.max(r, Math.hypot(pos[i * 3] - c[0], pos[i * 3 + 1] - c[1], pos[i * 3 + 2] - c[2]));
+  return { center: [c[0], c[1], c[2]], radius: r + 0.5 };
+}
 
 /** Cluster colours per theme. Each passes 3:1 against its theme's page background. */
 export const PALETTE: Record<'light' | 'dark', Record<ClusterId, string>> = {

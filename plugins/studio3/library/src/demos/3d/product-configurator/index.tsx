@@ -133,7 +133,13 @@ export default function ProductConfigurator() {
           <p className="s3-label m-0 text-muted">Fictional brand · sample prices</p>
         </div>
         <div className="grid gap-4 pt-6 @4xl:grid-cols-[minmax(0,1fr)_minmax(0,24rem)] @4xl:items-end @4xl:pt-8">
-          <h2 className="s3-display m-0 text-[clamp(2.6rem,10cqi,6rem)]">Pulse <span className="font-serif font-normal italic tracking-[-0.02em]">one dial,</span> any room.</h2>
+          <div>
+            <p className="s3-label m-0 text-muted">Portable speaker · P1</p>
+            <h2 className="m-0 mt-2 flex flex-wrap items-baseline gap-x-5 gap-y-1">
+              <span className="s3-display text-[clamp(3.4rem,13cqi,8rem)]">Pulse</span>
+              <span className="font-serif text-[clamp(1.6rem,4.6cqi,2.8rem)] font-normal italic leading-none tracking-[-0.01em] text-muted">one dial, any room</span>
+            </h2>
+          </div>
           <p className="m-0 max-w-[42ch] text-[15px] leading-relaxed text-muted">
             A compact speaker with a single knurled dial. Choose its colours and finishes, take it apart, turn the dial — the summary keeps up, with or without the 3D view.
           </p>

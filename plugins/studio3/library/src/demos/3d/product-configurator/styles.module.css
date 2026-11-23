@@ -34,16 +34,8 @@
 }
 .card:hover { border-color: var(--s3-line-strong, #11110f); }
 .card:has(input:checked) { border-color: var(--s3-line-strong, #11110f); box-shadow: inset 0 0 0 1px var(--s3-line-strong, #11110f); }
-.card:has(input:checked)::after {
-  content: '';
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--s3-accent, #8a5a00);
-}
+.cardName { font-weight: 500; }
+.card:has(input:checked) .cardName { font-weight: 700; }
 .card:has(input:focus-visible) { outline: 2px solid var(--s3-focus, #1d4ed8); outline-offset: 2px; }
 fieldset:disabled .card { cursor: not-allowed; }
 

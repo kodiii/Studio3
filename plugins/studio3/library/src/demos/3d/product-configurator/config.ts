@@ -50,7 +50,7 @@ export function widen(pose: CameraPose, factor: number): CameraPose {
 }
 
 export const HOTSPOTS: Hotspot[] = [
-  { id: 'driver', node: 'Driver', label: '52 mm full-range driver', description: 'A single wide-band driver in a rubber surround, tuned for voices and small rooms.' },
+  { id: 'driver', node: 'Driver', position: [0, 0, 0.32], label: '52 mm full-range driver', description: 'A single wide-band driver in a rubber surround, tuned for voices and small rooms.' },
   { id: 'dial', node: 'Knob', position: [0, 0.1, 0], label: 'Knurled volume dial', description: 'One control. Turn for volume, press to pause. The ring beneath it glows while paired.' },
   { id: 'strap', node: 'Strap', position: [0, 0.42, 0], label: 'Carry strap', description: 'Woven strap on two pins. It lifts off without tools if you would rather go without.' },
 ];

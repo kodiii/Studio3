@@ -28,8 +28,8 @@ export function DemoFrame({ meta }: { meta: DemoMeta }) {
     <div data-specialty={meta.specialty} className="min-h-dvh bg-surface-2">
       <div className="sticky top-0 z-50 flex h-11 items-center justify-between gap-3 border-b border-line bg-bg px-3">
         <div className="flex min-w-0 items-center gap-3">
-          <Link href={`/studios/${meta.specialty}`} className="s3-label flex shrink-0 items-center gap-2 text-muted hover:text-ink" aria-label={`Back to ${meta.specialty} studio`}>
-            <span aria-hidden="true">←</span><Wordmark className="text-base text-ink" />
+          <Link href={`/studios/${meta.specialty}`} className="s3-label flex shrink-0 items-center gap-2 text-muted hover:text-ink">
+            <span aria-hidden="true">←</span><Wordmark className="text-base text-ink" /><span className="s3-sr-only">: back to the {meta.specialty} studio</span>
           </Link>
           <h1 className="truncate text-sm font-medium">{meta.name}</h1>
         </div>

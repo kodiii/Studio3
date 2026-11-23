@@ -16,7 +16,8 @@
   --gg-ink: var(--s3-ink, #11110f);
 }
 
-.mesh { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+/* The mesh is its own stacking context, so it carries the paper: the grain must blend onto it, not onto nothing. */
+.mesh { position: absolute; inset: 0; z-index: 0; pointer-events: none; background: var(--gg-paper); }
 
 /* A colour field: one radial gradient with an eased falloff (no filter: blur — nothing to re-rasterise). */
 .field {
@@ -37,17 +38,17 @@
   );
   transform: translate(-50%, -50%) rotate(var(--r, 0deg)) scale(var(--sx, 1), var(--sy, 1));
 }
-.f0 { --c: var(--gg-accent); --x: 10%; --y: 18%; --r: -8deg; --sx: 1.25; --sy: 0.86; }
-.f1 { --c: color-mix(in oklab, var(--gg-accent) 58%, var(--gg-ink)); --x: 88%; --y: 8%; --r: 18deg; --sx: 1.05; --sy: 1.12; }
-.f2 { --c: color-mix(in oklab, var(--gg-accent) 42%, var(--gg-paper)); --x: 84%; --y: 92%; --r: -16deg; --sx: 1.32; --sy: 0.84; }
-.f3 { --c: color-mix(in oklab, var(--gg-accent) 16%, var(--gg-paper)); --x: 36%; --y: 82%; --r: 6deg; --sx: 1.25; --sy: 0.8; }
+.f0 { --c: var(--gg-accent); --x: 12%; --y: 20%; --r: -8deg; --sx: 1.3; --sy: 0.9; }
+.f1 { --c: color-mix(in oklab, var(--gg-accent) 72%, var(--gg-ink)); --x: 96%; --y: 52%; --r: 18deg; --sx: 0.72; --sy: 1.05; }
+.f2 { --c: color-mix(in oklab, var(--gg-accent) 46%, var(--gg-paper)); --x: 70%; --y: 104%; --r: -16deg; --sx: 1.35; --sy: 0.82; }
+.f3 { --c: color-mix(in oklab, var(--gg-accent) 12%, var(--gg-paper)); --x: 62%; --y: 6%; --r: 6deg; --sx: 1.2; --sy: 0.78; }
 
 .grain {
   position: absolute;
   inset: 0;
   background-image: var(--gg-grain);
   background-size: 128px 128px;
-  mix-blend-mode: soft-light;
+  mix-blend-mode: overlay;
   opacity: var(--gg-grain-opacity, 0.3);
 }
 
@@ -67,20 +68,20 @@
   .root[data-paused] .field { animation-play-state: paused; }
 }
 @keyframes drift0 {
-  from { transform: translate(-50%, -50%) translate(-4cqi, -3cqi) rotate(-14deg) scale(1.2, 0.84); }
-  to { transform: translate(-50%, -50%) translate(9cqi, 7cqi) rotate(10deg) scale(1.38, 0.96); }
+  from { transform: translate(-50%, -50%) translate(-4cqi, -3cqi) rotate(-16deg) scale(1.22, 0.86); }
+  to { transform: translate(-50%, -50%) translate(8cqi, 6cqi) rotate(4deg) scale(1.4, 0.96); }
 }
 @keyframes drift1 {
-  from { transform: translate(-50%, -50%) translate(5cqi, -4cqi) rotate(24deg) scale(1, 1.08); }
-  to { transform: translate(-50%, -50%) translate(-10cqi, 8cqi) rotate(-6deg) scale(1.14, 1.2); }
+  from { transform: translate(-50%, -50%) translate(3cqi, -6cqi) rotate(26deg) scale(0.68, 1); }
+  to { transform: translate(-50%, -50%) translate(-9cqi, 8cqi) rotate(6deg) scale(0.82, 1.14); }
 }
 @keyframes drift2 {
-  from { transform: translate(-50%, -50%) translate(6cqi, 4cqi) rotate(-20deg) scale(1.3, 0.8); }
-  to { transform: translate(-50%, -50%) translate(-12cqi, -6cqi) rotate(4deg) scale(1.18, 0.94); }
+  from { transform: translate(-50%, -50%) translate(6cqi, 3cqi) rotate(-22deg) scale(1.3, 0.78); }
+  to { transform: translate(-50%, -50%) translate(-12cqi, -5cqi) rotate(-4deg) scale(1.42, 0.9); }
 }
 @keyframes drift3 {
-  from { transform: translate(-50%, -50%) translate(-6cqi, 3cqi) rotate(2deg) scale(1.04, 0.88); }
-  to { transform: translate(-50%, -50%) translate(10cqi, -8cqi) rotate(22deg) scale(1.2, 0.98); }
+  from { transform: translate(-50%, -50%) translate(-7cqi, 2cqi) rotate(0deg) scale(1.12, 0.74); }
+  to { transform: translate(-50%, -50%) translate(9cqi, 5cqi) rotate(16deg) scale(1.28, 0.86); }
 }
 
 .card {

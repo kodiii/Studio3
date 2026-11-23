@@ -7,13 +7,13 @@ import {
 } from 'three';
 import { useStudioMotion } from '../../../motion';
 import { CameraRig, OrbitInspect, type CameraRigHandle, type OrbitInspectHandle } from '../../../three';
-import { CLUSTERS, EDGES_LIST, NODES, PALETTE, nodeRadius, relax, type ClusterId, type NodeKind } from './data';
+import { CLUSTERS, EDGES_LIST, NODES, PALETTE, layoutBounds, nodeRadius, relax, type ClusterId, type NodeKind } from './data';
 
 export type ViewMode = '3d' | '2d';
 const KIND_ORDER: NodeKind[] = ['service', 'store', 'queue', 'external'];
-const OVERVIEW_3D = { position: [9.5, 7.5, 15.5] as [number, number, number], target: [0, 0, 0] as [number, number, number] };
-const OVERVIEW_2D = { position: [0, 0, 21] as [number, number, number], target: [0, 0, 0] as [number, number, number] };
-const FOCUS_DISTANCE = 8.5;
+/** Overview viewing directions: a raised three-quarter view for 3D, straight-on for the planar layout. */
+const OVERVIEW_DIR = { '3d': new Vector3(0.52, 0.42, 0.74).normalize(), '2d': new Vector3(0, 0, 1) };
+const FOCUS_DISTANCE = 7.5;
 
 /** DOM labels registered by the page; positions are written after each rendered frame (no React re-render). */
 export interface LabelStore { els: Map<string, HTMLElement>; register(key: string, el: HTMLElement | null): void }
@@ -172,7 +172,17 @@ export const Atlas = forwardRef<AtlasHandle, AtlasProps>(function Atlas({ mode, 
     const to = tween.current.to;
     return [to[i * 3], to[i * 3 + 1], to[i * 3 + 2]] as [number, number, number];
   };
-  const goOverview = (immediate = false) => rig.current?.goTo(mode === '2d' ? OVERVIEW_2D : OVERVIEW_3D, { immediate });
+  // Frame the whole layout for the live aspect ratio (fits the narrower of the two fields of view).
+  const bounds = useMemo(() => ({ '3d': layoutBounds(layouts['3d']), '2d': layoutBounds(layouts['2d']) }), [layouts]);
+  const goOverview = (immediate = false) => {
+    const { camera: cam, size: sz } = get();
+    const vfov = ((cam as PerspectiveCamera).fov * Math.PI) / 180;
+    const hfov = 2 * Math.atan(Math.tan(vfov / 2) * (sz.width / Math.max(1, sz.height)));
+    const b = bounds[mode];
+    const dist = (b.radius * (mode === '2d' ? 0.92 : 0.98)) / Math.sin(Math.min(vfov, hfov) / 2);
+    const d = OVERVIEW_DIR[mode];
+    rig.current?.goTo({ position: [b.center[0] + d.x * dist, b.center[1] + d.y * dist, b.center[2] + d.z * dist], target: b.center }, { immediate });
+  };
   useImperativeHandle(ref, () => ({ resetView: () => goOverview() }));
   const first = useRef(true);
   useEffect(() => {
@@ -185,8 +195,11 @@ export const Atlas = forwardRef<AtlasHandle, AtlasProps>(function Atlas({ mode, 
     rig.current?.goTo({ position: [x + dir.x * FOCUS_DISTANCE, y + dir.y * FOCUS_DISTANCE, z + dir.z * FOCUS_DISTANCE], target: [x, y, z] });
   }, [selected, mode]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Labels: projected after every rendered frame so they match the pixels exactly.
   const size = useThree((s) => s.size);
+  const aspect = Math.round((size.width / Math.max(1, size.height)) * 50) / 50;
+  useEffect(() => { if (!first.current && selected == null) goOverview(true); }, [aspect]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Labels: projected after every rendered frame so they match the pixels exactly.
   const sizeRef = useRef(size);
   sizeRef.current = size;
   useEffect(() => addAfterEffect(() => {
@@ -229,10 +242,10 @@ export const Atlas = forwardRef<AtlasHandle, AtlasProps>(function Atlas({ mode, 
       <directionalLight position={[6, 10, 8]} intensity={1.1} />
       <directionalLight position={[-8, -4, -6]} intensity={0.35} />
       <OrbitInspect
-        ref={orbit} enablePan minDistance={3} maxDistance={40} minPolarAngle={0.05} maxPolarAngle={Math.PI - 0.05}
+        ref={orbit} enablePan minDistance={3} maxDistance={60} minPolarAngle={0.05} maxPolarAngle={Math.PI - 0.05}
         {...(mode === '2d' && flatLocked ? { minAzimuthAngle: 0, maxAzimuthAngle: 0, minPolarAngle: Math.PI / 2, maxPolarAngle: Math.PI / 2 } : {})}
       />
-      <CameraRig ref={rig} smoothTime={0.6} referenceAspect={1.2} onArrive={() => { if (modeRef.current === '2d') setFlatLocked(true); }} />
+      <CameraRig ref={rig} smoothTime={0.6} referenceAspect={0} onArrive={() => { if (modeRef.current === '2d') setFlatLocked(true); }} />
       {groups.map((g) => (
         <instancedMesh
           key={g.kind}

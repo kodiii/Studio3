@@ -20,6 +20,7 @@ export function validateDesign(input) {
     return { valid: false, errors: [...schema.errors.map((x) => ({ ...x, kind: /** @type {'schema'} */ ('schema') })), { path: '', message: `semantic checks could not complete because the structure is invalid (${/** @type {Error} */ (e).message})`, kind: /** @type {'semantic'} */ ('semantic') }], warnings: [], checks: { schemaErrors: schema.errors.length, contrastPairs: 0, tokenReferences: 0, scales: 0, colorTokens: 0 } };
   }
 }
+/** @param {any} input @returns {ReturnType<typeof validateDesign>} */
 function validateDesignInner(input) {
   /** @type {{ path: string, message: string, kind: 'schema' | 'semantic' }[]} */
   const errors = [];

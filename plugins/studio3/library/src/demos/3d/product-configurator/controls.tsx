@@ -35,11 +35,13 @@ export function OptionCards({ name, legend, value, options, onChange, columns = 
                 {o.swatch.map((c, i) => <span key={i} style={{ background: c }} />)}
               </span>
             ) : null}
-            <span className="grid min-w-0 gap-0.5">
-              <span className="text-[14px] font-medium leading-tight">{o.name}</span>
+            <span className="grid min-w-0 flex-1 gap-0.5">
+              <span className="flex items-baseline justify-between gap-2">
+                <span className={`${styles.cardName} text-[14px] leading-tight`}>{o.name}</span>
+                {o.meta ? <span className="whitespace-nowrap font-mono text-[11.5px] text-muted">{o.meta}</span> : null}
+              </span>
               {o.note ? <span className="text-[12.5px] leading-snug text-muted">{o.note}</span> : null}
             </span>
-            {o.meta ? <span className="ml-auto self-start whitespace-nowrap font-mono text-[11.5px] text-muted">{o.meta}</span> : null}
           </label>
         ))}
       </div>

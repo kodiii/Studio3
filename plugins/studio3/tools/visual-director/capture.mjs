@@ -59,13 +59,13 @@ export function pageFindTriggers(max) {
   document.querySelectorAll('[aria-expanded="false"]').forEach((el) => add(el, 'expandable'));
   document.querySelectorAll('button[popovertarget],button[commandfor]').forEach((el) => add(el, 'popover'));
   if (document.querySelector('dialog:not([open]),[role="dialog"],[role="alertdialog"]')) {
-    document.querySelectorAll('button,[role="button"]').forEach((el) => {
+    document.querySelectorAll('button,[role="button"]').forEach((/** @type {any} */ el) => {
       const hay = [el.id, el.className && el.className.baseVal === undefined ? el.className : '', el.getAttribute('aria-controls'), el.getAttribute('onclick'), ...Array.from(el.attributes).filter((a) => a.name.startsWith('data-')).map((a) => a.name + '=' + a.value)].join(' ');
       if (/dialog|modal|drawer|popup|sheet/i.test(hay)) add(el, 'dialog-button');
     });
   }
   const primary = [];
-  for (const el of Array.from(document.querySelectorAll('button,[role="button"],a[class*="btn"],a[class*="button"],a[class*="cta"],input[type="submit"]'))) {
+  for (const el of /** @type {any[]} */ (Array.from(document.querySelectorAll('button,[role="button"],a[class*="btn"],a[class*="button"],a[class*="cta"],input[type="submit"]')))) {
     if (primary.length >= 2) break;
     if (!H.visible(el) || el.disabled) continue;
     const r = el.getBoundingClientRect();

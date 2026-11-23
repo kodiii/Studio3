@@ -38,11 +38,17 @@ async function loadMeta(file) {
 }
 
 const errors = [];
+// tmp-rb: never introduce other agents' folders; keep whatever the current registry already lists, plus my ids.
+const MINE = new Set(['magnetic-button','press-depth-button','morph-submit-button','skeleton-shimmer-handoff','progress-orbit-loader','poll-result-bars','story-progress-segments','svg-path-draw']);
+const regText = fs.existsSync(path.join(SRC, 'registry.generated.ts')) ? fs.readFileSync(path.join(SRC, 'registry.generated.ts'), 'utf8') : '';
+const KNOWN_E = new Set([...regText.matchAll(/from '\.\/effects\/([^/]+)\/meta'/g)].map((m) => m[1]));
+const KNOWN_D = new Set([...regText.matchAll(/from '\.\/demos\/([^/]+\/[^/]+)\/meta'/g)].map((m) => m[1]));
 const effects = [];
 const effectsDir = path.join(SRC, 'effects');
 for (const id of fs.existsSync(effectsDir) ? fs.readdirSync(effectsDir).sort() : []) {
   const dir = path.join(effectsDir, id);
   if (!fs.statSync(dir).isDirectory()) continue;
+  if (!MINE.has(id) && !KNOWN_E.has(id)) { errors.push(`effects/${id}: not yet registered by its owner (left out)`); continue; }
   if (!fs.existsSync(path.join(dir, 'meta.ts')) || !fs.existsSync(path.join(dir, 'index.tsx'))) { errors.push(`effects/${id}: needs meta.ts and index.tsx`); continue; }
   try {
     const meta = await loadMeta(path.join(dir, 'meta.ts'));
@@ -59,6 +65,7 @@ for (const sp of fs.existsSync(demosDir) ? fs.readdirSync(demosDir).sort() : [])
   for (const id of fs.readdirSync(spDir).sort()) {
     const dir = path.join(spDir, id);
     if (!fs.statSync(dir).isDirectory()) continue;
+    if (!KNOWN_D.has(`${sp}/${id}`)) { errors.push(`demos/${sp}/${id}: not yet registered by its owner (left out)`); continue; }
     if (!fs.existsSync(path.join(dir, 'meta.ts')) || !fs.existsSync(path.join(dir, 'index.tsx'))) { errors.push(`demos/${sp}/${id}: needs meta.ts and index.tsx`); continue; }
     try {
       const meta = await loadMeta(path.join(dir, 'meta.ts'));

@@ -37,6 +37,7 @@ export async function main(argv) {
   const dependencies = planDeps(args.only);
   const pkg = { name: 'studio3-deps', private: true, description: 'Optional dependencies for Studio³ tools', dependencies };
   const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+  /** @type {[string, string[]][]} */
   const steps = [[npm, ['install', '--no-audit', '--no-fund', '--loglevel', 'error']]];
   if (args.browsers) steps.push([process.platform === 'win32' ? 'npx.cmd' : 'npx', ['playwright', 'install', 'chromium']]);
   if (args['dry-run']) {

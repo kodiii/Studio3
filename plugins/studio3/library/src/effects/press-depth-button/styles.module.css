@@ -1,5 +1,6 @@
 .root {
   box-sizing: border-box;
+  container-type: inline-size;
   width: min(100% - 2rem, 34rem);
   margin: clamp(1.5rem, 5cqi, 3rem) auto;
   color: var(--s3-ink, #11110f);
@@ -61,10 +62,14 @@
 .count span { font-size: 0.8125rem; }
 
 .keys {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.875rem 0.75rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1rem 0.75rem;
   padding-block: 0.25rem 0.125rem;
+}
+@container (max-width: 27rem) {
+  .keys { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .key[data-wide] { grid-column: 1 / -1; }
 }
 
 /* ── Keycap ───────────────────────────────────────────────────────────── */
@@ -76,8 +81,7 @@
   --line: var(--s3-line, #11110f24);
   --lip: rgb(255 255 255 / 0.5);
   position: relative;
-  display: inline-grid;
-  flex: 1 1 9.5rem;
+  display: grid;
   min-width: 2.75rem;
   margin: 0;
   padding: 0 0 var(--d);
@@ -91,7 +95,6 @@
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
-.key[data-wide] { flex: 2 1 12rem; }
 .key[data-tone='signal'] {
   --face: var(--s3-signal, #bf2f09);
   --text: var(--s3-on-signal, #ffffff);

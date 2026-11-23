@@ -146,7 +146,7 @@ export function pageDomMeasure(opts) {
     if (offscreen.length < 10) {
       const r = el.getBoundingClientRect();
       const off = r.right + window.scrollX < 0 || r.bottom + window.scrollY < 0;
-      if (off && !srOnly(el) && !el.closest('[aria-hidden="true"],[inert]') && !/sr-only|visually-hidden|screen-reader|skip/i.test(String(el.className && el.className.baseVal !== undefined ? el.className.baseVal : el.className))
+      if (off && !srOnly(el) && !el.closest('[aria-hidden="true"],[inert]') && !/sr-only|visually-hidden|screen-reader|skip/i.test(String(/** @type {any} */ (el).className && /** @type {any} */ (el).className.baseVal !== undefined ? /** @type {any} */ (el).className.baseVal : /** @type {any} */ (el).className))
         && !(el.localName === 'a' && (el.getAttribute('href') || '').startsWith('#'))) {
         let dup = false;
         for (let p = el.parentElement; p; p = p.parentElement) if (flaggedOff.has(p)) { dup = true; break; }

@@ -42,8 +42,8 @@ function CardPreview({ meta }: { meta: EffectMeta }) {
       {live ? (
         <div inert aria-hidden="true" className="pointer-events-none absolute inset-0 [&>div]:!min-h-0 [&>div]:h-full"><EffectStage id={meta.id} /></div>
       ) : (
-        <div aria-hidden="true" className="absolute inset-0 grid place-items-center">
-          <span className="font-display text-5xl font-bold tracking-tighter text-line-strong/15">{meta.category}</span>
+        <div aria-hidden="true" className="absolute inset-0 grid place-items-center" style={{ backgroundImage: 'radial-gradient(var(--s3-line) 1px, transparent 1px)', backgroundSize: '14px 14px' }}>
+          <span className="s3-label rounded-full bg-surface px-2.5 py-1 text-muted">{meta.category}</span>
         </div>
       )}
       {gl && !live ? <span className="s3-label absolute bottom-2 left-2 rounded-full bg-ink px-2 py-1 text-bg">WebGL · hover to run</span> : null}

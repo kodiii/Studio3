@@ -20,13 +20,12 @@ export function Wordmark({ className = '' }: { className?: string }) {
   );
 }
 
-function Toggle({ pressed, onChange, label, children }: { pressed: boolean; onChange: (v: boolean) => void; label: string; children: React.ReactNode }) {
+/** Toggle button whose visible text is its accessible name (WCAG 2.5.3); state is exposed with aria-pressed. */
+function Toggle({ pressed, onChange, children }: { pressed: boolean; onChange: (v: boolean) => void; children: React.ReactNode }) {
   return (
     <button
       type="button"
       aria-pressed={pressed}
-      aria-label={label}
-      title={label}
       onClick={() => onChange(!pressed)}
       className="s3-label inline-flex h-9 items-center gap-2 rounded-full border border-line px-3 text-ink transition-colors duration-150 hover:border-line-strong aria-pressed:border-line-strong aria-pressed:bg-ink aria-pressed:text-bg"
     >
@@ -35,17 +34,17 @@ function Toggle({ pressed, onChange, label, children }: { pressed: boolean; onCh
   );
 }
 
-export function SettingsControls({ compact = false }: { compact?: boolean }) {
+export function SettingsControls() {
   const { theme, setTheme, reduced, setReduced } = useSettings();
   return (
     <div className="flex items-center gap-2">
-      <Toggle pressed={reduced} onChange={setReduced} label="Reduce motion in previews">
+      <Toggle pressed={reduced} onChange={setReduced}>
         <span aria-hidden="true" className="inline-block h-1.5 w-1.5 rounded-full bg-current" />
-        {compact ? 'Motion' : reduced ? 'Motion reduced' : 'Reduce motion'}
+        Reduce motion
       </Toggle>
-      <Toggle pressed={theme === 'dark'} onChange={(v) => setTheme(v ? 'dark' : 'light')} label="Dark theme">
+      <Toggle pressed={theme === 'dark'} onChange={(v) => setTheme(v ? 'dark' : 'light')}>
         <svg aria-hidden="true" width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5" fill="none" stroke="currentColor" strokeWidth="1.2" /><path d="M6 1a5 5 0 0 1 0 10z" fill="currentColor" /></svg>
-        {compact ? null : theme === 'dark' ? 'Dark' : 'Light'}
+        Dark
       </Toggle>
     </div>
   );
@@ -67,7 +66,7 @@ export function SiteHeader() {
     <header className="sticky top-0 z-40 border-b border-line bg-bg/90 backdrop-blur-sm">
       <a href="#main" className="s3-label absolute left-3 top-3 -translate-y-16 rounded bg-ink px-3 py-2 text-bg focus:translate-y-0">Skip to content</a>
       <div className="mx-auto flex h-14 max-w-[1400px] items-center justify-between gap-4 px-4 sm:px-6">
-        <Link href="/" aria-label="Studio³ home" className="flex items-baseline gap-3">
+        <Link href="/" className="flex items-baseline gap-3">
           <Wordmark className="text-[1.35rem] leading-none" />
           <span className="s3-label hidden text-muted md:inline">v4.0 Gallery</span>
         </Link>

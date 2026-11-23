@@ -116,7 +116,7 @@ export default function PressDepthButton({ params }: EffectProps<Params>) {
         <div className={styles.keys}>
           <Key tone={tone} wide busy={printing === 'print'} busyLabel="Printing…" onActivate={() => run('print')}>Print badge</Key>
           <Key tone="paper" onActivate={() => setDisplay(`Preview: badge ${String(printed + 1).padStart(2, '0')} (demo)`)}>Preview</Key>
-          <Key tone="paper" locked={printed === 0} busy={printing === 'reprint'} busyLabel="Reprinting…" describedBy={`${uid}reprint`} onActivate={() => run('reprint')}>Reprint</Key>
+          <Key tone="paper" locked={printed === 0} busy={printing === 'reprint'} busyLabel="Printing…" describedBy={`${uid}reprint`} onActivate={() => run('reprint')}>Reprint</Key>
         </div>
 
         <p id={`${uid}reprint`} className={styles.note}>

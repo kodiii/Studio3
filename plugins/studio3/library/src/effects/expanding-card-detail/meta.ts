@@ -16,7 +16,7 @@ export const meta: EffectMeta = {
     { key: 'spring', label: 'Spring token', type: 'select', default: 'glide', options: ['glide', 'settle', 'release', 'press'] },
     { key: 'panel', label: 'Panel size', type: 'select', default: 'fill', options: ['fill', 'centered'] },
     { key: 'scrim', label: 'Scrim strength', type: 'number', default: 45, min: 0, max: 80, step: 5, unit: '%' },
-    { key: 'contentDelay', label: 'Details delay', type: 'number', default: 140, min: 0, max: 500, step: 20, unit: 'ms' },
+    { key: 'contentDelay', label: 'Details delay', type: 'number', default: 260, min: 0, max: 600, step: 20, unit: 'ms' },
     { key: 'columns', label: 'Max columns', type: 'number', default: 3, min: 2, max: 4, step: 1 },
   ],
   accessibility: [
@@ -28,7 +28,7 @@ export const meta: EffectMeta = {
   reducedMotion: 'No shared-element travel: the panel and scrim fade in and out over 160 ms and the cards stay where they are.',
   performance: [
     'Motion animates the shared elements with transforms (FLIP-style projection); nothing animates width, height or top/left.',
-    'Posters keep the same aspect ratio in card and panel, so the shared poster scales uniformly and never distorts; titles move by position only.',
+    'The poster artwork is a square emblem with its own layoutId, so it scales uniformly while the colour field around it morphs from card to panel shape; titles move by position only, so text never stretches.',
     'Only the opened card and its panel are animated; the panel unmounts after its exit animation.',
   ],
   preview: { height: 640 },

@@ -21,7 +21,7 @@ export function pageKeyboardPrep() {
   };
   const native = 'a[href],button,input:not([type="hidden"]),select,textarea,summary,[tabindex],[contenteditable=""],[contenteditable="true"],iframe,audio[controls],video[controls]';
   const focusable = []; const radios = new Set();
-  for (const el of Array.from(document.querySelectorAll(native))) {
+  for (const el of /** @type {any[]} */ (Array.from(document.querySelectorAll(native)))) {
     if (!H.visible(el) || el.disabled || el.closest('[inert]') || el.tabIndex < 0) continue;
     if (el.localName === 'input' && el.type === 'radio' && el.name) { const k = (el.form ? 'f' : '') + el.name; if (radios.has(k)) continue; radios.add(k); }
     if (el.localName === 'summary' && el.parentElement && el.parentElement.querySelector(':scope > summary') !== el) continue;
@@ -30,6 +30,7 @@ export function pageKeyboardPrep() {
   // interactive-looking elements that cannot receive keyboard focus
   const nonFocusable = [];
   const looksInteractive = '[role="button"],[role="link"],[role="tab"],[role="menuitem"],[role="checkbox"],[role="switch"],[onclick]';
+  /** @type {Set<any>} */
   const cand = new Set(Array.from(document.querySelectorAll(looksInteractive)));
   for (const el of Array.from(document.body ? document.body.querySelectorAll('*') : []).slice(0, 4000)) {
     if (cand.has(el)) continue;

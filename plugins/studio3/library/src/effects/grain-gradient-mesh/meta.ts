@@ -15,7 +15,7 @@ export const meta: EffectMeta = {
   params: [
     { key: 'palette', label: 'Palette', type: 'select', default: 'Signal', options: ['Signal', 'Moss', 'Ochre', 'Graphite'] },
     { key: 'drift', label: 'Drift speed', type: 'number', default: 1, min: 0, max: 3, step: 0.1, unit: '×' },
-    { key: 'grain', label: 'Grain', type: 'number', default: 0.24, min: 0, max: 0.7, step: 0.02 },
+    { key: 'grain', label: 'Grain', type: 'number', default: 0.4, min: 0, max: 1, step: 0.05 },
     { key: 'fields', label: 'Colour fields', type: 'number', default: 4, min: 3, max: 4, step: 1 },
   ],
   accessibility: [

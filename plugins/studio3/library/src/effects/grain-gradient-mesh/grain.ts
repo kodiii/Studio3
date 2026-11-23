@@ -27,8 +27,8 @@ export function grainTile(size = 128): string {
   const img = ctx.createImageData(size, size);
   const rnd = mulberry32(0x5eed);
   for (let i = 0; i < img.data.length; i += 4) {
-    // Sum of three uniforms ≈ Gaussian; ±~110 around mid-grey.
-    const v = 128 + (rnd() + rnd() + rnd() - 1.5) * 92;
+    // Sum of three uniforms ≈ Gaussian, σ ≈ 35 levels around mid-grey.
+    const v = 128 + (rnd() + rnd() + rnd() - 1.5) * 70;
     const c = v < 0 ? 0 : v > 255 ? 255 : v;
     img.data[i] = img.data[i + 1] = img.data[i + 2] = c;
     img.data[i + 3] = 255;
