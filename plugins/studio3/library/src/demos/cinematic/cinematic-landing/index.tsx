@@ -181,7 +181,7 @@ export default function CinematicLanding() {
           <div className={s.capA} data-cap-a="">
             <p className={s.capLine}><span data-line="" className={s.kicker}>02 — Behind the façade</span></p>
             <h2 id="lw-opus-h" className={`${s.capLine} ${s.capTitle}`}><span data-line="">Opus 31.</span></h2>
-            <p className={s.capLine}><span data-line="" className={s.capText}>Keep scrolling: the window opens into the case.</span></p>
+            <p className={s.capLine}><span data-line="" className={s.capText}>{reduced ? 'Inside the case: the façade, its pipes and the ranks behind them.' : 'Keep scrolling: the window opens into the case.'}</span></p>
           </div>
           <div className={s.capB} data-cap-b="">
             <h3 className={`${s.capLine} ${s.capBTitle}`}><span data-line="">398 pipes. One wind.</span></h3>

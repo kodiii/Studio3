@@ -611,4 +611,31 @@ describe('library alias layer (CSS export ↔ component library contract)', () =
       }
     });
   }
+  const aliasBlock = (css) => css.split('/* Library aliases')[1].split('@media')[0];
+  it('motion: library duration names the design lacks are references to design durations (reduced-motion caps apply)', () => {
+    const doc = generateDesign(brief(), { seed: 3 });
+    expect(Object.keys(doc.motion.durations)).toEqual(expect.arrayContaining(['instant', 'fast', 'base', 'slow', 'slower', 'scene']));
+    const css = toCss(doc);
+    const defined = new Set([...css.matchAll(/(--s3-[a-z0-9-]+)\s*:/g)].map((m) => m[1]));
+    for (const k of ['instant', 'fast', 'base', 'moderate', 'slow', 'cinematic']) expect(defined.has(`--s3-duration-${k}`), `--s3-duration-${k}`).toBe(true);
+    for (const k of ['standard', 'enter', 'exit', 'emphasized']) expect(defined.has(`--s3-ease-${k}`), `--s3-ease-${k}`).toBe(true);
+    const aliases = aliasBlock(css);
+    expect(aliases).toMatch(/--s3-duration-moderate: calc\(\(var\(--s3-duration-base\) \+ var\(--s3-duration-slow\)\) \/ 2\);/);
+    expect(aliases).toMatch(/--s3-duration-cinematic: var\(--s3-duration-scene\);/);
+    // never literal values: the reduced-motion block caps the design durations they point at
+    for (const [, v] of aliases.matchAll(/--s3-duration-[a-z]+: ([^;]+);/g)) expect(v).not.toMatch(/^\d/);
+    const reduced = css.split('@media (prefers-reduced-motion: reduce)')[1];
+    for (const k of ['base', 'slow', 'scene']) expect(reduced).toContain(`--s3-duration-${k}:`);
+    // inOut is left to the recipes' own symmetric fallback (no design easing is an in-out curve)
+    expect(defined.has('--s3-ease-inOut')).toBe(false);
+  });
+  it('motion: names the design already defines are not re-declared; cinematic falls back to slower', () => {
+    const doc = generateDesign(brief(), { seed: 3 });
+    doc.motion.durations.moderate = 333;
+    delete doc.motion.durations.scene;
+    const css = toCss(doc);
+    expect(css.match(/--s3-duration-moderate:/g)).toHaveLength(2); // the design token + its reduced-motion cap, no alias
+    expect(aliasBlock(css)).not.toContain('--s3-duration-moderate');
+    expect(aliasBlock(css)).toMatch(/--s3-duration-cinematic: var\(--s3-duration-slower\);/);
+  });
 });

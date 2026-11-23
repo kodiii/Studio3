@@ -208,7 +208,23 @@ export class PartControllerCore {
   }
   get explodeAmount(): number { return this.amount; }
 
-  /** Restore originals and release clones. */
+  /**
+   * Take control of the root again after `dispose()` (no-op otherwise; returns whether it re-attached). React
+   * StrictMode — and any effect re-run — cleans up and sets up the SAME instance: dispose() restored every original,
+   * so this starts from that clean state (no overrides, highlight or hidden parts) and re-applies the explode amount.
+   */
+  reattach(): boolean {
+    if (!this.disposed) return false;
+    this.disposed = false;
+    this.hidden.clear();
+    this.highlighted = null;
+    this.selected = null;
+    for (const slot of this.slots) { slot.emissive = undefined; slot.emissiveIntensity = undefined; }
+    this.setExplode(this.amount);
+    return true;
+  }
+
+  /** Restore originals and release clones. Undo with `reattach()`. */
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
@@ -250,12 +266,23 @@ export const PartController = forwardRef<PartControllerCore | null, PartControll
   useImperativeHandle<PartControllerCore | null, PartControllerCore | null>(ref, () => core, [core]);
   const ready = useRef(onReady);
   ready.current = onReady;
+  const latest = useRef({ overrides, highlight, selected, hidden });
+  latest.current = { overrides, highlight, selected, hidden };
   const anim = useRef({ value: 0, vel: 0, target: 0 });
 
+  // Setup mirrors cleanup: cleanup disposes (restores the model), setup (re)attaches and applies the current props,
+  // so a StrictMode / re-run setup on the same core is live again. onReady sees the model with its overrides applied.
   useEffect(() => {
     if (!core) return;
-    ready.current?.(core.parts, core);
+    core.reattach();
+    const p = latest.current;
+    core.setOverrides(p.overrides ?? {});
+    core.setHidden(p.hidden ?? []);
+    core.setHighlight(p.highlight);
+    core.setSelected(p.selected);
     core.setExplode(anim.current.value);
+    ready.current?.(core.parts, core);
+    invalidate();
     return () => { core.dispose(); invalidate(); };
   }, [core, invalidate]);
   useEffect(() => { core?.setOverrides(overrides ?? {}); invalidate(); }, [core, overrides, invalidate]);

@@ -4,9 +4,10 @@
  *
  * On top of three's OrbitControls it adds:
  *  - render-on-demand: frames are requested only while the camera is actually moving (incl. damping tail)
- *  - wheel zoom only when the viewer has focus (or ctrl/⌘ is held), so the page keeps scrolling past the canvas
+ *  - wheel zoom only when focus is within the viewer (or ctrl/⌘ is held), so the page keeps scrolling past the canvas
  *  - touch: one-finger horizontal drag orbits while vertical swipes still scroll the page (`touchScroll="pan-y"`)
- *  - a keyboard path on the canvas element (arrows rotate, +/− zoom, 0 or Home reset, Shift+arrows pan)
+ *  - a keyboard path on the canvas element (arrows rotate, +/− zoom, 0 or Home reset, Shift+arrows pan); the focusable
+ *    canvas is named after the StudioCanvas label, and the StudioCanvas wrapper becomes role="group" while it is on
  *  - the same operations on an imperative handle so DOM buttons can drive the camera
  *  - reduced motion: damping and auto-rotate are disabled (moves become cuts)
  * It registers itself as R3F's default `controls`, which is how `CameraRig` finds the orbit target.
@@ -15,6 +16,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { useStudioMotion } from '../../motion';
+import { useStudioCanvasHost } from '../StudioCanvas';
 
 export type Vec3 = [number, number, number];
 
@@ -50,11 +52,14 @@ export interface OrbitInspectProps {
   zoomSpeed?: number;
   autoRotate?: boolean;
   autoRotateSpeed?: number;
-  /** 'focus' (default): wheel zooms only while the canvas is focused or ctrl/⌘ is held. */
+  /** 'focus' (default): wheel zooms only while focus is within the viewer (StudioCanvas wrapper) or ctrl/⌘ is held. */
   wheel?: 'focus' | 'always' | 'never';
   /** 'pan-y' lets vertical touch swipes scroll the page; 'none' gives the viewer every touch gesture. */
   touchScroll?: 'pan-y' | 'none';
-  /** Keyboard operation on the canvas element (adds tabindex=0 + role=application). */
+  /**
+   * Keyboard operation on the canvas element (adds tabindex=0 + role=application, named after the StudioCanvas
+   * label). Inside a StudioCanvas it also marks the scene `interactive` (wrapper role="group").
+   */
   keyboard?: boolean;
   /** Radians per arrow-key press. */
   keyStep?: number;
@@ -77,6 +82,7 @@ export const OrbitInspect = forwardRef<OrbitInspectHandle, OrbitInspectProps>(fu
   const set = useThree((s) => s.set);
   const get = useThree((s) => s.get);
   const { reduced } = useStudioMotion();
+  const studio = useStudioCanvasHost();
   const controls = useMemo(() => new OrbitControls(camera), [camera]);
   const cb = useRef({ onStart, onEnd, onChange });
   cb.current = { onStart, onEnd, onChange };
@@ -117,19 +123,22 @@ export const OrbitInspect = forwardRef<OrbitInspectHandle, OrbitInspectProps>(fu
     controls.addEventListener('start', start);
     controls.addEventListener('end', end);
 
-    // Wheel gate: stop the event before OrbitControls sees it (capture on the parent) unless the viewer is focused.
+    // Wheel gate: stop the event before OrbitControls sees it (capture on the parent) unless focus is within the
+    // viewer (the canvas itself, or DOM controls inside the StudioCanvas wrapper).
     const host = el.parentElement;
+    const viewer = (el.closest('[data-studio3-canvas]') as HTMLElement | null) ?? host?.parentElement ?? el;
     const gate = (e: WheelEvent) => {
-      const allowed = wheel === 'always' || (wheel === 'focus' && (document.activeElement === el || e.ctrlKey || e.metaKey || document.fullscreenElement?.contains(el)));
+      const allowed = wheel === 'always' || (wheel === 'focus' && (viewer.contains(document.activeElement) || e.ctrlKey || e.metaKey || document.fullscreenElement?.contains(el)));
       if (!allowed) e.stopPropagation();
     };
     host?.addEventListener('wheel', gate, { capture: true, passive: true });
 
     const prev = { tabIndex: el.getAttribute('tabindex'), role: el.getAttribute('role'), shortcuts: el.getAttribute('aria-keyshortcuts'), label: el.getAttribute('aria-label') };
-    // StudioCanvas names its wrapper as role="img". An image's children are presentational, so a focusable canvas inside
-    // it would be an unnamed control for assistive tech: promote the wrapper to a group and name the canvas itself.
-    const wrapper = keyboard ? (el.closest('[role="img"]') as HTMLElement | null) : null;
-    const wrapperLabel = wrapper?.getAttribute('aria-label') ?? null;
+    // A focusable canvas is a control: it needs its own name, and it must not sit inside role="img" (an image's
+    // children are presentational). StudioCanvas owns the wrapper role; ask it to switch to role="group".
+    const name = studio?.label ?? el.parentElement?.closest('[aria-label]')?.getAttribute('aria-label') ?? '3D view';
+    const ownLabel = `${name}. Arrow keys rotate, plus and minus zoom, 0 resets the view.`;
+    const release = keyboard ? studio?.requestInteractive() : undefined;
     const key = (e: KeyboardEvent) => {
       if (!controls.enabled || e.altKey || e.ctrlKey || e.metaKey) return;
       let used = true;
@@ -150,8 +159,7 @@ export const OrbitInspect = forwardRef<OrbitInspectHandle, OrbitInspectProps>(fu
       el.tabIndex = 0;
       el.setAttribute('role', 'application');
       el.setAttribute('aria-keyshortcuts', 'ArrowLeft ArrowRight ArrowUp ArrowDown + - 0');
-      if (prev.label === null) el.setAttribute('aria-label', `${wrapperLabel ?? '3D view'}. Arrow keys rotate, plus and minus zoom, 0 resets the view.`);
-      wrapper?.setAttribute('role', 'group');
+      if (prev.label === null) el.setAttribute('aria-label', ownLabel);
       el.addEventListener('keydown', key);
     }
     return () => {
@@ -164,13 +172,14 @@ export const OrbitInspect = forwardRef<OrbitInspectHandle, OrbitInspectProps>(fu
         prev.tabIndex === null ? el.removeAttribute('tabindex') : el.setAttribute('tabindex', prev.tabIndex);
         prev.role === null ? el.removeAttribute('role') : el.setAttribute('role', prev.role);
         prev.shortcuts === null ? el.removeAttribute('aria-keyshortcuts') : el.setAttribute('aria-keyshortcuts', prev.shortcuts);
-        prev.label === null ? el.removeAttribute('aria-label') : el.setAttribute('aria-label', prev.label);
-        if (wrapper?.getAttribute('role') === 'group') wrapper.setAttribute('role', 'img');
+        // only undo our own name (another component may have named the canvas since)
+        if (prev.label === null && el.getAttribute('aria-label') === ownLabel) el.removeAttribute('aria-label');
       }
+      release?.();
       controls.disconnect();
       el.style.touchAction = '';
     };
-  }, [controls, gl, invalidate, wheel, touchScroll, keyboard, keyStep, api]);
+  }, [controls, gl, invalidate, wheel, touchScroll, keyboard, keyStep, api, studio]);
 
   useEffect(() => {
     if (!makeDefault) return;

@@ -111,7 +111,13 @@ describe.each(catalog.demos.map((d) => [`${d.specialty}/${d.id}`, d] as const))(
     expect(d.performance.length).toBeGreaterThan(0);
     expect(d.reducedMotion.length).toBeGreaterThan(10);
     const ids = new Set(catalog.effects.map((e) => e.id));
-    for (const u of d.uses) expect(ids.has(u), `uses unknown recipe ${u}`).toBe(true);
+    for (const u of [...d.uses, ...(d.adapts ?? [])]) expect(ids.has(u), `references unknown recipe ${u}`).toBe(true);
+    // Honesty: every id in `uses` must really be imported by the demo's source.
+    const dir = path.join(LIB, 'src/demos', d.specialty, d.id);
+    const src = (function read(p: string): string {
+      return fs.readdirSync(p, { withFileTypes: true }).map((e) => (e.isDirectory() ? read(path.join(p, e.name)) : /\.(ts|tsx)$/.test(e.name) ? fs.readFileSync(path.join(p, e.name), 'utf8') : '')).join('\n');
+    })(dir);
+    for (const u of d.uses) expect(src, `"${u}" is listed in uses but never imported — move it to adapts`).toMatch(new RegExp(`from\\s+['"](?:\\.\\./)+effects/${u}(?:/index)?['"]`));
     if (d.specialty === 'data') expect(d.dataNote, 'data demos state that data is simulated').toBeTruthy();
   });
 });

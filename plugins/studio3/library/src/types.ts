@@ -88,8 +88,10 @@ export interface DemoMeta {
   /** What this demo proves about the specialty. */
   highlights: readonly string[];
   technology: readonly Technology[];
-  /** Effect recipe ids composed in this demo. */
+  /** Effect recipe ids imported and rendered by this demo (verified by tests/unit/library/contract.test.ts). */
   uses: readonly string[];
+  /** Recipe ids whose technique this demo re-implements locally (e.g. against its own data) instead of importing. */
+  adapts?: readonly string[];
   /** Other specialties/modules this demo invokes (cross-studio collaboration). */
   collaborates?: readonly (Specialty | 'motion-lab')[];
   has3d: boolean;

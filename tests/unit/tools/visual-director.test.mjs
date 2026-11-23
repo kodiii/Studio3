@@ -15,7 +15,7 @@ import { routeSlug, fingerprint, loadPngTools, diffPngBuffers } from '../../../p
 import { CHECKS, GUIDANCE } from '../../../plugins/studio3/tools/visual-director/guidance.mjs';
 import { installPageHelpers } from '../../../plugins/studio3/tools/visual-director/page/helpers.mjs';
 import { instrument3D, pageSnapshot3D } from '../../../plugins/studio3/tools/visual-director/three-d/instrument.mjs';
-import { pageDetectFallback } from '../../../plugins/studio3/tools/visual-director/three-d/diagnostics.mjs';
+import { classifyContextLoss, pageDetectFallback } from '../../../plugins/studio3/tools/visual-director/three-d/diagnostics.mjs';
 import { launchBrowser, newContext } from '../../../plugins/studio3/tools/lib/browser.mjs';
 import { serveStatic } from '../../../plugins/studio3/tools/lib/static-server.mjs';
 
@@ -496,6 +496,53 @@ describe('visual-director: browser runs', () => {
       const real = await verdict('vd-good', false);
       expect(real.snap.contexts.some((c) => c.ok), 'launchBrowser({gpu:false}) should not hand out WebGL contexts').toBe(false);
       expect(real.fb.found).toBe(true);
+    } finally {
+      await browser.close();
+      await server.close();
+    }
+  }, LONG);
+});
+
+describe('visual-director: intentional WebGL context loss is not a 3d-context-lost failure', () => {
+  it('classifies lost events: real vs intentional (loseContext on an attached canvas) vs never-attached probe', () => {
+    const ev = (o) => ({ type: 'webglcontextlost', t: 0, message: '', ...o });
+    const r = classifyContextLoss([ev({ intentional: true, attached: false }), ev({ intentional: true, attached: true }), ev({ intentional: false, attached: true }), ev({}), { type: 'webglcontextrestored' }]);
+    expect([r.real.length, r.intentional.length, r.detached.length]).toEqual([2, 1, 1]); // untagged (older snapshots) stay real
+  });
+  bit('a capability probe and a forceContextLoss()-style teardown are tagged; a real loss still counts', async () => {
+    const dir = fs.mkdtempSync(path.join(tmp, 'ctx-'));
+    fs.writeFileSync(path.join(dir, 'index.html'), `<!doctype html><html><body>
+      <canvas id="stage" width="64" height="64"></canvas><canvas id="other" width="64" height="64"></canvas>
+      <script>
+        const ctx = (c) => c.getContext('webgl2') || c.getContext('webgl');
+        const probe = document.createElement('canvas'); // capabilities.ts: detached probe, released at once
+        ctx(probe)?.getExtension('WEBGL_lose_context')?.loseContext();
+        const gl = ctx(document.getElementById('stage'));
+        const other = document.getElementById('other'); ctx(other);
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          gl?.getExtension('WEBGL_lose_context')?.loseContext(); // three: renderer.forceContextLoss() on teardown
+          other.dispatchEvent(new Event('webglcontextlost')); // stands in for a real GPU reset
+          setTimeout(() => { window.__done = true; }, 200);
+        }));
+      </script></body></html>`);
+    const server = await serveStatic(dir);
+    const browser = await launchBrowser();
+    try {
+      const context = await newContext(browser, 'desktop');
+      await context.addInitScript(installPageHelpers);
+      await context.addInitScript(instrument3D, {});
+      const page = await context.newPage();
+      await page.goto(`${server.url}/index.html`, { waitUntil: 'load' });
+      await page.waitForFunction(() => /** @type {any} */ (window).__done === true, null, { timeout: 15_000 });
+      const snap = await page.evaluate(pageSnapshot3D);
+      await context.close();
+      expect(snap.contexts.filter((c) => c.ok).length, 'WebGL contexts available').toBeGreaterThanOrEqual(3);
+      const loss = classifyContextLoss(snap.events);
+      expect(loss.detached).toHaveLength(1);
+      expect(loss.detached[0]).toMatchObject({ intentional: true, attached: false });
+      expect(loss.intentional).toHaveLength(1);
+      expect(loss.real).toHaveLength(1);
+      expect(loss.real[0]).toMatchObject({ intentional: false, attached: true });
     } finally {
       await browser.close();
       await server.close();

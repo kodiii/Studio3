@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { BoxGeometry, Mesh, MeshStandardMaterial, Object3D, Scene, ShaderMaterial, Texture } from 'three';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
-import { createAdaptiveQuality, createQualityProfiles, defaultQualityProfiles, pickQualityLevel } from '../../../plugins/studio3/library/src/three/quality';
+import { createAdaptiveQuality, createQualityProfiles, defaultQualityProfiles, pickQualityLevel, qualityProfilesFromDesign, stepDownQuality } from '../../../plugins/studio3/library/src/three/quality';
 import { disposeObject, ResourceTracker } from '../../../plugins/studio3/library/src/three/dispose';
 import { detectCapabilities, detectWebGPU, type GraphicsCapabilities } from '../../../plugins/studio3/library/src/three/capabilities';
 import { installDomShims, type Shims } from './dom-shims';
@@ -37,6 +37,56 @@ describe('quality profiles', () => {
     expect(onChange).toHaveBeenCalledTimes(2);
     q.sample(1000); // tab switch spikes are ignored
     expect(q.dprFactor).toBe(1);
+  });
+  it('signals degrade only once the DPR floor is reached and frames stay slow', () => {
+    const states: { dprFactor: number; degrade: boolean }[] = [];
+    const q = createAdaptiveQuality({ targetMs: 20, window: 5, onChange: (st) => states.push(st) });
+    for (let i = 0; i < 5 * 4; i++) q.sample(60); // 1 → 0.5 in four slow windows
+    expect(q.dprFactor).toBe(0.5);
+    expect(states.some((st) => st.degrade)).toBe(false);
+    for (let i = 0; i < 5; i++) q.sample(60); // still slow at the floor
+    expect(states.at(-1)).toEqual({ dprFactor: 0.5, degrade: true });
+  });
+  it('steps quality down one level per degrade signal and never back up', () => {
+    expect(stepDownQuality('high')).toBe('medium');
+    expect(stepDownQuality('medium')).toBe('low');
+    expect(stepDownQuality('low')).toBe('low');
+    expect(stepDownQuality('high', 2)).toBe('low');
+    expect(stepDownQuality('high', 5)).toBe('low');
+    expect(stepDownQuality('medium', 0)).toBe('medium');
+    expect(stepDownQuality('medium', -1)).toBe('medium'); // never up
+  });
+});
+
+describe('design → quality profiles', () => {
+  // Shape written by tools/design-intelligence/generate.mjs (threeD.qualityProfiles)
+  const threeD = {
+    qualityProfiles: {
+      note: 'Starting points only',
+      desktop: { dprMax: 2, shadows: 'Soft shadow map 2048 or accumulative', postprocessing: 'Selective (tone mapping, light bloom or AO if art direction needs it)', textureMaxPx: 2048, targetFps: 60, antialias: 'MSAA' },
+      mobile: { dprMax: 1.5, shadows: 'Contact/blob shadow or 1024 map', postprocessing: 'Tone mapping only', textureMaxPx: 1024, targetFps: 60, antialias: 'MSAA or FXAA' },
+      lowPower: { dprMax: 1, shadows: 'None (baked or blob)', postprocessing: 'None', textureMaxPx: 512, targetFps: 30, antialias: 'None', frameloop: 'demand' },
+    },
+  };
+  it('maps desktop/mobile/lowPower to high/medium/low overrides for createQualityProfiles()', () => {
+    const o = qualityProfilesFromDesign(threeD);
+    expect(o.high).toEqual({ dpr: [1, 2], textureMax: 2048, shadows: true, shadowMapSize: 2048, postprocessing: true, antialias: true });
+    expect(o.medium).toEqual({ dpr: [1, 1.5], textureMax: 1024, shadows: true, shadowMapSize: 1024, postprocessing: false, antialias: true });
+    expect(o.low).toEqual({ dpr: [0.75, 1], textureMax: 512, shadows: false, postprocessing: false, antialias: false });
+    const p = createQualityProfiles(o);
+    expect(p.low.modelVariant).toBe('low-power'); // untouched fields keep the kit defaults
+    expect(p.high.level).toBe('high');
+  });
+  it('tolerates missing blocks, tiers, fields and odd values', () => {
+    expect(qualityProfilesFromDesign(undefined)).toEqual({});
+    expect(qualityProfilesFromDesign({})).toEqual({});
+    expect(qualityProfilesFromDesign({ qualityProfiles: { mobile: {} } })).toEqual({});
+    const o = qualityProfilesFromDesign({ qualityProfiles: { desktop: { dprMax: 0.5, textureMaxPx: -1, shadows: true }, 'low-power': { postprocessing: false, antialias: 'FXAA' } } });
+    expect(o.high).toEqual({ dpr: [0.5, 0.5], shadows: true }); // min clamp never exceeds the max
+    expect(o.low).toEqual({ postprocessing: false }); // FXAA alone is a post pass, not context MSAA: left at the default
+    expect(o.medium).toBeUndefined();
+    // the qualityProfiles block itself is accepted too
+    expect(qualityProfilesFromDesign(threeD.qualityProfiles)).toEqual(qualityProfilesFromDesign(threeD));
   });
 });
 

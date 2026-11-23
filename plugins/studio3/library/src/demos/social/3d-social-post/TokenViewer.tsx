@@ -116,11 +116,16 @@ export function TokenViewer({ onActiveChange }: { onActiveChange?: (active: bool
             <path d="M50 2v10M50 88v10M2 50h10M88 50h10M50 40v4M50 56v4M40 50h4M56 50h4" />
           </svg>
           <span className={styles.retTL}>Finder · 6×30</span>
-          <span className={styles.retTR}>One Orbit · brass</span>
+          {active ? null : <span className={styles.retTR}>One Orbit · brass</span>}
           <span className={styles.retBL}>{live ? `AZ ${String(az).padStart(3, '0')}°` : 'Photo'}</span>
           <span className={styles.retBR}>{live ? (anim.playing ? 'Spin on' : '3D') : webgl === false ? 'No 3D here' : 'Poster'}</span>
         </div>
 
+        {active ? (
+          <button type="button" className={styles.closeIn} onClick={() => close()}>
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 7l10 10M17 7 7 17" /></svg>Close 3D
+          </button>
+        ) : null}
         {loading ? <p className={styles.frameStatus} role="status">Loading model… {received}</p> : null}
         {error ? (
           <div className={styles.frameStatus} role="alert">
@@ -155,10 +160,6 @@ export function TokenViewer({ onActiveChange }: { onActiveChange?: (active: bool
               ? <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 6v12M15 6v12" /></svg>
               : <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 5.500v13l10-6.500z" /></svg>}
             <span className={styles.toolText}>Spin</span>
-          </button>
-          <span className={styles.toolGap} />
-          <button type="button" className={`${styles.tool} ${styles.toolClose}`} onClick={() => close()}>
-            <span className={styles.toolText}>Close 3D</span>
           </button>
         </div>
       ) : (

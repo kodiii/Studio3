@@ -11,7 +11,7 @@
   --kr-horizon: var(--s3-bg, #f3f0e8);
   --kr-aur-a: var(--s3-accent-data, #0a6e4d);
   --kr-aur-b: var(--s3-signal, #bf2f09);
-  --kr-aurora: 0.55;
+  --kr-aurora: 1.5;
   position: relative;
   overflow-x: clip;
   background: var(--s3-bg, #f3f0e8);
@@ -122,6 +122,12 @@
 .view[aria-current], .toggle[aria-pressed='true'] { background: var(--s3-ink, #11110f); color: var(--s3-bg, #f3f0e8); }
 .view:focus-visible, .toggle:focus-visible { outline: 2px solid var(--s3-focus, #1d4ed8); outline-offset: 2px; }
 .viewNum { font-size: 0.625rem; letter-spacing: 0.06em; }
+@container (max-width: 34rem) {
+  .hud { flex-direction: column; align-items: flex-start; gap: 6px; margin-top: -92px; }
+  .views, .ctl { padding: 3px; }
+  .view, .toggle { min-height: 32px; padding: 0 11px; }
+  .viewNum { display: none; }
+}
 
 .fallback { position: absolute; inset: 0; }
 .fallbackNote {

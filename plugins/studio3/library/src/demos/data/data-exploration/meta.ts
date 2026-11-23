@@ -14,7 +14,8 @@ export const meta: DemoMeta = {
     'The summary is computed from the selection and words the altitude–score relation as an association in sample data, never as a cause.',
   ],
   technology: ['d3', 'svg', 'css'],
-  uses: ['brush-linked-range', 'bar-race-transition'],
+  uses: [],
+  adapts: ['brush-linked-range', 'bar-race-transition'],
   has3d: false,
   accessibility: [
     'Keyboard access to points: the focused scatter is a slider over the selected lots in altitude order (arrows, Page Up/Down, Home/End), Enter pins a lot, Escape hides the readout; the lots table is the full alternative.',

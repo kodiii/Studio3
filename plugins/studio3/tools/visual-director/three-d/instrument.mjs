@@ -6,6 +6,10 @@
  * Wraps canvas.getContext (HTMLCanvasElement + OffscreenCanvas on the main thread) and the
  * WebGL1/2 prototypes to count draw calls, estimate triangles, texture bytes and geometry
  * bytes. All byte figures are ESTIMATES (width × height × 4, ×1.33 when mipmapped).
+ * Context-loss events are tagged `intentional` when the page asked for them through
+ * WEBGL_lose_context.loseContext() (capability probes releasing their context, three's
+ * renderer.forceContextLoss() on teardown) and `attached: false` when the canvas was never in the
+ * document (a probe canvas) — the diagnostics only count the rest as real losses.
  * Workers are not instrumented.
  * @param {{ forceNoGL?: boolean }} [opts]
  */
@@ -26,9 +30,17 @@ export function instrument3D(opts) {
   };
   Object.defineProperty(w, '__S3VD_3D__', { value: S, enumerable: false });
 
+  // ---- context-loss bookkeeping ------------------------------------------------
+  const intentionalLoss = new WeakMap(); // canvas → pending loseContext() requests
+  const attachedEver = new WeakSet(); // DOM canvases seen in the document at least once
+  const noteAttached = (cv) => { try { if (cv && cv.isConnected === true) attachedEver.add(cv); } catch { /* ignore */ } };
+  // OffscreenCanvas has no isConnected: it may be displayed through transferControlToOffscreen(), so it counts.
+  const wasAttached = (cv) => { noteAttached(cv); return !cv || typeof cv.isConnected !== 'boolean' || attachedEver.has(cv); };
+
   // ---- per-frame accounting --------------------------------------------------
   const raf = w.requestAnimationFrame.bind(w);
   const tick = (t) => {
+    for (const c of S.canvases) if (!c.offscreen) noteAttached(c.canvas);
     S.frames.push([t, S.frameCalls, S.frameTris]);
     if (S.frames.length > 1200) S.frames.splice(0, 400);
     S.frameCalls = 0; S.frameTris = 0;
@@ -66,7 +78,7 @@ export function instrument3D(opts) {
     proto[name] = function () { const r = orig.apply(this, arguments); try { fn.call(this, r, arguments); } catch { /* never break the page */ } return r; };
   };
   const wrappedExt = new WeakSet();
-  const wrapExt = (name, ext) => {
+  const wrapExt = (name, ext, gl) => {
     if (!ext || typeof ext !== 'object' || wrappedExt.has(ext)) return;
     wrappedExt.add(ext);
     const n = String(name).toLowerCase();
@@ -79,6 +91,13 @@ export function instrument3D(opts) {
       own('multiDrawElementsWEBGL', (mode, counts, co, type, offsets, oo, dc) => record(dc || 1, triCount(mode, sum(counts, co, dc))));
       own('multiDrawArraysInstancedWEBGL', (mode, firsts, fo, counts, co, ic, io, dc) => record(dc || 1, triCount(mode, sum(counts, co, dc)) * Math.max(1, (ic && ic[io]) || 1)));
       own('multiDrawElementsInstancedWEBGL', (mode, counts, co, type, offsets, oo, ic, io, dc) => record(dc || 1, triCount(mode, sum(counts, co, dc)) * Math.max(1, (ic && ic[io]) || 1)));
+    } else if (n === 'webgl_lose_context') {
+      // A loss the page requests itself is not a failure: mark the next webglcontextlost on this canvas.
+      own('loseContext', () => {
+        const cv = gl && gl.canvas;
+        if (!cv || (typeof gl.isContextLost === 'function' && gl.isContextLost())) return; // already lost: no event follows
+        intentionalLoss.set(cv, (intentionalLoss.get(cv) || 0) + 1);
+      });
     }
   };
 
@@ -90,7 +109,7 @@ export function instrument3D(opts) {
     pre(p, 'drawRangeElements', (mode, start, end, count) => record(1, triCount(mode, count)));
     pre(p, 'drawArraysInstanced', (mode, first, count, inst) => record(1, triCount(mode, count) * (inst || 1)));
     pre(p, 'drawElementsInstanced', (mode, count, type, offset, inst) => record(1, triCount(mode, count) * (inst || 1)));
-    post(p, 'getExtension', (r, args) => wrapExt(args[0], r));
+    post(p, 'getExtension', function (r, args) { wrapExt(args[0], r, this); });
     post(p, 'createTexture', () => { S.textures.created++; });
     pre(p, 'deleteTexture', (tex) => { if (!tex) return; const i = texInfo.get(tex); if (i) { S.textures.bytes -= texTotal(i); texInfo.delete(tex); } S.textures.deleted++; });
     pre(p, 'activeTexture', function (unit) { st(this).unit = unit - 0x84C0; });
@@ -140,7 +159,16 @@ export function instrument3D(opts) {
       if (!tracked.has(canvas) && typeof canvas.addEventListener === 'function') {
         tracked.add(canvas);
         for (const ev of ['webglcontextlost', 'webglcontextrestored', 'webglcontextcreationerror']) {
-          canvas.addEventListener(ev, (e) => { if (S.events.length < 60) S.events.push({ type: ev, t: performance.now(), message: (e && e.statusMessage) || '' }); });
+          canvas.addEventListener(ev, (e) => {
+            /** @type {any} */ const rec = { type: ev, t: performance.now(), message: (e && e.statusMessage) || '' };
+            if (ev === 'webglcontextlost') {
+              const pending = intentionalLoss.get(canvas) || 0;
+              if (pending > 0) intentionalLoss.set(canvas, pending - 1);
+              rec.intentional = pending > 0;
+              rec.attached = wasAttached(canvas);
+            } else if (ev === 'webglcontextrestored') intentionalLoss.delete(canvas);
+            if (S.events.length < 60) S.events.push(rec);
+          });
         }
       }
       if (S.forceNoGL) {
@@ -151,6 +179,7 @@ export function instrument3D(opts) {
       let ctx = null;
       try { ctx = orig.apply(this, arguments); } catch (e) { rec.error = String((e && e.message) || e); throw e; }
       rec.ok = !!ctx;
+      noteAttached(canvas);
       if (ctx && !S.canvases.some((c) => c.canvas === canvas)) S.canvases.push({ canvas, type: t, offscreen });
       return ctx;
     };

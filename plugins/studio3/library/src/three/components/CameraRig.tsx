@@ -6,7 +6,8 @@
  *    instead of dollying through it.
  *  - Critically damped (no overshoot), interruptible: a new `goTo()` retargets mid-flight keeping velocity; any
  *    user input on the registered controls (OrbitInspect) cancels the move.
- *  - Render-on-demand: frames are requested only while a transition is in flight.
+ *  - Render-on-demand: frames are requested only while a transition is in flight; it ends (snapping to the goal) once
+ *    the remaining error is below ARRIVE_EPSILON (relative to the viewing distance), not after a sub-pixel tail.
  *  - Reduced motion → every transition is a cut.
  *  - `fitToBounds()` frames an object/box for the current aspect ratio; presets are widened automatically on
  *    narrow (portrait) canvases so the subject is not cropped at phone widths.
@@ -54,6 +55,16 @@ function damp(cur: number, target: number, vel: { v: number }, smoothTime: numbe
   vel.v = (vel.v - omega * temp) * exp;
   return target + (change + temp) * exp;
 }
+
+/**
+ * Arrival tolerance relative to the scene scale: 0.1 % of the goal viewing distance for target/radius, 1e-3 rad for
+ * the orbit angles, 0.1 % of the goal fov. That is about a pixel on a 1000 px-tall canvas, so the final snap is not
+ * visible, and it no longer depends on world units: a 180° swing at smoothTime 0.5 stops requesting frames after
+ * ≈2.6 s instead of ≈3.3 s (radius changes ≈2.1 s instead of 3.1–3.6 s) — the rest was sub-pixel motion.
+ */
+const ARRIVE_EPSILON = 1e-3;
+/** Within `eps` of the goal and slow enough that this is the end of the approach, not a pass through the goal. */
+const settled = (delta: number, vel: number, eps: number, smoothTime: number): boolean => Math.abs(delta) < eps && Math.abs(vel) * smoothTime < eps * 4;
 
 type OrbitLike = { target: Vector3; update(): void; addEventListener(t: string, f: () => void): void; removeEventListener(t: string, f: () => void): void };
 const isOrbit = (c: unknown): c is OrbitLike => !!c && typeof c === 'object' && (c as { target?: { isVector3?: boolean } }).target?.isVector3 === true;
@@ -173,8 +184,12 @@ export const CameraRig = forwardRef<CameraRigHandle, CameraRigProps>(function Ca
     s.sph.phi = damp(s.sph.phi, s.goalSph.phi, s.vel.phi, t, dt);
     s.sph.theta = damp(s.sph.theta, s.goalSph.theta, s.vel.theta, t, dt);
     s.fov = damp(s.fov, s.goalFov, s.vel.fov, t, dt);
-    const done = s.target.distanceToSquared(s.goalTarget) < 1e-7 && Math.abs(s.sph.radius - s.goalSph.radius) < 1e-4
-      && Math.abs(s.sph.phi - s.goalSph.phi) < 1e-4 && Math.abs(s.sph.theta - s.goalSph.theta) < 1e-4 && Math.abs(s.fov - s.goalFov) < 1e-3;
+    const ePos = ARRIVE_EPSILON * Math.max(1e-3, s.goalSph.radius);
+    const eFov = Math.max(1e-3, ARRIVE_EPSILON * s.goalFov);
+    const done = settled(s.target.x - s.goalTarget.x, s.vel.tx.v, ePos, t) && settled(s.target.y - s.goalTarget.y, s.vel.ty.v, ePos, t)
+      && settled(s.target.z - s.goalTarget.z, s.vel.tz.v, ePos, t) && settled(s.sph.radius - s.goalSph.radius, s.vel.r.v, ePos, t)
+      && settled(s.sph.phi - s.goalSph.phi, s.vel.phi.v, ARRIVE_EPSILON, t) && settled(s.sph.theta - s.goalSph.theta, s.vel.theta.v, ARRIVE_EPSILON, t)
+      && settled(s.fov - s.goalFov, s.vel.fov.v, eFov, t);
     if (done) { s.target.copy(s.goalTarget); s.sph.copy(s.goalSph); s.fov = s.goalFov; s.active = false; for (const k of Object.values(s.vel)) k.v = 0; }
     (api as unknown as { _apply: () => void })._apply();
     if (done) { const c = live.current.controls; if (isOrbit(c)) c.update(); live.current.onArrive?.(s.name); }

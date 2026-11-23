@@ -19,6 +19,7 @@ export const meta: EffectMeta = {
     { key: 'skew', label: 'Max skew', type: 'number', default: 8, min: 0, max: 16, step: 1, unit: '°' },
     { key: 'direction', label: 'Direction', type: 'select', default: 'left', options: ['left', 'right'] },
     { key: 'pauseOnHover', label: 'Pause on hover', type: 'boolean', default: true },
+    { key: 'label', label: 'Header label (empty hides it)', type: 'text', default: 'Capabilities / sample copy', maxLength: 60 },
   ],
   accessibility: [
     'A visible Pause/Play button (aria-pressed) stops all movement, satisfying WCAG 2.2.2 Pause, Stop, Hide.',

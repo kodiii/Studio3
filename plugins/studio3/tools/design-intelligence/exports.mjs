@@ -64,9 +64,20 @@ function baseDecls(doc) {
 /**
  * Library alias layer: the variable names Studio³ library recipes and demos read (see docs/LIBRARY-CONTRACT.md),
  * mapped onto this design system's role tokens. Declared on :root as var() references, so they follow the
- * light/dark blocks automatically. Motion variables need no alias: recipes read them with fallbacks.
+ * light/dark blocks automatically.
+ * Motion: the design vocabulary is durations {instant, fast, base, slow, slower, scene} and easings {linear,
+ * standard, enter, exit, emphasized, signature}; recipes read --s3-duration-{instant, fast, base, moderate, slow,
+ * cinematic} and --s3-ease-{standard, enter, exit, emphasized, inOut}. Library names the design file lacks are
+ * aliased as references (never literal ms), so the reduced-motion caps on the design durations apply to them too:
+ *   moderate  → midway between base and slow (library: 360 ms between 240 and 380)
+ *   cinematic → scene (fallback slower)
+ *   inOut     → deliberately NOT aliased: no design easing is a symmetric in-out curve (all decelerate, exit
+ *               accelerates, signature is per direction and may overshoot). Recipes use inOut for loops, flips and
+ *               curtains and declare their own symmetric fallback (`var(--s3-ease-inOut, cubic-bezier(0.65, 0,
+ *               0.35, 1))`); pointing it at a decelerating curve would make every loop restart abruptly.
+ * Names the design document already defines are never re-declared.
  * @param {any} doc
- * @returns {[string, string][]}
+ * @returns {[string, string, string?][]}
  */
 export function libraryAliases(doc) {
   const roles = doc.color?.light?.roles ?? {};
@@ -87,7 +98,19 @@ export function libraryAliases(doc) {
   if (!fam.serif) out.push(['font-serif', `var(${P}-font-${fam.longform ? 'longform' : 'display'})`]);
   const rr = doc.radius?.roles ?? {};
   for (const [n, r] of [['radius-s', 'control'], ['radius-m', 'container'], ['radius-l', 'overlay']]) if (r in rr) out.push([n, `var(${P}-radius-${r})`]);
-  return out;
+  /** @type {[string, string, string?][]} */
+  const motion = [];
+  const dur = doc.motion?.durations ?? {};
+  if (!('moderate' in dur)) {
+    if ('base' in dur && 'slow' in dur) motion.push(['duration-moderate', `calc((var(${P}-duration-base) + var(${P}-duration-slow)) / 2)`, 'library name: between base and slow']);
+    else if ('base' in dur) motion.push(['duration-moderate', `var(${P}-duration-base)`, 'library name']);
+  }
+  if (!('cinematic' in dur)) {
+    const c = 'scene' in dur ? 'scene' : 'slower' in dur ? 'slower' : null;
+    if (c) motion.push(['duration-cinematic', `var(${P}-duration-${c})`, 'library name']);
+  }
+  // --s3-ease-inOut: intentionally left to the recipes' own symmetric fallback (see the note above).
+  return [...out, ...motion];
 }
 
 const block = (selector, decls, indent = '') => `${indent}${selector} {\n${decls.map(([n, v, c]) => `${indent}  ${P}-${n}: ${v};${c ? ` /* ${c} */` : ''}`).join('\n')}\n${indent}}`;

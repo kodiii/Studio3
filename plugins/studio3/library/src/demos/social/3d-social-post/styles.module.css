@@ -15,8 +15,10 @@
 :global([data-theme='dark']) .root { --sk-red: #ff8f80; --sk-brass: #f2b632; --sk-grid: rgb(243 240 232 / 0.035); }
 .page { max-width: 1100px; margin-inline: auto; padding: 0 16px 64px; }
 
-.club { display: flex; align-items: flex-end; gap: 16px; padding: 28px 0 22px; border-bottom: 1px solid var(--s3-line-strong); }
-.clubMark { flex: none; width: 64px; height: 64px; }
+.club { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; padding: 24px 0 22px; border-bottom: 1px solid var(--s3-line-strong); }
+@container (min-width: 40rem) { .club { flex-direction: row; align-items: flex-end; gap: 18px; padding-top: 32px; } }
+.clubMark { flex: none; width: 56px; height: 56px; }
+@container (min-width: 40rem) { .clubMark { width: 72px; height: 72px; } }
 .sample { margin: 0 0 8px; font-size: 0.8125rem; color: var(--s3-ink-muted); }
 .sample > :first-child { margin-right: 8px; color: var(--sk-red); }
 .clubName { margin: 0; font-family: var(--s3-font-display); font-weight: 800; font-size: clamp(2.25rem, 1.6rem + 3cqi, 3.5rem); line-height: 0.95; letter-spacing: -0.035em; }
@@ -87,8 +89,12 @@
 .tool svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
 .tool:hover { background: var(--s3-surface-2); }
 .tool[aria-pressed='true'] { background: var(--s3-ink); color: var(--s3-bg); }
-.toolGap { flex: 1; }
-.toolClose { border-color: var(--sk-red); color: var(--sk-red); }
+.closeIn {
+  position: absolute; top: 8px; right: 8px; z-index: 3; display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 12px 0 8px;
+  border: 1px solid #c9c3b4; border-radius: var(--s3-radius-s); background: var(--sk-night); color: #f3f0e8; font: inherit; font-size: 0.8125rem; font-weight: 600;
+}
+.closeIn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; }
+.closeIn:hover { background: #1d2944; }
 .viewerHint { margin: 10px 16px 0; font-size: 0.8125rem; line-height: 1.45; color: var(--s3-ink-muted); }
 
 .facts { display: grid; gap: 0 18px; margin: 14px 0 4px; border-top: 1px solid var(--s3-line); }

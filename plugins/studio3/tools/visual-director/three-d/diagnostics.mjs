@@ -9,6 +9,22 @@ import { installPageHelpers } from '../page/helpers.mjs';
 import { instrument3D, pageSnapshot3D } from './instrument.mjs';
 import { median, round, routeSlug } from '../util.mjs';
 
+/**
+ * Splits `webglcontextlost` events recorded by instrument3D: `real` losses (the 3d-context-lost failure),
+ * `intentional` ones the page requested through WEBGL_lose_context.loseContext() on an attached canvas
+ * (three's renderer.forceContextLoss() on teardown) — reported as info — and `detached` ones on canvases never
+ * attached to the document (capability probes that release their context) — ignored, listed in details only.
+ * @param {any[]} events
+ */
+export function classifyContextLoss(events) {
+  const lost = (events || []).filter((e) => e && e.type === 'webglcontextlost');
+  return {
+    real: lost.filter((e) => e.attached !== false && e.intentional !== true),
+    intentional: lost.filter((e) => e.attached !== false && e.intentional === true),
+    detached: lost.filter((e) => e.attached === false),
+  };
+}
+
 export const THREE_D_CHECKS = ['3d-canvas-init', '3d-context-lost', '3d-assets', '3d-budgets', '3d-frame-time', '3d-render-loop', '3d-resize', '3d-interaction', '3d-cleanup', '3d-fallback', '3d-webgpu'];
 
 /** Defaults only — projects should set their own with --budgets. */
@@ -160,10 +176,12 @@ export async function run3DDiagnostics(context, url, ctx) {
 
       // ---- context loss ------------------------------------------------------
       snap = await page.evaluate(pageSnapshot3D);
-      const lost = snap.events.filter((e) => e.type === 'webglcontextlost');
+      const loss = classifyContextLoss(snap.events);
+      const lost = loss.real;
       const restored = snap.events.filter((e) => e.type === 'webglcontextrestored');
-      out.contextEvents = { lost: lost.length, restored: restored.length, creationErrors: creationErrors.length };
+      out.contextEvents = { lost: lost.length, restored: restored.length, creationErrors: creationErrors.length, intentional: loss.intentional.length, detachedIgnored: loss.detached.length };
       if (lost.length) col.issue({ ...base, check: '3d-context-lost', severity: 'major', selector: snap.canvases[0]?.selector, key: 'lost', message: `WebGL context was lost ${lost.length} time(s) during the review (${restored.length} restored).`, evidence: { events: snap.events } });
+      if (loss.intentional.length) col.issue({ ...base, check: '3d-context-lost', severity: 'info', selector: snap.canvases[0]?.selector, key: 'intentional', message: `The page released a WebGL context itself ${loss.intentional.length} time(s) (WEBGL_lose_context.loseContext(), e.g. renderer.forceContextLoss() on teardown) — not a failure.`, evidence: { events: loss.intentional } });
       col.run('3d-context-lost', { ...base, status: lost.length ? 'failed' : 'passed', details: out.contextEvents });
 
       // ---- cleanup -----------------------------------------------------------

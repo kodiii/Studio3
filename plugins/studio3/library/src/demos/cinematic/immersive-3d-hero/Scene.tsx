@@ -65,7 +65,7 @@ export function Scene({ palette, bridge, reduced, animate, stop }: { palette: Pa
   }, [segs]);
   const route = useMemo(() => {
     const pts = routePoints();
-    return { tube: new TubeGeometry(new CatmullRomCurve3(pts), 220, 0.06, 5, false), cairns: [pts[0], pts[70], pts[pts.length - 1]] };
+    return { tube: new TubeGeometry(new CatmullRomCurve3(pts), 220, 0.042, 5, false), cairns: [pts[14], pts[72], pts[pts.length - 1]] };
   }, []);
   const stars = useMemo(() => {
     const g = new BufferGeometry();
@@ -86,7 +86,7 @@ export function Scene({ palette, bridge, reduced, animate, stop }: { palette: Pa
     return g;
   }, [starCount]);
   const skyGeo = useMemo(() => new SphereGeometry(200, 48, 24), []);
-  const cairnGeo = useMemo(() => new OctahedronGeometry(0.28, 0), []);
+  const cairnGeo = useMemo(() => new OctahedronGeometry(0.2, 0), []);
 
   // Materials are created here so their uniforms objects are the ones we write to.
   const mats = useMemo(() => ({
@@ -138,7 +138,7 @@ export function Scene({ palette, bridge, reduced, animate, stop }: { palette: Pa
       <points geometry={stars} material={mats.stars} renderOrder={0} frustumCulled={false} />
       <mesh geometry={terrain} material={mats.terrain} />
       <mesh geometry={route.tube} material={mats.route} />
-      {route.cairns.map((p, i) => <mesh key={i} geometry={cairnGeo} material={mats.route} position={[p.x, p.y + 0.32, p.z]} />)}
+      {route.cairns.map((p, i) => <mesh key={i} geometry={cairnGeo} material={mats.route} position={[p.x, p.y + 0.24, p.z]} />)}
       {reduced ? <CameraRig presets={PRESETS} preset={stop} /> : <ScrollCamera bridge={bridge} />}
     </>
   );

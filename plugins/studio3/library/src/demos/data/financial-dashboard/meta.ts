@@ -14,7 +14,8 @@ export const meta: DemoMeta = {
     'The chart, overview and KPI patterns are local, data-driven adaptations of the line-chart-morph, brush-linked-range and number-ticker recipes, whose components ship their own sample datasets.',
   ],
   technology: ['d3', 'svg', 'waapi', 'css'],
-  uses: ['line-chart-morph', 'brush-linked-range', 'number-ticker'],
+  uses: [],
+  adapts: ['line-chart-morph', 'brush-linked-range', 'number-ticker'],
   has3d: false,
   accessibility: [
     'The chart is a focusable slider: ←/→ step a trading day, Page Up/Down a week, Home/End jump, Esc hides the readout; aria-valuetext reads the date and every series.',

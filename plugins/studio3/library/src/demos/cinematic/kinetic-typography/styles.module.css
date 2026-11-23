@@ -1,21 +1,12 @@
 /*
  * Radio Haar — the night forecast as a broadcast transcript. Type is the only material: a timecode gutter,
  * mono for the broadcast data, Instrument Serif for the presenter's voice and Bricolage Grotesque with all
- * three axes for everything that moves. The gallery only loads Bricolage's wght axis, so this demo declares
- * the local "standard" cut (wght + wdth + opsz) under its own family name.
+ * three axes for everything that moves. The display family must be loaded with its standard axes
+ * (wght + wdth + opsz) — in the gallery, @fontsource-variable/bricolage-grotesque/standard.css.
  */
-@font-face {
-  font-family: 'S3 Bricolage Axes';
-  src: url('../../../../../../../node_modules/@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-standard-normal.woff2') format('woff2-variations');
-  font-weight: 200 800;
-  font-stretch: 75% 100%;
-  font-style: normal;
-  font-display: swap;
-}
-
 .root {
   --kt-pad: clamp(16px, 4cqi, 56px);
-  --kt-axes: 'S3 Bricolage Axes', var(--s3-font-display, ui-sans-serif, system-ui, sans-serif);
+  --kt-axes: var(--s3-font-display, ui-sans-serif, system-ui, sans-serif);
   position: relative;
   overflow-x: clip;
   background: var(--s3-bg, #f3f0e8);
@@ -110,7 +101,8 @@
   color: var(--s3-ink, #11110f);
 }
 .label::before { content: ''; flex: none; width: 28px; height: 1px; background: var(--s3-signal, #bf2f09); }
-.kicker { color: var(--s3-ink-muted, #5c5a52); }
+.kicker { display: block; line-height: 1.6; color: var(--s3-ink-muted, #5c5a52); }
+@container (max-width: 56rem) { .time { position: static; } }
 
 /* Hero: the weight-wave recipe, set left and large */
 .hero { min-height: calc(100svh - 44px - 53px); align-content: end; padding-top: clamp(40px, 6cqi, 96px); padding-bottom: clamp(32px, 4cqi, 56px); }
@@ -123,6 +115,8 @@
   text-align: start;
 }
 .wave p { justify-content: flex-start; }
+@container (max-width: 40rem) { .hero { min-height: 0; padding-top: 72px; } }
+@container (max-width: 40rem) { .wave h2 { font-size: clamp(3.3rem, 22cqi, 6rem); } }
 .voice {
   justify-self: end;
   max-width: 21ch;
@@ -207,11 +201,9 @@
 }
 .stateHold { opacity: 0; }
 
-/* Gale warnings: the marquee recipe. Its built-in "sample copy" label is replaced by this section's heading. */
+/* Gale warnings: the marquee recipe (its header label is turned off with label: '' — this section's heading names it). */
 .gale .cueBody { gap: 4px; }
 .marquee { margin-inline: calc(-1 * var(--kt-pad)); }
-.marquee > div > div:first-child { justify-content: flex-end; }
-.marquee > div > div:first-child > span:first-child { display: none; }
 .marquee li { font-family: var(--kt-axes); font-weight: 780; font-stretch: 78%; }
 
 /* Sign-off: still. */

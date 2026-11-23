@@ -2,7 +2,8 @@ import { expect, test } from '@playwright/test';
 import { NO_WEBGL, axe, catalog, trackErrors } from './helpers';
 
 /**
- * Every demo in the catalogue: loads without errors, passes axe (serious/critical), keeps keyboard focus visible,
+ * Every demo in the catalogue: loads without errors, passes axe (serious/critical) in the light and the dark
+ * gallery theme, keeps keyboard focus visible,
  * renders under reduced motion without infinite animations, fits 390px, and — for 3D demos — degrades to its
  * fallback when WebGL is unavailable.
  */
@@ -27,6 +28,21 @@ for (const d of catalog.demos) {
       const violations = await axe(page, `[data-demo-stage="${key}"]`);
       expect(violations, JSON.stringify(violations, null, 2)).toEqual([]);
       expect(errors()).toEqual([]);
+    });
+
+    test('passes axe in the dark theme', async ({ browser }) => {
+      // Nothing stored in a fresh context, so the gallery theme follows prefers-color-scheme.
+      const ctx = await browser.newContext({ colorScheme: 'dark' });
+      const page = await ctx.newPage();
+      const errors = trackErrors(page);
+      await page.goto(`/demos/${key}`);
+      await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+      await ready(page, key);
+      await page.waitForTimeout(d.has3d ? 4000 : 2000);
+      const violations = await axe(page, `[data-demo-stage="${key}"]`);
+      expect(violations, JSON.stringify(violations, null, 2)).toEqual([]);
+      expect(errors()).toEqual([]);
+      await ctx.close();
     });
 
     test('keyboard: focus moves through the demo with a visible indicator', async ({ page }) => {

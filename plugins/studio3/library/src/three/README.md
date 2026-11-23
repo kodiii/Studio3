@@ -27,7 +27,9 @@ Everything here is used by the `/3d` gallery page and the five demos in `demos/3
 | `defaultQualityProfiles` | `Record<QualityLevel, QualityProfile>` | Starting points (see "Profiles and budgets"). |
 | `defaultBudgets` | `Record<QualityLevel, Budgets>` | Starting points. |
 | `createQualityProfiles` | `(overrides?) => Record<QualityLevel, QualityProfile>` | Per-project overrides (also `studio3.design.json → threeD.qualityProfiles`). |
+| `qualityProfilesFromDesign` | `(threeD) => Partial<Record<QualityLevel, Partial<QualityProfile>>>` | studio3.design.json `threeD.qualityProfiles` (desktop → high, mobile → medium, lowPower → low) as overrides: `createQualityProfiles(qualityProfilesFromDesign(design.threeD))`; missing fields keep the defaults. |
 | `pickQualityLevel` | `(caps, { saveData? }) => QualityLevel` | Initial level from coarse signals. |
+| `stepDownQuality` | `(level, steps = 1) => QualityLevel` | high → medium → low, never up; what `StudioCanvas quality="auto"` applies on each adaptive `degrade`. |
 | `createAdaptiveQuality` | `({ targetMs?, window?, onChange }) => { sample(dtMs), dprFactor }` | Frame-time hysteresis: steps DPR down 12.5 % per slow window, back up when fast; never oscillates. |
 
 ### Canvas — `StudioCanvas.tsx`
@@ -35,7 +37,7 @@ Everything here is used by the `/3d` gallery page and the five demos in `demos/3
 | Export | Signature | Purpose |
 | --- | --- | --- |
 | `StudioCanvas` | `(props: StudioCanvasProps) => JSX` | R3F `<Canvas>` with: capability check + `fallback`, error boundary, context-loss recovery ("Try again"), lazy mount near the viewport, pause offscreen / tab hidden, quality profile (auto or forced), adaptive DPR for continuous loops, accessible name/description, `window.__STUDIO3_3D__` diagnostics. |
-| `StudioCanvasProps` | interface | `label` (required), `description`, `fallback`, `quality` (`'auto'` or a level), `profiles`, `frameloop` (`'demand'` default \| `'always'`), `paused`, `lazy`, `adaptive`, `disabled` (force the fallback, e.g. a "3D off" switch), `onQualityChange`, `onSceneError`, plus any `<Canvas>` prop (`camera`, `flat`, `onPointerMissed`…). |
+| `StudioCanvasProps` | interface | `label` (required), `description`, `fallback`, `quality` (`'auto'` or a level), `profiles`, `frameloop` (`'demand'` default \| `'always'`), `paused`, `lazy`, `adaptive`, `disabled` (force the fallback, e.g. a "3D off" switch), `interactive` (wrapper `role="group"` instead of `role="img"`; OrbitInspect with `keyboard` sets it for you), `onQualityChange`, `onSceneError`, plus any `<Canvas>` prop (`camera`, `flat`, `onPointerMissed`…). Mounts only with WebGL 2 (three r163+). |
 | `useQuality` | `() => QualityProfile` | The active profile — inside the canvas tree only. Outside, use `onQualityChange` + `defaultQualityProfiles[level]`. |
 | `Studio3Diagnostics` | interface | `renderer` (`calls`, `triangles`, `points`, `lines`, `geometries`, `textures`, `programs` — from `renderer.info`, last frame), `frameloop`, `quality`, `dpr`, `frames`, `disposed` (canvas teardowns), `contextLost`. |
 
@@ -124,6 +126,9 @@ otherwise `high`) unless `quality` forces one. Defaults:
 | high | 1–2 | yes | yes (2048) | desktop | 1 | 256 | 200 / 1.5M / 256 MB |
 | medium | 1–1.5 | yes | yes (1024) | mobile | 0.6 | 128 | 120 / 500k / 96 MB |
 | low | 0.75–1 | no | no (contact blob) | low-power | 0.3 | 64 | 60 / 150k / 32 MB |
+
+Env values below 256 have no effect on PMREM-prefiltered environments (`LightingRig`, drei `<Environment>`): three's
+PMREMGenerator never builds a cube smaller than 256 px.
 
 These are **starting points, not universal budgets**: measure on the project's target devices and override with
 `createQualityProfiles()` / `profiles={…}`. Asset variants come from the pipeline

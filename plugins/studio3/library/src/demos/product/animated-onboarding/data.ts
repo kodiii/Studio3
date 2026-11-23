@@ -49,9 +49,11 @@ export interface Data {
   goals: GoalId[];
   connected: IntegrationId[];
   invited: string[];
+  /** Invite addresses typed but not yet sent, kept so Back/Forward or a reload never loses them. */
+  drafts: string[];
   skipped: StepId[];
 }
-export const EMPTY: Data = { kitchen: '', role: null, goals: [], connected: [], invited: [], skipped: [] };
+export const EMPTY: Data = { kitchen: '', role: null, goals: [], connected: [], invited: [], drafts: [], skipped: [] };
 
 /* ── Validation (messages say how to fix) ─────────────────────────────── */
 export function validateKitchen(v: string): string | null {

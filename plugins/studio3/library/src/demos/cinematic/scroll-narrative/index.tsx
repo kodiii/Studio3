@@ -31,8 +31,7 @@ function TitleContours() {
   }), []);
   return (
     <svg className={s.titleArt} viewBox="0 0 840 600" aria-hidden="true" focusable="false">
-      {rings.map((d, k) => <path key={k} d={d} className={k % 4 === 0 ? s.contourIndex : s.contour} />)}
-      <path className={s.channel} strokeWidth="3" d="M0 470C120 430 160 520 260 500S380 380 470 420S640 560 840 500" />
+      {rings.map((d, k) => <path key={k} d={d} className={s.contour} />)}
     </svg>
   );
 }

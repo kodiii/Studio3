@@ -4,7 +4,8 @@
  *
  * No HDRI is downloaded. The environment is a tiny scene of emissive panels inside a tinted room, prefiltered
  * through three's PMREMGenerator at the resolution of the active quality profile (drei's `<Environment preset>`
- * fetches .hdr files from a CDN — avoid it in offline/privacy-sensitive builds).
+ * fetches .hdr files from a CDN — avoid it in offline/privacy-sensitive builds). PMREM never goes below a 256 px
+ * cube (three's MIN_SIZE), so `envResolution` values under 256 cost and look the same as 256.
  *
  * Shadows follow the profile: a real shadow map on a shadow-catcher plane when `profile.shadows` is on, otherwise
  * a cheap analytic contact blob (one transparent quad, no extra render pass).
@@ -15,7 +16,7 @@ import { useThree } from '@react-three/fiber';
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
 import {
   BackSide, BoxGeometry, Color, DoubleSide, Mesh, MeshBasicMaterial, PlaneGeometry, PMREMGenerator, Scene,
-  type AmbientLight, type DirectionalLight,
+  type AmbientLight, type DirectionalLight, type ShaderMaterial,
 } from 'three';
 import { useQuality } from '../StudioCanvas';
 import type { Vec3 } from './OrbitInspect';
@@ -132,6 +133,7 @@ export const LightingRig = forwardRef<LightingRigHandle, LightingRigProps>(funct
       made.push(m);
     }
     const pmrem = new PMREMGenerator(gl);
+    // three clamps this to its PMREM minimum (256): smaller profile values are not cheaper here.
     const target = pmrem.fromScene(env, 0.035, 0.1, 100, { size: quality.envResolution });
     const prev = { env: scene.environment, intensity: scene.environmentIntensity, bg: scene.background };
     scene.environment = target.texture;
@@ -156,8 +158,17 @@ export const LightingRig = forwardRef<LightingRigHandle, LightingRigProps>(funct
   }, [gl, p.exposure, invalidate]);
 
   const mode = shadow === 'auto' ? (quality.shadows ? 'map' : 'blob') : shadow;
-  const blobUniforms = useMemo(() => ({ uOpacity: { value: shadowOpacity } }), []); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { blobUniforms.uOpacity.value = shadowOpacity * 1.6; invalidate(); }, [blobUniforms, shadowOpacity, invalidate]);
+  // R3F copies each uniform into the material's own `uniforms` when it applies the prop, so later writes to this
+  // object never reach the GPU: it only seeds a (re)mounted material; live updates go through the instance.
+  const blobUniforms = useMemo(() => ({ uOpacity: { value: shadowOpacity * 1.6 } }), []); // eslint-disable-line react-hooks/exhaustive-deps
+  const blobMat = useRef<ShaderMaterial>(null);
+  useEffect(() => {
+    const v = shadowOpacity * 1.6;
+    blobUniforms.uOpacity.value = v;
+    const u = blobMat.current?.uniforms.uOpacity;
+    if (u) u.value = v;
+    invalidate();
+  }, [blobUniforms, shadowOpacity, mode, invalidate]);
   useEffect(() => { invalidate(); }, [mode, groundY, shadowRadius, invalidate]);
   const r = shadowRadius;
 
@@ -179,7 +190,7 @@ export const LightingRig = forwardRef<LightingRigHandle, LightingRigProps>(funct
       ) : mode === 'blob' ? (
         <mesh rotation-x={-Math.PI / 2} position-y={groundY + 0.002} renderOrder={-1}>
           <planeGeometry args={[r * 2.6, r * 2.6]} />
-          <shaderMaterial uniforms={blobUniforms} vertexShader={BLOB_VERT} fragmentShader={BLOB_FRAG} transparent depthWrite={false} />
+          <shaderMaterial ref={blobMat} uniforms={blobUniforms} vertexShader={BLOB_VERT} fragmentShader={BLOB_FRAG} transparent depthWrite={false} />
         </mesh>
       ) : null}
     </group>

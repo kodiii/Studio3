@@ -13,7 +13,8 @@ export const meta: DemoMeta = {
     'Designed states: connecting (before the first sample), live, paused with “N s behind”, stale, and an operator-paused agent with no samples rather than zeros.',
   ],
   technology: ['d3', 'svg', 'waapi', 'css'],
-  uses: ['line-chart-morph'],
+  uses: [],
+  adapts: ['line-chart-morph'],
   has3d: false,
   accessibility: [
     'Pause stream is a real button (aria-pressed) and freezes every visual update (WCAG 2.2.2); pausing and resuming are announced.',

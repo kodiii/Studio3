@@ -59,8 +59,11 @@ import { meta as d_cinematic_scrollNarrative } from './demos/cinematic/scroll-na
 import { meta as d_data_dataExploration } from './demos/data/data-exploration/meta';
 import { meta as d_data_financialDashboard } from './demos/data/financial-dashboard/meta';
 import { meta as d_data_liveMonitoring } from './demos/data/live-monitoring/meta';
+import { meta as d_data_spatialDataViz } from './demos/data/spatial-data-viz/meta';
+import { meta as d_product_animatedOnboarding } from './demos/product/animated-onboarding/meta';
 import { meta as d_product_productConfigurator } from './demos/product/product-configurator/meta';
 import { meta as d_social__3dSocialPost } from './demos/social/3d-social-post/meta';
+import { meta as d_social_campaignLanding } from './demos/social/campaign-landing/meta';
 import { meta as d_social_creatorFeed } from './demos/social/creator-feed/meta';
 
 export const effects: readonly EffectEntry[] = [
@@ -126,7 +129,10 @@ export const demos: readonly DemoEntry[] = [
   { meta: d_data_dataExploration, load: () => import('./demos/data/data-exploration/index') },
   { meta: d_data_financialDashboard, load: () => import('./demos/data/financial-dashboard/index') },
   { meta: d_data_liveMonitoring, load: () => import('./demos/data/live-monitoring/index') },
+  { meta: d_data_spatialDataViz, load: () => import('./demos/data/spatial-data-viz/index') },
+  { meta: d_product_animatedOnboarding, load: () => import('./demos/product/animated-onboarding/index') },
   { meta: d_product_productConfigurator, load: () => import('./demos/product/product-configurator/index') },
   { meta: d_social__3dSocialPost, load: () => import('./demos/social/3d-social-post/index') },
+  { meta: d_social_campaignLanding, load: () => import('./demos/social/campaign-landing/index') },
   { meta: d_social_creatorFeed, load: () => import('./demos/social/creator-feed/index') },
 ];

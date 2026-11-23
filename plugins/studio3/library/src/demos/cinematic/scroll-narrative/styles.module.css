@@ -81,7 +81,7 @@
 }
 @container (min-width: 64rem) {
   .title { grid-template-columns: minmax(0, 1fr); }
-  .titleArt { right: -10cqi; top: -4%; width: min(70cqi, 1040px); }
+  .titleArt { right: -12cqi; top: -16%; width: min(66cqi, 1000px); }
 }
 
 /* ── Story: rail | steps | sticky figure ────────────────────── */
@@ -146,7 +146,7 @@
 .figcap { margin: 0; max-width: 52ch; font-size: 0.8125rem; line-height: 1.45; color: var(--s3-ink-muted, #5c5a52); }
 
 .steps { position: relative; z-index: 1; }
-.step { display: grid; align-content: center; min-height: 86svh; padding: 8svh 0; }
+.step { display: grid; align-content: center; min-height: 72svh; padding: 6svh 0; }
 .stepText { display: grid; gap: 14px; max-width: 34rem; }
 .stepNum { margin: 0; font-family: var(--s3-font-serif, Georgia, serif); font-size: clamp(2.75rem, 2rem + 2cqi, 4rem); font-style: italic; line-height: 0.9; color: var(--rv-water); }
 .stepTitle {
@@ -261,6 +261,6 @@
 @container (min-width: 48rem) { .closingGrid { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 56px; } }
 .closingH { margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--s3-line, #11110f24); }
 .closingP { margin: 0; max-width: 60ch; font-size: 1.0625rem; line-height: 1.62; }
-.lookList { display: grid; gap: 10px; margin: 0; padding-left: 1.3em; font-size: 1.0625rem; line-height: 1.5; }
+.lookList { display: grid; gap: 10px; margin: 0; padding-left: 1.3em; list-style: decimal; font-size: 1.0625rem; line-height: 1.5; }
 .lookList li::marker { font-family: var(--s3-font-serif, Georgia, serif); font-style: italic; color: var(--rv-water); }
 .colophon { margin: 12px 0 0; max-width: 72ch; padding-top: 16px; border-top: 1px solid var(--s3-line, #11110f24); font-size: 0.8125rem; line-height: 1.55; color: var(--s3-ink-muted, #5c5a52); }

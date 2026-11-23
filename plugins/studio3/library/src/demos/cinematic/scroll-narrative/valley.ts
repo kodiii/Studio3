@@ -149,8 +149,18 @@ export function valley(tIn: number): ValleyGeometry {
   }
 
   const bypassed = cut >= 0.5 && ib > ia;
-  const channel = bypassed ? `${poly(pts.slice(0, ia + 1))}L${poly(pts.slice(ib)).slice(1)}` : poly(pts);
-  const breach = cut > 0 && ib > ia ? poly([pts[ia], pts[ib]]) : '';
+  // The new channel leaves and rejoins the old one along the flow direction (a smooth cubic, not a ruler line).
+  let shortcut = '';
+  if (cut > 0 && ib > ia) {
+    const [ax, ay] = pts[ia];
+    const [bx, by] = pts[ib];
+    const ta = omega * Math.sin(2 * Math.PI * s[ia]);
+    const tb = omega * Math.sin(2 * Math.PI * s[ib]);
+    const k = Math.hypot(bx - ax, by - ay) * 0.45 + 6;
+    shortcut = `C${f1(ax + Math.sin(ta) * k)} ${f1(ay + Math.cos(ta) * k)} ${f1(bx - Math.sin(tb) * k)} ${f1(by - Math.cos(tb) * k)} ${f1(bx)} ${f1(by)}`;
+  }
+  const channel = bypassed ? `${poly(pts.slice(0, ia + 1))}${shortcut}L${poly(pts.slice(ib)).slice(1)}` : poly(pts);
+  const breach = shortcut ? `M${f1(pts[ia][0])} ${f1(pts[ia][1])}${shortcut}` : '';
   const trim = Math.round((ib - ia) * 0.13 * oxbow);
   const loop = bypassed ? pts.slice(ia + trim, ib - trim + 1) : [];
   const scarPts = loop.map(([x, y]): Pt => [W - x, y - 250]);

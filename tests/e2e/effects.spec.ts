@@ -3,7 +3,8 @@ import { axe, catalog, isWebGL, trackErrors } from './helpers';
 
 /**
  * Every recipe in the catalogue: mounts, renders without errors, survives remounting (cleanup),
- * renders in reduced motion, and has no serious/critical axe violations inside its stage.
+ * renders in reduced motion, and has no serious/critical axe violations inside its stage — in the light
+ * and in the dark gallery theme.
  */
 for (const e of catalog.effects) {
   test.describe(`effect ${e.id}`, () => {
@@ -29,6 +30,28 @@ for (const e of catalog.effects) {
       const violations = await axe(page, `[data-effect-stage="${e.id}"]`);
       expect(violations, JSON.stringify(violations, null, 2)).toEqual([]);
       expect(errors()).toEqual([]);
+    });
+
+    test('passes axe in the dark theme', async ({ browser }) => {
+      // Nothing stored in a fresh context, so the gallery theme follows prefers-color-scheme.
+      const ctx = await browser.newContext({ colorScheme: 'dark' });
+      const page = await ctx.newPage();
+      const errors = trackErrors(page);
+      await page.goto(`/effects/${e.id}`);
+      await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+      const stage = page.locator(`[data-effect-stage="${e.id}"]`);
+      await expect(stage).toBeVisible();
+      await expect(stage.locator('[data-effect-error]')).toHaveCount(0);
+      await expect(stage.getByText('Loading preview…')).toHaveCount(0);
+      if (isWebGL(e.technology)) {
+        await expect(stage.locator('canvas, [data-studio3-fallback]').first()).toBeVisible();
+      }
+      // Same settle as the light test: axe must judge the resting state, not a mid-fade frame.
+      await page.waitForTimeout(600 + 1800);
+      const violations = await axe(page, `[data-effect-stage="${e.id}"]`);
+      expect(violations, JSON.stringify(violations, null, 2)).toEqual([]);
+      expect(errors()).toEqual([]);
+      await ctx.close();
     });
 
     test('renders under prefers-reduced-motion', async ({ browser }) => {

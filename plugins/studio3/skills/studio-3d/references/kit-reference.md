@@ -27,7 +27,9 @@ Usage: `if (!detectCapabilities().webgl2) showPoster();` — three 0.187 needs W
 | `defaultQualityProfiles` | `Record<QualityLevel, QualityProfile>` | Starting points (values in `performance.md` §1) |
 | `defaultBudgets` | `Record<QualityLevel, Budgets>` | high 200 / 1.5 M / 256 MB, medium 120 / 500 k / 96 MB, low 60 / 150 k / 32 MB; not consumed by any component |
 | `createQualityProfiles` | `(overrides?: Partial<Record<QualityLevel, Partial<QualityProfile>>>) => Record<QualityLevel, QualityProfile>` | Merge project values over the defaults |
+| `qualityProfilesFromDesign` | `(threeD) => Partial<Record<QualityLevel, Partial<QualityProfile>>>` | studio3.design.json `threeD.qualityProfiles` → overrides (desktop → high, mobile → medium, lowPower → low): `createQualityProfiles(qualityProfilesFromDesign(design.threeD))` |
 | `pickQualityLevel` | `(caps, { saveData? }) => QualityLevel` | First guess from capabilities |
+| `stepDownQuality` | `(level, steps = 1) => QualityLevel` | One tier cheaper, never up (StudioCanvas `quality="auto"` applies it on `degrade`) |
 | `createAdaptiveQuality` | `({ targetMs = 20, window = 45, onChange }) => { sample(dtMs), dprFactor }` | Frame-time DPR factor 0.5–1 in 0.125 steps; `onChange({ dprFactor, degrade })` |
 
 ## dispose.ts
@@ -53,10 +55,11 @@ handling: add both (`lifecycle.md` §4).
 
 | Prop | Default | |
 |---|---|---|
-| `label` | required | Accessible name (`aria-label` on the R3F wrapper, `role="img"` unless you pass `role`) |
+| `label` | required | Accessible name (`aria-label` on the R3F wrapper, `role="img"` — `role="group"` when `interactive` — unless you pass `role`) |
+| `interactive` | `false` | The scene takes input: wrapper becomes `role="group"` (an image's children are presentational). OrbitInspect with `keyboard` switches it on itself |
 | `description` | — | Visually hidden text linked by `aria-describedby` |
 | `fallback` | the label as text | Shown when unsupported, on render error, after context loss, or when `disabled` |
-| `quality` | `'auto'` | Or a fixed level |
+| `quality` | `'auto'` | Or a fixed level. Auto steps down one level per adaptive `degrade` (DPR floor reached, still slow), never back up |
 | `profiles` | `defaultQualityProfiles` | From `createQualityProfiles` |
 | `frameloop` | `'demand'` | `'always'` only while something animates; becomes `'never'` when paused, off-screen or hidden |
 | `paused` | `false` | User pause control |

@@ -76,6 +76,12 @@ export function DemoFrame({ meta }: { meta: DemoMeta }) {
               <ul className="mt-3 flex flex-wrap gap-1.5">{meta.uses.map((u) => <li key={u}><Link href={`/effects/${u}`} className="rounded-full border border-line px-2.5 py-1 font-mono text-xs hover:border-line-strong">{u}</Link></li>)}</ul>
             </section>
           ) : null}
+          {meta.adapts?.length ? (
+            <section>
+              <h3 className="s3-label border-b border-line pb-2 text-muted">Techniques adapted from (re-implemented, not imported)</h3>
+              <ul className="mt-3 flex flex-wrap gap-1.5">{meta.adapts.map((u) => <li key={u}><Link href={`/effects/${u}`} className="rounded-full border border-dashed border-line px-2.5 py-1 font-mono text-xs hover:border-line-strong">{u}</Link></li>)}</ul>
+            </section>
+          ) : null}
           <section>
             <h3 className="s3-label mb-3 text-muted">Source — library/src/demos/{meta.specialty}/{meta.id}</h3>
             {info ? <CodeViewer kind="demos" id={`${meta.specialty}--${meta.id}`} /> : null}

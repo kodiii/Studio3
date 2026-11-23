@@ -10,7 +10,8 @@
  *                        marker buttons + the open annotation card.
  *  - `<HotspotList>`     the mirrored, always-readable list of the same annotations for keyboard and screen-reader
  *                        users (and for the no-WebGL fallback, where there is nothing to anchor to).
- * Occluded markers fade (they stay clickable — the list is the stable path); markers behind the camera are hidden.
+ * Occluded markers fade and turn inert (not clickable, out of the tab order and the accessibility tree — the list is
+ * the stable path); a marker that holds focus stays operable until focus leaves it. Markers behind the camera are hidden.
  */
 import { addAfterEffect, useThree } from '@react-three/fiber';
 import { useEffect, useMemo, useRef, type CSSProperties, type ReactNode } from 'react';
@@ -40,7 +41,7 @@ export interface HotspotAnchorsProps {
   hotspots: readonly Hotspot[];
   /** Model root used to resolve `node` names and as the occluder. */
   root?: Object3D | null;
-  /** Fade markers hidden behind geometry. One raycast per hotspot per rendered frame. */
+  /** Fade markers hidden behind geometry and make them inert. One raycast per hotspot per rendered frame. */
   occlude?: boolean;
 }
 
@@ -89,6 +90,11 @@ export function HotspotAnchors({ store, hotspots, root, occlude = true }: Hotspo
       el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0) translate(-50%, -50%)`;
       el.style.opacity = hiddenByGeometry ? '0.28' : '1';
       el.dataset.occluded = String(hiddenByGeometry);
+      // A marker behind the object must not take clicks or Tab stops meant for what is in front of it (`inert` blocks
+      // pointer targeting, focus and the accessibility tree). Never pull focus out from under the user, though: a
+      // focused marker stays operable until focus moves on.
+      const inert = hiddenByGeometry && !el.contains(document.activeElement);
+      if (el.inert !== inert) el.inert = inert;
     }
   }), [get, store, tmp]);
   return null;

@@ -161,7 +161,7 @@ export default function KineticTypography() {
       <Cue time="00:49:50" className={s.gale} labelledBy="kt-gale">
         <h2 id="kt-gale" className={s.label}>Gale warnings in force</h2>
         <div ref={marquee} className={s.marquee}>
-          <KineticMarquee params={recipe(marqueeMeta, { text: 'Tarrow Deep / The Dray / Low Marra / Fennick, later', speed: 64, reactivity: 1.1, skew: 8, direction: 'left', pauseOnHover: true })} />
+          <KineticMarquee params={recipe(marqueeMeta, { text: 'Tarrow Deep / The Dray / Low Marra / Fennick, later', speed: 64, reactivity: 1.1, skew: 8, direction: 'left', pauseOnHover: true, label: '' })} />
         </div>
       </Cue>
 

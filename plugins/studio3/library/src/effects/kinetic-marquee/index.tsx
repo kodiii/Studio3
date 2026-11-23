@@ -4,7 +4,7 @@ import { useRafLoop, useStudioMotion } from '../../motion';
 import type { EffectProps } from '../../types';
 import styles from './styles.module.css';
 
-type Params = { text: string; speed: number; reactivity: number; skew: number; direction: string; pauseOnHover: boolean };
+type Params = { text: string; speed: number; reactivity: number; skew: number; direction: string; pauseOnHover: boolean; label: string };
 
 /** The secondary rail runs the other way at this fraction of the primary speed. */
 const COUNTER = -0.55;
@@ -118,7 +118,7 @@ export default function KineticMarquee({ params }: EffectProps<Params>) {
   return (
     <div ref={root} className={styles.root} data-reduced={reduced || undefined} onPointerMove={reduced ? undefined : onPointerMove} onPointerLeave={onPointerLeave}>
       <div className={styles.head}>
-        <span className={styles.label}>Capabilities / sample copy</span>
+        {params.label ? <span className={styles.label}>{params.label}</span> : <span aria-hidden="true" />}
         {reduced ? (
           <span className={styles.label}>Motion off</span>
         ) : (
