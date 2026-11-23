@@ -25,13 +25,13 @@
 .layout { display: grid; gap: 32px; padding-top: 28px; }
 @container (min-width: 62rem) {
   .layout { grid-template-columns: minmax(300px, 360px) minmax(0, 640px); justify-content: center; gap: 56px; align-items: start; }
-  .proof { position: sticky; top: 72px; }
 }
 .main { min-width: 0; }
 @container (max-width: 61.99rem) { .main { max-width: 640px; width: 100%; margin-inline: auto; } .proof { max-width: 640px; width: 100%; margin-inline: auto; box-sizing: border-box; } }
 
 /* ── Profile: a proof sheet ─────────────────────────────────────────────── */
 .proof { position: relative; padding: 26px 22px 22px; background: var(--s3-surface); border: 1px solid var(--s3-line); }
+@container (min-width: 62rem) { .proof { position: sticky; top: 72px; } }
 .reg { position: absolute; width: 22px; height: 22px; color: var(--cf-blue); }
 .regTL { top: -11px; left: -11px; } .regTR { top: -11px; right: -11px; }
 .regBL { bottom: -11px; left: -11px; } .regBR { bottom: -11px; right: -11px; }
@@ -133,14 +133,15 @@
 .actions { display: flex; align-items: center; gap: 2px; padding: 4px 8px 8px; }
 .actionsGap { flex: 1; }
 .action {
-  display: inline-flex; align-items: center; gap: 6px; min-width: 44px; min-height: 44px; padding: 0 10px; justify-content: center;
+  position: relative; display: inline-flex; align-items: center; gap: 6px; min-width: 44px; min-height: 44px; padding: 0 10px; justify-content: center;
   border: 0; border-radius: var(--s3-radius-s); background: none; color: inherit; font: inherit; font-size: 0.875rem; font-weight: 500;
 }
 .action svg { width: 24px; height: 24px; }
 .action:hover, .morph:hover { background: var(--s3-surface-2); }
 .actionCount { font-variant-numeric: tabular-nums; }
-.actionLabel { display: none; }
-@container (min-width: 28rem) { .actionLabel { display: inline; } }
+/* Visually hidden on phones (the icon carries it), but always part of the button's name. */
+.actionLabel { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@container (min-width: 28rem) { .actionLabel { position: static; width: auto; height: auto; margin: 0; overflow: visible; clip: auto; white-space: normal; } }
 
 /* Morph toggles (like-heart-morph technique) */
 .morph {
@@ -190,7 +191,11 @@
 .suggestedHead { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 10px 16px; padding-bottom: 12px; }
 .suggestedHead h3 { margin: 0 0 4px; }
 .suggestedHead p { margin: 0; max-width: 46ch; font-size: 0.875rem; line-height: 1.45; }
-.suggested > :last-child { background: var(--s3-surface); border: 1px solid var(--s3-line); }
+.essay { padding: 18px 16px 4px; background: var(--s3-surface); border: 1px solid var(--s3-line); }
+.essay > p { margin: 0; }
+.essayTitle { margin: 10px 0 0; font-family: var(--s3-font-serif); font-size: clamp(1.875rem, 1.5rem + 1.6cqi, 2.5rem); font-weight: 400; line-height: 1.02; letter-spacing: -0.01em; text-wrap: balance; }
+.essay .essayDek { margin: 10px 0 6px; max-width: 46ch; font-size: 0.9375rem; line-height: 1.45; color: var(--s3-ink-muted); }
+.essay .actions { padding-inline: 0; border-top: 1px solid var(--s3-line); margin-top: 12px; }
 
 .editions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 16px; margin: 0 0 16px; padding: 0; list-style: none; }
 .edition { display: grid; align-content: start; gap: 2px; font-size: 0.8125rem; }

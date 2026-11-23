@@ -1,7 +1,8 @@
 /**
  * Quality profiles. Values are STARTING POINTS to be verified on the project's
  * target devices — there is no universal polygon or texture budget.
- * Override per project via `createQualityProfiles()` or studio3.design.json → threeD.qualityProfiles.
+ * Override per project via `createQualityProfiles()`, or from studio3.design.json → threeD.qualityProfiles with
+ * `createQualityProfiles(qualityProfilesFromDesign(design.threeD))`.
  */
 import type { GraphicsCapabilities } from './capabilities';
 
@@ -21,7 +22,13 @@ export interface QualityProfile {
   modelVariant: 'desktop' | 'mobile' | 'low-power';
   /** Multiplier for particle / instance counts. */
   density: number;
-  /** Environment map resolution for generated environments. */
+  /**
+   * Environment map resolution for generated environments. three's PMREMGenerator upsamples every input to a fixed
+   * minimum cube size (`MIN_SIZE = 256` in r163+), so values below 256 have no effect on PMREM-prefiltered
+   * environments (`LightingRig`, drei `<Environment>`, `scene.environment` from `fromScene`/`fromEquirectangular`);
+   * only values above 256 change their cost and sharpness. Smaller values still apply to non-PMREM uses
+   * (e.g. a raw `CubeCamera` render target).
+   */
   envResolution: number;
 }
 
@@ -52,6 +59,69 @@ export function createQualityProfiles(overrides: Partial<Record<QualityLevel, Pa
   };
 }
 
+const LEVELS: readonly QualityLevel[] = ['high', 'medium', 'low'];
+
+/** `steps` levels cheaper than `level` (high → medium → low; low stays low). Never steps up. */
+export function stepDownQuality(level: QualityLevel, steps = 1): QualityLevel {
+  const i = Math.max(0, LEVELS.indexOf(level)) + Math.max(0, Math.floor(steps) || 0);
+  return LEVELS[Math.min(LEVELS.length - 1, i)];
+}
+
+/** One tier of studio3.design.json → `threeD.qualityProfiles` (written by the design generator). */
+export interface DesignQualityTier {
+  dprMax?: number;
+  /** Boolean, or prose such as "Soft shadow map 2048 or accumulative" / "None (baked or blob)". */
+  shadows?: boolean | string;
+  /** Boolean, or prose such as "Tone mapping only" / "None" (both → no post-processing pass) / "Selective (…)". */
+  postprocessing?: boolean | string;
+  textureMaxPx?: number;
+  /** Boolean, or prose such as "MSAA" / "MSAA or FXAA" / "None". */
+  antialias?: boolean | string;
+  targetFps?: number;
+  frameloop?: string;
+}
+
+const designTier = { high: 'desktop', medium: 'mobile', low: 'lowPower' } as const;
+const num = (v: unknown): number | undefined => (typeof v === 'number' && Number.isFinite(v) && v > 0 ? v : undefined);
+
+/**
+ * Converts studio3.design.json `threeD.qualityProfiles` into `createQualityProfiles()` overrides
+ * (desktop → high, mobile → medium, lowPower / "low-power" → low). Accepts the `threeD` block or the
+ * `qualityProfiles` block itself; missing tiers, fields and unparseable prose are skipped, so the kit defaults
+ * stay in place. Mapping: `dprMax` → `dpr[1]` (the minimum is kept, capped at the max), `textureMaxPx` →
+ * `textureMax`, `shadows` "None…" → off, otherwise on with the map size named in the text, `postprocessing`
+ * "None" / "Tone mapping only" → off (tone mapping is a renderer setting, not a pass), `antialias` "MSAA…" → on,
+ * "None" → off. `targetFps` and `frameloop` have no profile field and are ignored.
+ * @example createQualityProfiles(qualityProfilesFromDesign(design.threeD))
+ */
+export function qualityProfilesFromDesign(threeD: unknown): Partial<Record<QualityLevel, Partial<QualityProfile>>> {
+  const block = (threeD && typeof threeD === 'object' ? threeD : {}) as Record<string, unknown>;
+  const qp = (block.qualityProfiles && typeof block.qualityProfiles === 'object' ? block.qualityProfiles : block) as Record<string, unknown>;
+  const out: Partial<Record<QualityLevel, Partial<QualityProfile>>> = {};
+  for (const level of LEVELS) {
+    const raw = qp[designTier[level]] ?? (level === 'low' ? qp['low-power'] : undefined);
+    if (!raw || typeof raw !== 'object') continue;
+    const t = raw as DesignQualityTier;
+    const o: Partial<QualityProfile> = {};
+    const dprMax = num(t.dprMax);
+    if (dprMax) o.dpr = [Math.min(defaultQualityProfiles[level].dpr[0], dprMax), dprMax];
+    const tex = num(t.textureMaxPx);
+    if (tex) o.textureMax = tex;
+    if (typeof t.shadows === 'boolean') o.shadows = t.shadows;
+    else if (typeof t.shadows === 'string' && t.shadows.trim()) {
+      o.shadows = !/^\s*(none|no|off)\b/i.test(t.shadows);
+      const size = /\b(256|512|1024|2048|4096)\b/.exec(t.shadows);
+      if (o.shadows && size) o.shadowMapSize = Number(size[1]);
+    }
+    if (typeof t.postprocessing === 'boolean') o.postprocessing = t.postprocessing;
+    else if (typeof t.postprocessing === 'string' && t.postprocessing.trim()) o.postprocessing = !/^\s*(none|no|off|tone[- ]?mapping only)\b/i.test(t.postprocessing);
+    if (typeof t.antialias === 'boolean') o.antialias = t.antialias;
+    else if (typeof t.antialias === 'string') { if (/msaa/i.test(t.antialias)) o.antialias = true; else if (/^\s*(none|no|off)\b/i.test(t.antialias)) o.antialias = false; }
+    if (Object.keys(o).length) out[level] = o;
+  }
+  return out;
+}
+
 /** Initial level from coarse capability signals; refine at runtime with `createAdaptiveQuality`. */
 export function pickQualityLevel(caps: GraphicsCapabilities, opts: { saveData?: boolean } = {}): QualityLevel {
   if (!caps.webgl) return 'low';
@@ -63,7 +133,9 @@ export function pickQualityLevel(caps: GraphicsCapabilities, opts: { saveData?: 
 /**
  * Frame-time driven adaptive quality with hysteresis. Feed it frame deltas;
  * it emits a DPR factor (0.5..1) and can step the level down (never up
- * automatically past the initial level, to avoid oscillation).
+ * automatically past the initial level, to avoid oscillation): `degrade: true`
+ * means the DPR floor is reached and frames are still slow. StudioCanvas with
+ * `quality="auto"` answers it with `stepDownQuality()`.
  */
 export function createAdaptiveQuality(opts: { targetMs?: number; window?: number; onChange: (state: { dprFactor: number; degrade: boolean }) => void }) {
   const target = opts.targetMs ?? 1000 / 50;

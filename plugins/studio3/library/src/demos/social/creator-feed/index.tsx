@@ -1,7 +1,5 @@
 'use client';
 import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore, type FormEvent, type KeyboardEvent, type PointerEvent } from 'react';
-import LikeHeartMorph from '../../../effects/like-heart-morph';
-import { meta as likeMeta } from '../../../effects/like-heart-morph/meta';
 import ReactionBurst from '../../../effects/reaction-burst';
 import { meta as burstMeta } from '../../../effects/reaction-burst/meta';
 import { duration as D, spring, springToLinear, useStudioMotion } from '../../../motion';
@@ -31,7 +29,13 @@ export default function CreatorFeed() {
   const [tab, setTab] = useState<'notes' | 'editions'>('notes');
   const [hideCounts, setHideCounts] = useState(false);
   const [suggestions, setSuggestions] = useState(true);
-  const [sheet, setSheet] = useState<SheetState>(null);
+  const [sheet, setSheetState] = useState<SheetState>(null);
+  // Remember the opener at click time: once the page turns inert, the browser has already blurred it.
+  const opener = useRef<HTMLElement | null>(null);
+  const setSheet = useCallback((next: SheetState) => {
+    if (next) opener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    setSheetState(next);
+  }, []);
 
   useEffect(() => { store.revive(); return () => store.dispose(); }, [store]);
   useEffect(() => { if (window.location.hash === '#editions') setTab('editions'); }, []);
@@ -57,7 +61,7 @@ export default function CreatorFeed() {
       catch (e) { if ((e as Error).name === 'AbortError') return; }
     }
     setSheet(fallback);
-  }, [store]);
+  }, [store, setSheet]);
 
   const onFeedKey = (e: KeyboardEvent<HTMLDivElement>) => {
     if (e.key !== 'PageDown' && e.key !== 'PageUp') return;
@@ -167,7 +171,7 @@ export default function CreatorFeed() {
                     </div>
                     <button type="button" className={styles.ghostBtn} onClick={() => { setSuggestions(false); store.say('Suggestions hidden.'); }}>Hide suggestions</button>
                   </div>
-                  <LikeHeartMorph params={{ ...defaults(likeMeta), size: 34, spring: 'pop', rays: 8, speed: 1 }} />
+                  <SuggestedEssay uid={uid} hideCounts={hideCounts} />
                 </section>
               ) : null}
             </div>
@@ -193,24 +197,42 @@ export default function CreatorFeed() {
       </div>
 
       {sheet?.type === 'comments' && openPost ? (
-        <Sheet kicker={`Field note ${openPost.no}`} title={`Comments on “${openPost.title}”`} onClose={() => setSheet(null)}
+        <Sheet kicker={`Field note ${openPost.no}`} title={`Comments on “${openPost.title}”`} returnTo={opener} onClose={() => setSheet(null)}
           footer={<Composer postId={openPost.id} store={store} draft={state.drafts[openPost.id] ?? ''} uid={uid} />}>
           <Comments postId={openPost.id} comments={state.posts[openPost.id].comments} store={store} />
         </Sheet>
       ) : null}
       {sheet?.type === 'share' && openPost ? (
-        <Sheet kicker={`Field note ${openPost.no}`} title={`Share “${openPost.title}”`} onClose={() => setSheet(null)}>
+        <Sheet kicker={`Field note ${openPost.no}`} title={`Share “${openPost.title}”`} returnTo={opener} onClose={() => setSheet(null)}>
           <CopyLink hash={`#note-${openPost.no}`} store={store} />
         </Sheet>
       ) : null}
       {sheet?.type === 'share-profile' ? (
-        <Sheet kicker="Profile" title={`Share ${PROFILE.name}’s profile`} onClose={() => setSheet(null)}>
+        <Sheet kicker="Profile" title={`Share ${PROFILE.name}’s profile`} returnTo={opener} onClose={() => setSheet(null)}>
           <CopyLink hash="" store={store} />
         </Sheet>
       ) : null}
 
       <p role="status" aria-live="polite" className="s3-sr-only">{state.announce.text}{state.announce.n % 2 ? ' ' : ''}</p>
     </div>
+  );
+}
+
+/** Suggested item after the end of the feed (local state: it is not part of Ines's feed or the optimistic store). */
+function SuggestedEssay({ uid, hideCounts }: { uid: string; hideCounts: boolean }) {
+  const [liked, setLiked] = useState(false);
+  const [saved, setSaved] = useState(false);
+  return (
+    <article className={styles.essay} aria-labelledby={`${uid}-essay`}>
+      <p className={`s3-label ${styles.muted}`}>Essay · 7 min read</p>
+      <h4 id={`${uid}-essay`} className={styles.essayTitle}>In praise of the plate that slips</h4>
+      <p className={styles.essayDek}>Why the best two-colour prints keep a little drift, and how to tell drift from a mistake. By Halvard Oyelaran-Sund.</p>
+      <div className={styles.actions}>
+        <MorphToggle kind="like" pressed={liked} onToggle={() => setLiked((v) => !v)} count={86 + (liked ? 1 : 0)} showCount={!hideCounts} />
+        <span className={styles.actionsGap} />
+        <MorphToggle kind="save" pressed={saved} onToggle={() => setSaved((v) => !v)} />
+      </div>
+    </article>
   );
 }
 
@@ -388,17 +410,20 @@ function Comments({ postId, comments, store }: { postId: string; comments: Comme
 
 function Composer({ postId, store, draft, uid }: { postId: string; store: FeedStore; draft: string; uid: string }) {
   const id = `${uid}-composer`;
+  const field = useRef<HTMLTextAreaElement>(null);
   const submit = (e?: FormEvent) => {
     e?.preventDefault();
     const text = draft.trim();
     if (!text) return;
     store.postComment(postId, text);
+    // The submit button disables once the draft clears: keep focus in the composer instead of dropping it to <body>.
+    field.current?.focus();
   };
   return (
     <form className={styles.composer} onSubmit={submit}>
       <label htmlFor={id} className={styles.composerLabel}>Add a comment</label>
       <textarea
-        id={id} value={draft} rows={2} maxLength={280} dir="auto" aria-describedby={`${id}-hint`}
+        ref={field} id={id} value={draft} rows={2} maxLength={280} dir="auto" aria-describedby={`${id}-hint`}
         onChange={(e) => store.setDraft(postId, e.target.value)}
         onKeyDown={(e) => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); submit(); } }}
       />

@@ -25,10 +25,10 @@ export const BASE_PRICE = 1890;
 export const MODEL = 'Drover';
 
 export const SIZES: SizeSpec[] = [
-  { id: '50', name: '50', code: '50', note: 'Riders about 158–168 cm', rider: '158–168 cm', price: 0, st: 500, ht: 115, stack: 548, reach: 372, hta: 71, sta: 74, saddle: 672, stem: 80 },
-  { id: '53', name: '53', code: '53', note: 'Riders about 166–176 cm', rider: '166–176 cm', price: 0, st: 530, ht: 135, stack: 568, reach: 380, hta: 71.5, sta: 73.5, saddle: 708, stem: 90 },
-  { id: '56', name: '56', code: '56', note: 'Riders about 174–184 cm', rider: '174–184 cm', price: 0, st: 560, ht: 160, stack: 592, reach: 388, hta: 72, sta: 73, saddle: 745, stem: 100 },
-  { id: '59', name: '59', code: '59', note: 'Riders about 182–192 cm', rider: '182–192 cm', price: 0, st: 590, ht: 185, stack: 616, reach: 396, hta: 72, sta: 72.5, saddle: 782, stem: 110 },
+  { id: '50', name: '50', code: '50', note: 'Riders about 158–168 cm', rider: '158–168', price: 0, st: 500, ht: 115, stack: 548, reach: 372, hta: 71, sta: 74, saddle: 672, stem: 80 },
+  { id: '53', name: '53', code: '53', note: 'Riders about 166–176 cm', rider: '166–176', price: 0, st: 530, ht: 135, stack: 568, reach: 380, hta: 71.5, sta: 73.5, saddle: 708, stem: 90 },
+  { id: '56', name: '56', code: '56', note: 'Riders about 174–184 cm', rider: '174–184', price: 0, st: 560, ht: 160, stack: 592, reach: 388, hta: 72, sta: 73, saddle: 745, stem: 100 },
+  { id: '59', name: '59', code: '59', note: 'Riders about 182–192 cm', rider: '182–192', price: 0, st: 590, ht: 185, stack: 616, reach: 396, hta: 72, sta: 72.5, saddle: 782, stem: 110 },
 ];
 
 export const FRAMES: Choice<FrameId>[] = [

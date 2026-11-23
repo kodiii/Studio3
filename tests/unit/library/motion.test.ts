@@ -103,6 +103,104 @@ describe('createSequence (WAAPI orchestration)', () => {
     expect(fn).toHaveBeenCalledTimes(1);
     vi.useRealTimers();
   });
+
+  const kf = [{ opacity: 0 }, { opacity: 1 }];
+  it('durationScale scales durations, numeric/relative positions, labels and calls (one time base); stagger is unscaled', () => {
+    vi.useFakeTimers();
+    try {
+      const [a, b, c, d, e] = els(5);
+      const fn = vi.fn();
+      const seq = createSequence({ durationScale: 2 });
+      seq.add([a, b], kf, { duration: 100, stagger: 30, at: 50 }) // start 100, dur 200, b +30 → end 330
+        .label('mark', 40) // 80
+        .add(c, kf, { duration: 50, at: '+=10' }) // 330 + 20 → end 450
+        .add(d, kf, { duration: 50, at: '-=25' }) // 450 − 50 → end 500
+        .add(e, kf, { duration: 50, at: 'mark' }) // 80 → end 180
+        .call(fn, 60); // 120
+      void seq.play();
+      expect(calls.map((x) => [x.options.delay, x.options.duration])).toEqual([[100, 200], [130, 200], [350, 100], [400, 100], [80, 100]]);
+      expect(seq.totalDuration).toBe(500);
+      // every step is padded to the shared end, so all animations run on one clock
+      for (const x of calls) expect(x.options.delay! + x.options.duration! + x.options.endDelay!).toBe(500);
+      vi.advanceTimersByTime(119);
+      expect(fn).not.toHaveBeenCalled();
+      vi.advanceTimersByTime(1);
+      expect(fn).toHaveBeenCalledTimes(1);
+    } finally { vi.useRealTimers(); }
+  });
+  it('staggerScale (default 1) scales stagger independently of durationScale', () => {
+    const [a, b, c] = els(3);
+    createSequence({ durationScale: 2 }).add([a, b, c], kf, { duration: 100, stagger: 40 }).seek(0);
+    expect(calls.map((x) => x.options.delay)).toEqual([0, 40, 80]);
+    calls.length = 0;
+    const seq = createSequence({ durationScale: 2, staggerScale: 0.5 }).add([a, b, c], kf, { duration: 100, stagger: 40 });
+    seq.seek(0);
+    expect(calls.map((x) => [x.options.delay, x.options.duration])).toEqual([[0, 200], [20, 200], [40, 200]]);
+    expect(seq.totalDuration).toBe(240);
+  });
+  it('progress derives from the live animations, is 1 once finished and 0 after cancel()', async () => {
+    const [a, b] = els(2);
+    const seq = createSequence();
+    expect(seq.progress).toBe(0);
+    seq.add(a, kf, { duration: 200 }).add(b, kf, { duration: 200 });
+    seq.seek(0.25);
+    expect(seq.progress).toBeCloseTo(0.25);
+    for (const x of calls) x.animation.currentTime = 300;
+    expect(seq.progress).toBeCloseTo(0.75);
+    expect(await seq.play()).toBe(true);
+    expect(seq.playState).toBe('finished');
+    expect(seq.progress).toBe(1);
+    seq.cancel();
+    expect(seq.progress).toBe(0);
+  });
+  it('after seek()/pause(), play() counts earlier callbacks as fired and schedules the rest from the current time', () => {
+    vi.useFakeTimers();
+    try {
+      const [a] = els(1);
+      const early = vi.fn();
+      const late = vi.fn();
+      const seq = createSequence();
+      seq.add(a, kf, { duration: 400 }).call(early, 100).call(late, 300);
+      seq.seek(0.5); // 200 ms
+      void seq.play();
+      vi.advanceTimersByTime(99);
+      expect(late).not.toHaveBeenCalled();
+      vi.advanceTimersByTime(1);
+      expect(late).toHaveBeenCalledTimes(1);
+      vi.advanceTimersByTime(1000);
+      expect(early).not.toHaveBeenCalled();
+      seq.finish(); // counted as fired → finish() does not fire it either
+      expect(early).not.toHaveBeenCalled();
+
+      // finished → play() restarts: every callback is re-armed from 0
+      void seq.play();
+      vi.advanceTimersByTime(100);
+      expect(early).toHaveBeenCalledTimes(1);
+      // pause at 150 ms, resume: only the callbacks still ahead fire, relative to 150 ms
+      calls[calls.length - 1].animation.currentTime = 150;
+      seq.pause();
+      vi.advanceTimersByTime(1000);
+      expect(late).toHaveBeenCalledTimes(1); // stale timer cleared by pause()
+      void seq.play();
+      vi.advanceTimersByTime(149);
+      expect(late).toHaveBeenCalledTimes(1);
+      vi.advanceTimersByTime(1);
+      expect(late).toHaveBeenCalledTimes(2);
+      expect(early).toHaveBeenCalledTimes(1);
+
+      // seek() and cancel() clear pending timers too
+      seq.seek(0);
+      void seq.play();
+      seq.seek(0.1);
+      vi.advanceTimersByTime(1000);
+      expect(early).toHaveBeenCalledTimes(1);
+      void seq.play();
+      seq.cancel();
+      vi.advanceTimersByTime(1000);
+      expect(early).toHaveBeenCalledTimes(1);
+      expect(late).toHaveBeenCalledTimes(2);
+    } finally { vi.useRealTimers(); }
+  });
 });
 
 describe('helpers', () => {

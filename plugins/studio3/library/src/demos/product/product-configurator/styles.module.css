@@ -163,8 +163,8 @@
 /* Cross-fades: every variant is drawn, the chosen one is opaque. */
 .part { opacity: 0; }
 .part[data-on='true'] { opacity: 1; }
-.extra { transform: translateY(-14px); }
-.extra[data-on='true'] { transform: none; }
+.lift { transform: translateY(-14px); }
+.lift[data-on='true'] { transform: none; }
 @media (prefers-reduced-motion: no-preference) {
   .root:not([data-reduced]) .part { transition: opacity var(--s3-duration-base, 240ms) var(--s3-ease-standard, ease), transform var(--s3-duration-moderate, 360ms) var(--s3-ease-emphasized, ease); }
   .root:not([data-reduced]) .paint { transition: stroke var(--s3-duration-base, 240ms) var(--s3-ease-standard, ease); }
@@ -240,6 +240,7 @@
 .choices { display: grid; gap: 8px; margin-top: 14px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 9.75rem), 1fr)); }
 .choices[data-kind='size'] { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .choices[data-kind='frame'] { grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr)); }
+.choices[data-kind='paint'] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
 .choice, .extra {
   position: relative;
@@ -289,8 +290,8 @@
 .icTape { fill: none; stroke: var(--hc-rubber); stroke-linecap: round; stroke-linejoin: round; }
 .icMetal { fill: none; stroke: var(--hc-metal); stroke-linecap: round; stroke-linejoin: round; }
 
-.geo { display: grid; grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr)); gap: 0; margin: 16px 0 0; border: 1px solid var(--s3-line, #11110f24); border-radius: var(--s3-radius-s, 4px); }
-.geo > div { padding: 8px 10px; border-right: 1px solid var(--s3-line, #11110f24); }
+.geo { display: flex; flex-wrap: wrap; margin: 16px 0 0; border: 1px solid var(--s3-line, #11110f24); border-width: 1px 1px 0 0; }
+.geo > div { flex: 1 1 5.6rem; padding: 8px 10px; border: solid var(--s3-line, #11110f24); border-width: 0 0 1px 1px; }
 .geo dt { font-family: var(--s3-font-mono, ui-monospace, monospace); font-size: 0.6875rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--s3-ink-muted, #5c5a52); }
 .geo dd { margin: 2px 0 0; font-family: var(--s3-font-mono, ui-monospace, monospace); font-size: 0.9375rem; font-variant-numeric: tabular-nums; }
 

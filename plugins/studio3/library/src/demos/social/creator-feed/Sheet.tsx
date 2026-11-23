@@ -5,14 +5,16 @@
  * gallery bar on wide containers. The caller makes the page behind it `inert`; the sheet moves focus in, keeps Tab
  * inside it, closes on Esc or the scrim, and gives focus back to the control that opened it.
  */
-import { useCallback, useEffect, useId, useRef, type KeyboardEvent, type ReactNode } from 'react';
+import { useCallback, useEffect, useId, useRef, type KeyboardEvent, type ReactNode, type RefObject } from 'react';
 import { duration as D, spring, springToLinear, useStudioMotion } from '../../../motion';
 import styles from './styles.module.css';
 
 const SETTLE = springToLinear(spring.settle);
 const FOCUSABLE = 'button:not([disabled]), a[href], textarea:not([disabled]), input:not([disabled]), [tabindex="0"]';
 
-export function Sheet({ title, kicker, onClose, children, footer }: {
+export function Sheet({ title, kicker, onClose, children, footer, returnTo }: {
+  /** The control that opened the sheet (captured before the page became inert); focus returns to it on close. */
+  returnTo: RefObject<HTMLElement | null>;
   title: string;
   kicker?: string;
   onClose: () => void;
@@ -26,7 +28,6 @@ export function Sheet({ title, kicker, onClose, children, footer }: {
   const titleId = useId();
 
   useEffect(() => {
-    const opener = document.activeElement as HTMLElement | null;
     const el = panel.current;
     closing.current = false;
     el?.focus({ preventScroll: true });
@@ -38,9 +39,10 @@ export function Sheet({ title, kicker, onClose, children, footer }: {
     return () => {
       anim.current?.cancel();
       anim.current = null;
+      const opener = returnTo.current;
       if (opener?.isConnected) opener.focus({ preventScroll: true });
     };
-  }, [reduced]);
+  }, [reduced, returnTo]);
 
   const close = useCallback(() => {
     const el = panel.current;
@@ -53,8 +55,15 @@ export function Sheet({ title, kicker, onClose, children, footer }: {
     a.finished.then(onClose, () => {});
   }, [onClose, reduced]);
 
+  // Esc also works if focus has left the sheet (e.g. a control inside it was removed).
+  useEffect(() => {
+    const onDocKey = (e: globalThis.KeyboardEvent) => { if (e.key === 'Escape' && !e.defaultPrevented) close(); };
+    document.addEventListener('keydown', onDocKey);
+    return () => document.removeEventListener('keydown', onDocKey);
+  }, [close]);
+
   const onKey = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') { e.stopPropagation(); close(); return; }
+    if (e.key === 'Escape') { e.preventDefault(); close(); return; }
     if (e.key !== 'Tab' || !panel.current) return;
     // Keep Tab inside the sheet: wrap from the last control to the first and back.
     const items = Array.from(panel.current.querySelectorAll<HTMLElement>(FOCUSABLE));

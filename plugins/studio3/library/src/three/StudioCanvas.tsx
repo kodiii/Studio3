@@ -3,19 +3,21 @@
  * StudioCanvas — the Studio³ R3F canvas wrapper.
  *
  * What it adds on top of <Canvas>:
- *  - capability detection with a real fallback (no WebGL, context lost, render error)
+ *  - capability detection with a real fallback (no WebGL 2 — three r163+ requires it —, context lost, render error)
  *  - render-on-demand by default (`frameloop="demand"`); continuous only when asked
  *  - lazy mount when scrolled into view, automatic pause when offscreen / tab hidden
- *  - quality profiles (auto-picked, user-overridable) + frame-time adaptive DPR
- *  - an accessible name/description outside the canvas pixels
+ *  - quality profiles (auto-picked, user-overridable) + frame-time adaptive DPR; with `quality="auto"` a sustained
+ *    slow-frame signal steps the level down one tier at a time (never back up automatically)
+ *  - an accessible name/description outside the canvas pixels: role="img" for a picture, role="group" when the
+ *    scene is `interactive` (an image's children are presentational, so controls inside it would be hidden)
  *  - `window.__STUDIO3_3D__` diagnostics (real renderer.info values) for Visual Director
  * R3F disposes the renderer and scene graph on unmount; anything created
  * imperatively must be disposed by the creator (see ./dispose).
  */
 import { Canvas, addAfterEffect, useFrame, useThree, type CanvasProps } from '@react-three/fiber';
-import { Component, createContext, useContext, useEffect, useId, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { Component, createContext, useCallback, useContext, useEffect, useId, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { detectCapabilities, type GraphicsCapabilities } from './capabilities';
-import { createAdaptiveQuality, defaultQualityProfiles, pickQualityLevel, type QualityLevel, type QualityProfile } from './quality';
+import { createAdaptiveQuality, defaultQualityProfiles, pickQualityLevel, stepDownQuality, type QualityLevel, type QualityProfile } from './quality';
 
 export interface StudioCanvasProps extends Omit<CanvasProps, 'fallback' | 'frameloop' | 'dpr' | 'children'> {
   /** Accessible name for the scene (required). */
@@ -24,7 +26,7 @@ export interface StudioCanvasProps extends Omit<CanvasProps, 'fallback' | 'frame
   description?: string;
   /** Shown when 3D cannot run (no WebGL, context lost, runtime error). Provide a static render or equivalent content. */
   fallback?: ReactNode;
-  /** 'auto' picks from device capabilities. */
+  /** 'auto' picks from device capabilities, then steps down one level when adaptive DPR alone cannot hold the frame rate. */
   quality?: QualityLevel | 'auto';
   profiles?: Record<QualityLevel, QualityProfile>;
   /** 'demand' (default) renders only on invalidate(); 'always' runs a loop while visible. */
@@ -37,6 +39,12 @@ export interface StudioCanvasProps extends Omit<CanvasProps, 'fallback' | 'frame
   adaptive?: boolean;
   /** Force the fallback (useful for tests and "disable 3D" user controls). */
   disabled?: boolean;
+  /**
+   * The scene takes input (orbit, picking, a focusable canvas). The wrapper then gets role="group" named by
+   * `label` instead of role="img", whose children are presentational to assistive tech. In-canvas controls that
+   * make the canvas focusable (OrbitInspect with `keyboard`) switch this on by themselves. Default false.
+   */
+  interactive?: boolean;
   onQualityChange?: (level: QualityLevel) => void;
   /** Called with the error that made the scene fall back (render error inside the canvas tree). */
   onSceneError?: (error: Error) => void;
@@ -63,6 +71,17 @@ const QualityCtx = createContext<QualityProfile>(defaultQualityProfiles.medium);
 /** Current quality profile; call inside a StudioCanvas tree. */
 export const useQuality = (): QualityProfile => useContext(QualityCtx);
 
+/** What in-canvas controls can ask of the enclosing StudioCanvas. */
+export interface StudioCanvasHost {
+  /** The scene's accessible name (the `label` prop). */
+  label: string;
+  /** Treat the scene as `interactive` (wrapper role="group") until the returned release function is called. */
+  requestInteractive(): () => void;
+}
+const HostCtx = createContext<StudioCanvasHost | null>(null);
+/** The enclosing StudioCanvas (null outside one). OrbitInspect uses it to name the canvas and mark the scene interactive. */
+export const useStudioCanvasHost = (): StudioCanvasHost | null => useContext(HostCtx);
+
 class Boundary extends Component<{ onError: (e: Error) => void; children: ReactNode }, { failed: boolean }> {
   state = { failed: false };
   static getDerivedStateFromError() { return { failed: true }; }
@@ -70,13 +89,15 @@ class Boundary extends Component<{ onError: (e: Error) => void; children: ReactN
   render() { return this.state.failed ? null : this.props.children; }
 }
 
-function Instrumentation({ quality, frameloop, adaptive, onContextLost }: { quality: QualityProfile; frameloop: 'always' | 'demand' | 'never'; adaptive: boolean; onContextLost: () => void }) {
+function Instrumentation({ quality, frameloop, adaptive, onContextLost, onDegrade }: { quality: QualityProfile; frameloop: 'always' | 'demand' | 'never'; adaptive: boolean; onContextLost: () => void; onDegrade?: () => void }) {
   const gl = useThree((s) => s.gl);
   const setDpr = useThree((s) => s.setDpr);
   const frames = useRef(0);
   // Kept in a ref: an inline callback must not tear down and recreate the diagnostics object on every parent render.
   const lostRef = useRef(onContextLost);
   lostRef.current = onContextLost;
+  const degradeRef = useRef(onDegrade);
+  degradeRef.current = onDegrade;
   // Loop mode / quality change while the renderer lives (pause, offscreen, user quality pick). They are updated in
   // place below; only the renderer going away counts as `disposed`.
   const mode = useRef({ frameloop, level: quality.level });
@@ -122,7 +143,13 @@ function Instrumentation({ quality, frameloop, adaptive, onContextLost }: { qual
   const adaptiveRef = useMemo(() => {
     const [min, max] = quality.dpr;
     const base = Math.min(max, typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1);
-    return createAdaptiveQuality({ onChange: ({ dprFactor }) => setDpr(Math.max(min, base * dprFactor)) });
+    return createAdaptiveQuality({
+      onChange: ({ dprFactor, degrade }) => {
+        setDpr(Math.max(min, base * dprFactor));
+        // DPR is at its floor and frames are still slow: ask the host for a cheaper profile.
+        if (degrade) degradeRef.current?.();
+      },
+    });
   }, [quality, setDpr]);
   useFrame((_, dt) => { if (adaptive && frameloop === 'always') adaptiveRef.sample(dt * 1000); });
   return null;
@@ -132,7 +159,7 @@ type Status = 'pending' | 'ready' | 'unsupported' | 'error' | 'lost';
 
 export function StudioCanvas({
   label, description, fallback, quality = 'auto', profiles = defaultQualityProfiles, frameloop = 'demand', paused = false,
-  lazy = true, adaptive = true, disabled = false, onQualityChange, onSceneError, className, style, children, gl, shadows, ...rest
+  lazy = true, adaptive = true, disabled = false, interactive = false, onQualityChange, onSceneError, className, style, children, gl, shadows, ...rest
 }: StudioCanvasProps) {
   const host = useRef<HTMLDivElement>(null);
   const descId = useId();
@@ -141,11 +168,14 @@ export function StudioCanvas({
   const [near, setNear] = useState(!lazy);
   const [visible, setVisible] = useState(true);
   const [attempt, setAttempt] = useState(0);
+  const [degraded, setDegraded] = useState(0);
+  const [claims, setClaims] = useState(0);
 
   useEffect(() => {
     const c = detectCapabilities(attempt > 0);
     setCaps(c);
-    setStatus(c.webgl ? 'ready' : 'unsupported');
+    // three r163+ removed its WebGL 1 path: a WebGL 1-only device must get the fallback, not a renderer that throws.
+    setStatus(c.webgl2 ? 'ready' : 'unsupported');
   }, [attempt]);
 
   useEffect(() => {
@@ -161,13 +191,28 @@ export function StudioCanvas({
     return () => { io.disconnect(); document.removeEventListener('visibilitychange', vis); };
   }, []);
 
-  const level: QualityLevel = quality === 'auto' ? (caps ? pickQualityLevel(caps) : 'medium') : quality;
+  const picked: QualityLevel = caps ? pickQualityLevel(caps) : 'medium';
+  const level: QualityLevel = quality === 'auto' ? stepDownQuality(picked, degraded) : quality;
   const profile = profiles[level];
   useEffect(() => { if (caps) onQualityChange?.(level); }, [level, caps, onQualityChange]);
+  // Adaptive "degrade" (DPR floor reached, still slow): one level down per signal, auto mode only, never back up.
+  const onDegrade = useCallback(() => {
+    if (quality === 'auto') setDegraded((n) => (stepDownQuality(picked, n) === 'low' ? n : n + 1));
+  }, [quality, picked]);
+
+  const hostApi = useMemo<StudioCanvasHost>(() => ({
+    label,
+    requestInteractive: () => {
+      let held = true;
+      setClaims((n) => n + 1);
+      return () => { if (held) { held = false; setClaims((n) => n - 1); } };
+    },
+  }), [label]);
+  const role = interactive || claims > 0 ? 'group' : 'img';
 
   const loop: 'always' | 'demand' | 'never' = paused || !visible ? 'never' : frameloop;
   const showFallback = disabled || status === 'unsupported' || status === 'error' || status === 'lost';
-  const reason = disabled ? '3D is turned off.' : status === 'unsupported' ? 'This device or browser cannot display interactive 3D.'
+  const reason = disabled ? '3D is turned off.' : status === 'unsupported' ? 'This device or browser cannot display interactive 3D: WebGL 2 is required.'
     : status === 'lost' ? 'The graphics context was lost.' : status === 'error' ? 'The 3D scene failed to load.' : '';
 
   return (
@@ -194,7 +239,7 @@ export function StudioCanvas({
         <Boundary key={attempt} onError={(e) => { setStatus('error'); onSceneError?.(e); }}>
           <QualityCtx.Provider value={profile}>
             <Canvas
-              role="img"
+              role={role}
               aria-label={label}
               aria-describedby={description ? descId : undefined}
               frameloop={loop}
@@ -204,8 +249,10 @@ export function StudioCanvas({
               {...rest}
             >
               <QualityCtx.Provider value={profile}>
-                <Instrumentation quality={profile} frameloop={loop} adaptive={adaptive} onContextLost={() => setStatus('lost')} />
-                {children}
+                <HostCtx.Provider value={hostApi}>
+                  <Instrumentation quality={profile} frameloop={loop} adaptive={adaptive} onContextLost={() => setStatus('lost')} onDegrade={onDegrade} />
+                  {children}
+                </HostCtx.Provider>
               </QualityCtx.Provider>
             </Canvas>
           </QualityCtx.Provider>

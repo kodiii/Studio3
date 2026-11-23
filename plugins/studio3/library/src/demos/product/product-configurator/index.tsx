@@ -197,9 +197,9 @@ export default function ProductConfigurator() {
 
         <form className={styles.options} aria-label="Build options" onSubmit={(e) => e.preventDefault()}>
           <Choices n="01" legend="Frame size" name={`${uid}size`} kind="size" options={SIZES} value={build.size}
-            hint="Sizes are the seat tube length in centimetres. Rider heights are a starting point; reach and stack below are what to compare."
+            hint="Sizes are the seat tube length in centimetres; under each is a rider height range in centimetres. Heights are a starting point: stack and reach below are what to compare."
             onPick={(o) => commit({ ...build, size: o.id }, `Size ${o.name}.`)}
-            render={(o) => (<><span className={styles.sizeNum}>{o.name}</span><span className={styles.note}>{o.rider}</span></>)}>
+            render={(o) => (<><span className={styles.sizeNum}>{o.name}</span><span className={styles.note}>{o.rider}<span className={styles.srOnly}> cm rider height</span></span></>)}>
             <dl className={styles.geo} aria-label={`Geometry for size ${size.name}, in millimetres and degrees`}>
               <div><dt>Stack</dt><dd>{mm(size.stack)}</dd></div>
               <div><dt>Reach</dt><dd>{mm(size.reach)}</dd></div>

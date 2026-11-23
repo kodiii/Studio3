@@ -6,6 +6,8 @@ import s from './styles.module.css';
 
 interface Pipe { x: number; w: number; h: number; base: number }
 
+/** Round trig/pow results so server and client render identical attributes (engines differ in the last bits). */
+const r2 = (n: number): number => Math.round(n * 100) / 100;
 const mirror = (list: readonly Pipe[]): Pipe[] => list.map((p) => ({ ...p, x: 1600 - p.x }));
 const FRONT_LEFT: readonly Pipe[] = [
   { x: 758, w: 76, h: 730, base: 900 }, { x: 674, w: 76, h: 640, base: 900 },
@@ -13,8 +15,8 @@ const FRONT_LEFT: readonly Pipe[] = [
   { x: 316, w: 62, h: 506, base: 900 }, { x: 244, w: 62, h: 552, base: 900 }, { x: 172, w: 62, h: 600, base: 900 },
 ];
 const FRONT_RIGHT = mirror(FRONT_LEFT);
-const MID: readonly Pipe[] = Array.from({ length: 17 }, (_, i) => ({ x: 224 + i * 72, w: 40, h: 300 + 210 * Math.abs(Math.sin(i * 0.52 + 0.3)), base: 872 }));
-const BACK: readonly Pipe[] = Array.from({ length: 29 }, (_, i) => ({ x: 128 + i * 48.6, w: 24, h: 170 + 190 * Math.abs(Math.cos(i * 0.37)), base: 846 }));
+const MID: readonly Pipe[] = Array.from({ length: 17 }, (_, i) => ({ x: 224 + i * 72, w: 40, h: r2(300 + 210 * Math.abs(Math.sin(i * 0.52 + 0.3))), base: 872 }));
+const BACK: readonly Pipe[] = Array.from({ length: 29 }, (_, i) => ({ x: r2(128 + i * 48.6), w: 24, h: r2(170 + 190 * Math.abs(Math.cos(i * 0.37))), base: 846 }));
 
 function pipe(p: Pipe, fill: string, mouth: string, key: string | number) {
   const foot = Math.max(64, p.h * 0.2);
@@ -131,15 +133,15 @@ export function RankDiagram({ drawn }: { drawn: ReadonlySet<string> }) {
       {STOPS.map((st, c) => {
         const on = drawn.has(st.id);
         const x0 = c * colW + 18;
+        const pipes = Array.from({ length: 12 }, (_, i) => {
+          const h = r2((st.feet / 8) * H * Math.pow(0.5, i / 6));
+          const w = r2(Math.max(3, 10 * Math.pow(0.8, i / 3) * (st.kind.includes('wood') ? 1.3 : 1)));
+          return <rect key={i} x={r2(x0 + (i * (colW - 30)) / 12)} y={r2(320 - h)} width={w} height={h} rx="1.5" />;
+        });
         return (
           <g key={st.id} className={s.rank} data-on={on || undefined}>
-            <g className={s.rankPipes} style={{ transformOrigin: `0 320px` }}>
-              {Array.from({ length: 12 }, (_, i) => {
-                const h = (st.feet / 8) * H * Math.pow(0.5, i / 6);
-                const w = Math.max(3, 10 * Math.pow(0.8, i / 3) * (st.kind.includes('wood') ? 1.3 : 1));
-                return <rect key={i} x={x0 + i * (colW - 30) / 12} y={320 - h} width={w} height={h} rx="1.5" />;
-              })}
-            </g>
+            <g className={s.rankGhost}>{pipes}</g>
+            <g className={s.rankFill} style={{ transformOrigin: '0 320px' }}>{pipes}</g>
             <text className={s.rankLabel} x={x0} y="345">{st.pitch}</text>
           </g>
         );

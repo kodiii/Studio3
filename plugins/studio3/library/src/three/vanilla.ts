@@ -2,7 +2,8 @@
  * Framework-free three.js scene bootstrap for non-React projects.
  * Render-on-demand by default, ResizeObserver-driven sizing, pause when
  * offscreen/hidden, and complete teardown. Pair with a static fallback when
- * `detectCapabilities().webgl` is false.
+ * `detectCapabilities().webgl2` is false: three r163+ requires WebGL 2 (WebGL 1
+ * support was removed), so a WebGL 1-only device cannot run this renderer.
  */
 import { PerspectiveCamera, Scene, WebGLRenderer } from 'three';
 import { disposeObject, disposeRenderer } from './dispose';

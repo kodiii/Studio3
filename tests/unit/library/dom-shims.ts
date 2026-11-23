@@ -10,7 +10,7 @@ const ownedByLibrary = (): boolean => LIB_FRAME.test(new Error().stack ?? '');
 export interface AnimateCall {
   target: Element;
   keyframes: unknown;
-  options: { duration?: number; delay?: number; easing?: string; fill?: string; iterations?: number };
+  options: { duration?: number; delay?: number; endDelay?: number; easing?: string; fill?: string; iterations?: number };
   animation: FakeAnimation;
 }
 

@@ -1,0 +1,151 @@
+/* Registered so the light can trail the pointer with a plain CSS transition (smooth follow). */
+@property --sbc-x { syntax: '<length>'; inherits: true; initial-value: -1000px; }
+@property --sbc-y { syntax: '<length>'; inherits: true; initial-value: -1000px; }
+
+.root {
+  --sbc-r: 260px;
+  --sbc-a: 75%;
+  --sbc-spot: var(--s3-signal, #bf2f09);
+  container-type: inline-size;
+  box-sizing: border-box;
+  width: min(100% - 2rem, 60rem);
+  margin: clamp(1rem, 3cqi, 2rem) auto;
+  display: grid;
+  gap: 1rem;
+  color: var(--s3-ink, #11110f);
+  font-family: var(--s3-font-text, ui-sans-serif, system-ui, sans-serif);
+}
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 0.4rem 1.5rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid var(--s3-line, #11110f24);
+}
+.eyebrow, .status, .state {
+  margin: 0;
+  font-family: var(--s3-font-mono, ui-monospace, monospace);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  color: var(--s3-ink-muted, #5c5a52);
+}
+.eyebrow { margin-bottom: 0.4rem; }
+.title {
+  margin: 0;
+  font-family: var(--s3-font-display, ui-sans-serif, system-ui, sans-serif);
+  font-size: clamp(1.5rem, 5cqi, 2.25rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.035em;
+}
+
+.grid {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(15rem, 100%), 1fr));
+  gap: 12px;
+}
+.card {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto 1fr auto;
+  gap: 0.45rem;
+  padding: 1.1rem 1.1rem 1rem;
+  border-radius: 16px;
+  background: var(--s3-surface-2, #e9e5da);
+  box-shadow: inset 0 0 0 1px var(--s3-line, #11110f24);
+}
+.root[data-follow='smooth'] .card { transition: --sbc-x 140ms linear, --sbc-y 140ms linear; }
+.card[data-on] { box-shadow: inset 0 0 0 1px var(--s3-line-strong, #11110f); }
+
+/* Light layers: both read the card's local pointer position. */
+.card::before, .card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--s3-duration-base, 240ms) var(--s3-ease-standard, ease);
+}
+/* 1px ring: the radial light is masked down to the border (content box excluded). */
+.card::before {
+  z-index: 1;
+  padding: 1px;
+  background: radial-gradient(var(--sbc-r) circle at var(--sbc-x) var(--sbc-y), color-mix(in oklab, var(--sbc-spot) var(--sbc-a), transparent), transparent 70%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+/* Faint wash on the surface, under the text. */
+.card::after {
+  z-index: -1;
+  background: radial-gradient(var(--sbc-r) circle at var(--sbc-x) var(--sbc-y), color-mix(in oklab, var(--sbc-spot) 9%, transparent), transparent 65%);
+}
+.grid[data-lit] .card::before { opacity: 1; }
+.root[data-surface] .grid[data-lit] .card::after { opacity: 1; }
+
+/* Keyboard focus lights the focused card on its own, wherever the pointer is. */
+.card:has(.toggle:focus-visible) { outline: 2px solid var(--s3-focus, #1d4ed8); outline-offset: 3px; }
+.card:has(.toggle:focus-visible)::before {
+  opacity: 1;
+  background: radial-gradient(140% 120% at 50% 0%, var(--sbc-spot), color-mix(in oklab, var(--sbc-spot) 35%, transparent) 75%);
+}
+.root[data-surface] .card:has(.toggle:focus-visible)::after {
+  opacity: 1;
+  background: radial-gradient(120% 90% at 50% 0%, color-mix(in oklab, var(--sbc-spot) 10%, transparent), transparent 70%);
+}
+
+.glyph {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 0.35rem;
+  border-radius: 11px;
+  background: var(--s3-surface, #fbf9f4);
+  box-shadow: inset 0 0 0 1px var(--s3-line, #11110f24);
+  color: var(--s3-ink, #11110f);
+}
+.name { margin: 0; font-size: 1rem; font-weight: 650; letter-spacing: -0.015em; }
+/* The button is the card's single control; its ::after stretches over the card. */
+.toggle {
+  all: unset;
+  cursor: pointer;
+}
+.toggle::after { content: ''; position: absolute; inset: 0; z-index: 2; border-radius: 16px; }
+.toggle:focus-visible { outline: none; }
+.text { margin: 0; font-size: 0.875rem; line-height: 1.5; color: var(--s3-ink-muted, #5c5a52); text-wrap: pretty; }
+.state { display: inline-flex; align-items: center; gap: 0.45rem; margin-top: 0.4rem; }
+.tick {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px var(--s3-line-strong, #11110f);
+  color: var(--s3-ink, #11110f);
+}
+.card[data-on] .state { color: var(--s3-ink, #11110f); }
+.card[data-on] .tick { background: var(--s3-ink, #11110f); color: var(--s3-surface, #fbf9f4); }
+
+@container (max-width: 480px) {
+  .card { grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto auto; column-gap: 0.85rem; padding: 0.9rem; }
+  .glyph { grid-row: 1 / span 3; margin: 0; }
+  .state { margin-top: 0.15rem; }
+}
+
+/* Reduced motion: no travelling light, a static lit border on hover instead. */
+.root[data-reduced] .card, .root[data-reduced] .card::before, .root[data-reduced] .card::after { transition: none; }
+.root[data-reduced] .card:hover::before { opacity: 1; background: color-mix(in oklab, var(--sbc-spot) 70%, transparent); }
+@media (prefers-reduced-motion: reduce) {
+  .card, .card::before, .card::after { transition: none; }
+}

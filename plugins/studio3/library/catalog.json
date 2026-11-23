@@ -3,6 +3,115 @@
   "version": "4.0.0",
   "effects": [
     {
+      "id": "accordion-height-auto",
+      "name": "Accordion Height Auto",
+      "description": "A disclosure group that opens to its natural content height and closes again smoothly with pure CSS: each panel animates grid-template-rows from 0fr to 1fr, so there is no measuring, no fixed max-height and no JavaScript animation. The chevron turns (or the plus folds into a minus) on the same token easing, and single- or multiple-open behaviour is a param.",
+      "category": "layout",
+      "specialties": [
+        "product"
+      ],
+      "technology": [
+        "css"
+      ],
+      "interaction": [
+        "press",
+        "keyboard"
+      ],
+      "complexity": 1,
+      "intensity": "subtle",
+      "applications": [
+        "FAQ and help pages",
+        "settings groups",
+        "pricing plan details",
+        "filter sidebars"
+      ],
+      "dependencies": [],
+      "params": [
+        {
+          "key": "mode",
+          "label": "Open panels",
+          "type": "select",
+          "default": "single",
+          "options": [
+            "single",
+            "multiple"
+          ]
+        },
+        {
+          "key": "duration",
+          "label": "Duration",
+          "type": "number",
+          "default": 360,
+          "min": 120,
+          "max": 900,
+          "step": 20,
+          "unit": "ms"
+        },
+        {
+          "key": "easing",
+          "label": "Easing token",
+          "type": "select",
+          "default": "emphasized",
+          "options": [
+            "emphasized",
+            "standard",
+            "inOut",
+            "enter"
+          ]
+        },
+        {
+          "key": "icon",
+          "label": "Icon",
+          "type": "select",
+          "default": "chevron",
+          "options": [
+            "chevron",
+            "plus"
+          ]
+        },
+        {
+          "key": "defaultOpen",
+          "label": "Open at start (0 = none)",
+          "type": "number",
+          "default": 1,
+          "min": 0,
+          "max": 5,
+          "step": 1
+        },
+        {
+          "key": "look",
+          "label": "Look",
+          "type": "select",
+          "default": "hairline",
+          "options": [
+            "hairline",
+            "cards"
+          ]
+        }
+      ],
+      "accessibility": [
+        "APG accordion pattern: each header is a button inside an h4 with aria-expanded and aria-controls; each panel is a labelled region.",
+        "Enter or Space toggles; Up/Down move between headers (wrapping) and Home/End jump to the first and last.",
+        "A closed panel switches to visibility: hidden once its collapse has finished, so collapsed content is out of the tab order and the accessibility tree without cutting the animation short.",
+        "State is shown by the icon and by aria-expanded, never by colour alone."
+      ],
+      "reducedMotion": "Panels open and close at once with no height animation and the icon flips without turning; newly opened content fades in over 160 ms.",
+      "performance": [
+        "Support: the 0fr → 1fr grid-track transition animates to the content height in every evergreen browser (Chrome/Edge 107+, Safari 16+, Firefox 66+), closing included. No dependency on interpolate-size or ::details-content, which are newer and not yet everywhere.",
+        "It is a layout animation, but confined to one short panel at a time; the content inside only animates opacity and translate.",
+        "No JavaScript runs during the animation: React only flips data attributes and aria-expanded."
+      ],
+      "preview": {
+        "height": 560
+      },
+      "path": "library/src/effects/accordion-height-auto",
+      "files": [
+        "index.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
       "id": "bar-race-transition",
       "name": "Bar Race Transition",
       "description": "Ranked horizontal bars that resize, re-sort and enter or leave the top list as a period stepper advances. Values and the zero-based axis are interpolated together, so bar length is truthful on every frame and labels tick with their bars.",
@@ -3940,6 +4049,102 @@
       ]
     },
     {
+      "id": "spotlight-border-card",
+      "name": "Spotlight Border Card",
+      "description": "A grid of selectable module cards lit by a single moving spotlight: one pointer listener on the grid hands each card its local pointer position, and pure CSS paints a radial light into a 1px masked border ring (and, optionally, a faint glow on the surface), so neighbouring cards catch the edge of the same light. Keyboard focus lights the focused card on its own.",
+      "category": "cards",
+      "specialties": [
+        "product"
+      ],
+      "technology": [
+        "css"
+      ],
+      "interaction": [
+        "pointer",
+        "hover",
+        "press",
+        "keyboard"
+      ],
+      "complexity": 1,
+      "intensity": "subtle",
+      "applications": [
+        "feature or integration grids",
+        "plan and add-on pickers",
+        "dashboard tiles",
+        "landing-page capability sections"
+      ],
+      "dependencies": [],
+      "params": [
+        {
+          "key": "radius",
+          "label": "Spotlight radius",
+          "type": "number",
+          "default": 260,
+          "min": 120,
+          "max": 480,
+          "step": 10,
+          "unit": "px"
+        },
+        {
+          "key": "intensity",
+          "label": "Intensity",
+          "type": "number",
+          "default": 75,
+          "min": 10,
+          "max": 100,
+          "step": 5,
+          "unit": "%"
+        },
+        {
+          "key": "surface",
+          "label": "Light the surface too",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "key": "color",
+          "label": "Light colour",
+          "type": "select",
+          "default": "signal",
+          "options": [
+            "signal",
+            "ink",
+            "accent"
+          ]
+        },
+        {
+          "key": "follow",
+          "label": "Follow",
+          "type": "select",
+          "default": "smooth",
+          "options": [
+            "smooth",
+            "instant"
+          ]
+        }
+      ],
+      "accessibility": [
+        "Each card is a toggle: a real button (stretched over the card) with aria-pressed, described by the card text; a polite status line counts the selection.",
+        "Keyboard focus lights the focused card fully and draws a 2px focus outline, independent of the pointer.",
+        "Selection is shown with a text label (\"Added\") and a check, not by the light or colour alone; the light layers are decorative pseudo-elements."
+      ],
+      "reducedMotion": "The light no longer travels with the pointer: hovering a card shows a static lit border instead, and focus still lights the focused card.",
+      "performance": [
+        "One pointermove listener on the grid, batched to one rAF: all card rects are read first, then each card gets two custom properties, so there is no layout thrash.",
+        "The light is two gradient pseudo-elements per card; the border ring is a mask (content-box exclude), so nothing is re-laid out.",
+        "Smooth follow uses registered @property lengths with a CSS transition rather than a JavaScript loop; touch pointers are ignored."
+      ],
+      "preview": {
+        "height": 560
+      },
+      "path": "library/src/effects/spotlight-border-card",
+      "files": [
+        "index.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
       "id": "story-progress-segments",
       "name": "Story Progress Segments",
       "description": "A Stories-style viewer with segmented progress: each segment fills on a WAAPI timeline and advances the story, the left third goes back and the rest goes forward, pressing and holding pauses, and visible Previous / Pause / Next buttons plus arrow keys and Space make every gesture optional. Slides are typographic compositions drawn in CSS.",
@@ -4223,6 +4428,108 @@
         "height": 600
       },
       "path": "library/src/effects/swipe-card-stack",
+      "files": [
+        "index.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "tilt-parallax-card",
+      "name": "Tilt Parallax Card",
+      "description": "A night-pass card that leans toward the pointer: sky, moon, hill and text sit on separate translateZ planes inside one preserve-3d card, so the tilt opens real parallax between them, while a soft specular highlight slides across the surface. The motion is a hand-rolled damped spring on the shared rAF loop that stops itself at rest; keyboard focus gives the card a gentle fixed tilt.",
+      "category": "cards",
+      "specialties": [
+        "product",
+        "3d",
+        "social"
+      ],
+      "technology": [
+        "css"
+      ],
+      "interaction": [
+        "pointer",
+        "hover",
+        "keyboard"
+      ],
+      "complexity": 2,
+      "intensity": "moderate",
+      "applications": [
+        "ticket, pass or membership card",
+        "product or collectible showcase",
+        "pricing plan highlight",
+        "portfolio cover card"
+      ],
+      "dependencies": [],
+      "params": [
+        {
+          "key": "maxTilt",
+          "label": "Max tilt",
+          "type": "number",
+          "default": 10,
+          "min": 0,
+          "max": 20,
+          "step": 1,
+          "unit": "°"
+        },
+        {
+          "key": "depth",
+          "label": "Layer depth",
+          "type": "number",
+          "default": 1,
+          "min": 0,
+          "max": 2,
+          "step": 0.1,
+          "unit": "×"
+        },
+        {
+          "key": "spring",
+          "label": "Spring token",
+          "type": "select",
+          "default": "settle",
+          "options": [
+            "settle",
+            "glide",
+            "release",
+            "press"
+          ]
+        },
+        {
+          "key": "glare",
+          "label": "Highlight",
+          "type": "number",
+          "default": 40,
+          "min": 0,
+          "max": 100,
+          "step": 5,
+          "unit": "%"
+        },
+        {
+          "key": "perspective",
+          "label": "Perspective",
+          "type": "number",
+          "default": 900,
+          "min": 500,
+          "max": 1600,
+          "step": 50,
+          "unit": "px"
+        }
+      ],
+      "accessibility": [
+        "The tilt is decorative and never carries information; the pass details are real text and the Save button is a normal toggle button (aria-pressed).",
+        "Keyboard focus inside the card (focus-visible) gives it a fixed, gentle tilt and highlight, so keyboard users see the same depth without a pointer.",
+        "Coarse pointers (touch) get no tilt, so scrolling past the card never wobbles it; artwork layers are aria-hidden."
+      ],
+      "reducedMotion": "No tilt, spring or moving highlight: the card rests flat with a fixed soft sheen, and focus shows only the standard focus ring.",
+      "performance": [
+        "One damped spring per channel is integrated inside useRafLoop and written as CSS custom properties; React never re-renders while the card moves.",
+        "The loop runs only while the pointer is over the card or the spring is settling, and pauses offscreen or in a hidden tab.",
+        "Pointer position is measured on the untransformed wrapper, so the tilt cannot feed back into its own measurement; only transforms and one gradient change."
+      ],
+      "preview": {
+        "height": 600
+      },
+      "path": "library/src/effects/tilt-parallax-card",
       "files": [
         "index.tsx",
         "styles.module.css",
@@ -4533,6 +4840,99 @@
       ]
     },
     {
+      "id": "cinematic-landing",
+      "name": "Larkwell — Opus 31",
+      "specialty": "cinematic",
+      "summary": "A five-beat launch page for a fictional organ builder's new chamber organ: a typographic hook, the room that shaped it, a pinned zoom through an arched window into the case, a playable specification and a still invitation to the first recital.",
+      "highlights": [
+        "Five beats with a colour script: paper → the dark oak case (beat 3) → paper. The arch is the recurring motif: hero window, zoom-through, closing outline.",
+        "Beat 3 is a CSS-sticky pinned scene with one scrubbed GSAP timeline: the arch mask grows from a window to full screen (a full-screen transition into the case), the façade layers dolly in and then part, with rest zones before and after.",
+        "Typographic full-bleed hook in condensed capitals that is painted at first paint; its lines leave through masks as it scrolls away, and the window beside it fills with light on load.",
+        "Dynamic navigation hides while reading down, returns on any upward scroll or keyboard focus, and marks the current section with aria-current.",
+        "SVG animation with meaning: sound rays draw across the hall section; pulling a stop raises its rank in a drawing to scale with a person."
+      ],
+      "technology": [
+        "gsap",
+        "css",
+        "svg",
+        "waapi"
+      ],
+      "uses": [
+        "split-line-reveal"
+      ],
+      "has3d": false,
+      "accessibility": [
+        "The page is a static document in beat order; every animated layer is decorative and aria-hidden, and the headline is real text in one copy.",
+        "Stops are toggle buttons (aria-pressed) with visible names; a polite live summary states which stops are drawn and how many pipes speak.",
+        "A skip link passes the pinned sequence; navigation links and every control are reachable by keyboard and the hidden header reappears on focus.",
+        "Text over the case interior sits on a solid panel; the call to action is a real link with its own focus ring."
+      ],
+      "reducedMotion": "No pinning, mask growth, parallax or line exits: the case interior is shown as a still drawing with both captions in normal flow, the header never slides, sound rays are drawn from the start, stops change without easing and the room headline appears without its word reveal.",
+      "performance": [
+        "Pinning is position: sticky; scroll work is a handful of scrubbed timelines animating transform, opacity and one mask size.",
+        "The scene is five SVG layers of plain shapes (about 60 pipes) with one gradient per layer; no filters or blur.",
+        "All tweens and triggers live in one useGSAP scope and are reverted on unmount; a ResizeObserver and fonts-ready listener refresh measurements."
+      ],
+      "path": "library/src/demos/cinematic/cinematic-landing",
+      "files": [
+        "index.tsx",
+        "art.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "immersive-3d-hero",
+      "name": "Kelda Ridge — night walks",
+      "specialty": "cinematic",
+      "summary": "An immersive hero for a fictional guided night walk: one procedural WebGL landscape drawn as contour lines, an aurora sky and layered type, with the page's scroll carrying the camera from the lake, along the ridge and up to the sky before handing over to plain content.",
+      "highlights": [
+        "One persistent StudioCanvas behind four DOM slides: the page owns scroll progress (one ScrollTrigger on the window scroller) and the scene is a pure view of it — a damped camera on a Catmull-Rom path that requests frames only until it settles.",
+        "Rest zones are measured from the slides themselves, so each caption is read while the camera holds at its stop; viewpoint buttons reach every stop from the keyboard.",
+        "Procedural, theme-aware scene: a seeded height field shaded as iso-lines with fwidth anti-aliasing, a shader sky with aurora curtains, a star field and the walking route — colours come from the theme tokens and update live with the theme.",
+        "Poster first: an SVG ridgeline print in the same palette paints immediately and is the fallback without WebGL; quality scales terrain resolution and star count with the profile's density.",
+        "Layered DOM type (two weights at different depths) drifts apart as the hero leaves; nothing essential is drawn in the canvas."
+      ],
+      "technology": [
+        "r3f",
+        "three",
+        "glsl",
+        "gsap",
+        "css",
+        "svg"
+      ],
+      "uses": [
+        "split-line-reveal"
+      ],
+      "collaborates": [
+        "3d"
+      ],
+      "has3d": true,
+      "accessibility": [
+        "The canvas is labelled and described; every chapter is DOM text on a solid panel, in reading order, and the viewpoint buttons (aria-current) mirror the scroll camera.",
+        "Pause sky stops the only continuous animation (WCAG 2.2.2); Turn off 3D swaps the canvas for the poster at any time.",
+        "The canvas ignores pointer events, so scrolling and touch always belong to the page; no scroll-jacking.",
+        "The sample schedule is a real table with a caption that says the data is fictional."
+      ],
+      "reducedMotion": "No scroll-driven travel and no sky animation: the scene sits in a static frame below the title, the viewpoint buttons cut the camera between the three stops (one rendered frame each, via the three-kit CameraRig) and the captions follow in normal flow.",
+      "performance": [
+        "frameloop is \"always\" only while the sky plays and the canvas is on screen (StudioCanvas pauses offscreen); paused or reduced, it renders on demand when the camera moves.",
+        "Terrain segments = 220 × quality density (clamped 72–220) and stars = 2,600 × density; DPR follows the quality profile. One draw call each for terrain, sky, stars and route plus three cairns.",
+        "Geometries and materials are created imperatively and disposed on unmount; the ScrollTrigger, its ResizeObserver and font listener are reverted with the useGSAP scope."
+      ],
+      "dataNote": "The walk schedule (dates, meeting times, lengths and places) is fictional sample data written for this demo; the landscape is generated from a seeded noise function.",
+      "path": "library/src/demos/cinematic/immersive-3d-hero",
+      "files": [
+        "index.tsx",
+        "Poster.tsx",
+        "Scene.tsx",
+        "shaders.ts",
+        "styles.module.css",
+        "terrain.ts",
+        "meta.ts"
+      ]
+    },
+    {
       "id": "kinetic-typography",
       "name": "Radio Haar — the night forecast",
       "specialty": "cinematic",
@@ -4618,6 +5018,54 @@
         "styles.module.css",
         "valley.ts",
         "ValleySvg.tsx",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "data-exploration",
+      "name": "Four Valleys lot explorer",
+      "specialty": "data",
+      "summary": "Interactive exploration of 327 sample coffee lots from four fictional regions: facet filters with counts, a linked scatter, histogram and ranked dot plot, two-dimensional brushing, drill-down from region to farm with a breadcrumb, an A/B comparison mode and a shareable URL.",
+      "highlights": [
+        "One selection drives every view: facets and the drill path define what is in view; altitude and score brushes select within it; the scatter, histogram, dot plot, summary sentence and table all read the same set.",
+        "Brushing works three ways — drag a rectangle on the scatter, drag across the histogram, or move the keyboard-operable range handles (the brush-linked-range technique, rebuilt generically for any domain).",
+        "Drill-down from regions to cooperatives to farms to lots with a breadcrumb; within a level, rows keep identity and glide to their new rank with interpolated values (the bar-race-transition technique), drawn as dots and percentile whiskers because cup scores cluster far from zero.",
+        "Comparison mode (by process, variety or region) re-encodes marks as filled A / hollow B, plots each group’s share per bin so different group sizes compare fairly, turns the dot plot into dumbbells and adds a reconciled A − B table.",
+        "Every filter, brush, comparison, sort and pinned lot lives in the URL hash (replaceState, no history spam), so a view can be shared or restored after reload.",
+        "The summary is computed from the selection and words the altitude–score relation as an association in sample data, never as a cause."
+      ],
+      "technology": [
+        "d3",
+        "svg",
+        "css"
+      ],
+      "uses": [
+        "brush-linked-range",
+        "bar-race-transition"
+      ],
+      "has3d": false,
+      "accessibility": [
+        "Keyboard access to points: the focused scatter is a slider over the selected lots in altitude order (arrows, Page Up/Down, Home/End), Enter pins a lot, Escape hides the readout; the lots table is the full alternative.",
+        "Each brush is three role=\"slider\" controls with value text in metres or points; Escape on a handle clears that brush.",
+        "Facets are native checkboxes with counts; comparison uses native selects; the breadcrumb is a nav landmark with aria-current.",
+        "Process is shape as well as colour (circle, square, triangle); comparison groups are filled versus hollow; the histogram and dot plot have a bin table and per-row text names.",
+        "A polite status message reports the selection count after changes settle (debounced), never during a drag."
+      ],
+      "reducedMotion": "Dot-plot rows jump to their new rank and value instead of gliding; brushing, drilling and comparison are unchanged because they follow the hand directly.",
+      "performance": [
+        "327 lots render as SVG marks; a brush move filters and re-renders in well under a frame.",
+        "Selections are memoised from the facets, path and brush ranges; the row tween is one rAF loop over at most a dozen rows.",
+        "The URL is written 150 ms after the last change with replaceState."
+      ],
+      "dataNote": "Sample data (seed 1730): lots, farms, cooperatives and regions are invented; scores come from a generator with an altitude trend, process and variety effects, a farm effect and noise. Correlations describe the generator, not coffee.",
+      "path": "library/src/demos/data/data-exploration",
+      "files": [
+        "index.tsx",
+        "Breakdown.tsx",
+        "data.ts",
+        "RangeBrush.tsx",
+        "Scatter.tsx",
+        "styles.module.css",
         "meta.ts"
       ]
     },
@@ -4765,13 +5213,61 @@
       ]
     },
     {
+      "id": "3d-social-post",
+      "name": "3D Social Post",
+      "specialty": "social",
+      "summary": "An astronomy club’s feed where one post holds a brass token you can turn in 3D: photo first, a single canvas mounted only on “Interact in 3D”, every gesture mirrored by buttons, and the scene released when you close it or scroll away.",
+      "highlights": [
+        "Poster first: the post is complete as a photo with facts, caption, reactions and a “Download model (GLB)” link; the model (size shown on the button) loads only on request.",
+        "One StudioCanvas for the whole feed, built from the three-kit: Model (orbit-token GLB), OrbitInspect, LightingRig and AnimationPlayer driving the model’s own Spin clip.",
+        "The photo stays until the model reports loaded, then cross-fades; download progress is real bytes from the response stream.",
+        "Close 3D, or scrolling a screen away, unmounts the canvas — the renderer is disposed and the cached model is evicted a second later.",
+        "Other posts stay flat: a drawn meteor log and an event with an RSVP whose audience is stated and a real .ics calendar file."
+      ],
+      "technology": [
+        "r3f",
+        "three",
+        "svg",
+        "waapi",
+        "css"
+      ],
+      "uses": [],
+      "collaborates": [
+        "3d"
+      ],
+      "has3d": true,
+      "accessibility": [
+        "Turn left/right, zoom in/out, reset, spin (aria-pressed) and Close 3D are 44 px buttons; the focused view also takes arrow keys, + / − and 0. Focus moves to the controls on open and back to Interact on close.",
+        "Vertical swipes keep scrolling the feed (touch-action: pan-y on the canvas); the wheel only zooms while the view has focus.",
+        "The canvas has a name and a written description; the token’s size, studs and finish are DOM facts, so nothing is only in pixels.",
+        "Without WebGL there is no Interact button: the photo is the fallback and says so, and the model download still works.",
+        "Feed pattern with labelled articles; reactions are toggle buttons with text counts; the RSVP is a native radio group with a neutral “Not this time”."
+      ],
+      "reducedMotion": "The token never spins on its own: the Spin button is the only way to start it, and the orbit has no damping tail (moves are direct). Reaction pops are removed; the poster cross-fade is near-instant.",
+      "performance": [
+        "Nothing 3D loads while scrolling: only the 2 kB manifest is fetched up front (for the honest file size and triangle count).",
+        "frameloop=\"demand\": frames render only while the camera moves or the Spin clip plays.",
+        "The model is the 113 kB meshopt desktop build (5,280 triangles, no textures) — the only variant that exists for this asset.",
+        "Headless verification uses software WebGL (SwiftShader); timings there say nothing about a real phone."
+      ],
+      "dataNote": "Sample content: the Saltmarsh Sky Club, Holm Marsh, the session log and every reaction or RSVP count are fictional. Token dimensions come from the orbit-token model itself (63 × 63 × 13.7 mm).",
+      "path": "library/src/demos/social/3d-social-post",
+      "files": [
+        "index.tsx",
+        "art.tsx",
+        "styles.module.css",
+        "TokenViewer.tsx",
+        "meta.ts"
+      ]
+    },
+    {
       "id": "creator-feed",
       "name": "Creator Feed",
       "specialty": "social",
       "summary": "A risograph printer’s profile and field-note feed where every like, save, follow and comment answers in the same frame, reconciles with a simulated server, rolls back with a reason, and the feed ends with “You’re all caught up”.",
       "highlights": [
         "Optimistic toggles send the final intended state (debounced, with an idempotency key), reconcile counts with the server value and roll back visibly with a reason — switch on “Simulate failed requests” to watch it.",
-        "Like and save morph instead of swapping icons (like-heart-morph technique, made controllable so a rollback plays the quiet reverse); the pinned note composes the reaction-burst recipe as-is.",
+        "Like and save morph instead of swapping icons — the like-heart-morph technique rebuilt as a controlled toggle, so a rollback plays the same quiet reverse as an undo. The pinned note composes the reaction-burst recipe as-is.",
         "Comments drawer: optimistic insertion with Sending… / Posted / Not posted + Retry and Edit, drafts kept per post, the audience stated before posting, focus trapped and returned.",
         "Share uses navigator.share when the browser has it; otherwise a copy-link sheet with a polite confirmation (and a select-the-text fallback when the clipboard is blocked).",
         "A chronological feed with a natural end; suggested reading sits after the caught-up marker, is labelled “not from accounts you follow” and can be hidden. “Hide like counts” is one tap away.",
@@ -4784,8 +5280,7 @@
         "canvas2d"
       ],
       "uses": [
-        "reaction-burst",
-        "like-heart-morph"
+        "reaction-burst"
       ],
       "has3d": false,
       "accessibility": [

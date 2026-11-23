@@ -1,9 +1,13 @@
 /**
  * Graphics capability detection. Never assume WebGPU; never assume WebGL.
- * All probes are side-effect free (probe contexts are released immediately).
+ * three r163+ renders with WebGL 2 only (WebGL 1 support was removed), so gate 3D on `webgl2`:
+ * a device with `webgl` but not `webgl2` must get the fallback (StudioCanvas does this).
+ * All probes are side-effect free (probe contexts are released immediately with WEBGL_lose_context).
  */
 export interface GraphicsCapabilities {
+  /** Any WebGL context (1 or 2) can be created. Not sufficient for three r163+ — check `webgl2`. */
   webgl: boolean;
+  /** A WebGL 2 context can be created: required by three r163+ (StudioCanvas mounts only when true). */
   webgl2: boolean;
   /** `navigator.gpu` exists. An adapter may still be unavailable — see `detectWebGPU()`. */
   webgpuApi: boolean;

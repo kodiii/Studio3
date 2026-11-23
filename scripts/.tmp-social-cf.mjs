@@ -39,7 +39,7 @@ out.posted = await dlg.locator('text=· Posted').count();
 await page.keyboard.press('Escape');
 await page.waitForTimeout(400);
 out.dialogClosed = await page.getByRole('dialog').count();
-out.focusReturned = await page.evaluate(() => document.activeElement?.textContent);
+out.focusReturned = await page.evaluate(() => document.activeElement?.tagName + ":" + document.activeElement?.textContent?.slice(0,40));
 // share fallback
 await art.getByRole('button', { name: 'Share' }).click();
 await page.waitForTimeout(300);

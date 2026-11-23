@@ -7,14 +7,14 @@ export const meta: DemoMeta = {
   summary: 'A risograph printer’s profile and field-note feed where every like, save, follow and comment answers in the same frame, reconciles with a simulated server, rolls back with a reason, and the feed ends with “You’re all caught up”.',
   highlights: [
     'Optimistic toggles send the final intended state (debounced, with an idempotency key), reconcile counts with the server value and roll back visibly with a reason — switch on “Simulate failed requests” to watch it.',
-    'Like and save morph instead of swapping icons (like-heart-morph technique, made controllable so a rollback plays the quiet reverse); the pinned note composes the reaction-burst recipe as-is.',
+    'Like and save morph instead of swapping icons — the like-heart-morph technique rebuilt as a controlled toggle, so a rollback plays the same quiet reverse as an undo. The pinned note composes the reaction-burst recipe as-is.',
     'Comments drawer: optimistic insertion with Sending… / Posted / Not posted + Retry and Edit, drafts kept per post, the audience stated before posting, focus trapped and returned.',
     'Share uses navigator.share when the browser has it; otherwise a copy-link sheet with a polite confirmation (and a select-the-text fallback when the clipboard is blocked).',
     'A chronological feed with a natural end; suggested reading sits after the caught-up marker, is labelled “not from accounts you follow” and can be hidden. “Hide like counts” is one tap away.',
     'Ethics checklist (studio-social §9): no ticking or invented activity, counts labelled sample data, no gated content, unfollow as easy as follow, comment audience visible before posting.',
   ],
   technology: ['svg', 'waapi', 'css', 'canvas2d'],
-  uses: ['reaction-burst', 'like-heart-morph'],
+  uses: ['reaction-burst'],
   has3d: false,
   accessibility: [
     'ARIA feed pattern: role="feed" with labelled articles, aria-posinset/aria-setsize; Page Down / Page Up move between posts.',

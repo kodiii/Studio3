@@ -144,7 +144,7 @@ export function BikeDrawing({ build, fit, uid }: { build: Build; fit: Fit; uid: 
           </g>
         ))}
 
-        <g className={`${styles.part} ${styles.extra}`} data-on={has('fenders')}>
+        <g className={`${styles.part} ${styles.lift}`} data-on={has('fenders')}>
           <path d={arc(s.front, fenderR, 208, 18)} strokeWidth={17} className={styles.outline} />
           <path d={arc(s.rear, fenderR, 172, 4)} strokeWidth={17} className={styles.outline} />
           <path d={arc(s.front, fenderR, 208, 18)} strokeWidth={11} className={styles.alloy} />
@@ -153,7 +153,7 @@ export function BikeDrawing({ build, fit, uid }: { build: Build; fit: Fit; uid: 
           <path d={`${seg(onCircle(s.front, fenderR - 4, 200), s.front)}${seg(onCircle(s.rear, fenderR - 4, 160), s.rear)}`} className={styles.stay} />
         </g>
 
-        <g className={`${styles.part} ${styles.extra}`} data-on={has('rack')}>
+        <g className={`${styles.part} ${styles.lift}`} data-on={has('rack')}>
           <path d={`${seg(rackRear, rackFront)}${seg(off(rackRear, 20, 0), eyelet)}${seg(off(rackRear, 170, 0), eyelet)}${seg(rackFront, rackAttach)}`} strokeWidth={11} className={styles.rack} />
         </g>
 
@@ -213,7 +213,7 @@ export function BikeDrawing({ build, fit, uid }: { build: Build; fit: Fit; uid: 
           ))}
         </g>
 
-        <g className={`${styles.part} ${styles.extra}`} data-on={has('lights')}>
+        <g className={`${styles.part} ${styles.lift}`} data-on={has('lights')}>
           <path d={`M${P(off(s.front, -8, 28))}Q${P(off(s.forkCtrl, -16, 0))} ${P(along(s.crown, s.perp, 14))}`} className={styles.wire} />
           <path d={seg(along(s.htBot, s.down, 22), headlight)} strokeWidth={8} className={styles.alloy} />
           <rect x={headlight.x - 26} y={-headlight.y - 15} width={52} height={30} rx={9} className={styles.lamp} />
