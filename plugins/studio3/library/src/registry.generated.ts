@@ -63,6 +63,7 @@ import { meta as d_data_spatialDataViz } from './demos/data/spatial-data-viz/met
 import { meta as d_product_animatedOnboarding } from './demos/product/animated-onboarding/meta';
 import { meta as d_product_productConfigurator } from './demos/product/product-configurator/meta';
 import { meta as d_product_productShowcase } from './demos/product/product-showcase/meta';
+import { meta as d_product_saasLanding } from './demos/product/saas-landing/meta';
 import { meta as d_social__3dSocialPost } from './demos/social/3d-social-post/meta';
 import { meta as d_social_campaignLanding } from './demos/social/campaign-landing/meta';
 import { meta as d_social_creatorFeed } from './demos/social/creator-feed/meta';
@@ -136,6 +137,7 @@ export const demos: readonly DemoEntry[] = [
   { meta: d_product_animatedOnboarding, load: () => import('./demos/product/animated-onboarding/index') },
   { meta: d_product_productConfigurator, load: () => import('./demos/product/product-configurator/index') },
   { meta: d_product_productShowcase, load: () => import('./demos/product/product-showcase/index') },
+  { meta: d_product_saasLanding, load: () => import('./demos/product/saas-landing/index') },
   { meta: d_social__3dSocialPost, load: () => import('./demos/social/3d-social-post/index') },
   { meta: d_social_campaignLanding, load: () => import('./demos/social/campaign-landing/index') },
   { meta: d_social_creatorFeed, load: () => import('./demos/social/creator-feed/index') },
