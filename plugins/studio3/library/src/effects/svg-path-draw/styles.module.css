@@ -1,0 +1,100 @@
+.root {
+  box-sizing: border-box;
+  container-type: inline-size;
+  width: min(100% - 2rem, 46rem);
+  margin: clamp(1rem, 4cqi, 2.5rem) auto;
+  color: var(--s3-ink, #11110f);
+  font-family: var(--s3-font-text, ui-sans-serif, system-ui, sans-serif);
+}
+.card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(1rem, 4cqi, 2rem);
+  margin: 0;
+  padding: clamp(1rem, 4cqi, 2rem);
+  border: 1px solid var(--s3-line, #11110f24);
+  border-radius: var(--s3-radius-l, 18px);
+  background: var(--s3-surface, #fbf9f4);
+}
+@container (min-width: 36rem) {
+  .card { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); align-items: center; }
+}
+.canvas {
+  display: grid;
+  place-items: center;
+  padding: 0.75rem;
+  border-radius: var(--s3-radius-m, 10px);
+  background:
+    linear-gradient(color-mix(in oklab, var(--s3-line, #11110f24) 55%, transparent) 1px, transparent 1px) 0 0 / 100% 20px,
+    linear-gradient(90deg, color-mix(in oklab, var(--s3-line, #11110f24) 55%, transparent) 1px, transparent 1px) 0 0 / 20px 100%,
+    color-mix(in oklab, var(--s3-surface-2, #e9e5da) 45%, var(--s3-surface, #fbf9f4));
+}
+.art { display: block; width: min(100%, 15rem); height: auto; overflow: visible; }
+
+.lines path, .lines circle {
+  fill: none;
+  stroke: var(--s3-ink, #11110f);
+  stroke-width: var(--sw, 2);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+.lines .binding { stroke: var(--s3-ink-muted, #5c5a52); stroke-width: calc(var(--sw, 2) * 0.6); }
+.lines .rosette { stroke: var(--s3-ink, #11110f); stroke-width: calc(var(--sw, 2) * 0.75); }
+.lines .fret { stroke-width: calc(var(--sw, 2) * 0.7); }
+.lines .string { stroke-width: calc(var(--sw, 2) * 0.45); }
+.lines .bridge { stroke-width: calc(var(--sw, 2) * 2.2); }
+.bodyFill { fill: color-mix(in oklab, var(--s3-signal, #bf2f09) 16%, var(--s3-surface, #fbf9f4)); stroke: none; }
+.holeFill { fill: var(--s3-signal, #bf2f09); stroke: none; }
+.root:not([data-fill]) .bodyFill,
+.root:not([data-fill]) .holeFill { display: none; }
+
+.copy { display: grid; gap: 0.75rem; }
+.kicker {
+  margin: 0;
+  font-family: var(--s3-font-mono, ui-monospace, monospace);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--s3-ink-muted, #5c5a52);
+}
+.title {
+  margin: 0;
+  font-family: var(--s3-font-display, ui-sans-serif, system-ui, sans-serif);
+  font-size: clamp(1.625rem, 6cqi, 2.375rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+.dek { margin: 0; max-width: 40ch; font-size: 0.9375rem; line-height: 1.5; color: var(--s3-ink-muted, #5c5a52); text-wrap: pretty; }
+
+.controls { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1rem; margin-top: 0.5rem; }
+.replay {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0 1.125rem 0 0.875rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--s3-ink, #11110f);
+  color: var(--s3-surface, #fbf9f4);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.replay:focus-visible { outline: 2px solid var(--s3-focus, #1d4ed8); outline-offset: 2px; }
+.scrub { flex: 1 1 9rem; display: grid; gap: 0.25rem; min-width: 0; }
+.scrubLabel {
+  font-family: var(--s3-font-mono, ui-monospace, monospace);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--s3-ink-muted, #5c5a52);
+}
+.scrub input { width: 100%; height: 1.5rem; margin: 0; accent-color: var(--s3-signal, #bf2f09); cursor: pointer; }
+.scrub input:focus-visible { outline: 2px solid var(--s3-focus, #1d4ed8); outline-offset: 2px; }
+.readout { min-width: 4ch; font-family: var(--s3-font-mono, ui-monospace, monospace); font-size: 0.8125rem; font-variant-numeric: tabular-nums; text-align: right; }

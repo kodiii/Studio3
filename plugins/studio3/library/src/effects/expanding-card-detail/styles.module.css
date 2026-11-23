@@ -110,8 +110,10 @@
   inset: 0;
   border-radius: 16px;
 }
+/* The ring is drawn by the card, which carries its own transform, so it never shrinks onto the
+   title while the title (a transformed containing block for ::after) is mid-flight. */
 .open:focus-visible { outline: none; }
-.open:focus-visible::after { outline: 2px solid var(--s3-focus, #1d4ed8); outline-offset: 3px; }
+.card:has(.open:focus-visible) { outline: 2px solid var(--s3-focus, #1d4ed8); outline-offset: 3px; }
 .savedTag {
   display: inline-flex;
   align-items: center;
@@ -143,6 +145,7 @@
   box-shadow: 0 30px 60px -20px rgb(10 10 8 / 0.45);
   outline: none;
 }
+.panel[data-mode='fill'] { inset: -6px; }
 .panel[data-mode='centered'] {
   margin: auto;
   width: min(100% - 2 * var(--inset), 30rem);
@@ -155,6 +158,8 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   display: grid;
+  /* rows never shrink below their content (the poster clips its overflow, so it would otherwise be squeezed) */
+  grid-auto-rows: max-content;
   align-content: start;
   gap: clamp(1rem, 3cqi, 1.75rem);
   padding: clamp(10px, 1.6cqi, 14px);

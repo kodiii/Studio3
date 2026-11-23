@@ -111,8 +111,11 @@ export function StackPlayground() {
 }
 ```
 
-Alternatives: switch `StudioCanvas` to `frameloop="always"` only while `running` (simple, but renders when nothing
-moves), or keep `"follow"` and call `invalidate()` from `useAfterPhysicsStep` while bodies are awake.
+Alternatives: keep `<Physics paused>` and drive it yourself with
+`useFrame((_, dt) => step(Math.min(dt, 1 / 20)))` from `useRapier()` — `step()` invalidates while any body is awake,
+so the loop idles once everything sleeps, and the clamp stops a resumed tab fast-forwarding (the
+`physics-playground` demo does this); or switch `StudioCanvas` to `frameloop="always"` only while `running` (simple,
+but renders when nothing moves).
 
 ## 4. Fixed timestep and sleeping
 

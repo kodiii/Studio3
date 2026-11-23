@@ -1,7 +1,10 @@
 import { chromium } from 'playwright';
-const b = await chromium.launch({ args: ['--use-angle=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist'] });
+const b = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 const p = await b.newPage({ viewport: { width: 1100, height: 900 } });
-await p.goto('http://localhost:3333/effects/dot-grid-pointer-field');
-await p.waitForTimeout(3000);
-console.log(await p.evaluate(() => { const s = document.querySelector('[data-effect-stage="dot-grid-pointer-field"]'); return s?.innerHTML.slice(0, 600); }));
+p.on('console', (m) => { if (['error', 'warning'].includes(m.type())) console.log('console', m.type(), m.text().slice(0, 300)); });
+await p.goto('http://localhost:3333/effects/image-ripple-distortion');
+await p.waitForTimeout(4000);
+console.log(JSON.stringify(await p.evaluate(() => [window.__STUDIO3_3D__?.renderer, window.__STUDIO3_3D__?.frames, window.__rdbg])));
+const px = await p.evaluate(() => { const c = document.querySelector('[data-effect-stage] canvas'); const g = document.createElement('canvas'); g.width = c.width; g.height = c.height; const x = g.getContext('2d'); x.drawImage(c, 0, 0); const d = x.getImageData(c.width / 2, c.height / 4, 1, 1).data; return [c.width, c.height, ...d]; });
+console.log('canvas px', px);
 await b.close();

@@ -8,11 +8,14 @@ import { meta as e_commandMenuReveal } from './effects/command-menu-reveal/meta'
 import { meta as e_cssCubeCarousel } from './effects/css-cube-carousel/meta';
 import { meta as e_dotGridPointerField } from './effects/dot-grid-pointer-field/meta';
 import { meta as e_expandingCardDetail } from './effects/expanding-card-detail/meta';
+import { meta as e_explodedView } from './effects/exploded-view/meta';
 import { meta as e_flipCard3d } from './effects/flip-card-3d/meta';
 import { meta as e_flipGridReorder } from './effects/flip-grid-reorder/meta';
 import { meta as e_fullscreenMenuCurtain } from './effects/fullscreen-menu-curtain/meta';
 import { meta as e_grainGradientMesh } from './effects/grain-gradient-mesh/meta';
 import { meta as e_horizontalScrollGallery } from './effects/horizontal-scroll-gallery/meta';
+import { meta as e_hotspotAnnotations } from './effects/hotspot-annotations/meta';
+import { meta as e_imageRippleDistortion } from './effects/image-ripple-distortion/meta';
 import { meta as e_kineticMarquee } from './effects/kinetic-marquee/meta';
 import { meta as e_layeredDepthStack } from './effects/layered-depth-stack/meta';
 import { meta as e_likeHeartMorph } from './effects/like-heart-morph/meta';
@@ -21,19 +24,30 @@ import { meta as e_magneticButton } from './effects/magnetic-button/meta';
 import { meta as e_morphSubmitButton } from './effects/morph-submit-button/meta';
 import { meta as e_morphingNavPill } from './effects/morphing-nav-pill/meta';
 import { meta as e_numberTicker } from './effects/number-ticker/meta';
+import { meta as e_orbitInspectControls } from './effects/orbit-inspect-controls/meta';
 import { meta as e_parallaxDepthLayers } from './effects/parallax-depth-layers/meta';
+import { meta as e_particleFieldGpu } from './effects/particle-field-gpu/meta';
+import { meta as e_pollResultBars } from './effects/poll-result-bars/meta';
 import { meta as e_pressDepthButton } from './effects/press-depth-button/meta';
+import { meta as e_progressOrbitLoader } from './effects/progress-orbit-loader/meta';
 import { meta as e_reactionBurst } from './effects/reaction-burst/meta';
 import { meta as e_scrambleDecode } from './effects/scramble-decode/meta';
 import { meta as e_scrollCameraDolly } from './effects/scroll-camera-dolly/meta';
 import { meta as e_scrollPinChapters } from './effects/scroll-pin-chapters/meta';
 import { meta as e_scrollProgressRail } from './effects/scroll-progress-rail/meta';
 import { meta as e_shaderAuroraPlane } from './effects/shader-aurora-plane/meta';
+import { meta as e_skeletonShimmerHandoff } from './effects/skeleton-shimmer-handoff/meta';
 import { meta as e_splitLineReveal } from './effects/split-line-reveal/meta';
+import { meta as e_storyProgressSegments } from './effects/story-progress-segments/meta';
+import { meta as e_svgPathDraw } from './effects/svg-path-draw/meta';
+import { meta as e_swipeCardStack } from './effects/swipe-card-stack/meta';
 import { meta as e_variableWeightWave } from './effects/variable-weight-wave/meta';
+import { meta as d__3d_cinematicLanding } from './demos/3d/cinematic-landing/meta';
 import { meta as d__3d_particleExperience } from './demos/3d/particle-experience/meta';
+import { meta as d__3d_physicsPlayground } from './demos/3d/physics-playground/meta';
 import { meta as d__3d_productConfigurator } from './demos/3d/product-configurator/meta';
 import { meta as d__3d_spatialData } from './demos/3d/spatial-data/meta';
+import { meta as d_data_financialDashboard } from './demos/data/financial-dashboard/meta';
 
 export const effects: readonly EffectEntry[] = [
   { meta: e_barRaceTransition, load: () => import('./effects/bar-race-transition/index') },
@@ -44,11 +58,14 @@ export const effects: readonly EffectEntry[] = [
   { meta: e_cssCubeCarousel, load: () => import('./effects/css-cube-carousel/index') },
   { meta: e_dotGridPointerField, load: () => import('./effects/dot-grid-pointer-field/index') },
   { meta: e_expandingCardDetail, load: () => import('./effects/expanding-card-detail/index') },
+  { meta: e_explodedView, load: () => import('./effects/exploded-view/index') },
   { meta: e_flipCard3d, load: () => import('./effects/flip-card-3d/index') },
   { meta: e_flipGridReorder, load: () => import('./effects/flip-grid-reorder/index') },
   { meta: e_fullscreenMenuCurtain, load: () => import('./effects/fullscreen-menu-curtain/index') },
   { meta: e_grainGradientMesh, load: () => import('./effects/grain-gradient-mesh/index') },
   { meta: e_horizontalScrollGallery, load: () => import('./effects/horizontal-scroll-gallery/index') },
+  { meta: e_hotspotAnnotations, load: () => import('./effects/hotspot-annotations/index') },
+  { meta: e_imageRippleDistortion, load: () => import('./effects/image-ripple-distortion/index') },
   { meta: e_kineticMarquee, load: () => import('./effects/kinetic-marquee/index') },
   { meta: e_layeredDepthStack, load: () => import('./effects/layered-depth-stack/index') },
   { meta: e_likeHeartMorph, load: () => import('./effects/like-heart-morph/index') },
@@ -57,20 +74,31 @@ export const effects: readonly EffectEntry[] = [
   { meta: e_morphSubmitButton, load: () => import('./effects/morph-submit-button/index') },
   { meta: e_morphingNavPill, load: () => import('./effects/morphing-nav-pill/index') },
   { meta: e_numberTicker, load: () => import('./effects/number-ticker/index') },
+  { meta: e_orbitInspectControls, load: () => import('./effects/orbit-inspect-controls/index') },
   { meta: e_parallaxDepthLayers, load: () => import('./effects/parallax-depth-layers/index') },
+  { meta: e_particleFieldGpu, load: () => import('./effects/particle-field-gpu/index') },
+  { meta: e_pollResultBars, load: () => import('./effects/poll-result-bars/index') },
   { meta: e_pressDepthButton, load: () => import('./effects/press-depth-button/index') },
+  { meta: e_progressOrbitLoader, load: () => import('./effects/progress-orbit-loader/index') },
   { meta: e_reactionBurst, load: () => import('./effects/reaction-burst/index') },
   { meta: e_scrambleDecode, load: () => import('./effects/scramble-decode/index') },
   { meta: e_scrollCameraDolly, load: () => import('./effects/scroll-camera-dolly/index') },
   { meta: e_scrollPinChapters, load: () => import('./effects/scroll-pin-chapters/index') },
   { meta: e_scrollProgressRail, load: () => import('./effects/scroll-progress-rail/index') },
   { meta: e_shaderAuroraPlane, load: () => import('./effects/shader-aurora-plane/index') },
+  { meta: e_skeletonShimmerHandoff, load: () => import('./effects/skeleton-shimmer-handoff/index') },
   { meta: e_splitLineReveal, load: () => import('./effects/split-line-reveal/index') },
+  { meta: e_storyProgressSegments, load: () => import('./effects/story-progress-segments/index') },
+  { meta: e_svgPathDraw, load: () => import('./effects/svg-path-draw/index') },
+  { meta: e_swipeCardStack, load: () => import('./effects/swipe-card-stack/index') },
   { meta: e_variableWeightWave, load: () => import('./effects/variable-weight-wave/index') },
 ];
 
 export const demos: readonly DemoEntry[] = [
+  { meta: d__3d_cinematicLanding, load: () => import('./demos/3d/cinematic-landing/index') },
   { meta: d__3d_particleExperience, load: () => import('./demos/3d/particle-experience/index') },
+  { meta: d__3d_physicsPlayground, load: () => import('./demos/3d/physics-playground/index') },
   { meta: d__3d_productConfigurator, load: () => import('./demos/3d/product-configurator/index') },
   { meta: d__3d_spatialData, load: () => import('./demos/3d/spatial-data/index') },
+  { meta: d_data_financialDashboard, load: () => import('./demos/data/financial-dashboard/index') },
 ];

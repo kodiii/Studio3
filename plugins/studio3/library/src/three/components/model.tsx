@@ -17,7 +17,7 @@
  *  - **Decoders.** Meshopt (`EXT_meshopt_compression`) is always wired — the decoder is ~30 kB of embedded WASM.
  *    DRACO is only fetched when the file declares `KHR_draco_mesh_compression` and a decoder path was configured.
  */
-import { Component, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from 'react';
+import { Component, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
 import type { AnimationClip, Material, Object3D, Texture } from 'three';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -316,30 +316,39 @@ export interface LoadedModel {
   url: string;
 }
 
-/**
- * Suspends until `url` is loaded, then returns a private clone. Throws `ModelLoadError` to the nearest error
- * boundary on failure. Must be rendered under `<Suspense>`.
- */
-export function useModel(url: string): LoadedModel {
+/** Shared by `useModel` and `<Model onError>`: suspends while pending; on failure throws or returns the error. */
+function useEntryModel(url: string, throwOnError: boolean): { model: LoadedModel | null; error: ModelLoadError | null } {
   const entry = getEntry(url);
   if (entry.status === 'pending') throw entry.promise;
-  if (entry.status === 'error') throw entry.error;
-  const gltf = entry.gltf as GLTF;
-  const model = useMemo<LoadedModel>(() => {
+  if (entry.status === 'error' && throwOnError) throw entry.error;
+  const gltf = entry.gltf;
+  const model = useMemo<LoadedModel | null>(() => {
+    if (!gltf) return null;
     const scene = cloneWithSkeletons(gltf.scene);
     const nodes: Record<string, Object3D> = {};
     scene.traverse((o) => { if (o.name && !nodes[o.name]) nodes[o.name] = o; });
     return { scene, animations: gltf.animations, nodes, bytes: entry.bytes, url };
   }, [gltf, entry, url]);
   useEffect(() => {
+    if (!gltf) return;
     entry.refs++;
     if (entry.timer) { clearTimeout(entry.timer); entry.timer = undefined; }
     return () => {
       entry.refs--;
       if (entry.refs === 0) entry.timer = setTimeout(() => { if (entry.refs === 0) evict(entry); }, 1000);
     };
-  }, [entry]);
-  return model;
+  }, [entry, gltf]);
+  return { model, error: entry.status === 'error' ? entry.error ?? null : null };
+}
+
+/**
+ * Suspends until `url` is loaded, then returns a private clone. Throws `ModelLoadError` to the nearest error
+ * boundary on failure. Must be rendered under `<Suspense>`.
+ * Note: React Three Fiber 9 reports errors caught by boundaries INSIDE a canvas through `window.reportError`, so a
+ * thrown load failure also surfaces as a global error event. Use `<Model onError>` to handle failures without throwing.
+ */
+export function useModel(url: string): LoadedModel {
+  return useEntryModel(url, true).model as LoadedModel;
 }
 
 /** Live download/decode progress for a URL. Works outside the canvas (DOM progress bars). Never invents a percentage. */
@@ -370,6 +379,12 @@ export type ModelProps = Omit<ThreeElements['group'], 'children'> & {
   receiveShadow?: boolean;
   /** Called once per loaded clone — the place to grab nodes, compute stats, hand the scene to controllers. */
   onLoaded?: (model: LoadedModel) => void;
+  /**
+   * Handle load failures without throwing: the model renders nothing and this is called with the `ModelLoadError`
+   * (preferred inside a canvas — R3F reports boundary-caught errors globally). Without it, failures throw to the
+   * nearest error boundary. The failed cache entry is dropped on unmount, so remounting retries the download.
+   */
+  onError?: (error: ModelLoadError) => void;
   children?: ReactNode;
 };
 
@@ -377,7 +392,7 @@ export type ModelProps = Omit<ThreeElements['group'], 'children'> & {
  * Renders a GLB. Suspends while loading; throws `ModelLoadError` on failure. Pointer props (`onClick`,
  * `onPointerMove` …) are forwarded to the group, so R3F raycasting reports the hit mesh in `event.object`.
  */
-export function Model({ src, manifest, manifestUrl, variant = 'auto', castShadow = false, receiveShadow = false, onLoaded, children, ...group }: ModelProps) {
+export function Model({ src, manifest, manifestUrl, variant = 'auto', castShadow = false, receiveShadow = false, onLoaded, onError, children, ...group }: ModelProps) {
   const quality = useQuality();
   const invalidate = useThree((s) => s.invalidate);
   let url = src;
@@ -387,12 +402,22 @@ export function Model({ src, manifest, manifestUrl, variant = 'auto', castShadow
     url = resolveModelUrl(v.file, manifestUrl);
   }
   if (!url) throw new Error('<Model> needs `src` or `manifest`');
-  const model = useModel(url);
+  const { model, error } = useEntryModel(url, !onError);
+  const failed = useRef(onError);
+  failed.current = onError;
   useEffect(() => {
+    if (!error) return;
+    failed.current?.(error);
+    const u = url as string;
+    return () => clearModel(u);
+  }, [error, url]);
+  useEffect(() => {
+    if (!model) return;
     model.scene.traverse((o) => { if ((o as Object3D & { isMesh?: boolean }).isMesh) { o.castShadow = castShadow; o.receiveShadow = receiveShadow; } });
     invalidate();
   }, [model, castShadow, receiveShadow, invalidate]);
-  useEffect(() => { onLoaded?.(model); invalidate(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [model]);
+  useEffect(() => { if (model) { onLoaded?.(model); invalidate(); } /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [model]);
+  if (!model) return null;
   return (
     <group {...group}>
       <primitive object={model.scene} />

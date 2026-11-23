@@ -5,10 +5,10 @@
  */
 import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber';
 import { BallCollider, CuboidCollider, CylinderCollider, Physics, RigidBody, useAfterPhysicsStep, useBeforePhysicsStep, useRapier, type RapierRigidBody } from '@react-three/rapier';
-import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
 import {
   BoxGeometry, Color, CylinderGeometry, InstancedBufferAttribute, Matrix4, MeshStandardMaterial, Plane, PlaneGeometry, Quaternion, Raycaster,
-  ShaderMaterial, SphereGeometry, Vector2, Vector3, type InstancedMesh,
+  ShaderMaterial, SphereGeometry, Vector2, Vector3, type Group, type InstancedMesh,
 } from 'three';
 import { useQuality } from '../../../three';
 import { BOUNDS, COLOURS, SHAPES, TABLE, type BodySpec, type ColourId, type ShapeId } from './bodies';
@@ -34,7 +34,7 @@ export interface WorldProps {
 }
 
 const TYPE = { dynamic: 0, kinematicPosition: 2 } as const;
-const TMP = { v: new Vector3(), q: new Quaternion(), m: new Matrix4(), s: new Vector3(), c: new Color() };
+const TMP = { v: new Vector3(), q: new Quaternion(), m: new Matrix4(), s: new Vector3(), c: new Color(), n: new Vector3(0, 1, 0), up: new Quaternion() };
 
 /* ── Shared GPU resources: one geometry per shape, one material per colour ─────────────────────────────────── */
 function useToyResources() {
@@ -105,9 +105,11 @@ function Toy({ spec, geometry, material, shadows, register, onGrab }: {
   register: (id: number, rb: RapierRigidBody | null) => void; onGrab: (id: number, e: ThreeEvent<PointerEvent>) => void;
 }) {
   const [x, y, z] = SHAPES[spec.shape].size;
+  // Stable per body: an inline ref callback would detach/re-attach on every render and drop the body's "held" state.
+  const bodyRef = useCallback((rb: RapierRigidBody | null) => register(spec.id, rb), [spec.id, register]);
   return (
     <RigidBody
-      ref={(rb: RapierRigidBody | null) => register(spec.id, rb)}
+      ref={bodyRef}
       colliders={false} position={spec.position} rotation={[0, spec.yaw, 0]}
       friction={0.75} restitution={spec.shape === 'ball' ? 0.45 : 0.08} linearDamping={0.05} angularDamping={0.25}
       userData={{ id: spec.id }}
@@ -122,8 +124,7 @@ function Toy({ spec, geometry, material, shadows, register, onGrab }: {
 
 /* ── Selection marker: a ring on the table under the selected body ───────────────────────────────────────── */
 function SelectionRing({ id, rigid }: { id: number | null; rigid: Map<number, RapierRigidBody> }) {
-  const ref = useRef<InstancedMesh>(null);
-  const group = useRef<import('three').Group>(null);
+  const group = useRef<Group>(null);
   useFrame(() => {
     const g = group.current;
     if (!g) return;
@@ -131,9 +132,8 @@ function SelectionRing({ id, rigid }: { id: number | null; rigid: Map<number, Ra
     g.visible = !!rb;
     if (!rb) return;
     const t = rb.translation();
-    g.position.set(t.x, Math.max(0.01, Math.min(t.y - 0.6, 0.01)), t.z);
+    g.position.set(t.x, 0.012, t.z);
   });
-  void ref;
   return (
     <group ref={group} visible={false}>
       <mesh rotation-x={-Math.PI / 2} renderOrder={2}>
@@ -208,8 +208,7 @@ const Simulation = forwardRef<WorldHandle, Omit<WorldProps, 'gravity'>>(function
       TMP.q.set(r.x, r.y, r.z, r.w);
       if (1 - Math.abs(TMP.q.w) > 1e-5 || Math.abs(TMP.q.x) + Math.abs(TMP.q.z) > 1e-4) {
         const yaw = Math.atan2(2 * (r.w * r.y + r.x * r.z), 1 - 2 * (r.y * r.y + r.x * r.x));
-        const upright = new Quaternion().setFromAxisAngle(TMP.n.set(0, 1, 0), yaw);
-        rb.setNextKinematicRotation(TMP.q.slerp(upright, 0.25));
+        rb.setNextKinematicRotation(TMP.q.slerp(TMP.up.setFromAxisAngle(TMP.n.set(0, 1, 0), yaw), 0.25));
       }
     }
   });
@@ -263,7 +262,9 @@ const Simulation = forwardRef<WorldHandle, Omit<WorldProps, 'gravity'>>(function
     out.z = Math.max(-4, Math.min(4, out.z));
     return true;
   };
-  const onGrab = (id: number, e: ThreeEvent<PointerEvent>) => {
+  const grabRef = useRef<(id: number, e: ThreeEvent<PointerEvent>) => void>(() => {});
+  const onGrab = useCallback((id: number, e: ThreeEvent<PointerEvent>) => grabRef.current(id, e), []);
+  grabRef.current = (id: number, e: ThreeEvent<PointerEvent>) => {
     if (live.current.paused || drag.current) return;
     e.stopPropagation();
     const rb = rigid.get(id);

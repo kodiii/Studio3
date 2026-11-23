@@ -738,9 +738,9 @@
           "key": "contentDelay",
           "label": "Details delay",
           "type": "number",
-          "default": 140,
+          "default": 260,
           "min": 0,
-          "max": 500,
+          "max": 600,
           "step": 20,
           "unit": "ms"
         },
@@ -758,12 +758,12 @@
         "Each card title is a real button (stretched over the card) with aria-haspopup=\"dialog\", so the whole card is clickable but only one tab stop.",
         "The panel is role=\"dialog\" labelled by its heading; focus moves to its Close button, and Escape or Close return focus to the card that opened it.",
         "While the panel is open the grid is inert (out of the tab order and the accessibility tree); an exiting panel is inert too, so Tab never lands in a closing view.",
-        "Posters are decorative SVG (aria-hidden); the event type, date and place are always real text."
+        "Posters are decorative SVG (aria-hidden); the event type, date and place are always real text, and a press outside the panel closes it like Escape does."
       ],
       "reducedMotion": "No shared-element travel: the panel and scrim fade in and out over 160 ms and the cards stay where they are.",
       "performance": [
         "Motion animates the shared elements with transforms (FLIP-style projection); nothing animates width, height or top/left.",
-        "Posters keep the same aspect ratio in card and panel, so the shared poster scales uniformly and never distorts; titles move by position only.",
+        "The poster artwork is a square emblem with its own layoutId, so it scales uniformly while the colour field around it morphs from card to panel shape; titles move by position only, so text never stretches.",
         "Only the opened card and its panel are animated; the panel unmounts after its exit animation."
       ],
       "preview": {
@@ -772,6 +772,107 @@
       "path": "library/src/effects/expanding-card-detail",
       "files": [
         "index.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "exploded-view",
+      "name": "Exploded View",
+      "description": "A procedural seven-part compact camera that comes apart along each part's own direction as a range slider goes from 0 to 1, with staggered ease-in-out so parts leave one after another. Part rows and 3D parts highlight each other, and the camera steps back to keep the whole assembly framed.",
+      "category": "spatial",
+      "specialties": [
+        "3d",
+        "product"
+      ],
+      "technology": [
+        "r3f",
+        "three"
+      ],
+      "interaction": [
+        "drag",
+        "hover",
+        "keyboard",
+        "press",
+        "pointer"
+      ],
+      "complexity": 3,
+      "intensity": "moderate",
+      "applications": [
+        "product anatomy or \"what's inside\" section",
+        "repair and assembly guides",
+        "hardware launch page",
+        "spec sheet with parts list"
+      ],
+      "dependencies": [
+        {
+          "name": "three",
+          "version": "^0.187.0"
+        },
+        {
+          "name": "@react-three/fiber",
+          "version": "^9.8.2"
+        }
+      ],
+      "params": [
+        {
+          "key": "amount",
+          "label": "Initial separation",
+          "type": "number",
+          "default": 0.55,
+          "min": 0,
+          "max": 1,
+          "step": 0.05
+        },
+        {
+          "key": "spread",
+          "label": "Spread",
+          "type": "number",
+          "default": 1,
+          "min": 0.5,
+          "max": 1.5,
+          "step": 0.05,
+          "unit": "×"
+        },
+        {
+          "key": "stagger",
+          "label": "Stagger",
+          "type": "number",
+          "default": 0.4,
+          "min": 0,
+          "max": 0.7,
+          "step": 0.05
+        },
+        {
+          "key": "accent",
+          "label": "Highlight colour",
+          "type": "color",
+          "default": "#bf2f09"
+        }
+      ],
+      "accessibility": [
+        "Separation is a native range input (arrow keys, Page Up/Down, Home/End) with a visible percentage; Assemble and Explode buttons jump to the ends.",
+        "Every part is a row button with its name and material in text: hovering or focusing a row lights the part, pointing at a part in the model marks its row, and clicking pins the highlight (aria-pressed).",
+        "The emissive highlight is never the only signal — the row gains an accent bar and the part name appears in the label over the view.",
+        "Without WebGL a flat exploded diagram is shown; the slider and the row highlights still drive it."
+      ],
+      "reducedMotion": "Parts follow the slider directly with no easing tail, and Assemble / Explode cut straight to the end state instead of gliding; the row accent bar no longer animates.",
+      "performance": [
+        "frameloop=\"demand\": a frame is rendered only while the separation is settling or a highlight changes; at rest nothing renders.",
+        "About 15 draw calls of primitive geometry, no textures except one baked floor blob; highlight is an emissive change on per-part materials (no extra passes).",
+        "Raycasting for hover happens only on pointer events (R3F), never per frame.",
+        "All geometries, materials and the canvas texture are created once and disposed on unmount."
+      ],
+      "preview": {
+        "height": 600
+      },
+      "path": "library/src/effects/exploded-view",
+      "files": [
+        "index.tsx",
+        "blob.ts",
+        "fallback.tsx",
+        "parts.ts",
+        "scene.tsx",
         "styles.module.css",
         "meta.ts"
       ]
@@ -1258,6 +1359,212 @@
       "path": "library/src/effects/horizontal-scroll-gallery",
       "files": [
         "index.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "hotspot-annotations",
+      "name": "Hotspot Annotations",
+      "description": "Four annotations anchored to a procedural field radio. Markers are projected on rendered frames only, fade and turn inert when the object hides them, and choosing one — from the marker or the always-readable list — glides the camera to frame it and opens its description. Esc returns to the full view.",
+      "category": "spatial",
+      "specialties": [
+        "3d",
+        "product"
+      ],
+      "technology": [
+        "r3f",
+        "three"
+      ],
+      "interaction": [
+        "press",
+        "keyboard",
+        "drag"
+      ],
+      "complexity": 3,
+      "intensity": "moderate",
+      "applications": [
+        "product feature tour",
+        "e-commerce detail viewer",
+        "museum or exhibit object notes",
+        "onboarding to a physical device"
+      ],
+      "dependencies": [
+        {
+          "name": "three",
+          "version": "^0.187.0"
+        },
+        {
+          "name": "@react-three/fiber",
+          "version": "^9.8.2"
+        }
+      ],
+      "params": [
+        {
+          "key": "glide",
+          "label": "Glide time",
+          "type": "number",
+          "default": 0.55,
+          "min": 0.2,
+          "max": 1.4,
+          "step": 0.05,
+          "unit": "s"
+        },
+        {
+          "key": "labels",
+          "label": "Always show labels",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "key": "numbering",
+          "label": "Marker style",
+          "type": "select",
+          "default": "Numbers",
+          "options": [
+            "Numbers",
+            "Letters"
+          ]
+        },
+        {
+          "key": "selectOnFocus",
+          "label": "Frame on keyboard focus",
+          "type": "boolean",
+          "default": true
+        }
+      ],
+      "accessibility": [
+        "The same four annotations are a real ordered list of disclosure buttons (aria-expanded / aria-controls) outside the canvas — the stable keyboard and screen-reader path; keyboard focus frames an item, Enter toggles it, Esc resets.",
+        "Floating markers are pointer shortcuts only (tabindex=-1, aria-hidden), so nothing is announced twice; a polite live region confirms which feature is framed.",
+        "Markers hidden behind the radio fade and become inert, so a faded, low-contrast marker can never be clicked or focused; the list always works.",
+        "The canvas itself is focusable via the kit's OrbitInspect (arrows orbit, + / − zoom, 0 resets) and carries an accessible name; wheel zoom only applies while it has focus.",
+        "Without WebGL a front-view SVG with the same numbering is shown and the list still opens every description."
+      ],
+      "reducedMotion": "Camera moves become cuts (CameraRig with reduced motion), orbit damping is off and the marker fade transition is removed.",
+      "performance": [
+        "frameloop=\"demand\": frames render only during a camera glide or an orbit; marker projection and the four occlusion rays run inside those frames, so an idle scene costs nothing.",
+        "About 16 draw calls: one rounded-box case, shared box geometry for panels, instanced feet and strap posts; perforations and the tuning scale are canvas textures drawn once.",
+        "Generated environment lighting (LightingRig studio-soft, PMREM sized by quality); no shadow pass — a baked contact blob grounds the object.",
+        "Every geometry, material and canvas texture created imperatively is disposed on unmount."
+      ],
+      "preview": {
+        "height": 560
+      },
+      "path": "library/src/effects/hotspot-annotations",
+      "files": [
+        "index.tsx",
+        "data.ts",
+        "fallback.tsx",
+        "scene.tsx",
+        "styles.module.css",
+        "textures.ts",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "image-ripple-distortion",
+      "name": "Image Ripple Distortion",
+      "description": "A poster series drawn on the fly with canvas2d in the theme's own colours and type, swapped by a GLSL ripple: a displacement front with chromatic split travels out from where you click and reveals the next poster. Hovering stirs a faint ripple under the pointer.",
+      "category": "shaders",
+      "specialties": [
+        "cinematic",
+        "social"
+      ],
+      "technology": [
+        "r3f",
+        "three",
+        "glsl",
+        "canvas2d"
+      ],
+      "interaction": [
+        "press",
+        "pointer",
+        "keyboard"
+      ],
+      "complexity": 3,
+      "intensity": "bold",
+      "applications": [
+        "portfolio or exhibition carousel",
+        "editorial hero rotation",
+        "product colourway switcher",
+        "event poster wall"
+      ],
+      "dependencies": [
+        {
+          "name": "three",
+          "version": "^0.187.0"
+        },
+        {
+          "name": "@react-three/fiber",
+          "version": "^9.8.2"
+        }
+      ],
+      "params": [
+        {
+          "key": "amplitude",
+          "label": "Displacement",
+          "type": "number",
+          "default": 0.05,
+          "min": 0,
+          "max": 0.14,
+          "step": 0.005
+        },
+        {
+          "key": "chroma",
+          "label": "Chromatic split",
+          "type": "number",
+          "default": 1,
+          "min": 0,
+          "max": 2.5,
+          "step": 0.1
+        },
+        {
+          "key": "duration",
+          "label": "Transition",
+          "type": "number",
+          "default": 1100,
+          "min": 400,
+          "max": 2400,
+          "step": 50,
+          "unit": "ms"
+        },
+        {
+          "key": "frequency",
+          "label": "Ripple frequency",
+          "type": "number",
+          "default": 3,
+          "min": 1,
+          "max": 8,
+          "step": 0.5
+        },
+        {
+          "key": "hover",
+          "label": "Hover ripple",
+          "type": "boolean",
+          "default": true
+        }
+      ],
+      "accessibility": [
+        "A real \"Next poster\" button is the keyboard path; clicking the poster is only a pointer shortcut that also chooses the ripple origin.",
+        "Poster title and subtitle are DOM text in a polite live region, and the canvas label names the current poster, so nothing lives only in pixels.",
+        "Distortion is brief, low-frequency and user-triggered; there is no autoplay and no flashing.",
+        "Without WebGL the same generated posters are shown as images that cross-fade."
+      ],
+      "reducedMotion": "No displacement, chromatic split or hover ripple: Next cross-fades the posters in 160 ms.",
+      "performance": [
+        "frameloop=\"demand\": frames render only during a transition or while the hover ripple is fading; at rest nothing renders.",
+        "One full-frame quad, one draw call; three poster CanvasTextures sized by the quality profile (no mipmaps), regenerated only when the theme or fonts change and disposed every time.",
+        "Fonts are awaited with document.fonts.load before the posters are redrawn, so textures never bake a fallback face."
+      ],
+      "preview": {
+        "height": 560
+      },
+      "path": "library/src/effects/image-ripple-distortion",
+      "files": [
+        "index.tsx",
+        "posters.ts",
+        "scene.tsx",
+        "shader.ts",
         "styles.module.css",
         "meta.ts"
       ]
@@ -2036,6 +2343,115 @@
       ]
     },
     {
+      "id": "orbit-inspect-controls",
+      "name": "Orbit Inspect Controls",
+      "description": "Accessible orbit inspection of a procedural architectural maquette: drag to orbit with damping and limits, zoom only when the viewer is focused (or with a pinch), and a full keyboard and button path. Shadows are baked once for the fixed key light, so the scene renders only while the camera moves.",
+      "category": "camera",
+      "specialties": [
+        "3d",
+        "product"
+      ],
+      "technology": [
+        "r3f",
+        "three"
+      ],
+      "interaction": [
+        "drag",
+        "keyboard",
+        "press",
+        "pointer"
+      ],
+      "complexity": 3,
+      "intensity": "moderate",
+      "applications": [
+        "product or furniture inspection",
+        "architecture and interior model viewer",
+        "museum object detail page",
+        "configurator preview"
+      ],
+      "dependencies": [
+        {
+          "name": "three",
+          "version": "^0.187.0"
+        },
+        {
+          "name": "@react-three/fiber",
+          "version": "^9.8.2"
+        }
+      ],
+      "params": [
+        {
+          "key": "damping",
+          "label": "Damping",
+          "type": "number",
+          "default": 0.08,
+          "min": 0,
+          "max": 0.3,
+          "step": 0.01
+        },
+        {
+          "key": "step",
+          "label": "Key / button step",
+          "type": "number",
+          "default": 15,
+          "min": 5,
+          "max": 45,
+          "step": 5,
+          "unit": "°"
+        },
+        {
+          "key": "limits",
+          "label": "Orbit limits",
+          "type": "select",
+          "default": "Upper hemisphere",
+          "options": [
+            "Upper hemisphere",
+            "Front arc",
+            "Plan to eye level"
+          ]
+        },
+        {
+          "key": "autoRotate",
+          "label": "Idle turntable",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "key": "accent",
+          "label": "Figure colour",
+          "type": "color",
+          "default": "#bf2f09"
+        }
+      ],
+      "accessibility": [
+        "The viewer wrapper is focusable (role=\"application\", labelled, described by the visible instruction line, aria-keyshortcuts): arrows orbit, + / − zoom, 0 or Home resets.",
+        "Every pointer gesture has a button: rotate left/right, tilt up/down, zoom in/out and reset, all ≥ 44 px with visible focus.",
+        "No scroll hijack: the wheel zooms only while the viewer has focus; ctrl/⌘ + wheel (trackpad pinch) zooms while hovering; touch uses touch-action: pan-y so vertical swipes still scroll the page.",
+        "After each move settles, a polite live region reports the view (angle, elevation, zoom); the on-canvas readout is aria-hidden to avoid per-frame chatter.",
+        "Without WebGL an SVG axonometric drawn from the same model data is shown and the camera buttons are disabled with an explanation."
+      ],
+      "reducedMotion": "Damping and the idle turntable are switched off, so every orbit, zoom and reset is a direct cut with no easing tail; dragging still follows the pointer 1:1.",
+      "performance": [
+        "frameloop=\"demand\": nothing renders at rest; frames are requested only while the camera moves (including the damping tail) or the optional turntable runs.",
+        "About 15 draw calls: shared box geometry, instanced columns, steps, trees and figures; no shadow-map pass at any quality level — ground shadows are baked once into a canvas texture for the fixed key light.",
+        "Generated environment lighting (PMREM, sized by the quality profile) instead of a downloaded HDRI; NeutralToneMapping keeps paper white and the accent hue true.",
+        "All imperatively created geometries, materials and canvas textures are disposed on unmount."
+      ],
+      "preview": {
+        "height": 580
+      },
+      "path": "library/src/effects/orbit-inspect-controls",
+      "files": [
+        "index.tsx",
+        "bake.ts",
+        "fallback.tsx",
+        "model.ts",
+        "scene.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
       "id": "parallax-depth-layers",
       "name": "Parallax Depth Layers",
       "description": "A paper-cut landscape whose layers travel at depth-scaled rates as it passes through the scroll container. One scroll-progress custom property drives every layer in CSS — no animation library, no per-layer JavaScript.",
@@ -2112,6 +2528,220 @@
         "scroll": true
       },
       "path": "library/src/effects/parallax-depth-layers",
+      "files": [
+        "index.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "particle-field-gpu",
+      "name": "Particle Field GPU",
+      "description": "THREE.Points with a custom ShaderMaterial: every particle's position is a pure function of its seed and time, integrated along the curl of a stream function in the vertex shader, so the field braids and drifts with zero CPU work per particle. The pointer pushes particles aside or draws them in.",
+      "category": "shaders",
+      "specialties": [
+        "cinematic",
+        "3d"
+      ],
+      "technology": [
+        "r3f",
+        "three",
+        "glsl"
+      ],
+      "interaction": [
+        "pointer",
+        "keyboard",
+        "time"
+      ],
+      "complexity": 3,
+      "intensity": "moderate",
+      "applications": [
+        "immersive hero background",
+        "launch or event page atmosphere",
+        "loading or waiting state",
+        "section transition backdrop"
+      ],
+      "dependencies": [
+        {
+          "name": "three",
+          "version": "^0.187.0"
+        },
+        {
+          "name": "@react-three/fiber",
+          "version": "^9.8.2"
+        }
+      ],
+      "params": [
+        {
+          "key": "count",
+          "label": "Particles (× quality density)",
+          "type": "number",
+          "default": 12000,
+          "min": 2000,
+          "max": 40000,
+          "step": 1000
+        },
+        {
+          "key": "intensity",
+          "label": "Intensity",
+          "type": "number",
+          "default": 0.8,
+          "min": 0.2,
+          "max": 1.5,
+          "step": 0.05
+        },
+        {
+          "key": "flow",
+          "label": "Flow speed",
+          "type": "number",
+          "default": 1,
+          "min": 0,
+          "max": 3,
+          "step": 0.1,
+          "unit": "×"
+        },
+        {
+          "key": "size",
+          "label": "Point size",
+          "type": "number",
+          "default": 2.2,
+          "min": 0.8,
+          "max": 5,
+          "step": 0.1,
+          "unit": "px"
+        },
+        {
+          "key": "mode",
+          "label": "Pointer",
+          "type": "select",
+          "default": "Repel",
+          "options": [
+            "Repel",
+            "Attract"
+          ]
+        }
+      ],
+      "accessibility": [
+        "A visible Pause / Play button (aria-pressed) stops the continuous motion at any time (WCAG 2.2.2).",
+        "Keyboard path for the pointer influence: focus the field (role=\"application\", labelled and described), arrows move the influence point, Shift for bigger steps, Esc releases it.",
+        "Works on light and dark stages: ink particles with ordinary alpha on light surfaces, additive light on dark ones; colours come from the theme tokens.",
+        "Decorative: the canvas has a label and a text description; without WebGL an SVG of the same flow field's streamlines is shown."
+      ],
+      "reducedMotion": "A single static frame of the field is rendered (frameloop=\"demand\", time frozen); the pointer has no effect and the field is not focusable.",
+      "performance": [
+        "One draw call (THREE.Points); per frame only uniforms change — positions come from per-particle seeds in the vertex shader (7 Euler steps of an analytic curl field).",
+        "Particle count is the param × the quality profile's density (12 000 → 7 200 on medium, 3 600 on low); the canvas pauses offscreen via StudioCanvas.",
+        "frameloop=\"always\" only while playing; paused or reduced motion switches to \"demand\" and renders only on pointer input.",
+        "Geometry and material are created imperatively and disposed on unmount or when the count changes."
+      ],
+      "preview": {
+        "height": 520
+      },
+      "path": "library/src/effects/particle-field-gpu",
+      "files": [
+        "index.tsx",
+        "fallback.tsx",
+        "flow.ts",
+        "scene.tsx",
+        "shader.ts",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "poll-result-bars",
+      "name": "Poll Result Bars",
+      "description": "A single-choice poll whose option rows turn into result bars in place: fills slide out to each share on a staggered WAAPI timeline while the percentages count up in lockstep with each bar’s own eased progress. Your pick keeps its spot, gains a check and \"Your vote\", and you can change it.",
+      "category": "social",
+      "specialties": [
+        "social",
+        "data"
+      ],
+      "technology": [
+        "css",
+        "waapi"
+      ],
+      "interaction": [
+        "press",
+        "keyboard",
+        "data"
+      ],
+      "complexity": 2,
+      "intensity": "moderate",
+      "applications": [
+        "community or newsletter poll",
+        "event feedback question",
+        "in-feed quick vote",
+        "product survey teaser"
+      ],
+      "dependencies": [],
+      "params": [
+        {
+          "key": "duration",
+          "label": "Bar duration",
+          "type": "number",
+          "default": 1000,
+          "min": 400,
+          "max": 2000,
+          "step": 50,
+          "unit": "ms"
+        },
+        {
+          "key": "stagger",
+          "label": "Stagger",
+          "type": "number",
+          "default": 90,
+          "min": 0,
+          "max": 240,
+          "step": 10,
+          "unit": "ms"
+        },
+        {
+          "key": "easing",
+          "label": "Easing",
+          "type": "select",
+          "default": "emphasized",
+          "options": [
+            "emphasized",
+            "standard",
+            "inOut",
+            "overshoot"
+          ]
+        },
+        {
+          "key": "highlight",
+          "label": "Accent bar",
+          "type": "select",
+          "default": "choice",
+          "options": [
+            "choice",
+            "leader",
+            "none"
+          ]
+        },
+        {
+          "key": "countUp",
+          "label": "Count up labels",
+          "type": "boolean",
+          "default": true
+        }
+      ],
+      "accessibility": [
+        "Native radio group inside a fieldset with the question as its legend: arrow keys move the choice, Enter or the Vote button submits.",
+        "Results are a list whose rows read as \"option, percent\", plus \"Your vote\" and \"Leading\" as words with an icon; the accent fill is never the only cue.",
+        "A polite live region reads the final results once; the counting numbers are not announced frame by frame.",
+        "Focus moves to \"Change vote\" after voting and back to the checked radio after choosing to change it."
+      ],
+      "reducedMotion": "Bars appear at their final width with a 160 ms opacity fade and the percentages are shown immediately.",
+      "performance": [
+        "Each fill is a full-width layer translated inside a clipped track (transform only), so rounded ends never distort.",
+        "Counting reads getComputedTiming().progress of each bar inside one useRafLoop that runs only while bars move.",
+        "The final transform is the inline style, so no fill-mode animations linger; everything is cancelled on unmount."
+      ],
+      "preview": {
+        "height": 500
+      },
+      "path": "library/src/effects/poll-result-bars",
       "files": [
         "index.tsx",
         "styles.module.css",
@@ -2215,6 +2845,104 @@
         "height": 460
       },
       "path": "library/src/effects/press-depth-button",
+      "files": [
+        "index.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "progress-orbit-loader",
+      "name": "Progress Orbit Loader",
+      "description": "One SVG loader for the whole life of a job: while the size is unknown a dash orbits on eased turns and breathes in length, then it hands over to a determinate arc with a satellite marking the leading edge and a tabular-figure percentage that never jitters, and finally settles on \"Done\".",
+      "category": "loading",
+      "specialties": [
+        "product",
+        "data"
+      ],
+      "technology": [
+        "svg",
+        "css"
+      ],
+      "interaction": [
+        "time",
+        "press",
+        "keyboard"
+      ],
+      "complexity": 2,
+      "intensity": "subtle",
+      "applications": [
+        "file export or upload progress",
+        "report generation",
+        "install or sync screens",
+        "inline busy indicator in buttons and rows"
+      ],
+      "dependencies": [],
+      "params": [
+        {
+          "key": "sequence",
+          "label": "Sequence",
+          "type": "select",
+          "default": "auto",
+          "options": [
+            "auto",
+            "determinate",
+            "indeterminate"
+          ]
+        },
+        {
+          "key": "duration",
+          "label": "Job length",
+          "type": "number",
+          "default": 5200,
+          "min": 2000,
+          "max": 12000,
+          "step": 200,
+          "unit": "ms"
+        },
+        {
+          "key": "orbit",
+          "label": "Orbit period",
+          "type": "number",
+          "default": 1500,
+          "min": 700,
+          "max": 3200,
+          "step": 100,
+          "unit": "ms"
+        },
+        {
+          "key": "thickness",
+          "label": "Stroke",
+          "type": "number",
+          "default": 6,
+          "min": 2,
+          "max": 12,
+          "step": 1,
+          "unit": "px"
+        },
+        {
+          "key": "satellite",
+          "label": "Satellite",
+          "type": "boolean",
+          "default": true
+        }
+      ],
+      "accessibility": [
+        "role=\"progressbar\" with aria-valuemin/max; aria-valuenow and a spoken aria-valuetext only while the amount is known (indeterminate omits aria-valuenow, as ARIA specifies).",
+        "A separate polite live region announces phase changes (preparing, exporting, complete) instead of every percent.",
+        "The readout uses tabular figures, so the number never shifts width; the ring and satellite are aria-hidden decoration.",
+        "Restart is a real button reachable by keyboard."
+      ],
+      "reducedMotion": "No orbit, breathing or easing: a static quarter ring with \"Preparing\" while indeterminate, then the ring and percentage update in place without transitions.",
+      "performance": [
+        "Indeterminate motion is two CSS keyframe animations (rotation on a group, dash length on one circle); they unmount the moment the job becomes determinate.",
+        "Determinate progress changes one stroke-dashoffset and one rotation per update (a few per second), smoothed by CSS transitions.",
+        "The simulated job is one timer chain, cleared on restart and unmount."
+      ],
+      "preview": {
+        "height": 460
+      },
+      "path": "library/src/effects/progress-orbit-loader",
       "files": [
         "index.tsx",
         "styles.module.css",
@@ -2802,6 +3530,107 @@
       ]
     },
     {
+      "id": "skeleton-shimmer-handoff",
+      "name": "Skeleton Shimmer Handoff",
+      "description": "Skeleton rows that hand off to real content with a staggered cross-fade and zero layout shift. One shimmer layer, clipped to the union of every bone with a measured clip-path, sweeps the whole list with a single pseudo-element animation; skeleton and content share each row’s grid cell and line-height-locked geometry.",
+      "category": "loading",
+      "specialties": [
+        "product",
+        "data"
+      ],
+      "technology": [
+        "css",
+        "waapi"
+      ],
+      "interaction": [
+        "time",
+        "press",
+        "keyboard"
+      ],
+      "complexity": 2,
+      "intensity": "subtle",
+      "applications": [
+        "feed or reading list first load",
+        "search results while fetching",
+        "dashboard cards waiting on data",
+        "inbox or notification lists"
+      ],
+      "dependencies": [],
+      "params": [
+        {
+          "key": "latency",
+          "label": "Simulated latency",
+          "type": "number",
+          "default": 1400,
+          "min": 300,
+          "max": 4000,
+          "step": 100,
+          "unit": "ms"
+        },
+        {
+          "key": "stagger",
+          "label": "Handoff stagger",
+          "type": "number",
+          "default": 80,
+          "min": 0,
+          "max": 200,
+          "step": 10,
+          "unit": "ms"
+        },
+        {
+          "key": "rows",
+          "label": "Rows",
+          "type": "number",
+          "default": 3,
+          "min": 2,
+          "max": 5,
+          "step": 1
+        },
+        {
+          "key": "shimmer",
+          "label": "Shimmer",
+          "type": "select",
+          "default": "sweep",
+          "options": [
+            "sweep",
+            "pulse",
+            "none"
+          ]
+        },
+        {
+          "key": "speed",
+          "label": "Shimmer cycle",
+          "type": "number",
+          "default": 1700,
+          "min": 800,
+          "max": 3200,
+          "step": 100,
+          "unit": "ms"
+        }
+      ],
+      "accessibility": [
+        "The list region is aria-busy while loading, and a polite live region says \"Loading reading list…\" and then how many articles arrived.",
+        "Skeleton bones and the shimmer layer are aria-hidden; real content only enters the accessibility tree once it exists.",
+        "Reload is a real button that stays focusable while busy (aria-disabled), so keyboard focus is never lost.",
+        "Titles reserve two lines and metadata one, so zooming or narrow containers never push rows around when content lands."
+      ],
+      "reducedMotion": "Bones stay static (no sweep or pulse), and the handoff becomes a single 160 ms opacity cross-fade with no stagger or rise.",
+      "performance": [
+        "Exactly one infinite animation while loading: a transform (sweep) or opacity (pulse) keyframe on one pseudo-element, removed as soon as content is ready.",
+        "The clip-path is rebuilt only on resize (ResizeObserver, rAF-batched), never per frame.",
+        "Handoff is one createSequence timeline (transform/opacity) that is cancelled on unmount and on every reload."
+      ],
+      "preview": {
+        "height": 480
+      },
+      "path": "library/src/effects/skeleton-shimmer-handoff",
+      "files": [
+        "index.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
       "id": "split-line-reveal",
       "name": "Split Line Reveal",
       "description": "Headline words rise from behind a clipping mask with a parent→child stagger, sequenced on the Web Animations API so it can be interrupted, replayed and cleaned up.",
@@ -2884,6 +3713,296 @@
         "height": 320
       },
       "path": "library/src/effects/split-line-reveal",
+      "files": [
+        "index.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "story-progress-segments",
+      "name": "Story Progress Segments",
+      "description": "A Stories-style viewer with segmented progress: each segment fills on a WAAPI timeline and advances the story, the left third goes back and the rest goes forward, pressing and holding pauses, and visible Previous / Pause / Next buttons plus arrow keys and Space make every gesture optional. Slides are typographic compositions drawn in CSS.",
+      "category": "social",
+      "specialties": [
+        "social",
+        "cinematic"
+      ],
+      "technology": [
+        "waapi",
+        "css"
+      ],
+      "interaction": [
+        "press",
+        "keyboard",
+        "time"
+      ],
+      "complexity": 3,
+      "intensity": "moderate",
+      "applications": [
+        "product or editorial stories",
+        "onboarding walkthrough",
+        "event recap",
+        "release notes highlights"
+      ],
+      "dependencies": [],
+      "params": [
+        {
+          "key": "duration",
+          "label": "Slide duration",
+          "type": "number",
+          "default": 5000,
+          "min": 2000,
+          "max": 10000,
+          "step": 250,
+          "unit": "ms"
+        },
+        {
+          "key": "slides",
+          "label": "Slides",
+          "type": "number",
+          "default": 5,
+          "min": 3,
+          "max": 6,
+          "step": 1
+        },
+        {
+          "key": "transition",
+          "label": "Transition",
+          "type": "select",
+          "default": "slide",
+          "options": [
+            "slide",
+            "fade",
+            "none"
+          ]
+        },
+        {
+          "key": "autoAdvance",
+          "label": "Auto-advance",
+          "type": "boolean",
+          "default": true
+        }
+      ],
+      "accessibility": [
+        "Visible Previous, Pause/Play and Next buttons (WCAG 2.2.2 pause control and 2.5.1 single-pointer alternative to tap zones and press-and-hold).",
+        "The focusable story region answers ← and → (previous/next) and Space (pause/play); a text line always says \"Slide n of N\".",
+        "Slides are groups labelled \"n of N\"; hidden slides are inert. The slide region is aria-live=\"polite\" only while not auto-advancing, so screen readers are not interrupted mid-story.",
+        "Tap zones and the progress segments are aria-hidden duplicates of the buttons; all copy is fictional sample content."
+      ],
+      "reducedMotion": "No auto-advance and no slide movement: the story waits for Previous/Next, segments show position statically and slides swap with a 160 ms fade.",
+      "performance": [
+        "One WAAPI scaleX animation per visible segment drives both the bar and the advance (its finish event), so pausing is animation.pause() with no timers to resync.",
+        "Slide transitions are two short transform/opacity animations; every animation is cancelled on change and on unmount."
+      ],
+      "preview": {
+        "height": 620
+      },
+      "path": "library/src/effects/story-progress-segments",
+      "files": [
+        "index.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "svg-path-draw",
+      "name": "SVG Path Draw",
+      "description": "An original line drawing of a lute assembles itself stroke by stroke: every path is normalised with pathLength=\"1\", so one dash-offset keyframe draws any shape, and each part (body, rosette, frets, pegs, strings) gets its own easing on a single createSequence timeline before the fills arrive. Replay it, or scrub the timeline with a slider.",
+      "category": "svg",
+      "specialties": [
+        "cinematic",
+        "product"
+      ],
+      "technology": [
+        "svg",
+        "waapi"
+      ],
+      "interaction": [
+        "time",
+        "press",
+        "drag",
+        "keyboard"
+      ],
+      "complexity": 2,
+      "intensity": "moderate",
+      "applications": [
+        "brand mark or monogram reveal",
+        "illustrated section opener",
+        "product line-art explainer",
+        "empty-state or onboarding illustration"
+      ],
+      "dependencies": [],
+      "params": [
+        {
+          "key": "speed",
+          "label": "Speed",
+          "type": "number",
+          "default": 1,
+          "min": 0.5,
+          "max": 2,
+          "step": 0.1,
+          "unit": "×"
+        },
+        {
+          "key": "stagger",
+          "label": "Part stagger",
+          "type": "number",
+          "default": 90,
+          "min": 0,
+          "max": 300,
+          "step": 10,
+          "unit": "ms"
+        },
+        {
+          "key": "easing",
+          "label": "Easing",
+          "type": "select",
+          "default": "varied",
+          "options": [
+            "varied",
+            "uniform"
+          ]
+        },
+        {
+          "key": "fill",
+          "label": "Fill after drawing",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "key": "strokeWidth",
+          "label": "Stroke width",
+          "type": "number",
+          "default": 2,
+          "min": 1,
+          "max": 4,
+          "step": 0.25,
+          "unit": "px"
+        }
+      ],
+      "accessibility": [
+        "The drawing is role=\"img\" with <title> and <desc> describing the instrument; the individual strokes are not exposed.",
+        "Replay is a button and the scrubber is a native range input (arrow keys, Page Up/Down, Home/End) with a \"percent drawn\" value text.",
+        "Scrubbing pauses playback, so the drawing only moves while the user is moving it."
+      ],
+      "reducedMotion": "The finished drawing is shown at once and Replay is a 160 ms fade; the scrubber still draws the lines, because that motion is under the user’s direct control.",
+      "performance": [
+        "One WAAPI animation per path (stroke-dashoffset or fill-opacity) on a single createSequence timeline, so seek() scrubs everything with no per-frame JavaScript beyond the slider readout.",
+        "pathLength=\"1\" means no getTotalLength() measuring and no layout reads.",
+        "The timeline is cancelled on unmount and rebuilt only when a parameter changes."
+      ],
+      "preview": {
+        "height": 540
+      },
+      "path": "library/src/effects/svg-path-draw",
+      "files": [
+        "index.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "swipe-card-stack",
+      "name": "Swipe Card Stack",
+      "description": "A shortlist deck you sort by flinging cards: the top card follows the pointer, tilts with the drag and is dismissed by distance or by release velocity, while the card beneath rises in step with the drag. Skip, Save and Undo buttons and the arrow keys do everything a swipe does.",
+      "category": "gestures",
+      "specialties": [
+        "social",
+        "product"
+      ],
+      "technology": [
+        "motion",
+        "css"
+      ],
+      "interaction": [
+        "drag",
+        "press",
+        "keyboard"
+      ],
+      "complexity": 3,
+      "intensity": "bold",
+      "applications": [
+        "shortlist or wish-list triage",
+        "onboarding preference picker",
+        "moderation or review queue",
+        "flashcards"
+      ],
+      "dependencies": [
+        {
+          "name": "motion",
+          "version": "^14.14.0"
+        }
+      ],
+      "params": [
+        {
+          "key": "depth",
+          "label": "Cards behind",
+          "type": "number",
+          "default": 2,
+          "min": 1,
+          "max": 4,
+          "step": 1
+        },
+        {
+          "key": "threshold",
+          "label": "Distance to dismiss",
+          "type": "number",
+          "default": 110,
+          "min": 60,
+          "max": 200,
+          "step": 5,
+          "unit": "px"
+        },
+        {
+          "key": "velocity",
+          "label": "Flick velocity",
+          "type": "number",
+          "default": 600,
+          "min": 200,
+          "max": 1500,
+          "step": 50,
+          "unit": "px/s"
+        },
+        {
+          "key": "rotation",
+          "label": "Max tilt",
+          "type": "number",
+          "default": 12,
+          "min": 0,
+          "max": 25,
+          "step": 1,
+          "unit": "°"
+        },
+        {
+          "key": "spring",
+          "label": "Spring token",
+          "type": "select",
+          "default": "release",
+          "options": [
+            "release",
+            "settle",
+            "glide",
+            "pop"
+          ]
+        }
+      ],
+      "accessibility": [
+        "Every swipe has a single-pointer, non-dragging equivalent (WCAG 2.5.1 / 2.5.7): visible Skip, Save and Undo buttons of at least 44 px.",
+        "Left and Right arrows skip and save, Backspace or Z undoes, whenever focus is inside the deck; the top card is focusable and described by those instructions.",
+        "A polite live region announces each decision and how many cards remain; when a focused card leaves, focus moves to the next card (or to Start over).",
+        "Save and Skip are shown as words on the card and in the buttons, not by colour or direction alone; the stamps are decorative."
+      ],
+      "reducedMotion": "Cards no longer fly, tilt or rise: a decided card fades out in 160 ms and the next one is simply there. Dragging still moves the card under the finger because that movement is directly user-controlled.",
+      "performance": [
+        "Drag, tilt, stamp opacity and the rise of the next card are motion values derived from one x value, so dragging causes no React renders.",
+        "Only the top card is draggable and only the visible slice of the deck is mounted.",
+        "Exit animations are springs seeded with the release velocity, so a flick carries its speed."
+      ],
+      "preview": {
+        "height": 600
+      },
+      "path": "library/src/effects/swipe-card-stack",
       "files": [
         "index.tsx",
         "styles.module.css",
@@ -2989,6 +4108,49 @@
   ],
   "demos": [
     {
+      "id": "cinematic-landing",
+      "name": "Pulse Night Edition",
+      "specialty": "3d",
+      "summary": "An art-directed launch page: the Pulse speaker on a black stage, an opening camera move you can skip, a slow key-light sweep, and a scroll-driven camera that walks through two chapters of editorial copy.",
+      "highlights": [
+        "A choreographed opening: the camera arcs in on a centripetal Catmull-Rom path while the key light fades up — interrupted by Skip or by the first scroll.",
+        "Scroll progress through a pinned section drives the camera between three held poses with critically damped easing, with separate framings for portrait screens.",
+        "Ambient light: the key sweeps slowly and the status ring breathes (the LightPulse clip plus an emissive pulse on a cloned material), with a Pause control.",
+        "The headline is the split-line-reveal recipe; all copy is DOM text around the canvas, and the poster fallback carries the same copy."
+      ],
+      "technology": [
+        "r3f",
+        "three",
+        "waapi"
+      ],
+      "uses": [
+        "split-line-reveal"
+      ],
+      "collaborates": [
+        "cinematic"
+      ],
+      "has3d": true,
+      "accessibility": [
+        "All copy is real text outside the canvas; the canvas has a name and a description of the scene and of what scrolling does.",
+        "The opening move (5.2 s) has a Skip button; the continuous light animation has a Pause control (WCAG 2.2.2).",
+        "Section buttons jump to each chapter; normal keyboard scrolling drives the same camera moves.",
+        "Without WebGL, or if the model fails to load, a still render sits where the speaker would be and the copy is unchanged."
+      ],
+      "reducedMotion": "No opening move: the camera starts at its final pose and cuts to each chapter’s pose instead of gliding; the lights and the status ring hold still; the headline appears without its rise.",
+      "performance": [
+        "Continuous rendering only while the ambient light plays and the stage is on screen; paused or reduced, it renders on demand (scroll and camera settling request frames).",
+        "One model (the variant for the quality profile: 131k triangles on low-power), a plinth and a contact shadow — about 16 draw calls.",
+        "Scroll is read through a passive, rAF-batched listener into a ref; no React render per scroll event (only when the chapter changes)."
+      ],
+      "path": "library/src/demos/3d/cinematic-landing",
+      "files": [
+        "index.tsx",
+        "Director.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
       "id": "particle-experience",
       "name": "Drift — a particle study",
       "specialty": "3d",
@@ -3026,6 +4188,45 @@
         "shaders.ts",
         "shapes.ts",
         "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "physics-playground",
+      "name": "Blockwerk Play Table",
+      "specialty": "3d",
+      "summary": "Rigid-body physics with Rapier: drag, throw and stack wooden blocks, tilt gravity, and watch the render loop go idle once everything is asleep — with a full keyboard path through a body list.",
+      "highlights": [
+        "The Rapier chunk (WebAssembly included) is code-split with React.lazy and only fetched once the canvas starts; loading and failure states are shown.",
+        "Fixed 1/60 s timestep on a clamped clock, sleeping bodies, a 40-body cap that recycles the oldest, and removal of anything that falls out of the world.",
+        "Render on demand: Rapier requests frames only while a body is awake, so a settled table draws nothing — the page shows the frame counter stopping.",
+        "Drag is kinematic: the grabbed block follows the pointer on a camera-facing plane and is thrown with the pointer’s recent velocity on release."
+      ],
+      "technology": [
+        "r3f",
+        "three",
+        "rapier"
+      ],
+      "uses": [],
+      "has3d": true,
+      "accessibility": [
+        "Every pointer action has a keyboard path: choose a body in the list (a native radio group), then Nudge left/right/away/toward, Lift, Drop or Remove.",
+        "Body state (resting, moving, held) is text in the list; additions, removals and recycling are announced in a polite live region.",
+        "Gravity direction is a radio group with names, strength a labelled slider with its value in m/s².",
+        "Without WebGL a drawing of the starting arrangement is shown and the physics engine is never downloaded."
+      ],
+      "reducedMotion": "The simulation starts paused and only runs after an explicit “Run simulation” press (the motion is the content). Camera views cut instead of gliding.",
+      "performance": [
+        "One draw call per body (shared geometry per shape, one material per colour) plus the table; at most 40 bodies.",
+        "Shadow maps only on profiles that allow them; otherwise one instanced quad per body draws contact shadows in a single call.",
+        "The loop is idle whenever all bodies sleep or the simulation is paused; frame deltas are clamped to 50 ms so a resumed loop never fast-forwards."
+      ],
+      "path": "library/src/demos/3d/physics-playground",
+      "files": [
+        "index.tsx",
+        "bodies.ts",
+        "styles.module.css",
+        "World.tsx",
         "meta.ts"
       ]
     },
@@ -3108,6 +4309,56 @@
         "Atlas.tsx",
         "data.ts",
         "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "financial-dashboard",
+      "name": "Fernhollow fund terminal",
+      "specialty": "data",
+      "summary": "End-of-day analytics for a fictional multi-asset fund: alerts first, rolling KPI figures, a growth-of-£100 chart that morphs between ranges and follows a brushable three-year history, allocation drift against target bands, return attribution that reconciles, and a sortable positions table.",
+      "highlights": [
+        "One window drives everything: range presets morph the chart (values and y-domain interpolated at a shared resolution, as in line-chart-morph); dragging the three-year brush (the brush-linked-range pattern) re-derives the KPIs, allocation and attribution directly, without tweening under the hand.",
+        "KPI figures roll digit by digit (the number-ticker technique) only on discrete changes; each tile pairs its value with a comparison and a period, and deltas carry ▲/▼ and a sign, with the gain/loss colours switchable for markets that show rises in red.",
+        "Alerts are derived from rules run on the data (drift beyond a ±2 pp band, a move beyond 3× the 60-day standard deviation, a drawdown watch with open/clear thresholds) and sit at the top, by urgency, with severity as word, shape and colour.",
+        "Return attribution lists each sleeve’s contribution plus fees and compounding, so the rows reconcile exactly to the fund’s return.",
+        "Selecting a position plots it, rebased, against the fund; selecting a sleeve filters the table — linked views without a separate mode.",
+        "The chart, overview and KPI patterns are local, data-driven adaptations of the line-chart-morph, brush-linked-range and number-ticker recipes, whose components ship their own sample datasets."
+      ],
+      "technology": [
+        "d3",
+        "svg",
+        "waapi",
+        "css"
+      ],
+      "uses": [
+        "line-chart-morph",
+        "brush-linked-range",
+        "number-ticker"
+      ],
+      "has3d": false,
+      "accessibility": [
+        "The chart is a focusable slider: ←/→ step a trading day, Page Up/Down a week, Home/End jump, Esc hides the readout; aria-valuetext reads the date and every series.",
+        "The brush window and both of its edges are role=\"slider\" controls with date values; presets are a native radio group.",
+        "A computed text summary sits under the chart and is announced politely after each committed range change (not while dragging); “View as table” shows the same values.",
+        "Positions: sortable headers expose aria-sort; one row button is in the tab order and ↑/↓/Home/End move between rows; the wide table scrolls inside its own labelled region with a frozen first column.",
+        "Nothing relies on colour alone: series differ by weight and dash, severities by word and shape, deltas by sign and arrow, out-of-band sleeves by an icon and text."
+      ],
+      "reducedMotion": "Range changes cut to the new chart instead of morphing, KPI digits swap without rolling and allocation bars jump; crosshair, brush and table behave the same.",
+      "performance": [
+        "Every range is resampled once to 640 points, so a morph frame is one array lerp per series and three path strings; the rAF loop runs only during a morph.",
+        "Brush drags recompute the window statistics (≤ 785 days) synchronously — well under a frame — and never start a tween.",
+        "Digit columns animate with transform-only WAAPI and collapse back to one cell when they finish."
+      ],
+      "dataNote": "Simulated: a seeded five-sleeve factor model (seed 366) with fees, quarterly rebalancing and a 60/40 composite built from the same sleeves; twelve invented instruments follow their sleeve plus noise. Weekdays only, UTC. Not a real fund, not real prices, not advice.",
+      "path": "library/src/demos/data/financial-dashboard",
+      "files": [
+        "index.tsx",
+        "data.ts",
+        "PerformanceChart.tsx",
+        "RangeBrush.tsx",
+        "styles.module.css",
+        "Ticker.tsx",
         "meta.ts"
       ]
     }

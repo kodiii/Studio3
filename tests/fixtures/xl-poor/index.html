@@ -1,0 +1,65 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Page</title>
+<link rel="icon" href="data:,">
+<style>
+  *:focus { outline: none; }
+  body { margin: 0; font-family: Georgia, serif; color: #333333; font-size: 13px; }
+  .top { display: flex; gap: 2px; padding: 4px; background: #f4f4f4; }
+  .top a, nav a { color: #333333; text-decoration: none; font-size: 11px; }
+  .icons a { display: inline-block; width: 16px; height: 16px; background: #999999; margin-right: 2px; }
+  .cta { display: inline-block; background: #e11d48; color: #ffffff; padding: 6px 10px; cursor: pointer; margin: 4px; font-size: 15px; }
+  .pill { display: inline-block; background: #38bdf8; color: #ffffff; padding: 6px 10px; margin: 4px; border: 0; border-radius: 20px; font-size: 12px; text-decoration: none; }
+  p a { color: #333333; text-decoration: none; }
+  .muted { color: #aaaaaa; font-size: 12px; }
+  .big { font-size: 31px; color: #0f766e; margin: 4px 0; }
+  h4 { font-size: 22px; color: #7c3aed; margin: 0; }
+  .orb { width: 160px; height: 160px; border-radius: 50%; background: conic-gradient(#f43f5e, #3b82f6, #f43f5e); animation: spin 3s linear infinite; }
+  .banner { position: relative; animation: slide 2500ms ease-out both; overflow: hidden; }
+  [role="menu"] { border: 1px solid #ccc; padding: 4px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes slide { from { left: -400px; width: 10px; } to { left: 0; width: 100%; } }
+</style>
+</head>
+<body>
+<div class="top">
+  <a href="index.html">Home</a> <a href="#">Products</a> <a href="form.html">Contact</a>
+  <span class="icons"><a href="https://example.invalid/x" target="_blank" aria-label="X"></a><a href="https://example.invalid/y" target="_blank" aria-label="Y"></a><a href="https://example.invalid/z" target="_blank" aria-label="Z"></a></span>
+  <div role="button" aria-haspopup="menu" aria-expanded="false" id="menu-btn" onclick="document.getElementById('menu').hidden=false">Menu</div>
+  <div role="menu" id="menu" hidden><a role="menuitem" href="scene.html">Scene</a></div>
+</div>
+<div class="banner"><h4>Welcome!!!</h4></div>
+<div class="orb"></div>
+<p class="big">Do more today</p>
+<p>Our platform helps teams ship. See the <a href="form.html">contact page</a> for details or read <a href="scene.html">the 3D demo</a> notes before you start.</p>
+<p class="muted">Low-contrast small print that is hard to read on a bright screen.</p>
+<div class="cta" onclick="location.href='form.html'">Get started</div>
+<a class="pill" href="#" onclick="return false">Learn more</a>
+<a class="pill" href="javascript:void(0)">Pricing</a>
+<button class="pill" aria-expanded="false" aria-controls="more" id="more-btn">Show details</button>
+<button class="pill">Sign up</button><button class="pill">Demo</button><button class="pill"></button>
+<div id="more" hidden>More text about the platform.</div>
+<div id="list"></div>
+<img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='60'%3E%3Crect width='300' height='60' fill='%23fecdd3'/%3E%3C/svg%3E" alt="">
+<p><a href="scene.html" tabindex="1">Footer link</a></p>
+<script>
+  (function () { var t = performance.now(); while (performance.now() - t < 300) {} })();
+  document.getElementById('more-btn').addEventListener('click', function () {
+    var t = performance.now(); while (performance.now() - t < 450) {}
+    var m = document.getElementById('more'); m.hidden = !m.hidden; // aria-expanded is never updated
+  });
+  setTimeout(function () {
+    var t = performance.now(); while (performance.now() - t < 260) {}
+    var b = document.createElement('div'); b.style.height = '220px'; b.style.background = '#fde68a'; b.textContent = 'SALE! Limited offer!';
+    document.body.insertBefore(b, document.body.firstChild);
+  }, 450);
+  setTimeout(function () {
+    var t = performance.now(); while (performance.now() - t < 300) {}
+    document.getElementById('list').innerHTML = '<ul><li>New: faster dashboards for every team member.</li><li>New: export reports to many formats at once.</li><li>New: invite colleagues with a single click today.</li></ul>';
+  }, 700);
+</script>
+</body>
+</html>

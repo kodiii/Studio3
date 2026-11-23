@@ -6,7 +6,10 @@
  *   plugins/studio3/library/catalog.json                machine-readable catalog for tools + skills
  *   plugins/studio3/library/CATALOG.md                  human/agent-readable index
  *   apps/gallery/public/sources/<kind>/<id>.json        source files for the gallery code viewer
- * Usage: node scripts/build-catalog.mjs [--check]   (--check exits 1 if generated files are stale)
+ * Usage: node scripts/build-catalog.mjs [--check] [--strict]
+ *   --check   exit 1 if generated files are stale (implies --strict)
+ *   --strict  incomplete folders (missing meta.ts/index.tsx, meta that fails to load, unknown `uses`) are errors.
+ *             Without it they are skipped with a warning, so work in progress in one folder does not block the rest.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -16,6 +19,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const LIB = path.join(ROOT, 'plugins/studio3/library');
 const SRC = path.join(LIB, 'src');
 const check = process.argv.includes('--check');
+const strict = check || process.argv.includes('--strict');
 const ident = (s) => s.replace(/[^a-zA-Z0-9]+(.)?/g, (_, c) => (c ? c.toUpperCase() : '')).replace(/^(\d)/, '_$1');
 const SOURCE_EXT = new Set(['.ts', '.tsx', '.css', '.glsl', '.json']);
 
@@ -38,17 +42,20 @@ async function loadMeta(file) {
 }
 
 const errors = [];
+const skipped = [];
+/** Problems caused by work in progress: errors in strict mode, warnings otherwise. */
+const incomplete = (msg) => (strict ? errors : skipped).push(msg);
 const effects = [];
 const effectsDir = path.join(SRC, 'effects');
 for (const id of fs.existsSync(effectsDir) ? fs.readdirSync(effectsDir).sort() : []) {
   const dir = path.join(effectsDir, id);
   if (!fs.statSync(dir).isDirectory()) continue;
-  if (!fs.existsSync(path.join(dir, 'meta.ts')) || !fs.existsSync(path.join(dir, 'index.tsx'))) { errors.push(`effects/${id}: needs meta.ts and index.tsx`); continue; }
+  if (!fs.existsSync(path.join(dir, 'meta.ts')) || !fs.existsSync(path.join(dir, 'index.tsx'))) { incomplete(`effects/${id}: needs meta.ts and index.tsx`); continue; }
   try {
     const meta = await loadMeta(path.join(dir, 'meta.ts'));
     if (meta.id !== id) errors.push(`effects/${id}: meta.id "${meta.id}" must equal folder name`);
     effects.push({ id, meta, files: listFiles(dir) });
-  } catch (e) { errors.push(`effects/${id}: ${e.message}`); }
+  } catch (e) { incomplete(`effects/${id}: ${e.message}`); }
 }
 
 const demos = [];
@@ -59,20 +66,21 @@ for (const sp of fs.existsSync(demosDir) ? fs.readdirSync(demosDir).sort() : [])
   for (const id of fs.readdirSync(spDir).sort()) {
     const dir = path.join(spDir, id);
     if (!fs.statSync(dir).isDirectory()) continue;
-    if (!fs.existsSync(path.join(dir, 'meta.ts')) || !fs.existsSync(path.join(dir, 'index.tsx'))) { errors.push(`demos/${sp}/${id}: needs meta.ts and index.tsx`); continue; }
+    if (!fs.existsSync(path.join(dir, 'meta.ts')) || !fs.existsSync(path.join(dir, 'index.tsx'))) { incomplete(`demos/${sp}/${id}: needs meta.ts and index.tsx`); continue; }
     try {
       const meta = await loadMeta(path.join(dir, 'meta.ts'));
       if (meta.id !== id) errors.push(`demos/${sp}/${id}: meta.id "${meta.id}" must equal folder name`);
       if (meta.specialty !== sp) errors.push(`demos/${sp}/${id}: meta.specialty "${meta.specialty}" must equal "${sp}"`);
       demos.push({ id, specialty: sp, meta, files: listFiles(dir) });
-    } catch (e) { errors.push(`demos/${sp}/${id}: ${e.message}`); }
+    } catch (e) { incomplete(`demos/${sp}/${id}: ${e.message}`); }
   }
 }
 
 const dupes = effects.map((e) => e.id).filter((id, i, a) => a.indexOf(id) !== i);
 if (dupes.length) errors.push(`duplicate effect ids: ${dupes.join(', ')}`);
 const effectIds = new Set(effects.map((e) => e.id));
-for (const d of demos) for (const u of d.meta.uses ?? []) if (!effectIds.has(u)) errors.push(`demos/${d.specialty}/${d.id}: uses unknown effect "${u}"`);
+for (const d of demos) for (const u of d.meta.uses ?? []) if (!effectIds.has(u)) incomplete(`demos/${d.specialty}/${d.id}: uses unknown effect "${u}"`);
+if (skipped.length) console.error(`Catalog warnings (skipped; run with --strict to fail):\n  ${skipped.join('\n  ')}`);
 if (errors.length) { console.error('Catalog errors:\n  ' + errors.join('\n  ')); process.exit(1); }
 
 // ---- registry.generated.ts

@@ -111,36 +111,12 @@ own WebGL 2 backend when no adapter exists, so a TSL scene can run without WebGP
 path from GLSL and from the three-kit components (`LightingRig` uses the WebGL `PMREMGenerator`). The node
 postprocessing class is `RenderPipeline` in 0.187 (`PostProcessing` is its deprecated alias since r183).
 
-```tsx
-'use client';
-import { useEffect, useState, type ReactNode } from 'react';
-import { StudioCanvas, detectWebGPU } from './three';
-
-/** Decide once. Not exercised by Studio³'s automated tests (headless CI has no adapter): verify on real devices. */
-export function DualPathScene({ label, webgpu, webgl }: { label: string; webgpu: ReactNode; webgl: ReactNode }) {
-  const [gpu, setGpu] = useState<boolean | null>(null);
-  useEffect(() => {
-    let alive = true;
-    void detectWebGPU().then((r) => { if (alive) setGpu(r.available); });
-    return () => { alive = false; };
-  }, []);
-  if (gpu === null) return null; // keep the poster on screen meanwhile
-  if (!gpu) return <StudioCanvas label={label}>{webgl}</StudioCanvas>;
-  return (
-    <StudioCanvas
-      label={label}
-      gl={async ({ canvas }) => {
-        const { WebGPURenderer } = await import('three/webgpu');
-        const renderer = new WebGPURenderer({ canvas: canvas as HTMLCanvasElement, antialias: true });
-        await renderer.init();
-        return renderer;
-      }}
-    >
-      {webgpu}
-    </StudioCanvas>
-  );
-}
-```
+Pattern: resolve `detectWebGPU()` once in an effect (keep the poster on screen meanwhile); when it reports no
+adapter, render the WebGL scene; when it does, render `StudioCanvas` with an async renderer factory —
+`gl={async ({ canvas }) => { const { WebGPURenderer } = await import('three/webgpu'); const r = new
+WebGPURenderer({ canvas: canvas as HTMLCanvasElement, antialias: true }); await r.init(); return r; }}` (R3F 9
+accepts a promise-returning `gl`). Studio³'s automated tests never exercise this path (headless CI has no adapter):
+verify on real devices and say so.
 
 ```ts
 import { MeshStandardNodeMaterial } from 'three/webgpu';
@@ -180,46 +156,17 @@ export function makePulseMaterial(): MeshStandardNodeMaterial {
 
 ## 7. Instancing
 
-One draw call for many copies of the same geometry and material.
+One draw call for many copies of the same geometry and material. Working references: the `spatial-data` demo
+(one instanced mesh per node shape, restyled by rewriting instance colours and matrices) and `scroll-camera-dolly`
+(instanced columns written once in a layout effect).
 
-```tsx
-import { useThree } from '@react-three/fiber';
-import { useLayoutEffect, useRef } from 'react';
-import { Color, Object3D, SRGBColorSpace, type InstancedMesh } from 'three';
-import { useQuality } from './three';
-
-export function Field({ base = 400 }: { base?: number }) {
-  const { density } = useQuality();
-  const invalidate = useThree((s) => s.invalidate);
-  const count = Math.max(1, Math.round(base * density));
-  const ref = useRef<InstancedMesh>(null);
-  useLayoutEffect(() => {
-    const mesh = ref.current;
-    if (!mesh) return;
-    const o = new Object3D();
-    const c = new Color();
-    for (let i = 0; i < count; i++) {
-      const a = i * 2.399963; // golden angle: an even, deterministic spread
-      const r = Math.sqrt(i / count) * 4;
-      o.position.set(Math.cos(a) * r, 0, Math.sin(a) * r);
-      o.scale.setScalar(0.06 + (i % 7) * 0.01);
-      o.updateMatrix();
-      mesh.setMatrixAt(i, o.matrix);
-      mesh.setColorAt(i, c.setHSL(0.08 + (i % 5) * 0.02, 0.6, 0.55, SRGBColorSpace));
-    }
-    mesh.instanceMatrix.needsUpdate = true;
-    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-    mesh.computeBoundingSphere(); // bounds of all instances, for correct culling
-    invalidate();
-  }, [count, invalidate]);
-  return (
-    <instancedMesh ref={ref} args={[undefined, undefined, count]}>
-      <sphereGeometry args={[1, 16, 12]} />
-      <meshStandardMaterial roughness={0.5} />
-    </instancedMesh>
-  );
-}
-```
+- Write matrices with `setMatrixAt(i, object.matrix)` after `object.updateMatrix()`, colours with
+  `setColorAt(i, colour)`, then set `instanceMatrix.needsUpdate` (and `instanceColor.needsUpdate`) and call
+  `invalidate()`.
+- Call `computeBoundingSphere()` after placing instances so culling uses their real spread, or set
+  `frustumCulled={false}` when they move every frame.
+- Derive the count from `useQuality().density`; layouts from deterministic sequences (golden-angle spirals,
+  index hashes), never `Math.random()` in render.
 
 - Changing `args` recreates the mesh; to vary the visible number, allocate the maximum and set `mesh.count`.
 - Different geometries sharing one material: `BatchedMesh`. Drei's `<Instances>`/`<Merged>` are declarative
@@ -317,18 +264,8 @@ export function Embers({ base = 4000 }: { base?: number }) {
 | Drei `<Environment preset="…">` | **Downloads** HDR files from `raw.githack.com` | Do not ship; self-host a file instead |
 | Your own `.hdr`/`.exr` with `HDRLoader`/`EXRLoader` | Own origin | `RGBELoader` is deprecated since r180: use `HDRLoader` |
 
-```tsx
-import { Environment, Lightformer } from '@react-three/drei';
-
-export function LocalStudioEnvironment() {
-  return (
-    <Environment resolution={256}>
-      <Lightformer form="rect" intensity={4} position={[0, 5, -2]} scale={[8, 3, 1]} />
-      <Lightformer form="ring" intensity={2} position={[-4, 1, 2]} scale={2} />
-    </Environment>
-  );
-}
-```
+Local studio light with Drei: `<Environment resolution={256}>` containing `<Lightformer form="rect"
+intensity={4} position={[0, 5, -2]} scale={[8, 3, 1]} />` children — rendered once, nothing downloaded.
 
 ## 10. Transmission, refraction and other expensive materials
 

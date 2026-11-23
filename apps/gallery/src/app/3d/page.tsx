@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Shell } from '@/components/SiteHeader';
 import { ThreeGallery } from '@/components/three-gallery/ThreeGallery';
 
 export const metadata: Metadata = {
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function ThreeDPage() {
-  return <ThreeGallery />;
+  return (
+    <Shell>
+      <ThreeGallery />
+    </Shell>
+  );
 }

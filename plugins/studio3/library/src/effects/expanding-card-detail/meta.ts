@@ -23,7 +23,7 @@ export const meta: EffectMeta = {
     'Each card title is a real button (stretched over the card) with aria-haspopup="dialog", so the whole card is clickable but only one tab stop.',
     'The panel is role="dialog" labelled by its heading; focus moves to its Close button, and Escape or Close return focus to the card that opened it.',
     'While the panel is open the grid is inert (out of the tab order and the accessibility tree); an exiting panel is inert too, so Tab never lands in a closing view.',
-    'Posters are decorative SVG (aria-hidden); the event type, date and place are always real text.',
+    'Posters are decorative SVG (aria-hidden); the event type, date and place are always real text, and a press outside the panel closes it like Escape does.',
   ],
   reducedMotion: 'No shared-element travel: the panel and scrim fade in and out over 160 ms and the cards stay where they are.',
   performance: [

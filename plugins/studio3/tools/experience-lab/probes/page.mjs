@@ -506,20 +506,17 @@ export function pageTabGeometry() {
   return { stops, skip, firstStop: first ? H.sel(first) : null };
 }
 
-/** Tag one safe control for the input-latency probe (disclosure toggles first). */
-export function pageLatencyCandidate() {
+/** Tag up to `max` safe controls for the input-latency probe (disclosure toggles first). @param {number} max */
+export function pageLatencyCandidates(max) {
   const H = /** @type {any} */ (window).__S3VD__; const X = /** @type {any} */ (window).__S3XL__.h;
   document.querySelectorAll('[data-s3xl-latency]').forEach((e) => e.removeAttribute('data-s3xl-latency'));
   const DANGER = /delete|remove|destroy|buy|pay|purchase|checkout|order|submit|send|sign ?(out|in|up)|log ?(out|in)|unsubscribe|reset|clear|pause|stop|play|motion|animation/i;
   const ok = (el) => !el.disabled && !el.form && !el.closest('a[href],[inert],[aria-hidden="true"]') && H.visible(el) && X.onPage(el) && !DANGER.test(X.accName(el) || '');
-  const cands = [
+  const cands = [...new Set([
     ...Array.from(document.querySelectorAll('button[aria-expanded],[role="button"][aria-expanded],summary')),
     ...Array.from(document.querySelectorAll('button[type="button"],[role="button"]:not(a)')),
-  ].filter(ok);
-  const el = cands[0];
-  if (!el) return null;
-  el.setAttribute('data-s3xl-latency', '1');
-  return { selector: H.sel(el), text: H.text(el, 30), kind: el.getAttribute('aria-expanded') != null ? 'disclosure' : el.localName === 'summary' ? 'summary' : 'button' };
+  ])].filter(ok).slice(0, max);
+  return cands.map((el, i) => { el.setAttribute('data-s3xl-latency', String(i)); return { i, selector: H.sel(el), text: H.text(el, 30), kind: el.getAttribute('aria-expanded') != null ? 'disclosure' : el.localName === 'summary' ? 'summary' : 'button' }; });
 }
 
 /** Testable forms: a visible form with a text-like field that is not a search form. */

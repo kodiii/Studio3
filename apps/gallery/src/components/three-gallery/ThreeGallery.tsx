@@ -8,12 +8,7 @@ export function ThreeGallery() {
   const demos = demosFor('3d');
   return (
     <div data-specialty="3d" className="min-h-dvh bg-bg text-ink">
-      <header className="mx-auto flex max-w-[1320px] items-center justify-between gap-4 px-4 pt-5 sm:px-8">
-        <Link href="/" className="s3-label inline-flex min-h-11 items-center gap-2 text-muted hover:text-ink">← Gallery</Link>
-        <span className="s3-label text-muted">Studio³ / 3D Studio</span>
-      </header>
-
-      <main className="mx-auto max-w-[1320px] px-4 pb-24 sm:px-8">
+      <div className="mx-auto max-w-[1320px] px-4 pb-24 sm:px-8">
         <section className="grid gap-6 border-b border-line pb-10 pt-10 sm:pt-16 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-end lg:gap-8">
           <div>
             <p className="s3-label mb-5 flex items-center gap-2 text-accent"><span aria-hidden="true" className="inline-block h-2 w-2 rounded-full bg-accent" />05 — Make digital experiences feel tangible</p>
@@ -36,7 +31,7 @@ export function ThreeGallery() {
         <section aria-labelledby="demos-heading" className="mt-20 border-t border-line-strong pt-6">
           <div className="mb-8 flex items-baseline justify-between gap-4">
             <h2 id="demos-heading" className="font-display text-2xl font-bold tracking-[-0.02em]">Five demos</h2>
-            <span className="s3-label text-muted">{String(demos.length).padStart(2, '0')} scenes</span>
+            <span className="s3-label text-muted">{String(demos.length).padStart(2, '0')} scenes · live source</span>
           </div>
           <ol className="m-0 grid list-none gap-px border border-line bg-line p-0 sm:grid-cols-2 lg:grid-cols-3">
             {demos.map((d, i) => (
@@ -73,7 +68,7 @@ export function ThreeGallery() {
             </div>
           </div>
         </section>
-      </main>
+      </div>
     </div>
   );
 }

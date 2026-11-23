@@ -1,0 +1,56 @@
+.root {
+  container-type: inline-size;
+  width: 100%;
+  align-self: stretch;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  font-family: var(--s3-font-text, ui-sans-serif, system-ui, sans-serif);
+  color: var(--s3-ink, #11110f);
+}
+.field {
+  position: relative;
+  min-height: clamp(300px, 56cqi, 480px);
+  overflow: hidden;
+  cursor: crosshair;
+  touch-action: pan-y;
+  outline: none;
+}
+.field:focus-visible { outline: 2px solid var(--s3-focus, #1d4ed8); outline-offset: -4px; }
+.field > [data-studio3-canvas] { position: absolute !important; inset: 0; }
+
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+  padding: 12px clamp(12px, 3cqi, 24px);
+  border-top: 1px solid var(--s3-line, #11110f24);
+}
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 18px 0 14px;
+  border: 1px solid var(--s3-line-strong, #11110f);
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+.button svg { width: 16px; height: 16px; fill: currentColor; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.button:hover { background: var(--s3-ink, #11110f); color: var(--s3-surface, #fbf9f4); }
+.button:focus-visible { outline: 2px solid var(--s3-focus, #1d4ed8); outline-offset: 2px; }
+.hint { flex: 1 1 18rem; margin: 0; font-size: 0.8125rem; line-height: 1.45; color: var(--s3-ink-muted, #5c5a52); }
+.count {
+  margin: 0;
+  font-family: var(--s3-font-mono, ui-monospace, monospace);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  color: var(--s3-ink-muted, #5c5a52);
+}

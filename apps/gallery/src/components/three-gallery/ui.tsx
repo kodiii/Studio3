@@ -50,11 +50,11 @@ export function ToolButton({ label, children, className = '', ...rest }: { label
   );
 }
 
-export function Stat({ label, value, note }: { label: string; value: ReactNode; note?: string }) {
+export function Stat({ label, value, note, id }: { label: string; value: ReactNode; note?: string; id?: string }) {
   return (
     <div className="flex items-baseline justify-between gap-3 border-b border-line py-1.5">
-      <dt className="text-[13px] text-muted">{label}{note ? <span className="ml-1.5 font-mono text-[10px] uppercase tracking-wider opacity-80">{note}</span> : null}</dt>
-      <dd className="m-0 text-right font-mono text-[13px] tabular-nums">{value}</dd>
+      <dt className="text-[13px] text-muted">{label}{note ? <span className="ml-1.5 font-mono text-[10.5px] uppercase tracking-wider">{note}</span> : null}</dt>
+      <dd className="m-0 text-right font-mono text-[13px] tabular-nums" data-stat={id}>{value}</dd>
     </div>
   );
 }

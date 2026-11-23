@@ -1,0 +1,23 @@
+import { chromium } from 'playwright';
+const S = '/tmp/claude-0/-home-user/77865dc0-1700-59d0-bb68-e0d68f61d45b/scratchpad/rb';
+const b = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
+const p = await (await b.newContext({ viewport: { width: 1000, height: 900 } })).newPage();
+const errors = [];
+p.on('console', (m) => { if (m.type() === 'error') errors.push(m.text().slice(0, 160)); });
+p.on('pageerror', (e) => errors.push('pageerror ' + e.message.slice(0, 160)));
+await p.goto('http://localhost:3333/effects/progress-orbit-loader');
+const stage = p.locator('[data-effect-stage="progress-orbit-loader"]');
+const bar = stage.getByRole('progressbar');
+await bar.waitFor();
+const a = async (t) => console.log(t, JSON.stringify(await bar.evaluate((el) => ({ now: el.getAttribute('aria-valuenow'), text: el.getAttribute('aria-valuetext') }))), '|', await stage.locator('[role=status]').textContent());
+await p.waitForTimeout(600); await a('prep');
+await stage.screenshot({ path: `${S}/orbit-a.png` });
+await p.waitForTimeout(3200); await a('mid');
+await stage.screenshot({ path: `${S}/orbit-b.png` });
+await p.waitForTimeout(4200); await a('end');
+// keyboard restart
+await stage.getByRole('button', { name: 'Restart' }).focus();
+await p.keyboard.press('Enter');
+await p.waitForTimeout(200); await a('restarted');
+console.log('errors', errors);
+await b.close();

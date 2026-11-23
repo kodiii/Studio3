@@ -5,6 +5,7 @@
  *  - `useFrameTiming()` measures requestAnimationFrame deltas while enabled
  * Neither produces a number when nothing was measured — show "—", not a guess.
  */
+import { addAfterEffect, useThree } from '@react-three/fiber';
 import { useEffect, useRef, useState } from 'react';
 import type { Studio3Diagnostics } from '../StudioCanvas';
 
@@ -61,4 +62,22 @@ export function useFrameTiming(enabled: boolean, windowSize = 60): FrameTiming {
     return () => cancelAnimationFrame(raf);
   }, [enabled, windowSize]);
   return timing;
+}
+
+/**
+ * Render inside a StudioCanvas: after every rendered frame, writes the camera position to the canvas host as
+ * `data-camera="x,y,z"` (2 decimals). An observable for tests and review tools; costs nothing while the scene is idle
+ * and never re-renders React.
+ */
+export function CameraProbe(): null {
+  const get = useThree((s) => s.get);
+  useEffect(() => addAfterEffect(() => {
+    const { camera, gl } = get();
+    const host = gl.domElement.closest<HTMLElement>('[data-studio3-canvas]');
+    if (!host) return;
+    const p = camera.position;
+    const value = `${p.x.toFixed(2)},${p.y.toFixed(2)},${p.z.toFixed(2)}`;
+    if (host.dataset.camera !== value) host.dataset.camera = value;
+  }), [get]);
+  return null;
 }

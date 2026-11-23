@@ -150,8 +150,8 @@ export function ScrollShot({ children }: { children: React.ReactNode }) {
 }
 ```
 
-The same shape works with `createSequence`: build a sequence on a hidden element is not needed — for scene data
-use plain maths on the progress value (`useScrollProgress` → ref → `invalidate()`), or GSAP when tracks multiply.
+Without GSAP, use plain maths on a progress value instead (`useScrollProgress` → ref → `invalidate()`, §5);
+`createSequence` animates DOM elements, not scene data. Reach for GSAP when tracks multiply.
 Scroll mechanics, pinning and smoothing: `studio-motion` `references/scroll.md`; DOM ↔ scene contracts:
 `studio-motion` `references/3d-sync.md`.
 

@@ -1,6 +1,6 @@
 'use client';
 import {
-  AnimationPlayer, CameraRig, LightingRig, Model, ModelBoundary, OrbitInspect, PartController, SceneFallback, StudioCanvas,
+  AnimationPlayer, CameraProbe, CameraRig, LightingRig, Model, ModelBoundary, OrbitInspect, PartController, SceneFallback, StudioCanvas,
   computeModelStats, defaultQualityProfiles, describeModelError, formatBytes, formatCount, lightingPresets, resolveModelUrl, resolveModelVariant,
   useCanvasDiagnostics, useModelManifest, useModelProgress,
   type AnimationPlayerHandle, type AnimationState, type CameraRigHandle, type LightingPresetName, type LoadedModel, type ModelStats,
@@ -46,7 +46,8 @@ export function ModelViewer() {
   const wanted = level ? defaultQualityProfiles[level].modelVariant : null;
   const variant = ready && wanted ? resolveModelVariant(manifest, wanted) : null;
   const url = variant ? resolveModelUrl(variant.file, cfg.manifestUrl) : null;
-  const poster = ready && manifest.thumbnail ? resolveModelUrl(manifest.thumbnail, cfg.manifestUrl) : undefined;
+  const stillImage = ready ? manifest.fallbackImage ?? manifest.thumbnail : undefined;
+  const poster = stillImage ? resolveModelUrl(stillImage, cfg.manifestUrl) : undefined;
   const progress = useModelProgress(url);
   const diag = useCanvasDiagnostics(500);
 
@@ -118,13 +119,14 @@ export function ModelViewer() {
             style={{ position: 'absolute', inset: 0 }}
             fallback={<SceneFallback title={cfg.name} image={poster} imageAlt={`Static render of the ${cfg.name}`} description={cfg.blurb} facts={facts} />}
           >
+            <CameraProbe />
             <LightingRig preset={lighting} shadowRadius={cfg.shadowRadius} />
             <OrbitInspect ref={orbit} target={cfg.target} minDistance={cfg.distance[0]} maxDistance={cfg.distance[1]} />
             <CameraRig ref={rig} presets={cfg.presets} preset={camera in cfg.presets ? camera : 'hero'} />
             {url ? (
               <ModelBoundary resetKey={url} onError={setError}>
                 <Suspense fallback={null}>
-                  <Model src={url} scale={cfg.scale} castShadow onLoaded={onLoaded} />
+                  <Model src={url} scale={cfg.scale} castShadow onLoaded={onLoaded} onError={setError} />
                   <PartController root={loaded?.scene ?? null} overrides={overrides} />
                   <AnimationPlayer ref={player} root={loaded?.scene ?? null} clips={clips} clip={clip} speed={speed} loop={loop} onState={setAnim} />
                 </Suspense>
@@ -164,13 +166,13 @@ export function ModelViewer() {
               <ToolButton label="Zoom in" onClick={() => orbit.current?.zoom(1.2)}>+</ToolButton>
               <ToolButton label="Zoom out" onClick={() => orbit.current?.zoom(1 / 1.2)}>−</ToolButton>
               <ToolButton label="Reset view" onClick={() => { setCamera('hero'); rig.current?.goTo('hero'); }}>Reset</ToolButton>
-              {canFullscreen ? <ToolButton label={fullscreen ? 'Exit fullscreen (Esc)' : 'Enter fullscreen'} aria-pressed={fullscreen} onClick={toggleFullscreen}>{fullscreen ? 'Exit' : 'Full'}</ToolButton> : null}
+              {canFullscreen ? <ToolButton label={fullscreen ? 'Exit fullscreen' : 'Fullscreen'} onClick={toggleFullscreen} data-fullscreen-toggle="">{fullscreen ? 'Exit fullscreen' : 'Fullscreen'}</ToolButton> : null}
             </div>
           ) : null}
         </div>
         <p className="mt-2 text-[13px] leading-snug text-muted">
           Drag to orbit, pinch or scroll (after clicking the view) to zoom. With the view focused: arrow keys rotate, <kbd className="font-mono">+</kbd>/<kbd className="font-mono">−</kbd> zoom, <kbd className="font-mono">0</kbd> resets.
-          {canFullscreen ? '' : ' Fullscreen is not available in this browser.'}
+          {canFullscreen ? ' Fullscreen from the toolbar; Esc leaves it.' : ' Fullscreen is not available in this browser.'}
         </p>
         {manifestError ? <p role="alert" className="mt-2 text-[13px] text-danger">Model manifest could not be loaded: {manifestError.message}</p> : null}
 
@@ -179,26 +181,26 @@ export function ModelViewer() {
           <div>
             <h3 className="s3-label mb-2 text-muted">Model · read from the loaded file</h3>
             <dl className="m-0 border-t border-line">
-              <Stat label="Triangles" value={formatCount(stats?.triangles)} />
+              <Stat label="Triangles" id="triangles" value={formatCount(stats?.triangles)} />
               <Stat label="Vertices" value={formatCount(stats?.vertices)} />
               <Stat label="Meshes" value={formatCount(stats?.meshes)} />
               <Stat label="Materials" value={formatCount(stats?.materials)} />
               <Stat label="Textures" value={stats ? (stats.textures ? `${stats.textures} · up to ${stats.largestTexture.width}px` : '0') : '—'} />
               <Stat label="Texture memory" note="estimate" value={stats ? formatBytes(stats.estimatedTextureBytes) : '—'} />
               <Stat label="Animation clips" value={stats ? `${stats.animations}${stats.animations ? ` · ${stats.animationSeconds.toFixed(1)} s` : ''}` : '—'} />
-              <Stat label="File size" note="transferred" value={loaded ? formatBytes(loaded.bytes) : '—'} />
+              <Stat label="File size" id="bytes" note="transferred" value={loaded ? formatBytes(loaded.bytes) : '—'} />
             </dl>
           </div>
           <div>
             <h3 className="s3-label mb-2 text-muted">Renderer · live from renderer.info</h3>
             <dl className="m-0 border-t border-line">
-              <Stat label="Draw calls" note="last frame" value={live ? formatCount(diag?.renderer.calls) : '—'} />
-              <Stat label="Triangles" note="last frame" value={live ? formatCount(diag?.renderer.triangles) : '—'} />
+              <Stat label="Draw calls" id="draw-calls" note="last frame" value={live ? formatCount(diag?.renderer.calls) : '—'} />
+              <Stat label="Triangles" id="frame-triangles" note="last frame" value={live ? formatCount(diag?.renderer.triangles) : '—'} />
               <Stat label="Geometries in memory" value={live ? formatCount(diag?.renderer.geometries) : '—'} />
               <Stat label="Textures in memory" value={live ? formatCount(diag?.renderer.textures) : '—'} />
               <Stat label="Shader programs" value={live ? formatCount(diag?.renderer.programs) : '—'} />
               <Stat label="Pixel ratio" value={live && diag ? diag.dpr.toFixed(2) : '—'} />
-              <Stat label="Frames rendered" note="on demand" value={live ? formatCount(diag?.frames) : '—'} />
+              <Stat label="Frames rendered" id="frames" note="on demand" value={live ? formatCount(diag?.frames) : '—'} />
               <Stat label="Quality profile" value={live ? level ?? '—' : '3D off'} />
             </dl>
           </div>

@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Page</title>
+<link rel="icon" href="data:,">
+<style>
+  *:focus { outline: none; }
+  body { margin: 0; font-family: Georgia, serif; color: #333333; font-size: 13px; }
+  .top { display: flex; gap: 2px; padding: 4px; background: #f4f4f4; }
+  .top a, nav a { color: #333333; text-decoration: none; font-size: 11px; }
+  .icons a { display: inline-block; width: 16px; height: 16px; background: #999999; margin-right: 2px; }
+  .cta { display: inline-block; background: #e11d48; color: #ffffff; padding: 6px 10px; cursor: pointer; margin: 4px; font-size: 15px; }
+  .pill { display: inline-block; background: #38bdf8; color: #ffffff; padding: 6px 10px; margin: 4px; border: 0; border-radius: 20px; font-size: 12px; text-decoration: none; }
+  p a { color: #333333; text-decoration: none; }
+  .muted { color: #aaaaaa; font-size: 12px; }
+  .big { font-size: 31px; color: #0f766e; margin: 4px 0; }
+  h4 { font-size: 22px; color: #7c3aed; margin: 0; }
+  .orb { width: 160px; height: 160px; border-radius: 50%; background: conic-gradient(#f43f5e, #3b82f6, #f43f5e); animation: spin 3s linear infinite; }
+  .banner { position: relative; animation: slide 2500ms ease-out both; overflow: hidden; }
+  [role="menu"] { border: 1px solid #ccc; padding: 4px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes slide { from { left: -400px; width: 10px; } to { left: 0; width: 100%; } }
+</style>
+</head>
+<body>
+<nav><a href="#">Blog</a> <a href="index.html">Home</a> <a href="form.html">Contact</a></nav>
+<h4>Contact</h4>
+<form id="f" action="/submit" method="post">
+  <input name="name" placeholder="Name"><br>
+  <input name="email" placeholder="Email"><br>
+  <textarea name="msg" placeholder="Message"></textarea><br>
+  <button class="pill">Submit</button>
+</form>
+<div id="err" style="color:#e11d48"></div>
+<script>
+  document.getElementById('f').addEventListener('submit', function (e) {
+    e.preventDefault();
+    document.querySelectorAll('#f input').forEach(function (i) { i.style.borderColor = 'red'; });
+    document.getElementById('err').textContent = 'Error';
+  });
+</script>
+</body>
+</html>

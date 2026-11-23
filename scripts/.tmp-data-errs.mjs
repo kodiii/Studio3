@@ -1,0 +1,12 @@
+import { chromium } from 'playwright';
+const b = await chromium.launch();
+const ctx = await b.newContext(process.argv[3] === 'mobile' ? { reducedMotion: 'reduce', viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true } : {});
+const p = await ctx.newPage();
+p.on('requestfinished', async (r) => { const res = await r.response(); if (res && res.status() >= 400) console.log('HTTP', res.status(), r.url()); });
+p.on('requestfailed', (r) => console.log('FAILED', r.url(), r.failure()?.errorText));
+p.on('console', (m) => { if (m.type() === 'error') console.log('CONSOLE', m.text().slice(0, 300), JSON.stringify(m.location())); });
+p.on('pageerror', (e) => console.log('PAGEERROR', e.message));
+await p.goto('http://localhost:3333' + process.argv[2]);
+await p.waitForTimeout(2500);
+console.log('overflow', await p.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth));
+await b.close();

@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Page</title>
+<link rel="icon" href="data:,">
+<style>
+  *:focus { outline: none; }
+  body { margin: 0; font-family: Georgia, serif; color: #333333; font-size: 13px; }
+  .top { display: flex; gap: 2px; padding: 4px; background: #f4f4f4; }
+  .top a, nav a { color: #333333; text-decoration: none; font-size: 11px; }
+  .icons a { display: inline-block; width: 16px; height: 16px; background: #999999; margin-right: 2px; }
+  .cta { display: inline-block; background: #e11d48; color: #ffffff; padding: 6px 10px; cursor: pointer; margin: 4px; font-size: 15px; }
+  .pill { display: inline-block; background: #38bdf8; color: #ffffff; padding: 6px 10px; margin: 4px; border: 0; border-radius: 20px; font-size: 12px; text-decoration: none; }
+  p a { color: #333333; text-decoration: none; }
+  .muted { color: #aaaaaa; font-size: 12px; }
+  .big { font-size: 31px; color: #0f766e; margin: 4px 0; }
+  h4 { font-size: 22px; color: #7c3aed; margin: 0; }
+  .orb { width: 160px; height: 160px; border-radius: 50%; background: conic-gradient(#f43f5e, #3b82f6, #f43f5e); animation: spin 3s linear infinite; }
+  .banner { position: relative; animation: slide 2500ms ease-out both; overflow: hidden; }
+  [role="menu"] { border: 1px solid #ccc; padding: 4px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes slide { from { left: -400px; width: 10px; } to { left: 0; width: 100%; } }
+</style>
+<style> canvas { display: block; width: 100%; height: 320px; } </style>
+</head>
+<body>
+<nav><a href="index.html">Home</a> <a href="scene.html">Scene</a> <a href="#">Shop</a></nav>
+<h4>Our 3D world</h4>
+<canvas id="c"></canvas>
+<p>Amazing technology.</p>
+<script>
+  var canvas = document.getElementById('c');
+  var gl = canvas.getContext('webgl');
+  function sh(t, s) { var x = gl.createShader(t); gl.shaderSource(x, s); gl.compileShader(x); return x; }
+  var pr = gl.createProgram();
+  gl.attachShader(pr, sh(gl.VERTEX_SHADER, 'attribute vec2 p;uniform float a;void main(){float s=sin(a),k=cos(a);gl_Position=vec4(p.x*k-p.y*s,p.x*s+p.y*k,0.,1.);}'));
+  gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, 'precision mediump float;void main(){gl_FragColor=vec4(1.,.3,.5,1.);}'));
+  gl.linkProgram(pr); gl.useProgram(pr);
+  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, .7, -.6, -.5, .6, -.5]), gl.STATIC_DRAW);
+  var P = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(P); gl.vertexAttribPointer(P, 2, gl.FLOAT, false, 0, 0);
+  var uA = gl.getUniformLocation(pr, 'a'); var angle = 0;
+  (function loop() { canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight; gl.viewport(0, 0, canvas.width, canvas.height); angle += 0.03; gl.clearColor(0, 0, 0, 1); gl.clear(gl.COLOR_BUFFER_BIT); gl.uniform1f(uA, angle); gl.drawArrays(gl.TRIANGLES, 0, 3); requestAnimationFrame(loop); })();
+</script>
+</body>
+</html>

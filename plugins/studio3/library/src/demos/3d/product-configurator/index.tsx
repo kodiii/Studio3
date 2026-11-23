@@ -177,7 +177,7 @@ export default function ProductConfigurator() {
               {url ? (
                 <ModelBoundary resetKey={`${url}#${attempt}`} onError={setError}>
                   <Suspense fallback={null}>
-                    <Model src={url} scale={SCALE} castShadow onLoaded={onLoaded} onPointerMove={onPartMove} onPointerOut={() => setHover(null)} onClick={onPartClick} />
+                    <Model key={attempt} src={url} scale={SCALE} castShadow onLoaded={onLoaded} onError={setError} onPointerMove={onPartMove} onPointerOut={() => setHover(null)} onClick={onPartClick} />
                     <PartController root={loaded?.scene ?? null} overrides={overrides} hidden={hidden} explode={explode} highlight={hover} selected={selected} onReady={onPartsReady} />
                     <AnimationPlayer ref={player} root={loaded?.scene ?? null} clips={loaded?.animations ?? []} clip="KnobTurn" loop={false} onState={setAnim} />
                     <HotspotAnchors store={store} hotspots={hotspots} root={loaded?.scene ?? null} />

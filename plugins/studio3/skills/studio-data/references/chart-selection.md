@@ -100,7 +100,20 @@ it behind the same interface as the real client.
 The summary is computed from the data at render time, never written by hand, so it cannot drift from the
 chart.
 
-## 5. Chart anatomy checklist
+## 5. Scale and axis defaults
+
+| Decision | Default | Why |
+|---|---|---|
+| Linear domain | `[0, max]` for bars and areas; `extent` with about 5 % padding for lines, then `.nice()` | Honest baselines; round tick values |
+| Tick count | About 5–7 on the value axis; fewer as the container narrows | Enough to read values without a grid of noise |
+| Time axis | `scaleUtc` when data is in UTC, `scaleTime` for local time, and say which in the subtitle | Daylight-saving shifts and offsets change bucket edges |
+| Time tick labels | The coarsest unit that distinguishes ticks ("Mar", then "Mar 4", then "14:00") | Repeated context wastes width |
+| Categorical axis | `scaleBand` with padding 0.1–0.3; labels horizontal, truncated with the full name in the tooltip and table | Rotated labels are slow to read |
+| Gridlines | Value axis only, quiet colour, behind marks | Gridlines are a reading aid, not data |
+| Shared scales | Identical domains across small multiples unless a label says otherwise | Comparisons across panels stay valid |
+| Colour scale domain | Fixed across views and over time where values are compared | A legend that rescales per view breaks comparison |
+
+## 6. Chart anatomy checklist
 
 - [ ] Title (what), subtitle (units, period, filters, timezone), source line with retrieval date.
 - [ ] Axis titles with units; ticks formatted with the shared formatters; sensible tick count (about 5–7).
