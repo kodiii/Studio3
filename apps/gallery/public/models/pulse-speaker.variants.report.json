@@ -1,0 +1,3822 @@
+{
+  "generator": "Studio³ Asset Pipeline",
+  "generatedAt": "2026-11-23T08:52:18.278Z",
+  "tools": {
+    "@gltf-transform/core": "4.5.1",
+    "meshoptimizer": "1.3.0",
+    "draco3dgltf": "1.5.9",
+    "sharp": "0.35.5",
+    "gltf-validator": "2.0.0-dev.3.10"
+  },
+  "ok": true,
+  "name": "pulse-speaker",
+  "source": {
+    "file": "../../../../assets/models/pulse-speaker.source.glb",
+    "sha256": "67987c29573ad55165e4e459a99ad2f944dfe229c642e45fae37c78f3f50d6da",
+    "bytes": 19284124
+  },
+  "note": "Profiles are default starting points unless overridden by a budgets/profile file; they are not universal budgets.",
+  "manifest": "pulse-speaker.manifest.json",
+  "thumbnail": {
+    "status": "ok",
+    "thumbnail": "pulse-speaker.png",
+    "thumbnailSize": 512,
+    "fallbackImage": "pulse-speaker.webp",
+    "fallbackSize": 1024,
+    "renderedFrom": "pulse-speaker.desktop.glb",
+    "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "three": "187"
+  },
+  "variants": [
+    {
+      "generator": "Studio³ Asset Pipeline",
+      "generatedAt": "2026-11-23T08:52:09.024Z",
+      "tools": {
+        "@gltf-transform/core": "4.5.1",
+        "meshoptimizer": "1.3.0",
+        "draco3dgltf": "1.5.9",
+        "sharp": "0.35.5",
+        "gltf-validator": "2.0.0-dev.3.10"
+      },
+      "ok": true,
+      "name": "pulse-speaker.desktop",
+      "source": {
+        "file": "../../../../assets/models/pulse-speaker.source.glb",
+        "sha256": "67987c29573ad55165e4e459a99ad2f944dfe229c642e45fae37c78f3f50d6da",
+        "bytes": 19284124
+      },
+      "output": {
+        "file": "pulse-speaker.desktop.glb",
+        "sha256": "2a5f6147bea2ad68a5ce44718a39b494433da369b3d950d54763fb7adecf9247",
+        "bytes": 2002280
+      },
+      "profile": {
+        "name": "desktop",
+        "origin": "built-in default",
+        "settings": {
+          "description": "Default starting point for desktop-class GPUs: no geometry simplification, textures ≤ 2048 px.",
+          "compress": "meshopt",
+          "meshoptLevel": "medium",
+          "simplify": null,
+          "textures": {
+            "format": "webp",
+            "maxSize": 2048,
+            "quality": 82,
+            "slots": {
+              "normalTexture": {
+                "quality": 92
+              },
+              "metallicRoughnessTexture": {
+                "quality": 85
+              },
+              "occlusionTexture": {
+                "quality": 85
+              }
+            }
+          }
+        },
+        "note": "Built-in profiles are default starting points, not universal budgets."
+      },
+      "summary": {
+        "bytes": {
+          "before": 19284124,
+          "after": 2002280,
+          "change": -17281844,
+          "percent": -89.62
+        },
+        "triangles": {
+          "before": 263328,
+          "after": 263328,
+          "change": 0,
+          "percent": 0
+        },
+        "uniqueMeshTriangles": {
+          "before": 263328,
+          "after": 258912,
+          "change": -4416,
+          "percent": -1.68
+        },
+        "vertices": {
+          "before": 322464,
+          "after": 133937,
+          "change": -188527,
+          "percent": -58.46
+        },
+        "meshes": {
+          "before": 14,
+          "after": 11,
+          "change": -3,
+          "percent": -21.43
+        },
+        "materials": {
+          "before": 6,
+          "after": 6,
+          "change": 0,
+          "percent": 0
+        },
+        "textures": {
+          "before": 4,
+          "after": 4,
+          "change": 0,
+          "percent": 0
+        },
+        "textureBytes": {
+          "before": 6683936,
+          "after": 570422,
+          "change": -6113514,
+          "percent": -91.47
+        },
+        "gpuTextureBytesEstimate": {
+          "before": 89478484,
+          "after": 89478484,
+          "change": 0,
+          "percent": 0
+        },
+        "drawCallsEstimate": {
+          "before": 14,
+          "after": 14,
+          "change": 0,
+          "percent": 0
+        },
+        "animations": {
+          "before": 2,
+          "after": 2,
+          "change": 0,
+          "percent": 0
+        }
+      },
+      "steps": [
+        {
+          "id": "dedup",
+          "title": "Deduplicate accessors, meshes, textures and materials (uniquely named properties are kept)",
+          "status": "ran",
+          "before": {
+            "nodes": 16,
+            "meshes": 14,
+            "primitives": 14,
+            "vertices": 322464,
+            "triangles": 263328,
+            "accessors": 58,
+            "accessorBytes": 12585444,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "after": {
+            "nodes": 16,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 319929,
+            "triangles": 263328,
+            "accessors": 43,
+            "accessorBytes": 12352820,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "ms": 8
+        },
+        {
+          "id": "prune",
+          "title": "Prune unreferenced data (named/empty leaf nodes, extras and vertex attributes are kept)",
+          "status": "ran",
+          "detail": {
+            "keepLeaves": true,
+            "keepExtras": true,
+            "keepAttributes": true,
+            "keepSolidTextures": true
+          },
+          "before": {
+            "nodes": 16,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 319929,
+            "triangles": 263328,
+            "accessors": 43,
+            "accessorBytes": 12352820,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "after": {
+            "nodes": 16,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 319929,
+            "triangles": 263328,
+            "accessors": 43,
+            "accessorBytes": 12352820,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "ms": 1
+        },
+        {
+          "id": "join",
+          "title": "Join compatible primitives (opt-in; named nodes and meshes are never merged)",
+          "status": "skipped",
+          "reason": "Not requested (--join). Joining is opt-in because it can merge parts that viewers address individually.",
+          "before": {
+            "nodes": 16,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 319929,
+            "triangles": 263328,
+            "accessors": 43,
+            "accessorBytes": 12352820,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "after": {
+            "nodes": 16,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 319929,
+            "triangles": 263328,
+            "accessors": 43,
+            "accessorBytes": 12352820,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "ms": 0
+        },
+        {
+          "id": "weld",
+          "title": "Weld bitwise-identical vertices and build index buffers",
+          "status": "ran",
+          "before": {
+            "nodes": 16,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 319929,
+            "triangles": 263328,
+            "accessors": 43,
+            "accessorBytes": 12352820,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "after": {
+            "nodes": 16,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 133937,
+            "triangles": 263328,
+            "accessors": 48,
+            "accessorBytes": 5840068,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "ms": 112
+        },
+        {
+          "id": "simplify",
+          "title": "Simplify geometry (meshoptimizer, borders locked)",
+          "status": "skipped",
+          "reason": "Not requested by the profile/flags; triangle count is preserved.",
+          "before": {
+            "nodes": 16,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 133937,
+            "triangles": 263328,
+            "accessors": 48,
+            "accessorBytes": 5840068,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "after": {
+            "nodes": 16,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 133937,
+            "triangles": 263328,
+            "accessors": 48,
+            "accessorBytes": 5840068,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "ms": 1
+        },
+        {
+          "id": "reorder",
+          "title": "Reorder vertices/indices for compression and vertex-cache locality (meshoptimizer)",
+          "status": "ran",
+          "detail": {
+            "target": "size"
+          },
+          "before": {
+            "nodes": 16,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 133937,
+            "triangles": 263328,
+            "accessors": 48,
+            "accessorBytes": 5840068,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "after": {
+            "nodes": 16,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 133937,
+            "triangles": 263328,
+            "accessors": 48,
+            "accessorBytes": 5840068,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "ms": 111
+        },
+        {
+          "id": "quantize",
+          "title": "Quantize vertex attributes (KHR_mesh_quantization)",
+          "status": "ran",
+          "detail": {
+            "bits": {
+              "quantizePosition": 14,
+              "quantizeNormal": 10,
+              "quantizeTexcoord": 12,
+              "quantizeColor": 8,
+              "quantizeWeight": 8,
+              "quantizeGeneric": 12
+            },
+            "bitsOrigin": "gltf-transform defaults",
+            "partNodesIsolated": 14,
+            "note": "Meshes of named part nodes were moved to unnamed child nodes so the part nodes keep their original transforms."
+          },
+          "before": {
+            "nodes": 16,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 133937,
+            "triangles": 263328,
+            "accessors": 48,
+            "accessorBytes": 5840068,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "after": {
+            "nodes": 30,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 133937,
+            "triangles": 263328,
+            "accessors": 45,
+            "accessorBytes": 3962904,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "ms": 193
+        },
+        {
+          "id": "textures",
+          "title": "Resize / re-encode textures (sharp), per-slot rules",
+          "status": "ran",
+          "detail": {
+            "encoder": "sharp",
+            "ktx": {
+              "requested": false,
+              "available": false,
+              "reason": "KTX2 requires the `ktx` CLI from KTX-Software (https://github.com/KhronosGroup/KTX-Software), not found on PATH."
+            },
+            "notes": [],
+            "changed": 4,
+            "kept": 0
+          },
+          "before": {
+            "nodes": 30,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 133937,
+            "triangles": 263328,
+            "accessors": 45,
+            "accessorBytes": 3962904,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "after": {
+            "nodes": 30,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 133937,
+            "triangles": 263328,
+            "accessors": 45,
+            "accessorBytes": 3962904,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 570422,
+            "animations": 2
+          },
+          "ms": 1829
+        },
+        {
+          "id": "compress",
+          "title": "Mesh compression (meshopt)",
+          "status": "ran",
+          "detail": {
+            "extension": "EXT_meshopt_compression",
+            "level": "medium",
+            "note": "Applied when the GLB is serialised."
+          },
+          "before": {
+            "nodes": 30,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 133937,
+            "triangles": 263328,
+            "accessors": 45,
+            "accessorBytes": 3962904,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 570422,
+            "animations": 2
+          },
+          "after": {
+            "nodes": 30,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 133937,
+            "triangles": 263328,
+            "accessors": 45,
+            "accessorBytes": 3962904,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 570422,
+            "animations": 2
+          },
+          "ms": 0
+        },
+        {
+          "id": "write",
+          "title": "Write pulse-speaker.desktop.glb",
+          "status": "ran",
+          "detail": {
+            "bytes": 2002280
+          },
+          "before": {
+            "nodes": 30,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 133937,
+            "triangles": 263328,
+            "accessors": 45,
+            "accessorBytes": 3962904,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 570422,
+            "animations": 2
+          },
+          "after": {
+            "nodes": 30,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 133937,
+            "triangles": 263328,
+            "accessors": 45,
+            "accessorBytes": 3962904,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 570422,
+            "animations": 2
+          },
+          "ms": 67
+        }
+      ],
+      "notes": [],
+      "textures": [
+        {
+          "name": "GrilleNormal",
+          "slots": [
+            "normalTexture"
+          ],
+          "colorSpace": "linear",
+          "rule": {
+            "format": "webp",
+            "maxSize": 2048,
+            "quality": 92,
+            "lossless": false,
+            "slotRules": [
+              "normalTexture"
+            ]
+          },
+          "from": {
+            "mimeType": "image/png",
+            "width": 2048,
+            "height": 2048,
+            "bytes": 391341
+          },
+          "to": {
+            "mimeType": "image/webp",
+            "width": 2048,
+            "height": 2048,
+            "bytes": 236302
+          },
+          "action": "re-encoded webp"
+        },
+        {
+          "name": "GrilleORM",
+          "slots": [
+            "occlusionTexture",
+            "metallicRoughnessTexture"
+          ],
+          "colorSpace": "linear",
+          "rule": {
+            "format": "webp",
+            "maxSize": 2048,
+            "quality": 85,
+            "lossless": false,
+            "slotRules": [
+              "occlusionTexture",
+              "metallicRoughnessTexture"
+            ]
+          },
+          "from": {
+            "mimeType": "image/png",
+            "width": 2048,
+            "height": 2048,
+            "bytes": 2009688
+          },
+          "to": {
+            "mimeType": "image/webp",
+            "width": 2048,
+            "height": 2048,
+            "bytes": 122498
+          },
+          "action": "re-encoded webp"
+        },
+        {
+          "name": "ShellRoughness",
+          "slots": [
+            "metallicRoughnessTexture"
+          ],
+          "colorSpace": "linear",
+          "rule": {
+            "format": "webp",
+            "maxSize": 2048,
+            "quality": 85,
+            "lossless": false,
+            "slotRules": [
+              "metallicRoughnessTexture"
+            ]
+          },
+          "from": {
+            "mimeType": "image/png",
+            "width": 2048,
+            "height": 2048,
+            "bytes": 816665
+          },
+          "to": {
+            "mimeType": "image/webp",
+            "width": 2048,
+            "height": 2048,
+            "bytes": 48268
+          },
+          "action": "re-encoded webp"
+        },
+        {
+          "name": "StrapWeave",
+          "slots": [
+            "baseColorTexture"
+          ],
+          "colorSpace": "srgb",
+          "rule": {
+            "format": "webp",
+            "maxSize": 2048,
+            "quality": 82,
+            "lossless": false,
+            "slotRules": []
+          },
+          "from": {
+            "mimeType": "image/png",
+            "width": 2048,
+            "height": 2048,
+            "bytes": 3466242
+          },
+          "to": {
+            "mimeType": "image/webp",
+            "width": 2048,
+            "height": 2048,
+            "bytes": 163354
+          },
+          "action": "re-encoded webp"
+        }
+      ],
+      "verification": {
+        "ok": true,
+        "boundsTolerance": 0.002,
+        "checks": [
+          {
+            "id": "validator",
+            "status": "pass",
+            "detail": "No new validator errors (source 0 error(s)/1 warning(s), output 0 error(s)/1 warning(s))."
+          },
+          {
+            "id": "animations",
+            "status": "pass",
+            "detail": "2 clip(s) preserved: KnobTurn (2s), LightPulse (1.6s)."
+          },
+          {
+            "id": "materials",
+            "status": "pass",
+            "detail": "6 used material name(s) preserved (6 → 6 material objects; unused/duplicate materials may be pruned or merged)."
+          },
+          {
+            "id": "named-nodes",
+            "status": "pass",
+            "detail": "16 named node(s) preserved with parents, extras and transforms."
+          },
+          {
+            "id": "attributes",
+            "status": "pass",
+            "detail": "Vertex attributes (POSITION, NORMAL, TEXCOORD_0), 0 skin(s) and morph targets preserved."
+          },
+          {
+            "id": "bounds",
+            "status": "pass",
+            "detail": "Bounding box drift 0.0018% of the diagonal (tolerance 0.20%)."
+          },
+          {
+            "id": "triangles",
+            "status": "pass",
+            "detail": "Rendered triangles unchanged (263328); no simplification ran."
+          },
+          {
+            "id": "source-untouched",
+            "status": "pass",
+            "detail": "Source SHA-256 unchanged (67987c29573ad55165e4e459a99ad2f944dfe229c642e45fae37c78f3f50d6da)."
+          }
+        ]
+      },
+      "budgets": [],
+      "extensionsUsed": [
+        "EXT_meshopt_compression",
+        "EXT_texture_webp",
+        "KHR_mesh_quantization"
+      ],
+      "extensionsRequired": [
+        "EXT_meshopt_compression",
+        "EXT_texture_webp",
+        "KHR_mesh_quantization"
+      ],
+      "decoderRequirements": [
+        {
+          "extension": "EXT_meshopt_compression",
+          "required": true,
+          "needs": "MeshoptDecoder",
+          "three": "import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js'; gltfLoader.setMeshoptDecoder(MeshoptDecoder)"
+        },
+        {
+          "extension": "EXT_texture_webp",
+          "required": true,
+          "needs": null,
+          "note": "No decoder module; requires WebP image decoding in the runtime (all current browsers)."
+        },
+        {
+          "extension": "KHR_mesh_quantization",
+          "required": true,
+          "needs": null,
+          "note": "No decoder needed; supported natively by three.js GLTFLoader and all major engines."
+        }
+      ],
+      "sourcePreserving": {
+        "sourceSha256Before": "67987c29573ad55165e4e459a99ad2f944dfe229c642e45fae37c78f3f50d6da",
+        "sourceSha256After": "67987c29573ad55165e4e459a99ad2f944dfe229c642e45fae37c78f3f50d6da",
+        "unchanged": true,
+        "howToRevert": "Outputs are derived files. Delete them and re-run the pipeline from the unchanged source."
+      },
+      "backups": [],
+      "warnings": [
+        "quantize: Skipping TEXCOORD_0; out of [0,1] range."
+      ],
+      "inspect": {
+        "source": {
+          "totals": {
+            "scenes": 1,
+            "nodes": 16,
+            "namedNodes": 16,
+            "meshes": 14,
+            "primitives": 14,
+            "vertices": 322464,
+            "triangles": 263328,
+            "renderedVertices": 322464,
+            "renderedTriangles": 263328,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2,
+            "skins": 0,
+            "cameras": 0,
+            "accessors": 58,
+            "gpuTextureBytesEstimate": 89478484,
+            "drawCallsEstimate": 14
+          },
+          "bounds": {
+            "min": [
+              -0.111472,
+              0,
+              -0.04
+            ],
+            "max": [
+              0.111472,
+              0.1436,
+              0.0453
+            ],
+            "size": [
+              0.222944,
+              0.1436,
+              0.0853
+            ],
+            "center": [
+              0,
+              0.0718,
+              0.00265
+            ],
+            "diagonal": 0.27857
+          },
+          "meshes": [
+            {
+              "name": "BodyGeo",
+              "primitives": 1,
+              "vertices": 47526,
+              "triangles": 92928,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "GrilleGeo",
+              "primitives": 1,
+              "vertices": 18095,
+              "triangles": 33792,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "DriverGeo",
+              "primitives": 1,
+              "vertices": 146688,
+              "triangles": 48896,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "DriverRingGeo",
+              "primitives": 1,
+              "vertices": 10537,
+              "triangles": 20480,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "BadgeGeo",
+              "primitives": 1,
+              "vertices": 726,
+              "triangles": 1200,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "KnobGeo",
+              "primitives": 1,
+              "vertices": 9751,
+              "triangles": 18672,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "StatusLightGeo",
+              "primitives": 1,
+              "vertices": 4025,
+              "triangles": 7680,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "StrapPinLGeo",
+              "primitives": 1,
+              "vertices": 2468,
+              "triangles": 4096,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "StrapPinRGeo",
+              "primitives": 1,
+              "vertices": 2468,
+              "triangles": 4096,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "StrapGeo",
+              "primitives": 1,
+              "vertices": 76800,
+              "triangles": 25600,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "FootGeo",
+              "primitives": 1,
+              "vertices": 845,
+              "triangles": 1472,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "FootGeo",
+              "primitives": 1,
+              "vertices": 845,
+              "triangles": 1472,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "FootGeo",
+              "primitives": 1,
+              "vertices": 845,
+              "triangles": 1472,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "FootGeo",
+              "primitives": 1,
+              "vertices": 845,
+              "triangles": 1472,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            }
+          ],
+          "materials": [
+            "ShellMatte",
+            "GrilleMetal",
+            "DriverRubber",
+            "AccentAnodized",
+            "StrapFabric",
+            "LightEmissive"
+          ],
+          "textures": [
+            {
+              "name": "GrilleNormal",
+              "mimeType": "image/png",
+              "width": 2048,
+              "height": 2048,
+              "bytes": 391341,
+              "slots": [
+                "normalTexture"
+              ],
+              "gpuBytesEstimate": 22369621
+            },
+            {
+              "name": "GrilleORM",
+              "mimeType": "image/png",
+              "width": 2048,
+              "height": 2048,
+              "bytes": 2009688,
+              "slots": [
+                "occlusionTexture",
+                "metallicRoughnessTexture"
+              ],
+              "gpuBytesEstimate": 22369621
+            },
+            {
+              "name": "ShellRoughness",
+              "mimeType": "image/png",
+              "width": 2048,
+              "height": 2048,
+              "bytes": 816665,
+              "slots": [
+                "metallicRoughnessTexture"
+              ],
+              "gpuBytesEstimate": 22369621
+            },
+            {
+              "name": "StrapWeave",
+              "mimeType": "image/png",
+              "width": 2048,
+              "height": 2048,
+              "bytes": 3466242,
+              "slots": [
+                "baseColorTexture"
+              ],
+              "gpuBytesEstimate": 22369621
+            }
+          ],
+          "animations": [
+            {
+              "name": "KnobTurn",
+              "duration": 2,
+              "channels": 1
+            },
+            {
+              "name": "LightPulse",
+              "duration": 1.6,
+              "channels": 1
+            }
+          ],
+          "namedNodes": [
+            "PulseSpeaker",
+            "Body",
+            "Grille",
+            "Driver",
+            "DriverRing",
+            "Badge",
+            "Knob",
+            "StatusLight",
+            "StrapPinL",
+            "StrapPinR",
+            "Strap",
+            "Feet",
+            "FootFL",
+            "FootFR",
+            "FootRL",
+            "FootRR"
+          ]
+        },
+        "output": {
+          "totals": {
+            "scenes": 1,
+            "nodes": 30,
+            "namedNodes": 16,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 133937,
+            "triangles": 258912,
+            "renderedVertices": 136469,
+            "renderedTriangles": 263328,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 570422,
+            "animations": 2,
+            "skins": 0,
+            "cameras": 0,
+            "accessors": 45,
+            "gpuTextureBytesEstimate": 89478484,
+            "drawCallsEstimate": 14
+          },
+          "bounds": {
+            "min": [
+              -0.111472,
+              0,
+              -0.039995
+            ],
+            "max": [
+              0.111472,
+              0.143595,
+              0.0453
+            ],
+            "size": [
+              0.222944,
+              0.143595,
+              0.085295
+            ],
+            "center": [
+              0,
+              0.071798,
+              0.002653
+            ],
+            "diagonal": 0.278565
+          },
+          "meshes": [
+            {
+              "name": "BodyGeo",
+              "primitives": 1,
+              "vertices": 47524,
+              "triangles": 92928,
+              "instances": 1,
+              "attributes": [
+                "TEXCOORD_0",
+                "POSITION",
+                "NORMAL"
+              ]
+            },
+            {
+              "name": "GrilleGeo",
+              "primitives": 1,
+              "vertices": 18095,
+              "triangles": 33792,
+              "instances": 1,
+              "attributes": [
+                "TEXCOORD_0",
+                "POSITION",
+                "NORMAL"
+              ]
+            },
+            {
+              "name": "DriverGeo",
+              "primitives": 1,
+              "vertices": 24928,
+              "triangles": 48896,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "DriverRingGeo",
+              "primitives": 1,
+              "vertices": 10537,
+              "triangles": 20480,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "BadgeGeo",
+              "primitives": 1,
+              "vertices": 724,
+              "triangles": 1200,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "KnobGeo",
+              "primitives": 1,
+              "vertices": 9748,
+              "triangles": 18672,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "StatusLightGeo",
+              "primitives": 1,
+              "vertices": 4025,
+              "triangles": 7680,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "StrapPinLGeo",
+              "primitives": 1,
+              "vertices": 2340,
+              "triangles": 4096,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "StrapPinRGeo",
+              "primitives": 1,
+              "vertices": 2340,
+              "triangles": 4096,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "StrapGeo",
+              "primitives": 1,
+              "vertices": 12832,
+              "triangles": 25600,
+              "instances": 1,
+              "attributes": [
+                "TEXCOORD_0",
+                "POSITION",
+                "NORMAL"
+              ]
+            },
+            {
+              "name": "FootGeo",
+              "primitives": 1,
+              "vertices": 844,
+              "triangles": 1472,
+              "instances": 4,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            }
+          ],
+          "materials": [
+            "ShellMatte",
+            "GrilleMetal",
+            "DriverRubber",
+            "AccentAnodized",
+            "StrapFabric",
+            "LightEmissive"
+          ],
+          "textures": [
+            {
+              "name": "GrilleNormal",
+              "mimeType": "image/webp",
+              "width": 2048,
+              "height": 2048,
+              "bytes": 236302,
+              "slots": [
+                "normalTexture"
+              ],
+              "gpuBytesEstimate": 22369621
+            },
+            {
+              "name": "GrilleORM",
+              "mimeType": "image/webp",
+              "width": 2048,
+              "height": 2048,
+              "bytes": 122498,
+              "slots": [
+                "occlusionTexture",
+                "metallicRoughnessTexture"
+              ],
+              "gpuBytesEstimate": 22369621
+            },
+            {
+              "name": "ShellRoughness",
+              "mimeType": "image/webp",
+              "width": 2048,
+              "height": 2048,
+              "bytes": 48268,
+              "slots": [
+                "metallicRoughnessTexture"
+              ],
+              "gpuBytesEstimate": 22369621
+            },
+            {
+              "name": "StrapWeave",
+              "mimeType": "image/webp",
+              "width": 2048,
+              "height": 2048,
+              "bytes": 163354,
+              "slots": [
+                "baseColorTexture"
+              ],
+              "gpuBytesEstimate": 22369621
+            }
+          ],
+          "animations": [
+            {
+              "name": "KnobTurn",
+              "duration": 2,
+              "channels": 1
+            },
+            {
+              "name": "LightPulse",
+              "duration": 1.6,
+              "channels": 1
+            }
+          ],
+          "namedNodes": [
+            "PulseSpeaker",
+            "Body",
+            "Grille",
+            "Driver",
+            "DriverRing",
+            "Badge",
+            "Knob",
+            "StatusLight",
+            "StrapPinL",
+            "StrapPinR",
+            "Strap",
+            "Feet",
+            "FootFL",
+            "FootFR",
+            "FootRL",
+            "FootRR"
+          ]
+        }
+      }
+    },
+    {
+      "generator": "Studio³ Asset Pipeline",
+      "generatedAt": "2026-11-23T08:52:11.027Z",
+      "tools": {
+        "@gltf-transform/core": "4.5.1",
+        "meshoptimizer": "1.3.0",
+        "draco3dgltf": "1.5.9",
+        "sharp": "0.35.5",
+        "gltf-validator": "2.0.0-dev.3.10"
+      },
+      "ok": true,
+      "name": "pulse-speaker.mobile",
+      "source": {
+        "file": "../../../../assets/models/pulse-speaker.source.glb",
+        "sha256": "67987c29573ad55165e4e459a99ad2f944dfe229c642e45fae37c78f3f50d6da",
+        "bytes": 19284124
+      },
+      "output": {
+        "file": "pulse-speaker.mobile.glb",
+        "sha256": "475664e0b43c11029f1fccf5d61496fe37c2ee80ab2d5d67dcbe755690499188",
+        "bytes": 1470832
+      },
+      "profile": {
+        "name": "mobile",
+        "origin": "built-in default",
+        "settings": {
+          "description": "Default starting point for phones/tablets: 75% of triangles (border-locked), textures ≤ 1024 px.",
+          "compress": "meshopt",
+          "meshoptLevel": "medium",
+          "simplify": {
+            "ratio": 0.75,
+            "error": 0.001
+          },
+          "textures": {
+            "format": "webp",
+            "maxSize": 1024,
+            "quality": 80,
+            "slots": {
+              "normalTexture": {
+                "quality": 92
+              },
+              "metallicRoughnessTexture": {
+                "quality": 85
+              },
+              "occlusionTexture": {
+                "quality": 85
+              }
+            }
+          }
+        },
+        "note": "Built-in profiles are default starting points, not universal budgets."
+      },
+      "summary": {
+        "bytes": {
+          "before": 19284124,
+          "after": 1470832,
+          "change": -17813292,
+          "percent": -92.37
+        },
+        "triangles": {
+          "before": 263328,
+          "after": 197496,
+          "change": -65832,
+          "percent": -25
+        },
+        "uniqueMeshTriangles": {
+          "before": 263328,
+          "after": 194184,
+          "change": -69144,
+          "percent": -26.26
+        },
+        "vertices": {
+          "before": 322464,
+          "after": 101416,
+          "change": -221048,
+          "percent": -68.55
+        },
+        "meshes": {
+          "before": 14,
+          "after": 11,
+          "change": -3,
+          "percent": -21.43
+        },
+        "materials": {
+          "before": 6,
+          "after": 6,
+          "change": 0,
+          "percent": 0
+        },
+        "textures": {
+          "before": 4,
+          "after": 4,
+          "change": 0,
+          "percent": 0
+        },
+        "textureBytes": {
+          "before": 6683936,
+          "after": 216052,
+          "change": -6467884,
+          "percent": -96.77
+        },
+        "gpuTextureBytesEstimate": {
+          "before": 89478484,
+          "after": 22369620,
+          "change": -67108864,
+          "percent": -75
+        },
+        "drawCallsEstimate": {
+          "before": 14,
+          "after": 14,
+          "change": 0,
+          "percent": 0
+        },
+        "animations": {
+          "before": 2,
+          "after": 2,
+          "change": 0,
+          "percent": 0
+        }
+      },
+      "steps": [
+        {
+          "id": "dedup",
+          "title": "Deduplicate accessors, meshes, textures and materials (uniquely named properties are kept)",
+          "status": "ran",
+          "before": {
+            "nodes": 16,
+            "meshes": 14,
+            "primitives": 14,
+            "vertices": 322464,
+            "triangles": 263328,
+            "accessors": 58,
+            "accessorBytes": 12585444,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "after": {
+            "nodes": 16,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 319929,
+            "triangles": 263328,
+            "accessors": 43,
+            "accessorBytes": 12352820,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "ms": 2
+        },
+        {
+          "id": "prune",
+          "title": "Prune unreferenced data (named/empty leaf nodes, extras and vertex attributes are kept)",
+          "status": "ran",
+          "detail": {
+            "keepLeaves": true,
+            "keepExtras": true,
+            "keepAttributes": true,
+            "keepSolidTextures": true
+          },
+          "before": {
+            "nodes": 16,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 319929,
+            "triangles": 263328,
+            "accessors": 43,
+            "accessorBytes": 12352820,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "after": {
+            "nodes": 16,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 319929,
+            "triangles": 263328,
+            "accessors": 43,
+            "accessorBytes": 12352820,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "ms": 1
+        },
+        {
+          "id": "join",
+          "title": "Join compatible primitives (opt-in; named nodes and meshes are never merged)",
+          "status": "skipped",
+          "reason": "Not requested (--join). Joining is opt-in because it can merge parts that viewers address individually.",
+          "before": {
+            "nodes": 16,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 319929,
+            "triangles": 263328,
+            "accessors": 43,
+            "accessorBytes": 12352820,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "after": {
+            "nodes": 16,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 319929,
+            "triangles": 263328,
+            "accessors": 43,
+            "accessorBytes": 12352820,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "ms": 0
+        },
+        {
+          "id": "weld",
+          "title": "Weld bitwise-identical vertices and build index buffers",
+          "status": "ran",
+          "before": {
+            "nodes": 16,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 319929,
+            "triangles": 263328,
+            "accessors": 43,
+            "accessorBytes": 12352820,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "after": {
+            "nodes": 16,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 133937,
+            "triangles": 263328,
+            "accessors": 48,
+            "accessorBytes": 5840068,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "ms": 109
+        },
+        {
+          "id": "simplify",
+          "title": "Simplify geometry (meshoptimizer, borders locked)",
+          "status": "ran",
+          "detail": {
+            "ratio": 0.75,
+            "error": 0.001,
+            "errorUnit": "fraction of mesh radius",
+            "lockBorder": true,
+            "primitivesSimplified": 11,
+            "skippedSkinned": 0,
+            "skippedMorphTargets": 0,
+            "skippedOther": 0
+          },
+          "before": {
+            "nodes": 16,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 133937,
+            "triangles": 263328,
+            "accessors": 48,
+            "accessorBytes": 5840068,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "after": {
+            "nodes": 16,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 101416,
+            "triangles": 197496,
+            "accessors": 48,
+            "accessorBytes": 4411028,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "ms": 153
+        },
+        {
+          "id": "reorder",
+          "title": "Reorder vertices/indices for compression and vertex-cache locality (meshoptimizer)",
+          "status": "ran",
+          "detail": {
+            "target": "size"
+          },
+          "before": {
+            "nodes": 16,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 101416,
+            "triangles": 197496,
+            "accessors": 48,
+            "accessorBytes": 4411028,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "after": {
+            "nodes": 16,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 101416,
+            "triangles": 197496,
+            "accessors": 48,
+            "accessorBytes": 4411028,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "ms": 60
+        },
+        {
+          "id": "quantize",
+          "title": "Quantize vertex attributes (KHR_mesh_quantization)",
+          "status": "ran",
+          "detail": {
+            "bits": {
+              "quantizePosition": 14,
+              "quantizeNormal": 10,
+              "quantizeTexcoord": 12,
+              "quantizeColor": 8,
+              "quantizeWeight": 8,
+              "quantizeGeneric": 12
+            },
+            "bitsOrigin": "gltf-transform defaults",
+            "partNodesIsolated": 14,
+            "note": "Meshes of named part nodes were moved to unnamed child nodes so the part nodes keep their original transforms."
+          },
+          "before": {
+            "nodes": 16,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 101416,
+            "triangles": 197496,
+            "accessors": 48,
+            "accessorBytes": 4411028,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "after": {
+            "nodes": 30,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 101416,
+            "triangles": 197496,
+            "accessors": 48,
+            "accessorBytes": 3025508,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "ms": 81
+        },
+        {
+          "id": "textures",
+          "title": "Resize / re-encode textures (sharp), per-slot rules",
+          "status": "ran",
+          "detail": {
+            "encoder": "sharp",
+            "ktx": {
+              "requested": false,
+              "available": false,
+              "reason": "KTX2 requires the `ktx` CLI from KTX-Software (https://github.com/KhronosGroup/KTX-Software), not found on PATH."
+            },
+            "notes": [],
+            "changed": 4,
+            "kept": 0
+          },
+          "before": {
+            "nodes": 30,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 101416,
+            "triangles": 197496,
+            "accessors": 48,
+            "accessorBytes": 3025508,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "after": {
+            "nodes": 30,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 101416,
+            "triangles": 197496,
+            "accessors": 48,
+            "accessorBytes": 3025508,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 216052,
+            "animations": 2
+          },
+          "ms": 631
+        },
+        {
+          "id": "compress",
+          "title": "Mesh compression (meshopt)",
+          "status": "ran",
+          "detail": {
+            "extension": "EXT_meshopt_compression",
+            "level": "medium",
+            "note": "Applied when the GLB is serialised."
+          },
+          "before": {
+            "nodes": 30,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 101416,
+            "triangles": 197496,
+            "accessors": 48,
+            "accessorBytes": 3025508,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 216052,
+            "animations": 2
+          },
+          "after": {
+            "nodes": 30,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 101416,
+            "triangles": 197496,
+            "accessors": 48,
+            "accessorBytes": 3025508,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 216052,
+            "animations": 2
+          },
+          "ms": 0
+        },
+        {
+          "id": "write",
+          "title": "Write pulse-speaker.mobile.glb",
+          "status": "ran",
+          "detail": {
+            "bytes": 1470832
+          },
+          "before": {
+            "nodes": 30,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 101416,
+            "triangles": 197496,
+            "accessors": 48,
+            "accessorBytes": 3025508,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 216052,
+            "animations": 2
+          },
+          "after": {
+            "nodes": 30,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 101416,
+            "triangles": 197496,
+            "accessors": 48,
+            "accessorBytes": 3025508,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 216052,
+            "animations": 2
+          },
+          "ms": 43
+        }
+      ],
+      "notes": [],
+      "textures": [
+        {
+          "name": "GrilleNormal",
+          "slots": [
+            "normalTexture"
+          ],
+          "colorSpace": "linear",
+          "rule": {
+            "format": "webp",
+            "maxSize": 1024,
+            "quality": 92,
+            "lossless": false,
+            "slotRules": [
+              "normalTexture"
+            ]
+          },
+          "from": {
+            "mimeType": "image/png",
+            "width": 2048,
+            "height": 2048,
+            "bytes": 391341
+          },
+          "to": {
+            "mimeType": "image/webp",
+            "width": 1024,
+            "height": 1024,
+            "bytes": 118142
+          },
+          "action": "resized + re-encoded webp"
+        },
+        {
+          "name": "GrilleORM",
+          "slots": [
+            "occlusionTexture",
+            "metallicRoughnessTexture"
+          ],
+          "colorSpace": "linear",
+          "rule": {
+            "format": "webp",
+            "maxSize": 1024,
+            "quality": 85,
+            "lossless": false,
+            "slotRules": [
+              "occlusionTexture",
+              "metallicRoughnessTexture"
+            ]
+          },
+          "from": {
+            "mimeType": "image/png",
+            "width": 2048,
+            "height": 2048,
+            "bytes": 2009688
+          },
+          "to": {
+            "mimeType": "image/webp",
+            "width": 1024,
+            "height": 1024,
+            "bytes": 52866
+          },
+          "action": "resized + re-encoded webp"
+        },
+        {
+          "name": "ShellRoughness",
+          "slots": [
+            "metallicRoughnessTexture"
+          ],
+          "colorSpace": "linear",
+          "rule": {
+            "format": "webp",
+            "maxSize": 1024,
+            "quality": 85,
+            "lossless": false,
+            "slotRules": [
+              "metallicRoughnessTexture"
+            ]
+          },
+          "from": {
+            "mimeType": "image/png",
+            "width": 2048,
+            "height": 2048,
+            "bytes": 816665
+          },
+          "to": {
+            "mimeType": "image/webp",
+            "width": 1024,
+            "height": 1024,
+            "bytes": 19412
+          },
+          "action": "resized + re-encoded webp"
+        },
+        {
+          "name": "StrapWeave",
+          "slots": [
+            "baseColorTexture"
+          ],
+          "colorSpace": "srgb",
+          "rule": {
+            "format": "webp",
+            "maxSize": 1024,
+            "quality": 80,
+            "lossless": false,
+            "slotRules": []
+          },
+          "from": {
+            "mimeType": "image/png",
+            "width": 2048,
+            "height": 2048,
+            "bytes": 3466242
+          },
+          "to": {
+            "mimeType": "image/webp",
+            "width": 1024,
+            "height": 1024,
+            "bytes": 25632
+          },
+          "action": "resized + re-encoded webp"
+        }
+      ],
+      "verification": {
+        "ok": true,
+        "boundsTolerance": 0.02,
+        "checks": [
+          {
+            "id": "validator",
+            "status": "pass",
+            "detail": "No new validator errors (source 0 error(s)/1 warning(s), output 0 error(s)/1 warning(s))."
+          },
+          {
+            "id": "animations",
+            "status": "pass",
+            "detail": "2 clip(s) preserved: KnobTurn (2s), LightPulse (1.6s)."
+          },
+          {
+            "id": "materials",
+            "status": "pass",
+            "detail": "6 used material name(s) preserved (6 → 6 material objects; unused/duplicate materials may be pruned or merged)."
+          },
+          {
+            "id": "named-nodes",
+            "status": "pass",
+            "detail": "16 named node(s) preserved with parents, extras and transforms."
+          },
+          {
+            "id": "attributes",
+            "status": "pass",
+            "detail": "Vertex attributes (POSITION, NORMAL, TEXCOORD_0), 0 skin(s) and morph targets preserved."
+          },
+          {
+            "id": "bounds",
+            "status": "pass",
+            "detail": "Bounding box drift 0.0022% of the diagonal (tolerance 2.00%, simplified)."
+          },
+          {
+            "id": "triangles",
+            "status": "pass",
+            "detail": "Rendered triangles 263328 → 197496 (simplification requested; must not increase)."
+          },
+          {
+            "id": "source-untouched",
+            "status": "pass",
+            "detail": "Source SHA-256 unchanged (67987c29573ad55165e4e459a99ad2f944dfe229c642e45fae37c78f3f50d6da)."
+          }
+        ]
+      },
+      "budgets": [],
+      "extensionsUsed": [
+        "EXT_meshopt_compression",
+        "EXT_texture_webp",
+        "KHR_mesh_quantization"
+      ],
+      "extensionsRequired": [
+        "EXT_meshopt_compression",
+        "EXT_texture_webp",
+        "KHR_mesh_quantization"
+      ],
+      "decoderRequirements": [
+        {
+          "extension": "EXT_meshopt_compression",
+          "required": true,
+          "needs": "MeshoptDecoder",
+          "three": "import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js'; gltfLoader.setMeshoptDecoder(MeshoptDecoder)"
+        },
+        {
+          "extension": "EXT_texture_webp",
+          "required": true,
+          "needs": null,
+          "note": "No decoder module; requires WebP image decoding in the runtime (all current browsers)."
+        },
+        {
+          "extension": "KHR_mesh_quantization",
+          "required": true,
+          "needs": null,
+          "note": "No decoder needed; supported natively by three.js GLTFLoader and all major engines."
+        }
+      ],
+      "sourcePreserving": {
+        "sourceSha256Before": "67987c29573ad55165e4e459a99ad2f944dfe229c642e45fae37c78f3f50d6da",
+        "sourceSha256After": "67987c29573ad55165e4e459a99ad2f944dfe229c642e45fae37c78f3f50d6da",
+        "unchanged": true,
+        "howToRevert": "Outputs are derived files. Delete them and re-run the pipeline from the unchanged source."
+      },
+      "backups": [],
+      "warnings": [
+        "quantize: Skipping TEXCOORD_0; out of [0,1] range."
+      ],
+      "inspect": {
+        "source": {
+          "totals": {
+            "scenes": 1,
+            "nodes": 16,
+            "namedNodes": 16,
+            "meshes": 14,
+            "primitives": 14,
+            "vertices": 322464,
+            "triangles": 263328,
+            "renderedVertices": 322464,
+            "renderedTriangles": 263328,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2,
+            "skins": 0,
+            "cameras": 0,
+            "accessors": 58,
+            "gpuTextureBytesEstimate": 89478484,
+            "drawCallsEstimate": 14
+          },
+          "bounds": {
+            "min": [
+              -0.111472,
+              0,
+              -0.04
+            ],
+            "max": [
+              0.111472,
+              0.1436,
+              0.0453
+            ],
+            "size": [
+              0.222944,
+              0.1436,
+              0.0853
+            ],
+            "center": [
+              0,
+              0.0718,
+              0.00265
+            ],
+            "diagonal": 0.27857
+          },
+          "meshes": [
+            {
+              "name": "BodyGeo",
+              "primitives": 1,
+              "vertices": 47526,
+              "triangles": 92928,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "GrilleGeo",
+              "primitives": 1,
+              "vertices": 18095,
+              "triangles": 33792,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "DriverGeo",
+              "primitives": 1,
+              "vertices": 146688,
+              "triangles": 48896,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "DriverRingGeo",
+              "primitives": 1,
+              "vertices": 10537,
+              "triangles": 20480,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "BadgeGeo",
+              "primitives": 1,
+              "vertices": 726,
+              "triangles": 1200,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "KnobGeo",
+              "primitives": 1,
+              "vertices": 9751,
+              "triangles": 18672,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "StatusLightGeo",
+              "primitives": 1,
+              "vertices": 4025,
+              "triangles": 7680,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "StrapPinLGeo",
+              "primitives": 1,
+              "vertices": 2468,
+              "triangles": 4096,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "StrapPinRGeo",
+              "primitives": 1,
+              "vertices": 2468,
+              "triangles": 4096,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "StrapGeo",
+              "primitives": 1,
+              "vertices": 76800,
+              "triangles": 25600,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "FootGeo",
+              "primitives": 1,
+              "vertices": 845,
+              "triangles": 1472,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "FootGeo",
+              "primitives": 1,
+              "vertices": 845,
+              "triangles": 1472,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "FootGeo",
+              "primitives": 1,
+              "vertices": 845,
+              "triangles": 1472,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "FootGeo",
+              "primitives": 1,
+              "vertices": 845,
+              "triangles": 1472,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            }
+          ],
+          "materials": [
+            "ShellMatte",
+            "GrilleMetal",
+            "DriverRubber",
+            "AccentAnodized",
+            "StrapFabric",
+            "LightEmissive"
+          ],
+          "textures": [
+            {
+              "name": "GrilleNormal",
+              "mimeType": "image/png",
+              "width": 2048,
+              "height": 2048,
+              "bytes": 391341,
+              "slots": [
+                "normalTexture"
+              ],
+              "gpuBytesEstimate": 22369621
+            },
+            {
+              "name": "GrilleORM",
+              "mimeType": "image/png",
+              "width": 2048,
+              "height": 2048,
+              "bytes": 2009688,
+              "slots": [
+                "occlusionTexture",
+                "metallicRoughnessTexture"
+              ],
+              "gpuBytesEstimate": 22369621
+            },
+            {
+              "name": "ShellRoughness",
+              "mimeType": "image/png",
+              "width": 2048,
+              "height": 2048,
+              "bytes": 816665,
+              "slots": [
+                "metallicRoughnessTexture"
+              ],
+              "gpuBytesEstimate": 22369621
+            },
+            {
+              "name": "StrapWeave",
+              "mimeType": "image/png",
+              "width": 2048,
+              "height": 2048,
+              "bytes": 3466242,
+              "slots": [
+                "baseColorTexture"
+              ],
+              "gpuBytesEstimate": 22369621
+            }
+          ],
+          "animations": [
+            {
+              "name": "KnobTurn",
+              "duration": 2,
+              "channels": 1
+            },
+            {
+              "name": "LightPulse",
+              "duration": 1.6,
+              "channels": 1
+            }
+          ],
+          "namedNodes": [
+            "PulseSpeaker",
+            "Body",
+            "Grille",
+            "Driver",
+            "DriverRing",
+            "Badge",
+            "Knob",
+            "StatusLight",
+            "StrapPinL",
+            "StrapPinR",
+            "Strap",
+            "Feet",
+            "FootFL",
+            "FootFR",
+            "FootRL",
+            "FootRR"
+          ]
+        },
+        "output": {
+          "totals": {
+            "scenes": 1,
+            "nodes": 30,
+            "namedNodes": 16,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 101416,
+            "triangles": 194184,
+            "renderedVertices": 103390,
+            "renderedTriangles": 197496,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 216052,
+            "animations": 2,
+            "skins": 0,
+            "cameras": 0,
+            "accessors": 48,
+            "gpuTextureBytesEstimate": 22369620,
+            "drawCallsEstimate": 14
+          },
+          "bounds": {
+            "min": [
+              -0.111472,
+              0,
+              -0.039995
+            ],
+            "max": [
+              0.111472,
+              0.143594,
+              0.0453
+            ],
+            "size": [
+              0.222944,
+              0.143594,
+              0.085295
+            ],
+            "center": [
+              0,
+              0.071797,
+              0.002653
+            ],
+            "diagonal": 0.278565
+          },
+          "meshes": [
+            {
+              "name": "BodyGeo",
+              "primitives": 1,
+              "vertices": 35781,
+              "triangles": 69696,
+              "instances": 1,
+              "attributes": [
+                "TEXCOORD_0",
+                "POSITION",
+                "NORMAL"
+              ]
+            },
+            {
+              "name": "GrilleGeo",
+              "primitives": 1,
+              "vertices": 13871,
+              "triangles": 25344,
+              "instances": 1,
+              "attributes": [
+                "TEXCOORD_0",
+                "POSITION",
+                "NORMAL"
+              ]
+            },
+            {
+              "name": "DriverGeo",
+              "primitives": 1,
+              "vertices": 18815,
+              "triangles": 36672,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "DriverRingGeo",
+              "primitives": 1,
+              "vertices": 7977,
+              "triangles": 15360,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "BadgeGeo",
+              "primitives": 1,
+              "vertices": 559,
+              "triangles": 900,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "KnobGeo",
+              "primitives": 1,
+              "vertices": 7402,
+              "triangles": 14004,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "StatusLightGeo",
+              "primitives": 1,
+              "vertices": 3065,
+              "triangles": 5760,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "StrapPinLGeo",
+              "primitives": 1,
+              "vertices": 1828,
+              "triangles": 3072,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "StrapPinRGeo",
+              "primitives": 1,
+              "vertices": 1828,
+              "triangles": 3072,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "StrapGeo",
+              "primitives": 1,
+              "vertices": 9632,
+              "triangles": 19200,
+              "instances": 1,
+              "attributes": [
+                "TEXCOORD_0",
+                "POSITION",
+                "NORMAL"
+              ]
+            },
+            {
+              "name": "FootGeo",
+              "primitives": 1,
+              "vertices": 658,
+              "triangles": 1104,
+              "instances": 4,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            }
+          ],
+          "materials": [
+            "ShellMatte",
+            "GrilleMetal",
+            "DriverRubber",
+            "AccentAnodized",
+            "StrapFabric",
+            "LightEmissive"
+          ],
+          "textures": [
+            {
+              "name": "GrilleNormal",
+              "mimeType": "image/webp",
+              "width": 1024,
+              "height": 1024,
+              "bytes": 118142,
+              "slots": [
+                "normalTexture"
+              ],
+              "gpuBytesEstimate": 5592405
+            },
+            {
+              "name": "GrilleORM",
+              "mimeType": "image/webp",
+              "width": 1024,
+              "height": 1024,
+              "bytes": 52866,
+              "slots": [
+                "occlusionTexture",
+                "metallicRoughnessTexture"
+              ],
+              "gpuBytesEstimate": 5592405
+            },
+            {
+              "name": "ShellRoughness",
+              "mimeType": "image/webp",
+              "width": 1024,
+              "height": 1024,
+              "bytes": 19412,
+              "slots": [
+                "metallicRoughnessTexture"
+              ],
+              "gpuBytesEstimate": 5592405
+            },
+            {
+              "name": "StrapWeave",
+              "mimeType": "image/webp",
+              "width": 1024,
+              "height": 1024,
+              "bytes": 25632,
+              "slots": [
+                "baseColorTexture"
+              ],
+              "gpuBytesEstimate": 5592405
+            }
+          ],
+          "animations": [
+            {
+              "name": "KnobTurn",
+              "duration": 2,
+              "channels": 1
+            },
+            {
+              "name": "LightPulse",
+              "duration": 1.6,
+              "channels": 1
+            }
+          ],
+          "namedNodes": [
+            "PulseSpeaker",
+            "Body",
+            "Grille",
+            "Driver",
+            "DriverRing",
+            "Badge",
+            "Knob",
+            "StatusLight",
+            "StrapPinL",
+            "StrapPinR",
+            "Strap",
+            "Feet",
+            "FootFL",
+            "FootFR",
+            "FootRL",
+            "FootRR"
+          ]
+        }
+      }
+    },
+    {
+      "generator": "Studio³ Asset Pipeline",
+      "generatedAt": "2026-11-23T08:52:12.500Z",
+      "tools": {
+        "@gltf-transform/core": "4.5.1",
+        "meshoptimizer": "1.3.0",
+        "draco3dgltf": "1.5.9",
+        "sharp": "0.35.5",
+        "gltf-validator": "2.0.0-dev.3.10"
+      },
+      "ok": true,
+      "name": "pulse-speaker.low-power",
+      "source": {
+        "file": "../../../../assets/models/pulse-speaker.source.glb",
+        "sha256": "67987c29573ad55165e4e459a99ad2f944dfe229c642e45fae37c78f3f50d6da",
+        "bytes": 19284124
+      },
+      "output": {
+        "file": "pulse-speaker.low-power.glb",
+        "sha256": "089f80a11bd511e94c6f4a63ea3344b23b6d2138b80fa2d3e04b50c3fc0e279a",
+        "bytes": 1013712
+      },
+      "profile": {
+        "name": "low-power",
+        "origin": "built-in default",
+        "settings": {
+          "description": "Default starting point for low-power / data-saver devices: 50% of triangles (border-locked), textures ≤ 512 px.",
+          "compress": "meshopt",
+          "meshoptLevel": "medium",
+          "simplify": {
+            "ratio": 0.5,
+            "error": 0.002
+          },
+          "textures": {
+            "format": "webp",
+            "maxSize": 512,
+            "quality": 78,
+            "slots": {
+              "normalTexture": {
+                "quality": 92
+              },
+              "metallicRoughnessTexture": {
+                "quality": 85
+              },
+              "occlusionTexture": {
+                "quality": 85
+              }
+            }
+          }
+        },
+        "note": "Built-in profiles are default starting points, not universal budgets."
+      },
+      "summary": {
+        "bytes": {
+          "before": 19284124,
+          "after": 1013712,
+          "change": -18270412,
+          "percent": -94.74
+        },
+        "triangles": {
+          "before": 263328,
+          "after": 131664,
+          "change": -131664,
+          "percent": -50
+        },
+        "uniqueMeshTriangles": {
+          "before": 263328,
+          "after": 129456,
+          "change": -133872,
+          "percent": -50.84
+        },
+        "vertices": {
+          "before": 322464,
+          "after": 68723,
+          "change": -253741,
+          "percent": -78.69
+        },
+        "meshes": {
+          "before": 14,
+          "after": 11,
+          "change": -3,
+          "percent": -21.43
+        },
+        "materials": {
+          "before": 6,
+          "after": 6,
+          "change": 0,
+          "percent": 0
+        },
+        "textures": {
+          "before": 4,
+          "after": 4,
+          "change": 0,
+          "percent": 0
+        },
+        "textureBytes": {
+          "before": 6683936,
+          "after": 99752,
+          "change": -6584184,
+          "percent": -98.51
+        },
+        "gpuTextureBytesEstimate": {
+          "before": 89478484,
+          "after": 5592404,
+          "change": -83886080,
+          "percent": -93.75
+        },
+        "drawCallsEstimate": {
+          "before": 14,
+          "after": 14,
+          "change": 0,
+          "percent": 0
+        },
+        "animations": {
+          "before": 2,
+          "after": 2,
+          "change": 0,
+          "percent": 0
+        }
+      },
+      "steps": [
+        {
+          "id": "dedup",
+          "title": "Deduplicate accessors, meshes, textures and materials (uniquely named properties are kept)",
+          "status": "ran",
+          "before": {
+            "nodes": 16,
+            "meshes": 14,
+            "primitives": 14,
+            "vertices": 322464,
+            "triangles": 263328,
+            "accessors": 58,
+            "accessorBytes": 12585444,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "after": {
+            "nodes": 16,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 319929,
+            "triangles": 263328,
+            "accessors": 43,
+            "accessorBytes": 12352820,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "ms": 1
+        },
+        {
+          "id": "prune",
+          "title": "Prune unreferenced data (named/empty leaf nodes, extras and vertex attributes are kept)",
+          "status": "ran",
+          "detail": {
+            "keepLeaves": true,
+            "keepExtras": true,
+            "keepAttributes": true,
+            "keepSolidTextures": true
+          },
+          "before": {
+            "nodes": 16,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 319929,
+            "triangles": 263328,
+            "accessors": 43,
+            "accessorBytes": 12352820,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "after": {
+            "nodes": 16,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 319929,
+            "triangles": 263328,
+            "accessors": 43,
+            "accessorBytes": 12352820,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "ms": 1
+        },
+        {
+          "id": "join",
+          "title": "Join compatible primitives (opt-in; named nodes and meshes are never merged)",
+          "status": "skipped",
+          "reason": "Not requested (--join). Joining is opt-in because it can merge parts that viewers address individually.",
+          "before": {
+            "nodes": 16,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 319929,
+            "triangles": 263328,
+            "accessors": 43,
+            "accessorBytes": 12352820,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "after": {
+            "nodes": 16,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 319929,
+            "triangles": 263328,
+            "accessors": 43,
+            "accessorBytes": 12352820,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "ms": 0
+        },
+        {
+          "id": "weld",
+          "title": "Weld bitwise-identical vertices and build index buffers",
+          "status": "ran",
+          "before": {
+            "nodes": 16,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 319929,
+            "triangles": 263328,
+            "accessors": 43,
+            "accessorBytes": 12352820,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "after": {
+            "nodes": 16,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 133937,
+            "triangles": 263328,
+            "accessors": 48,
+            "accessorBytes": 5840068,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "ms": 81
+        },
+        {
+          "id": "simplify",
+          "title": "Simplify geometry (meshoptimizer, borders locked)",
+          "status": "ran",
+          "detail": {
+            "ratio": 0.5,
+            "error": 0.002,
+            "errorUnit": "fraction of mesh radius",
+            "lockBorder": true,
+            "primitivesSimplified": 11,
+            "skippedSkinned": 0,
+            "skippedMorphTargets": 0,
+            "skippedOther": 0
+          },
+          "before": {
+            "nodes": 16,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 133937,
+            "triangles": 263328,
+            "accessors": 48,
+            "accessorBytes": 5840068,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "after": {
+            "nodes": 16,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 68723,
+            "triangles": 131664,
+            "accessors": 48,
+            "accessorBytes": 2976484,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "ms": 123
+        },
+        {
+          "id": "reorder",
+          "title": "Reorder vertices/indices for compression and vertex-cache locality (meshoptimizer)",
+          "status": "ran",
+          "detail": {
+            "target": "size"
+          },
+          "before": {
+            "nodes": 16,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 68723,
+            "triangles": 131664,
+            "accessors": 48,
+            "accessorBytes": 2976484,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "after": {
+            "nodes": 16,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 68723,
+            "triangles": 131664,
+            "accessors": 48,
+            "accessorBytes": 2976484,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "ms": 45
+        },
+        {
+          "id": "quantize",
+          "title": "Quantize vertex attributes (KHR_mesh_quantization)",
+          "status": "ran",
+          "detail": {
+            "bits": {
+              "quantizePosition": 14,
+              "quantizeNormal": 10,
+              "quantizeTexcoord": 12,
+              "quantizeColor": 8,
+              "quantizeWeight": 8,
+              "quantizeGeneric": 12
+            },
+            "bitsOrigin": "gltf-transform defaults",
+            "partNodesIsolated": 14,
+            "note": "Meshes of named part nodes were moved to unnamed child nodes so the part nodes keep their original transforms."
+          },
+          "before": {
+            "nodes": 16,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 68723,
+            "triangles": 131664,
+            "accessors": 48,
+            "accessorBytes": 2976484,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "after": {
+            "nodes": 30,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 68723,
+            "triangles": 131664,
+            "accessors": 48,
+            "accessorBytes": 2036780,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "ms": 49
+        },
+        {
+          "id": "textures",
+          "title": "Resize / re-encode textures (sharp), per-slot rules",
+          "status": "ran",
+          "detail": {
+            "encoder": "sharp",
+            "ktx": {
+              "requested": false,
+              "available": false,
+              "reason": "KTX2 requires the `ktx` CLI from KTX-Software (https://github.com/KhronosGroup/KTX-Software), not found on PATH."
+            },
+            "notes": [],
+            "changed": 4,
+            "kept": 0
+          },
+          "before": {
+            "nodes": 30,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 68723,
+            "triangles": 131664,
+            "accessors": 48,
+            "accessorBytes": 2036780,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2
+          },
+          "after": {
+            "nodes": 30,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 68723,
+            "triangles": 131664,
+            "accessors": 48,
+            "accessorBytes": 2036780,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 99752,
+            "animations": 2
+          },
+          "ms": 317
+        },
+        {
+          "id": "compress",
+          "title": "Mesh compression (meshopt)",
+          "status": "ran",
+          "detail": {
+            "extension": "EXT_meshopt_compression",
+            "level": "medium",
+            "note": "Applied when the GLB is serialised."
+          },
+          "before": {
+            "nodes": 30,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 68723,
+            "triangles": 131664,
+            "accessors": 48,
+            "accessorBytes": 2036780,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 99752,
+            "animations": 2
+          },
+          "after": {
+            "nodes": 30,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 68723,
+            "triangles": 131664,
+            "accessors": 48,
+            "accessorBytes": 2036780,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 99752,
+            "animations": 2
+          },
+          "ms": 0
+        },
+        {
+          "id": "write",
+          "title": "Write pulse-speaker.low-power.glb",
+          "status": "ran",
+          "detail": {
+            "bytes": 1013712
+          },
+          "before": {
+            "nodes": 30,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 68723,
+            "triangles": 131664,
+            "accessors": 48,
+            "accessorBytes": 2036780,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 99752,
+            "animations": 2
+          },
+          "after": {
+            "nodes": 30,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 68723,
+            "triangles": 131664,
+            "accessors": 48,
+            "accessorBytes": 2036780,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 99752,
+            "animations": 2
+          },
+          "ms": 28
+        }
+      ],
+      "notes": [],
+      "textures": [
+        {
+          "name": "GrilleNormal",
+          "slots": [
+            "normalTexture"
+          ],
+          "colorSpace": "linear",
+          "rule": {
+            "format": "webp",
+            "maxSize": 512,
+            "quality": 92,
+            "lossless": false,
+            "slotRules": [
+              "normalTexture"
+            ]
+          },
+          "from": {
+            "mimeType": "image/png",
+            "width": 2048,
+            "height": 2048,
+            "bytes": 391341
+          },
+          "to": {
+            "mimeType": "image/webp",
+            "width": 512,
+            "height": 512,
+            "bytes": 54064
+          },
+          "action": "resized + re-encoded webp"
+        },
+        {
+          "name": "GrilleORM",
+          "slots": [
+            "occlusionTexture",
+            "metallicRoughnessTexture"
+          ],
+          "colorSpace": "linear",
+          "rule": {
+            "format": "webp",
+            "maxSize": 512,
+            "quality": 85,
+            "lossless": false,
+            "slotRules": [
+              "occlusionTexture",
+              "metallicRoughnessTexture"
+            ]
+          },
+          "from": {
+            "mimeType": "image/png",
+            "width": 2048,
+            "height": 2048,
+            "bytes": 2009688
+          },
+          "to": {
+            "mimeType": "image/webp",
+            "width": 512,
+            "height": 512,
+            "bytes": 31582
+          },
+          "action": "resized + re-encoded webp"
+        },
+        {
+          "name": "ShellRoughness",
+          "slots": [
+            "metallicRoughnessTexture"
+          ],
+          "colorSpace": "linear",
+          "rule": {
+            "format": "webp",
+            "maxSize": 512,
+            "quality": 85,
+            "lossless": false,
+            "slotRules": [
+              "metallicRoughnessTexture"
+            ]
+          },
+          "from": {
+            "mimeType": "image/png",
+            "width": 2048,
+            "height": 2048,
+            "bytes": 816665
+          },
+          "to": {
+            "mimeType": "image/webp",
+            "width": 512,
+            "height": 512,
+            "bytes": 7938
+          },
+          "action": "resized + re-encoded webp"
+        },
+        {
+          "name": "StrapWeave",
+          "slots": [
+            "baseColorTexture"
+          ],
+          "colorSpace": "srgb",
+          "rule": {
+            "format": "webp",
+            "maxSize": 512,
+            "quality": 78,
+            "lossless": false,
+            "slotRules": []
+          },
+          "from": {
+            "mimeType": "image/png",
+            "width": 2048,
+            "height": 2048,
+            "bytes": 3466242
+          },
+          "to": {
+            "mimeType": "image/webp",
+            "width": 512,
+            "height": 512,
+            "bytes": 6168
+          },
+          "action": "resized + re-encoded webp"
+        }
+      ],
+      "verification": {
+        "ok": true,
+        "boundsTolerance": 0.02,
+        "checks": [
+          {
+            "id": "validator",
+            "status": "pass",
+            "detail": "No new validator errors (source 0 error(s)/1 warning(s), output 0 error(s)/1 warning(s))."
+          },
+          {
+            "id": "animations",
+            "status": "pass",
+            "detail": "2 clip(s) preserved: KnobTurn (2s), LightPulse (1.6s)."
+          },
+          {
+            "id": "materials",
+            "status": "pass",
+            "detail": "6 used material name(s) preserved (6 → 6 material objects; unused/duplicate materials may be pruned or merged)."
+          },
+          {
+            "id": "named-nodes",
+            "status": "pass",
+            "detail": "16 named node(s) preserved with parents, extras and transforms."
+          },
+          {
+            "id": "attributes",
+            "status": "pass",
+            "detail": "Vertex attributes (POSITION, NORMAL, TEXCOORD_0), 0 skin(s) and morph targets preserved."
+          },
+          {
+            "id": "bounds",
+            "status": "pass",
+            "detail": "Bounding box drift 0.0022% of the diagonal (tolerance 2.00%, simplified)."
+          },
+          {
+            "id": "triangles",
+            "status": "pass",
+            "detail": "Rendered triangles 263328 → 131664 (simplification requested; must not increase)."
+          },
+          {
+            "id": "source-untouched",
+            "status": "pass",
+            "detail": "Source SHA-256 unchanged (67987c29573ad55165e4e459a99ad2f944dfe229c642e45fae37c78f3f50d6da)."
+          }
+        ]
+      },
+      "budgets": [],
+      "extensionsUsed": [
+        "EXT_meshopt_compression",
+        "EXT_texture_webp",
+        "KHR_mesh_quantization"
+      ],
+      "extensionsRequired": [
+        "EXT_meshopt_compression",
+        "EXT_texture_webp",
+        "KHR_mesh_quantization"
+      ],
+      "decoderRequirements": [
+        {
+          "extension": "EXT_meshopt_compression",
+          "required": true,
+          "needs": "MeshoptDecoder",
+          "three": "import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js'; gltfLoader.setMeshoptDecoder(MeshoptDecoder)"
+        },
+        {
+          "extension": "EXT_texture_webp",
+          "required": true,
+          "needs": null,
+          "note": "No decoder module; requires WebP image decoding in the runtime (all current browsers)."
+        },
+        {
+          "extension": "KHR_mesh_quantization",
+          "required": true,
+          "needs": null,
+          "note": "No decoder needed; supported natively by three.js GLTFLoader and all major engines."
+        }
+      ],
+      "sourcePreserving": {
+        "sourceSha256Before": "67987c29573ad55165e4e459a99ad2f944dfe229c642e45fae37c78f3f50d6da",
+        "sourceSha256After": "67987c29573ad55165e4e459a99ad2f944dfe229c642e45fae37c78f3f50d6da",
+        "unchanged": true,
+        "howToRevert": "Outputs are derived files. Delete them and re-run the pipeline from the unchanged source."
+      },
+      "backups": [],
+      "warnings": [
+        "quantize: Skipping TEXCOORD_0; out of [0,1] range."
+      ],
+      "inspect": {
+        "source": {
+          "totals": {
+            "scenes": 1,
+            "nodes": 16,
+            "namedNodes": 16,
+            "meshes": 14,
+            "primitives": 14,
+            "vertices": 322464,
+            "triangles": 263328,
+            "renderedVertices": 322464,
+            "renderedTriangles": 263328,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 6683936,
+            "animations": 2,
+            "skins": 0,
+            "cameras": 0,
+            "accessors": 58,
+            "gpuTextureBytesEstimate": 89478484,
+            "drawCallsEstimate": 14
+          },
+          "bounds": {
+            "min": [
+              -0.111472,
+              0,
+              -0.04
+            ],
+            "max": [
+              0.111472,
+              0.1436,
+              0.0453
+            ],
+            "size": [
+              0.222944,
+              0.1436,
+              0.0853
+            ],
+            "center": [
+              0,
+              0.0718,
+              0.00265
+            ],
+            "diagonal": 0.27857
+          },
+          "meshes": [
+            {
+              "name": "BodyGeo",
+              "primitives": 1,
+              "vertices": 47526,
+              "triangles": 92928,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "GrilleGeo",
+              "primitives": 1,
+              "vertices": 18095,
+              "triangles": 33792,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "DriverGeo",
+              "primitives": 1,
+              "vertices": 146688,
+              "triangles": 48896,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "DriverRingGeo",
+              "primitives": 1,
+              "vertices": 10537,
+              "triangles": 20480,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "BadgeGeo",
+              "primitives": 1,
+              "vertices": 726,
+              "triangles": 1200,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "KnobGeo",
+              "primitives": 1,
+              "vertices": 9751,
+              "triangles": 18672,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "StatusLightGeo",
+              "primitives": 1,
+              "vertices": 4025,
+              "triangles": 7680,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "StrapPinLGeo",
+              "primitives": 1,
+              "vertices": 2468,
+              "triangles": 4096,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "StrapPinRGeo",
+              "primitives": 1,
+              "vertices": 2468,
+              "triangles": 4096,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "StrapGeo",
+              "primitives": 1,
+              "vertices": 76800,
+              "triangles": 25600,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "FootGeo",
+              "primitives": 1,
+              "vertices": 845,
+              "triangles": 1472,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "FootGeo",
+              "primitives": 1,
+              "vertices": 845,
+              "triangles": 1472,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "FootGeo",
+              "primitives": 1,
+              "vertices": 845,
+              "triangles": 1472,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "FootGeo",
+              "primitives": 1,
+              "vertices": 845,
+              "triangles": 1472,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            }
+          ],
+          "materials": [
+            "ShellMatte",
+            "GrilleMetal",
+            "DriverRubber",
+            "AccentAnodized",
+            "StrapFabric",
+            "LightEmissive"
+          ],
+          "textures": [
+            {
+              "name": "GrilleNormal",
+              "mimeType": "image/png",
+              "width": 2048,
+              "height": 2048,
+              "bytes": 391341,
+              "slots": [
+                "normalTexture"
+              ],
+              "gpuBytesEstimate": 22369621
+            },
+            {
+              "name": "GrilleORM",
+              "mimeType": "image/png",
+              "width": 2048,
+              "height": 2048,
+              "bytes": 2009688,
+              "slots": [
+                "occlusionTexture",
+                "metallicRoughnessTexture"
+              ],
+              "gpuBytesEstimate": 22369621
+            },
+            {
+              "name": "ShellRoughness",
+              "mimeType": "image/png",
+              "width": 2048,
+              "height": 2048,
+              "bytes": 816665,
+              "slots": [
+                "metallicRoughnessTexture"
+              ],
+              "gpuBytesEstimate": 22369621
+            },
+            {
+              "name": "StrapWeave",
+              "mimeType": "image/png",
+              "width": 2048,
+              "height": 2048,
+              "bytes": 3466242,
+              "slots": [
+                "baseColorTexture"
+              ],
+              "gpuBytesEstimate": 22369621
+            }
+          ],
+          "animations": [
+            {
+              "name": "KnobTurn",
+              "duration": 2,
+              "channels": 1
+            },
+            {
+              "name": "LightPulse",
+              "duration": 1.6,
+              "channels": 1
+            }
+          ],
+          "namedNodes": [
+            "PulseSpeaker",
+            "Body",
+            "Grille",
+            "Driver",
+            "DriverRing",
+            "Badge",
+            "Knob",
+            "StatusLight",
+            "StrapPinL",
+            "StrapPinR",
+            "Strap",
+            "Feet",
+            "FootFL",
+            "FootFR",
+            "FootRL",
+            "FootRR"
+          ]
+        },
+        "output": {
+          "totals": {
+            "scenes": 1,
+            "nodes": 30,
+            "namedNodes": 16,
+            "meshes": 11,
+            "primitives": 11,
+            "vertices": 68723,
+            "triangles": 129456,
+            "renderedVertices": 70118,
+            "renderedTriangles": 131664,
+            "materials": 6,
+            "textures": 4,
+            "textureBytes": 99752,
+            "animations": 2,
+            "skins": 0,
+            "cameras": 0,
+            "accessors": 48,
+            "gpuTextureBytesEstimate": 5592404,
+            "drawCallsEstimate": 14
+          },
+          "bounds": {
+            "min": [
+              -0.111472,
+              0,
+              -0.039995
+            ],
+            "max": [
+              0.111472,
+              0.143594,
+              0.0453
+            ],
+            "size": [
+              0.222944,
+              0.143594,
+              0.085295
+            ],
+            "center": [
+              0,
+              0.071797,
+              0.002653
+            ],
+            "diagonal": 0.278565
+          },
+          "meshes": [
+            {
+              "name": "BodyGeo",
+              "primitives": 1,
+              "vertices": 23997,
+              "triangles": 46464,
+              "instances": 1,
+              "attributes": [
+                "TEXCOORD_0",
+                "POSITION",
+                "NORMAL"
+              ]
+            },
+            {
+              "name": "GrilleGeo",
+              "primitives": 1,
+              "vertices": 9537,
+              "triangles": 16896,
+              "instances": 1,
+              "attributes": [
+                "TEXCOORD_0",
+                "POSITION",
+                "NORMAL"
+              ]
+            },
+            {
+              "name": "DriverGeo",
+              "primitives": 1,
+              "vertices": 12701,
+              "triangles": 24448,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "DriverRingGeo",
+              "primitives": 1,
+              "vertices": 5417,
+              "triangles": 10240,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "BadgeGeo",
+              "primitives": 1,
+              "vertices": 393,
+              "triangles": 600,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "KnobGeo",
+              "primitives": 1,
+              "vertices": 5064,
+              "triangles": 9336,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "StatusLightGeo",
+              "primitives": 1,
+              "vertices": 2105,
+              "triangles": 3840,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "StrapPinLGeo",
+              "primitives": 1,
+              "vertices": 1306,
+              "triangles": 2048,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "StrapPinRGeo",
+              "primitives": 1,
+              "vertices": 1306,
+              "triangles": 2048,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            },
+            {
+              "name": "StrapGeo",
+              "primitives": 1,
+              "vertices": 6432,
+              "triangles": 12800,
+              "instances": 1,
+              "attributes": [
+                "TEXCOORD_0",
+                "POSITION",
+                "NORMAL"
+              ]
+            },
+            {
+              "name": "FootGeo",
+              "primitives": 1,
+              "vertices": 465,
+              "triangles": 736,
+              "instances": 4,
+              "attributes": [
+                "POSITION",
+                "NORMAL",
+                "TEXCOORD_0"
+              ]
+            }
+          ],
+          "materials": [
+            "ShellMatte",
+            "GrilleMetal",
+            "DriverRubber",
+            "AccentAnodized",
+            "StrapFabric",
+            "LightEmissive"
+          ],
+          "textures": [
+            {
+              "name": "GrilleNormal",
+              "mimeType": "image/webp",
+              "width": 512,
+              "height": 512,
+              "bytes": 54064,
+              "slots": [
+                "normalTexture"
+              ],
+              "gpuBytesEstimate": 1398101
+            },
+            {
+              "name": "GrilleORM",
+              "mimeType": "image/webp",
+              "width": 512,
+              "height": 512,
+              "bytes": 31582,
+              "slots": [
+                "occlusionTexture",
+                "metallicRoughnessTexture"
+              ],
+              "gpuBytesEstimate": 1398101
+            },
+            {
+              "name": "ShellRoughness",
+              "mimeType": "image/webp",
+              "width": 512,
+              "height": 512,
+              "bytes": 7938,
+              "slots": [
+                "metallicRoughnessTexture"
+              ],
+              "gpuBytesEstimate": 1398101
+            },
+            {
+              "name": "StrapWeave",
+              "mimeType": "image/webp",
+              "width": 512,
+              "height": 512,
+              "bytes": 6168,
+              "slots": [
+                "baseColorTexture"
+              ],
+              "gpuBytesEstimate": 1398101
+            }
+          ],
+          "animations": [
+            {
+              "name": "KnobTurn",
+              "duration": 2,
+              "channels": 1
+            },
+            {
+              "name": "LightPulse",
+              "duration": 1.6,
+              "channels": 1
+            }
+          ],
+          "namedNodes": [
+            "PulseSpeaker",
+            "Body",
+            "Grille",
+            "Driver",
+            "DriverRing",
+            "Badge",
+            "Knob",
+            "StatusLight",
+            "StrapPinL",
+            "StrapPinR",
+            "Strap",
+            "Feet",
+            "FootFL",
+            "FootFR",
+            "FootRL",
+            "FootRR"
+          ]
+        }
+      }
+    }
+  ],
+  "backups": []
+}

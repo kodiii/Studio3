@@ -1,0 +1,65 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Broken fixture</title>
+  <link rel="icon" href="data:,">
+  <style>
+    /* Deliberately defective fixture for Visual Director tests. Do not "fix". */
+    body { margin: 0; font-family: system-ui, sans-serif; color: #222; background: #fff; }
+    main { padding: 16px; }
+    button:focus, a:focus { outline: none; }                      /* defect: no focus indicator */
+    .wide { width: 700px; background: #eef; padding: 8px; }        /* defect: overflows 390px mobile */
+    .clip { width: 140px; height: 20px; overflow: hidden; white-space: nowrap; border: 1px solid #999; } /* defect: clipped text */
+    .faint { color: #bbbbbb; background: #ffffff; }                /* defect: contrast */
+    .legal { font-size: 9px; }                                     /* defect: tiny text */
+    .icons a { display: inline-block; width: 12px; height: 12px; background: #334; margin-right: 2px; } /* defect: tiny tap targets */
+    .fake-btn { display: inline-block; padding: 12px 20px; background: #0a58ca; color: #fff; cursor: pointer; } /* defect: div button */
+    .spinner { width: 40px; height: 40px; border: 4px solid #0a58ca; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; } /* defect: ignores reduced motion */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .panel { margin-top: 8px; border: 1px solid #999; padding: 8px; }
+    .panel[hidden] { display: none; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Broken fixture</h1>
+    <p><a href="scene.html">Broken 3D scene</a></p>
+
+    <div class="wide">This box is seven hundred pixels wide and causes horizontal scrolling on phones.</div>
+    <p class="clip">This sentence is far too long for its fixed-size box and gets cut off.</p>
+    <p class="faint">This paragraph has very low colour contrast against its background.</p>
+    <p class="legal">Tiny legal text at nine pixels.</p>
+
+    <img src="missing.png" width="120" height="80">
+
+    <form action="#" onsubmit="return false">
+      <input type="text" name="q">
+      <button type="submit">Search</button>
+    </form>
+
+    <p class="icons"><a href="#a" aria-label="First"></a><a href="#b" aria-label="Second"></a><a href="#c" aria-label="Third"></a></p>
+
+    <div class="fake-btn" onclick="document.title = 'bought'">Buy now</div>
+
+    <div class="spinner" aria-hidden="true"></div>
+
+    <p>
+      <button type="button" id="options" aria-haspopup="menu" aria-expanded="false" aria-controls="options-menu">Options</button>
+    </p>
+    <ul class="panel" id="options-menu" role="menu" hidden>
+      <li role="none"><a role="menuitem" href="#one">One</a></li>
+      <li role="none"><a role="menuitem" href="#two">Two</a></li>
+    </ul>
+  </main>
+  <script>
+    console.error('Fixture error: analytics failed to initialise');
+    // defect: menu opens without moving focus, ignores Escape
+    document.getElementById('options').addEventListener('click', function () {
+      document.getElementById('options-menu').hidden = false;
+      this.setAttribute('aria-expanded', 'true');
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,187 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://studio3.dev/schemas/brief.schema.json",
+  "title": "Studio³ design brief (normalised)",
+  "description": "Input to `studio3 design generate`. The CLI accepts partial briefs and records every default it applies; this schema describes the complete, normalised brief echoed into studio3.design.json.",
+  "type": "object",
+  "required": [
+    "productCategory",
+    "audience",
+    "brand",
+    "businessGoals",
+    "targetDevices",
+    "preferredAesthetic",
+    "interactionComplexity",
+    "accessibility",
+    "performance",
+    "stack",
+    "motionIntensity",
+    "requires3d",
+    "specialty"
+  ],
+  "properties": {
+    "productCategory": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Product category, free text (e.g. saas, fintech, portfolio)."
+    },
+    "audience": {
+      "type": "string",
+      "minLength": 1
+    },
+    "brand": {
+      "type": "object",
+      "required": [
+        "name",
+        "personality",
+        "existingColors",
+        "existingFonts"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "personality": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "existingColors": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+          }
+        },
+        "existingFonts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "businessGoals": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "targetDevices": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "preferredAesthetic": {
+      "type": "string"
+    },
+    "interactionComplexity": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "accessibility": {
+      "type": "object",
+      "required": [
+        "level",
+        "needs"
+      ],
+      "properties": {
+        "level": {
+          "type": "string",
+          "enum": [
+            "AA",
+            "AAA"
+          ]
+        },
+        "needs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "performance": {
+      "type": "object",
+      "required": [
+        "budget",
+        "lowEndDevices"
+      ],
+      "properties": {
+        "budget": {
+          "type": "string",
+          "enum": [
+            "tight",
+            "balanced",
+            "generous"
+          ]
+        },
+        "lowEndDevices": {
+          "type": "boolean"
+        }
+      }
+    },
+    "stack": {
+      "type": "object",
+      "required": [
+        "framework",
+        "styling",
+        "libs"
+      ],
+      "properties": {
+        "framework": {
+          "type": "string"
+        },
+        "styling": {
+          "type": "string"
+        },
+        "libs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "motionIntensity": {
+      "type": "string",
+      "enum": [
+        "essential",
+        "expressive",
+        "immersive"
+      ]
+    },
+    "requires3d": {
+      "type": "boolean"
+    },
+    "threeD": {
+      "type": "object",
+      "required": [
+        "purpose"
+      ],
+      "properties": {
+        "purpose": {
+          "type": "string"
+        }
+      }
+    },
+    "specialty": {
+      "type": "string",
+      "enum": [
+        "product",
+        "cinematic",
+        "data",
+        "social",
+        "3d"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

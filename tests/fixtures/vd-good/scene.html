@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Orbit — 3D scene</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <a class="brand" href="index.html">Orbit</a>
+    <a class="btn secondary" href="index.html">Back to overview</a>
+  </header>
+  <main id="main">
+    <h1>Rotating triangle</h1>
+    <p class="lede">A raw WebGL scene that settles, then renders only on demand. Drag over the canvas to rotate it.</p>
+    <div class="stage" id="stage">
+      <canvas id="scene" role="img" aria-label="A coloured triangle that rotates and then comes to rest"></canvas>
+      <div class="fallback" id="fallback" data-studio3-fallback hidden>
+        <strong>3D preview unavailable</strong>
+        <span>Your browser or device cannot display WebGL content. The triangle is shown as a static description instead.</span>
+      </div>
+    </div>
+  </main>
+  <footer><a href="index.html">Overview</a></footer>
+
+  <script>
+    (function () {
+      var canvas = document.getElementById('scene');
+      var fallback = document.getElementById('fallback');
+      var hook = window.__STUDIO3_3D__ = { renderer: { calls: 0, triangles: 0, geometries: 0, textures: 0, programs: 0 }, frameloop: 'demand', quality: 'high', disposed: 0 };
+      var gl = null;
+      try { gl = canvas.getContext('webgl2', { antialias: true }) || canvas.getContext('webgl', { antialias: true }); } catch (e) { gl = null; }
+      if (!gl) { canvas.hidden = true; fallback.hidden = false; hook.frameloop = 'never'; hook.quality = 'fallback'; return; }
+
+      function shader(type, src) { var s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return s; }
+      var program = gl.createProgram();
+      gl.attachShader(program, shader(gl.VERTEX_SHADER, 'attribute vec2 p; attribute vec3 c; uniform float a; uniform float r; varying vec3 v; void main(){ float s = sin(a), k = cos(a); vec2 q = vec2(p.x * k - p.y * s, p.x * s + p.y * k); gl_Position = vec4(q.x / r, q.y, 0.0, 1.0); v = c; }'));
+      gl.attachShader(program, shader(gl.FRAGMENT_SHADER, 'precision mediump float; varying vec3 v; void main(){ gl_FragColor = vec4(v, 1.0); }'));
+      gl.linkProgram(program);
+      gl.useProgram(program);
+      var buffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 0.7, 1, 0.4, 0.3, -0.6, -0.5, 0.3, 0.8, 1, 0.6, -0.5, 1, 0.9, 0.3]), gl.STATIC_DRAW);
+      var P = gl.getAttribLocation(program, 'p'), C = gl.getAttribLocation(program, 'c');
+      gl.enableVertexAttribArray(P); gl.vertexAttribPointer(P, 2, gl.FLOAT, false, 20, 0);
+      gl.enableVertexAttribArray(C); gl.vertexAttribPointer(C, 3, gl.FLOAT, false, 20, 8);
+      var uA = gl.getUniformLocation(program, 'a'), uR = gl.getUniformLocation(program, 'r');
+      hook.renderer.geometries = 1; hook.renderer.programs = 1;
+
+      var angle = 0, raf = 0, disposed = false, dragging = false, lastX = 0;
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      function resize() {
+        var dpr = Math.min(window.devicePixelRatio || 1, 2);
+        var w = Math.max(1, Math.round(canvas.clientWidth * dpr)), h = Math.max(1, Math.round(canvas.clientHeight * dpr));
+        if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+        gl.viewport(0, 0, w, h);
+      }
+      function render() {
+        if (disposed) return;
+        gl.clearColor(0.06, 0.09, 0.16, 1); gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.uniform1f(uA, angle); gl.uniform1f(uR, canvas.width / canvas.height);
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
+        hook.renderer.calls = 1; hook.renderer.triangles = 1;
+      }
+      function invalidate() { if (!raf && !disposed) raf = requestAnimationFrame(function () { raf = 0; resize(); render(); }); }
+
+      // intro: rotate for ~1.2s, then settle (render on demand afterwards)
+      var start = performance.now();
+      function intro(t) {
+        var k = Math.min(1, (t - start) / 1200);
+        angle = (1 - Math.pow(1 - k, 3)) * Math.PI * 2;
+        resize(); render();
+        if (k < 1 && !disposed) requestAnimationFrame(intro);
+      }
+      if (reduce) invalidate(); else requestAnimationFrame(intro);
+
+      if (window.ResizeObserver) new ResizeObserver(invalidate).observe(canvas); else window.addEventListener('resize', invalidate);
+      canvas.addEventListener('pointerdown', function (e) { dragging = true; lastX = e.clientX; });
+      window.addEventListener('pointerup', function () { dragging = false; });
+      canvas.addEventListener('pointermove', function (e) { if (!dragging) return; angle += (e.clientX - lastX) * 0.01; lastX = e.clientX; invalidate(); });
+      canvas.addEventListener('webglcontextlost', function (e) { e.preventDefault(); });
+
+      window.addEventListener('pagehide', function () {
+        if (disposed) return;
+        disposed = true;
+        if (raf) cancelAnimationFrame(raf);
+        gl.deleteBuffer(buffer); gl.deleteProgram(program);
+        hook.disposed += 1; hook.frameloop = 'never';
+      });
+    })();
+  </script>
+</body>
+</html>

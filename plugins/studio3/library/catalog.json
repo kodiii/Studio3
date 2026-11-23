@@ -3,6 +3,1503 @@
   "version": "4.0.0",
   "effects": [
     {
+      "id": "bar-race-transition",
+      "name": "Bar Race Transition",
+      "description": "Ranked horizontal bars that resize, re-sort and enter or leave the top list as a period stepper advances. Values and the zero-based axis are interpolated together, so bar length is truthful on every frame and labels tick with their bars.",
+      "category": "charts",
+      "specialties": [
+        "data",
+        "social"
+      ],
+      "technology": [
+        "d3",
+        "css"
+      ],
+      "interaction": [
+        "data",
+        "press",
+        "time",
+        "keyboard"
+      ],
+      "complexity": 2,
+      "intensity": "moderate",
+      "applications": [
+        "leaderboard over time",
+        "market-share history",
+        "annual report ranking explainer"
+      ],
+      "dependencies": [
+        {
+          "name": "d3",
+          "version": "^7.9.2"
+        }
+      ],
+      "params": [
+        {
+          "key": "visible",
+          "label": "Bars shown",
+          "type": "number",
+          "default": 6,
+          "min": 3,
+          "max": 8,
+          "step": 1
+        },
+        {
+          "key": "stepDuration",
+          "label": "Step duration",
+          "type": "number",
+          "default": 900,
+          "min": 300,
+          "max": 2400,
+          "step": 50,
+          "unit": "ms"
+        },
+        {
+          "key": "autoplay",
+          "label": "Autoplay",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "key": "seed",
+          "label": "Dataset seed",
+          "type": "number",
+          "default": 6,
+          "min": 1,
+          "max": 99,
+          "step": 1
+        }
+      ],
+      "accessibility": [
+        "Previous, play/pause and next are real buttons; the period is also a native range input (arrow keys step periods).",
+        "A live region announces the period and leader after manual steps and when playback ends, not on every autoplay tick.",
+        "Every bar carries its rank, name and value as text; the leader is marked by rank and weight as well as colour.",
+        "A visually-hidden table lists the full ranking for the current period."
+      ],
+      "reducedMotion": "Play still advances, but each period is swapped in without tweening values or sliding rows; manual stepping is instant.",
+      "performance": [
+        "Bars are scaled and rows translated with transforms only; the track is measured once per resize.",
+        "One rAF tween per step, cancelled on pause, interruption and unmount.",
+        "All competitors stay mounted and keyed, so enter and exit are opacity/transform changes rather than DOM churn."
+      ],
+      "preview": {
+        "height": 560
+      },
+      "path": "library/src/effects/bar-race-transition",
+      "files": [
+        "index.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "brush-linked-range",
+      "name": "Brush Linked Range",
+      "description": "Focus + context: an overview strip with a draggable, resizable brush drives a linked detail chart whose domain eases toward the selection. The brush is hand-built so both handles and the window itself are real keyboard sliders.",
+      "category": "charts",
+      "specialties": [
+        "data"
+      ],
+      "technology": [
+        "d3",
+        "svg",
+        "css"
+      ],
+      "interaction": [
+        "drag",
+        "keyboard",
+        "data",
+        "press"
+      ],
+      "complexity": 3,
+      "intensity": "subtle",
+      "applications": [
+        "time-series explorer",
+        "log or metrics zoom",
+        "financial history with range selection"
+      ],
+      "dependencies": [
+        {
+          "name": "d3",
+          "version": "^7.9.2"
+        }
+      ],
+      "params": [
+        {
+          "key": "smoothing",
+          "label": "Domain easing",
+          "type": "number",
+          "default": 160,
+          "min": 0,
+          "max": 600,
+          "step": 20,
+          "unit": "ms"
+        },
+        {
+          "key": "rescaleY",
+          "label": "Rescale y to window",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "key": "minSpan",
+          "label": "Minimum window",
+          "type": "number",
+          "default": 10,
+          "min": 5,
+          "max": 45,
+          "step": 1,
+          "unit": "days"
+        },
+        {
+          "key": "seed",
+          "label": "Dataset seed",
+          "type": "number",
+          "default": 11,
+          "min": 1,
+          "max": 99,
+          "step": 1
+        }
+      ],
+      "accessibility": [
+        "Start handle, end handle and the window are three role=\"slider\" controls with date-based aria-valuetext.",
+        "Arrow keys move by one day, Shift+arrow or PageUp/PageDown by a week, Home/End jump to the limits; presets are plain buttons.",
+        "The detail chart is role=\"img\" with a generated text summary (range, mean, low, high); the same figures are visible beside it.",
+        "Handles have 44 px hit areas; the y-axis always starts at zero and prints its scale, so rescaling is never silent."
+      ],
+      "reducedMotion": "The detail domain snaps to the selection with no easing; dragging and keyboard control are unchanged.",
+      "performance": [
+        "Pointer capture + a single rAF chase loop that stops when the displayed domain reaches the target.",
+        "Only the points inside the visible window (plus one neighbour each side) are turned into a path each frame.",
+        "The overview path is computed once per size; both charts re-measure via ResizeObserver."
+      ],
+      "preview": {
+        "height": 600
+      },
+      "path": "library/src/effects/brush-linked-range",
+      "files": [
+        "index.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "camera-preset-rig",
+      "name": "Camera Preset Rig",
+      "description": "A procedural still-life on a plinth with four named camera positions. Choosing a preset glides position and look-at target on a critically damped spring that can be interrupted mid-flight, and the canvas only renders while the camera is moving.",
+      "category": "camera",
+      "specialties": [
+        "3d",
+        "product"
+      ],
+      "technology": [
+        "r3f",
+        "three"
+      ],
+      "interaction": [
+        "press",
+        "keyboard"
+      ],
+      "complexity": 3,
+      "intensity": "moderate",
+      "applications": [
+        "product configurator views",
+        "architectural or furniture viewer",
+        "guided 3D story with fixed viewpoints",
+        "case-study hero with a detail shot"
+      ],
+      "dependencies": [
+        {
+          "name": "three",
+          "version": "^0.187.0"
+        },
+        {
+          "name": "@react-three/fiber",
+          "version": "^9.8.2"
+        }
+      ],
+      "params": [
+        {
+          "key": "preset",
+          "label": "Opening view",
+          "type": "select",
+          "default": "Three-quarter",
+          "options": [
+            "Front",
+            "Three-quarter",
+            "Top",
+            "Detail"
+          ]
+        },
+        {
+          "key": "glide",
+          "label": "Glide time",
+          "type": "number",
+          "default": 0.55,
+          "min": 0.15,
+          "max": 1.6,
+          "step": 0.05,
+          "unit": "s"
+        },
+        {
+          "key": "fov",
+          "label": "Field of view",
+          "type": "number",
+          "default": 30,
+          "min": 18,
+          "max": 55,
+          "step": 1,
+          "unit": "°"
+        },
+        {
+          "key": "accent",
+          "label": "Sphere colour",
+          "type": "color",
+          "default": "#e03a0c"
+        }
+      ],
+      "accessibility": [
+        "Views are a native radio group in a fieldset: Tab reaches it, arrow keys change the view, and the current view is announced as the checked option.",
+        "The canvas has an accessible name and a text description of the composition; a line of text under the picture says what the current view shows.",
+        "When WebGL is unavailable an SVG drawing of the same still-life is shown, and the radio group still describes each view."
+      ],
+      "reducedMotion": "The camera cuts straight to the chosen preset: one rendered frame, no travel.",
+      "performance": [
+        "frameloop=\"demand\": at rest nothing renders; while gliding each frame requests the next with invalidate() and stops once position and target have settled.",
+        "Eight draw calls of primitive geometry; real shadow maps only on quality profiles that allow them, otherwise generated contact-shadow textures.",
+        "The generated shadow texture is disposed on unmount; JSX-declared geometry and materials are released by R3F."
+      ],
+      "preview": {
+        "height": 520
+      },
+      "path": "library/src/effects/camera-preset-rig",
+      "files": [
+        "index.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "command-menu-reveal",
+      "name": "Command Menu Reveal",
+      "description": "A ⌘K command palette built on a native modal <dialog>: the backdrop, panel and result rows enter as one WAAPI sequence with a parent→child stagger, results filter with match highlighting, and the exit layers on top of whatever the entrance was doing so it can be dismissed mid-flight.",
+      "category": "navigation",
+      "specialties": [
+        "product"
+      ],
+      "technology": [
+        "waapi",
+        "css"
+      ],
+      "interaction": [
+        "press",
+        "keyboard"
+      ],
+      "complexity": 3,
+      "intensity": "moderate",
+      "applications": [
+        "app-wide command palette",
+        "documentation quick search",
+        "workspace or project switcher",
+        "keyboard-first action launcher"
+      ],
+      "dependencies": [],
+      "params": [
+        {
+          "key": "entrance",
+          "label": "Panel entrance",
+          "type": "select",
+          "default": "drop",
+          "options": [
+            "drop",
+            "rise",
+            "scale"
+          ]
+        },
+        {
+          "key": "stagger",
+          "label": "Row stagger",
+          "type": "number",
+          "default": 28,
+          "min": 0,
+          "max": 90,
+          "step": 2,
+          "unit": "ms"
+        },
+        {
+          "key": "dim",
+          "label": "Backdrop dim",
+          "type": "number",
+          "default": 0.45,
+          "min": 0.1,
+          "max": 0.85,
+          "step": 0.05
+        },
+        {
+          "key": "shortcut",
+          "label": "⌘K / Ctrl K shortcut",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "key": "closeOnRun",
+          "label": "Close after running",
+          "type": "boolean",
+          "default": true
+        }
+      ],
+      "accessibility": [
+        "Native <dialog>.showModal(): focus is trapped by the browser, the page behind is inert, Escape closes and focus returns to the trigger.",
+        "Combobox + listbox pattern: the input keeps focus while aria-activedescendant tracks the active option; Arrow Up/Down wrap, Home/End jump, Enter runs.",
+        "Options are grouped with labelled role=\"group\"; the empty state and the last-run confirmation are announced through polite live regions.",
+        "A visible Esc button closes the palette for pointer and touch users; clicking the backdrop does the same."
+      ],
+      "reducedMotion": "The sequence is built with reducedMotion, so backdrop, panel and rows appear in their end state at once and closing is immediate.",
+      "performance": [
+        "Entrance and exit animate opacity and transform only, through createSequence (WAAPI), and are cancelled when the dialog closes or unmounts.",
+        "Rows stagger only on open; filtering swaps results without re-animating.",
+        "The dialog content is not rendered while closed."
+      ],
+      "preview": {
+        "height": 380
+      },
+      "path": "library/src/effects/command-menu-reveal",
+      "files": [
+        "index.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "css-cube-carousel",
+      "name": "CSS Cube Carousel",
+      "description": "Four content panels on the faces of a prism that turns with transform-style: preserve-3d and a spring sampled into a CSS linear() easing. No WebGL, no animation loop: one transition on one element.",
+      "category": "3d-transforms",
+      "specialties": [
+        "product",
+        "3d"
+      ],
+      "technology": [
+        "css"
+      ],
+      "interaction": [
+        "press",
+        "keyboard"
+      ],
+      "complexity": 2,
+      "intensity": "moderate",
+      "applications": [
+        "process or onboarding steps",
+        "feature tour in a hero",
+        "testimonial rotator",
+        "product option picker"
+      ],
+      "dependencies": [],
+      "params": [
+        {
+          "key": "axis",
+          "label": "Turn axis",
+          "type": "select",
+          "default": "horizontal",
+          "options": [
+            "horizontal",
+            "vertical"
+          ]
+        },
+        {
+          "key": "spring",
+          "label": "Spring",
+          "type": "select",
+          "default": "settle",
+          "options": [
+            "settle",
+            "glide",
+            "release",
+            "pop"
+          ]
+        },
+        {
+          "key": "perspective",
+          "label": "Perspective",
+          "type": "number",
+          "default": 1100,
+          "min": 500,
+          "max": 2400,
+          "step": 50,
+          "unit": "px"
+        },
+        {
+          "key": "tilt",
+          "label": "Tilt",
+          "type": "number",
+          "default": 7,
+          "min": 0,
+          "max": 18,
+          "step": 1,
+          "unit": "°"
+        }
+      ],
+      "accessibility": [
+        "Carousel semantics: a labelled region with aria-roledescription=\"carousel\", each face a group named \"n of 4: title\"; a polite live region announces the new step.",
+        "Only the front face is reachable: the other three are inert, so their controls leave the tab order and the accessibility tree.",
+        "Previous/next buttons, step dots (aria-current) and Arrow / Home / End keys anywhere inside the carousel; all targets are at least 44 px (dots 28 px).",
+        "It never auto-advances, so there is nothing to pause."
+      ],
+      "reducedMotion": "The prism stops turning: the new panel replaces the old one with a 160 ms opacity cross-fade and the tilt is removed.",
+      "performance": [
+        "A single transform transition on the prism element; faces are static compositor layers.",
+        "The spring is pre-sampled with springToLinear(), so there is no JavaScript per frame.",
+        "Sizes come from container-query units, so the prism depth always matches the face width without measuring."
+      ],
+      "preview": {
+        "height": 440
+      },
+      "path": "library/src/effects/css-cube-carousel",
+      "files": [
+        "index.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "flip-card-3d",
+      "name": "Flip Card 3D",
+      "description": "A two-sided card that turns over on a real button, never on hover alone. Both sides share one grid cell so the card is always as tall as its taller side, and a moving highlight plus a breathing shadow sell the rotation.",
+      "category": "3d-transforms",
+      "specialties": [
+        "product",
+        "3d"
+      ],
+      "technology": [
+        "css",
+        "waapi"
+      ],
+      "interaction": [
+        "press",
+        "keyboard"
+      ],
+      "complexity": 2,
+      "intensity": "moderate",
+      "applications": [
+        "pricing plan summary and details",
+        "product card with specifications on the back",
+        "flashcards",
+        "membership or ticket card"
+      ],
+      "dependencies": [],
+      "params": [
+        {
+          "key": "axis",
+          "label": "Flip axis",
+          "type": "select",
+          "default": "y",
+          "options": [
+            "y",
+            "x"
+          ]
+        },
+        {
+          "key": "duration",
+          "label": "Duration",
+          "type": "number",
+          "default": 640,
+          "min": 240,
+          "max": 1400,
+          "step": 20,
+          "unit": "ms"
+        },
+        {
+          "key": "perspective",
+          "label": "Perspective",
+          "type": "number",
+          "default": 1200,
+          "min": 500,
+          "max": 2400,
+          "step": 50,
+          "unit": "px"
+        },
+        {
+          "key": "lift",
+          "label": "Lift",
+          "type": "number",
+          "default": 36,
+          "min": 0,
+          "max": 90,
+          "step": 2,
+          "unit": "px"
+        }
+      ],
+      "accessibility": [
+        "Flipping is a button press (Enter/Space), and each side has its own clearly named button; nothing is revealed by hover only.",
+        "The hidden side is inert, so its text and controls are out of the tab order and the accessibility tree; focus moves to the button on the side that just turned up.",
+        "Both sides are real DOM text in a shared grid cell, so the card grows with zoom and translation instead of clipping.",
+        "Sample pricing is labelled as sample data."
+      ],
+      "reducedMotion": "No rotation, lift or highlight sweep: the two sides cross-fade in 160 ms.",
+      "performance": [
+        "Rotation is a single CSS transform transition; lift, highlight and shadow are three short WAAPI animations on transform/opacity that are cancelled on unmount.",
+        "backface-visibility hides the far side, so only one side is painted at a time.",
+        "No layout work during the flip: height is resolved once by CSS grid."
+      ],
+      "preview": {
+        "height": 520
+      },
+      "path": "library/src/effects/flip-card-3d",
+      "files": [
+        "index.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "fullscreen-menu-curtain",
+      "name": "Fullscreen Menu Curtain",
+      "description": "The menu button morphs into a close icon while a clip-path curtain opens from the button, the top edge or the side, revealing oversized navigation links that rise out of masks in sequence. Everything is contained in its own stage and reverses cleanly when interrupted.",
+      "category": "navigation",
+      "specialties": [
+        "cinematic",
+        "product"
+      ],
+      "technology": [
+        "css"
+      ],
+      "interaction": [
+        "press",
+        "keyboard"
+      ],
+      "complexity": 2,
+      "intensity": "bold",
+      "applications": [
+        "portfolio or agency site menu",
+        "mobile navigation overlay",
+        "campaign microsite index",
+        "editorial section switcher"
+      ],
+      "dependencies": [],
+      "params": [
+        {
+          "key": "links",
+          "label": "Links (comma separated)",
+          "type": "text",
+          "default": "Work, Studio, Journal, Contact",
+          "maxLength": 80
+        },
+        {
+          "key": "origin",
+          "label": "Curtain origin",
+          "type": "select",
+          "default": "button",
+          "options": [
+            "button",
+            "top",
+            "side"
+          ]
+        },
+        {
+          "key": "tone",
+          "label": "Curtain tone",
+          "type": "select",
+          "default": "ink",
+          "options": [
+            "ink",
+            "signal",
+            "paper"
+          ]
+        },
+        {
+          "key": "duration",
+          "label": "Curtain duration",
+          "type": "number",
+          "default": 720,
+          "min": 240,
+          "max": 1400,
+          "step": 20,
+          "unit": "ms"
+        },
+        {
+          "key": "stagger",
+          "label": "Link stagger",
+          "type": "number",
+          "default": 60,
+          "min": 0,
+          "max": 160,
+          "step": 5,
+          "unit": "ms"
+        }
+      ],
+      "accessibility": [
+        "A real button with aria-expanded/aria-controls and a text label that switches between \"Menu\" and \"Close\".",
+        "Opening moves focus to the first link; Tab cycles between the links and the close button; Escape closes and returns focus to the button.",
+        "The closed navigation and, while open, the page behind it are inert, so hidden content cannot be focused or read.",
+        "The current page is marked with aria-current and a text marker, not colour alone."
+      ],
+      "reducedMotion": "No clip-path reveal or rising links: the menu appears and disappears with a 160 ms opacity fade and the icon swaps without rotating.",
+      "performance": [
+        "Pure CSS transitions on clip-path, transform and opacity; state lives in one data attribute, so the reveal is interruptible mid-flight for free.",
+        "No JavaScript runs per frame and nothing is measured.",
+        "The curtain is positioned inside the component (not the viewport), so it never triggers page-level layout."
+      ],
+      "preview": {
+        "height": 520
+      },
+      "path": "library/src/effects/fullscreen-menu-curtain",
+      "files": [
+        "index.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "kinetic-marquee",
+      "name": "Kinetic Marquee",
+      "description": "A two-rail infinite marquee that borrows momentum from page scroll and pointer travel: velocity adds speed, leans the type into a skew and can briefly reverse the rail. It eases to a stop on hover or focus and has a visible pause control.",
+      "category": "typography",
+      "specialties": [
+        "cinematic",
+        "social"
+      ],
+      "technology": [
+        "css"
+      ],
+      "interaction": [
+        "scroll",
+        "pointer",
+        "hover",
+        "time"
+      ],
+      "complexity": 2,
+      "intensity": "bold",
+      "applications": [
+        "section divider between case studies",
+        "client or capability ticker",
+        "footer sign-off band",
+        "event announcement strip"
+      ],
+      "dependencies": [],
+      "params": [
+        {
+          "key": "text",
+          "label": "Phrases (separate with /)",
+          "type": "text",
+          "default": "Design intelligence / Motion engineering / Digital experiences",
+          "maxLength": 140
+        },
+        {
+          "key": "speed",
+          "label": "Base speed",
+          "type": "number",
+          "default": 70,
+          "min": 10,
+          "max": 260,
+          "step": 5,
+          "unit": "px/s"
+        },
+        {
+          "key": "reactivity",
+          "label": "Velocity reactivity",
+          "type": "number",
+          "default": 1,
+          "min": 0,
+          "max": 2.5,
+          "step": 0.1
+        },
+        {
+          "key": "skew",
+          "label": "Max skew",
+          "type": "number",
+          "default": 8,
+          "min": 0,
+          "max": 16,
+          "step": 1,
+          "unit": "°"
+        },
+        {
+          "key": "direction",
+          "label": "Direction",
+          "type": "select",
+          "default": "left",
+          "options": [
+            "left",
+            "right"
+          ]
+        },
+        {
+          "key": "pauseOnHover",
+          "label": "Pause on hover",
+          "type": "boolean",
+          "default": true
+        }
+      ],
+      "accessibility": [
+        "A visible Pause/Play button (aria-pressed) stops all movement, satisfying WCAG 2.2.2 Pause, Stop, Hide.",
+        "The phrases are exposed once as a list; every repeated copy and the secondary rail are aria-hidden.",
+        "Hovering the band or moving focus into it eases the rails to a stop so the text can be read."
+      ],
+      "reducedMotion": "No loop runs: both rails are static, skew is removed and the pause control is replaced by a \"motion off\" note.",
+      "performance": [
+        "One rAF loop (useRafLoop, paused offscreen) writes one transform per rail; nothing is laid out per frame.",
+        "Scroll and pointer listeners are passive and only accumulate a delta that the loop consumes.",
+        "Copies are created from a ResizeObserver measurement: just enough to cover the container plus one."
+      ],
+      "preview": {
+        "height": 380
+      },
+      "path": "library/src/effects/kinetic-marquee",
+      "files": [
+        "index.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "layered-depth-stack",
+      "name": "Layered Depth Stack",
+      "description": "An exploded-interface illustration: four CSS-drawn UI layers pulled apart along Z under a perspective camera. A range input sets the separation, a second one (or the pointer) turns the view. Pure CSS 3D, no canvas.",
+      "category": "3d-transforms",
+      "specialties": [
+        "product",
+        "3d"
+      ],
+      "technology": [
+        "css"
+      ],
+      "interaction": [
+        "pointer",
+        "drag",
+        "keyboard"
+      ],
+      "complexity": 2,
+      "intensity": "moderate",
+      "applications": [
+        "design-system or architecture explainer",
+        "feature hero showing how a screen is built",
+        "release notes illustration",
+        "onboarding diagram"
+      ],
+      "dependencies": [],
+      "params": [
+        {
+          "key": "separation",
+          "label": "Separation",
+          "type": "number",
+          "default": 58,
+          "min": 0,
+          "max": 110,
+          "step": 2,
+          "unit": "px"
+        },
+        {
+          "key": "pitch",
+          "label": "Camera pitch",
+          "type": "number",
+          "default": 56,
+          "min": 30,
+          "max": 72,
+          "step": 1,
+          "unit": "°"
+        },
+        {
+          "key": "pointer",
+          "label": "Pointer influence",
+          "type": "number",
+          "default": 8,
+          "min": 0,
+          "max": 20,
+          "step": 1,
+          "unit": "°"
+        },
+        {
+          "key": "perspective",
+          "label": "Perspective",
+          "type": "number",
+          "default": 1500,
+          "min": 600,
+          "max": 3200,
+          "step": 50,
+          "unit": "px"
+        }
+      ],
+      "accessibility": [
+        "Separation and view angle are native range inputs with visible labels and value text, so everything the pointer does is available from the keyboard.",
+        "The illustration is one labelled image (role=\"img\"); the layer names and what each layer holds are listed as ordinary text beside it.",
+        "Pointer tilt is an enhancement on top of the sliders and never the only way to see a layer."
+      ],
+      "reducedMotion": "Pointer-driven tilt is switched off and the layers move without easing; the sliders still work because the movement is then directly user-controlled.",
+      "performance": [
+        "Only custom properties change: the browser recomputes five transforms, with no layout and no JavaScript animation loop.",
+        "Pointer updates are coalesced to one style write per animation frame.",
+        "Layers are plain elements with borders and gradients; there are no images, filters or canvases."
+      ],
+      "preview": {
+        "height": 500
+      },
+      "path": "library/src/effects/layered-depth-stack",
+      "files": [
+        "index.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "line-chart-morph",
+      "name": "Line Chart Morph",
+      "description": "A line and area chart that morphs between time ranges by interpolating data values, not pixels: the y-axis rescales continuously, gridlines cross-fade and the line never tears. A crosshair reads every point by pointer or arrow keys.",
+      "category": "charts",
+      "specialties": [
+        "data",
+        "product"
+      ],
+      "technology": [
+        "d3",
+        "svg",
+        "css"
+      ],
+      "interaction": [
+        "data",
+        "pointer",
+        "keyboard"
+      ],
+      "complexity": 2,
+      "intensity": "moderate",
+      "applications": [
+        "analytics overview with a range switcher",
+        "portfolio or usage history",
+        "KPI drill-down panel"
+      ],
+      "dependencies": [
+        {
+          "name": "d3",
+          "version": "^7.9.2"
+        }
+      ],
+      "params": [
+        {
+          "key": "duration",
+          "label": "Morph duration",
+          "type": "number",
+          "default": 560,
+          "min": 0,
+          "max": 1600,
+          "step": 20,
+          "unit": "ms"
+        },
+        {
+          "key": "curve",
+          "label": "Curve",
+          "type": "select",
+          "default": "smooth",
+          "options": [
+            "smooth",
+            "linear",
+            "step"
+          ]
+        },
+        {
+          "key": "showArea",
+          "label": "Area fill",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "key": "seed",
+          "label": "Dataset seed",
+          "type": "number",
+          "default": 7,
+          "min": 1,
+          "max": 99,
+          "step": 1
+        }
+      ],
+      "accessibility": [
+        "The range switcher is a native radio group (arrow keys move between ranges).",
+        "The plot is a focusable slider: ←/→ step through points, Home/End jump, and aria-valuetext announces label and value.",
+        "A visually-hidden data table mirrors the visible series; the SVG itself is aria-hidden.",
+        "Single series: nothing is encoded by colour alone, and all figures use tabular numerals."
+      ],
+      "reducedMotion": "Switching ranges swaps the dataset and axis instantly; crosshair and tooltip still work.",
+      "performance": [
+        "Both datasets are resampled once to a shared resolution, so each frame is one array lerp and two path strings.",
+        "The rAF loop only runs during a morph and is cancelled on unmount or interruption.",
+        "Re-measures with ResizeObserver; no layout reads inside the animation loop."
+      ],
+      "preview": {
+        "height": 520
+      },
+      "path": "library/src/effects/line-chart-morph",
+      "files": [
+        "index.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "morphing-nav-pill",
+      "name": "Morphing Nav Pill",
+      "description": "A tab bar whose active indicator is one shared element: it glides between tabs and stretches to each label width on a token spring (Motion layoutId), while a faint ghost previews the hovered or focused tab and the panels cross-fade in a fixed-height stack.",
+      "category": "navigation",
+      "specialties": [
+        "product"
+      ],
+      "technology": [
+        "motion",
+        "css"
+      ],
+      "interaction": [
+        "press",
+        "hover",
+        "keyboard"
+      ],
+      "complexity": 2,
+      "intensity": "subtle",
+      "applications": [
+        "settings or dashboard section tabs",
+        "pricing period toggle",
+        "segmented view switcher",
+        "in-page secondary navigation"
+      ],
+      "dependencies": [
+        {
+          "name": "motion",
+          "version": "^14.14.0"
+        }
+      ],
+      "params": [
+        {
+          "key": "tabs",
+          "label": "Tabs (comma separated)",
+          "type": "text",
+          "default": "Overview, Activity, Members, Billing",
+          "maxLength": 80
+        },
+        {
+          "key": "shape",
+          "label": "Indicator shape",
+          "type": "select",
+          "default": "pill",
+          "options": [
+            "pill",
+            "block",
+            "underline"
+          ]
+        },
+        {
+          "key": "spring",
+          "label": "Spring token",
+          "type": "select",
+          "default": "settle",
+          "options": [
+            "press",
+            "settle",
+            "release",
+            "glide",
+            "pop"
+          ]
+        },
+        {
+          "key": "activation",
+          "label": "Keyboard activation",
+          "type": "select",
+          "default": "automatic",
+          "options": [
+            "automatic",
+            "manual"
+          ]
+        },
+        {
+          "key": "ghost",
+          "label": "Hover/focus ghost",
+          "type": "boolean",
+          "default": true
+        }
+      ],
+      "accessibility": [
+        "WAI-ARIA tabs pattern: role=\"tablist\"/\"tab\"/\"tabpanel\", aria-selected, aria-controls and aria-labelledby are wired with useId.",
+        "Roving tabindex: Arrow Left/Right wrap, Home/End jump; activation follows focus or waits for Enter/Space depending on the activation param.",
+        "The indicator and ghost are decorative (aria-hidden); the selected tab is also marked by aria-selected and label weight/colour, not by position alone.",
+        "Hidden panels are inert, so their content is out of the tab order and the accessibility tree."
+      ],
+      "reducedMotion": "The indicator jumps to the selected tab with no layout animation, the ghost is removed and panels swap with a 160 ms opacity fade.",
+      "performance": [
+        "Motion animates the shared indicator with transforms (FLIP); tabs themselves never resize.",
+        "All panels share one grid cell, so the card height is the tallest panel and switching causes no layout shift.",
+        "Only two small elements are ever animated; no listeners outside the component."
+      ],
+      "preview": {
+        "height": 400
+      },
+      "path": "library/src/effects/morphing-nav-pill",
+      "files": [
+        "index.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "number-ticker",
+      "name": "Number Ticker",
+      "description": "An odometer-style numeric transition: each digit is its own rolling column that travels through the intermediate digits in the direction of change, with locale-aware formatting and a delta chip that states the change in words.",
+      "category": "charts",
+      "specialties": [
+        "data",
+        "product"
+      ],
+      "technology": [
+        "waapi",
+        "css"
+      ],
+      "interaction": [
+        "data",
+        "press"
+      ],
+      "complexity": 2,
+      "intensity": "subtle",
+      "applications": [
+        "KPI tile",
+        "pricing total",
+        "live counter in a dashboard header",
+        "checkout summary"
+      ],
+      "dependencies": [],
+      "params": [
+        {
+          "key": "series",
+          "label": "Value preset",
+          "type": "select",
+          "default": "volatile",
+          "options": [
+            "volatile",
+            "steady climb",
+            "countdown"
+          ]
+        },
+        {
+          "key": "format",
+          "label": "Format",
+          "type": "select",
+          "default": "integer",
+          "options": [
+            "integer",
+            "currency",
+            "compact",
+            "percent"
+          ]
+        },
+        {
+          "key": "locale",
+          "label": "Locale",
+          "type": "select",
+          "default": "en-US",
+          "options": [
+            "en-US",
+            "de-DE",
+            "fr-FR",
+            "en-IN",
+            "ja-JP"
+          ]
+        },
+        {
+          "key": "duration",
+          "label": "Roll duration",
+          "type": "number",
+          "default": 720,
+          "min": 200,
+          "max": 2000,
+          "step": 20,
+          "unit": "ms"
+        },
+        {
+          "key": "stagger",
+          "label": "Digit stagger",
+          "type": "number",
+          "default": 36,
+          "min": 0,
+          "max": 120,
+          "step": 4,
+          "unit": "ms"
+        }
+      ],
+      "accessibility": [
+        "The value is exposed once, as a single formatted text node in a polite status region; the rolling digit columns are aria-hidden.",
+        "The delta chip pairs its arrow with a signed number and the words up/down, so direction never depends on colour.",
+        "Tabular numerals and fixed-width digit cells keep the layout from shifting while digits roll."
+      ],
+      "reducedMotion": "Digits swap instantly with no roll; entering characters do not slide.",
+      "performance": [
+        "Only changed digits animate, each as one transform-only WAAPI animation on a short strip (≤ 10 cells).",
+        "Strips collapse back to a single cell when the roll finishes; animations are cancelled on unmount or retarget."
+      ],
+      "preview": {
+        "height": 380
+      },
+      "path": "library/src/effects/number-ticker",
+      "files": [
+        "index.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "parallax-depth-layers",
+      "name": "Parallax Depth Layers",
+      "description": "A paper-cut landscape whose layers travel at depth-scaled rates as it passes through the scroll container. One scroll-progress custom property drives every layer in CSS — no animation library, no per-layer JavaScript.",
+      "category": "scroll",
+      "specialties": [
+        "cinematic",
+        "product"
+      ],
+      "technology": [
+        "css",
+        "svg"
+      ],
+      "interaction": [
+        "scroll"
+      ],
+      "complexity": 1,
+      "intensity": "moderate",
+      "applications": [
+        "editorial hero image",
+        "section divider illustration",
+        "landing-page scene between text blocks",
+        "travel or outdoor brand storytelling"
+      ],
+      "dependencies": [],
+      "params": [
+        {
+          "key": "strength",
+          "label": "Strength",
+          "type": "number",
+          "default": 56,
+          "min": 0,
+          "max": 120,
+          "step": 4,
+          "unit": "px"
+        },
+        {
+          "key": "zoom",
+          "label": "Depth zoom",
+          "type": "number",
+          "default": 0.06,
+          "min": 0,
+          "max": 0.2,
+          "step": 0.01
+        },
+        {
+          "key": "layers",
+          "label": "Layers",
+          "type": "number",
+          "default": 5,
+          "min": 3,
+          "max": 5,
+          "step": 1
+        },
+        {
+          "key": "horizon",
+          "label": "Show horizon rules",
+          "type": "boolean",
+          "default": true
+        }
+      ],
+      "accessibility": [
+        "The scene is a figure with a text caption; every moving layer is aria-hidden decoration.",
+        "The scroll container is a focusable, labelled region so it can be scrolled from the keyboard.",
+        "Motion is strictly scroll-linked: nothing moves unless the reader scrolls, and layer travel is capped by the Strength param."
+      ],
+      "reducedMotion": "The scroll listener is not attached and the progress property stays at 0, so the scene renders as a static, centred composition.",
+      "performance": [
+        "One passive, rAF-batched scroll listener (useScrollProgress) writes a single custom property; the browser resolves each layer transform in CSS.",
+        "Layers animate transform only and are promoted with will-change; no layout or paint work per frame beyond compositing.",
+        "Layers are oversized inside an overflow: clip frame, so travel never reveals an edge and never changes layout."
+      ],
+      "preview": {
+        "height": 560,
+        "scroll": true
+      },
+      "path": "library/src/effects/parallax-depth-layers",
+      "files": [
+        "index.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "scramble-decode",
+      "name": "Scramble Decode",
+      "description": "Text resolves from churning glyphs to the final string in a left-to-right sweep. Frames come from a seeded hash, so the same seed always produces the same animation, and every character sits in a fixed 1ch cell so nothing shifts.",
+      "category": "typography",
+      "specialties": [
+        "cinematic",
+        "product",
+        "data"
+      ],
+      "technology": [
+        "css"
+      ],
+      "interaction": [
+        "time",
+        "hover",
+        "keyboard"
+      ],
+      "complexity": 2,
+      "intensity": "moderate",
+      "applications": [
+        "hero kicker or status line",
+        "data value that just refreshed",
+        "section label entering the viewport",
+        "terminal-style product copy"
+      ],
+      "dependencies": [],
+      "params": [
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text",
+          "default": "Signal acquired. Decoding the brief.",
+          "maxLength": 90
+        },
+        {
+          "key": "duration",
+          "label": "Resolve time",
+          "type": "number",
+          "default": 1400,
+          "min": 300,
+          "max": 4000,
+          "step": 50,
+          "unit": "ms"
+        },
+        {
+          "key": "churn",
+          "label": "Glyph swap interval",
+          "type": "number",
+          "default": 50,
+          "min": 16,
+          "max": 200,
+          "step": 2,
+          "unit": "ms"
+        },
+        {
+          "key": "glyphs",
+          "label": "Glyph set",
+          "type": "select",
+          "default": "alphanumeric",
+          "options": [
+            "alphanumeric",
+            "symbols",
+            "binary",
+            "blocks"
+          ]
+        },
+        {
+          "key": "seed",
+          "label": "Seed",
+          "type": "number",
+          "default": 7,
+          "min": 1,
+          "max": 999,
+          "step": 1
+        }
+      ],
+      "accessibility": [
+        "The real sentence is rendered once as visually hidden text; the animated cells are aria-hidden, so assistive tech never hears the scramble.",
+        "Replay is a real button; hovering the text or keyboard-focusing the button also replays, so no interaction is pointer-only.",
+        "Progress is not conveyed by colour alone: a resolved counter accompanies the progress rule."
+      ],
+      "reducedMotion": "The final string is shown immediately; replay only runs a 160 ms opacity fade and hover does nothing.",
+      "performance": [
+        "Cells are updated through textContent/data attributes only when their glyph changes; React does not re-render per frame.",
+        "The rAF loop (useRafLoop) idles when no decode is running and pauses offscreen or in a hidden tab.",
+        "Fixed 1ch cells and nowrap words mean zero layout shift during the churn."
+      ],
+      "preview": {
+        "height": 380
+      },
+      "path": "library/src/effects/scramble-decode",
+      "files": [
+        "index.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "scroll-pin-chapters",
+      "name": "Scroll Pin Chapters",
+      "description": "A pinned panel whose chapters — numeral, title, line illustration — hand over to each other on a scrubbed GSAP timeline as the container scrolls. Progress dots are real buttons that scroll to each chapter.",
+      "category": "scroll",
+      "specialties": [
+        "cinematic",
+        "product"
+      ],
+      "technology": [
+        "gsap",
+        "css",
+        "svg"
+      ],
+      "interaction": [
+        "scroll",
+        "press",
+        "keyboard"
+      ],
+      "complexity": 3,
+      "intensity": "bold",
+      "applications": [
+        "process or how-it-works section",
+        "product feature walkthrough",
+        "editorial long-read chapter opener",
+        "case-study timeline"
+      ],
+      "dependencies": [
+        {
+          "name": "gsap",
+          "version": "^3.15.1"
+        },
+        {
+          "name": "@gsap/react",
+          "version": "^2.1.2"
+        }
+      ],
+      "params": [
+        {
+          "key": "chapters",
+          "label": "Chapters",
+          "type": "number",
+          "default": 5,
+          "min": 3,
+          "max": 5,
+          "step": 1
+        },
+        {
+          "key": "transition",
+          "label": "Transition",
+          "type": "select",
+          "default": "rise",
+          "options": [
+            "rise",
+            "wipe"
+          ]
+        },
+        {
+          "key": "scrub",
+          "label": "Scrub smoothing",
+          "type": "number",
+          "default": 0.5,
+          "min": 0,
+          "max": 1.5,
+          "step": 0.1,
+          "unit": "s"
+        },
+        {
+          "key": "snap",
+          "label": "Snap to chapters",
+          "type": "boolean",
+          "default": true
+        }
+      ],
+      "accessibility": [
+        "The scroll container is a focusable, labelled region, so arrow keys, Page Up/Down and Space scroll it without a pointer.",
+        "Every chapter stays in the DOM as a section with its own heading; only opacity/transform/clip-path are animated, so assistive tech can read all chapters in order.",
+        "Progress dots are buttons named \"Go to chapter N: title\"; the active one carries aria-current=\"step\" and is also distinguished by shape, not colour alone.",
+        "Illustrations are decorative and aria-hidden; nothing is conveyed by motion alone."
+      ],
+      "reducedMotion": "No pinning and no scrub: chapters render as ordinary stacked sections in the scroll container, and the dots jump to a section without smooth scrolling.",
+      "performance": [
+        "Pinning uses CSS position: sticky (compositor-driven, no jitter in nested scrollers); ScrollTrigger only scrubs one timeline.",
+        "One ScrollTrigger on the timeline, never on child tweens; transforms, opacity and clip-path only.",
+        "useGSAP scope + revertOnUpdate reverts tweens, inline styles and the trigger on unmount or param change; the ResizeObserver that refreshes the trigger is disconnected with it.",
+        "React state changes only when the active chapter index changes, not per scroll frame."
+      ],
+      "preview": {
+        "height": 560,
+        "scroll": true
+      },
+      "path": "library/src/effects/scroll-pin-chapters",
+      "files": [
+        "index.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "scroll-progress-rail",
+      "name": "Scroll Progress Rail",
+      "description": "A reading-progress rail whose segments fill as each section crosses the reading line and whose marker names the current section. Driven entirely by CSS scroll-driven animations (scroll() and named view() timelines), with a rAF-batched JavaScript fallback where animation-timeline is unsupported.",
+      "category": "scroll",
+      "specialties": [
+        "product",
+        "data"
+      ],
+      "technology": [
+        "css"
+      ],
+      "interaction": [
+        "scroll",
+        "press",
+        "keyboard"
+      ],
+      "complexity": 2,
+      "intensity": "subtle",
+      "applications": [
+        "long-form article",
+        "documentation page table of contents",
+        "changelog or policy page",
+        "multi-section onboarding guide"
+      ],
+      "dependencies": [],
+      "params": [
+        {
+          "key": "sections",
+          "label": "Sections",
+          "type": "number",
+          "default": 5,
+          "min": 3,
+          "max": 6,
+          "step": 1
+        },
+        {
+          "key": "rail",
+          "label": "Rail position",
+          "type": "select",
+          "default": "side",
+          "options": [
+            "side",
+            "top"
+          ]
+        },
+        {
+          "key": "labels",
+          "label": "Section names",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "key": "forceFallback",
+          "label": "Force JS fallback",
+          "type": "boolean",
+          "default": false
+        }
+      ],
+      "accessibility": [
+        "The rail is a nav landmark; each marker is a button named after its section that scrolls it to the reading line and moves focus to the section heading.",
+        "The current marker carries aria-current=\"location\" (set by an IntersectionObserver in both drivers, since CSS cannot set ARIA state).",
+        "Current and completed states differ by fill length and weight as well as colour; the percentage readout is decorative and aria-hidden.",
+        "The scroll container is a focusable, labelled region for keyboard scrolling."
+      ],
+      "reducedMotion": "The rail is scroll-linked feedback rather than autonomous motion, so it keeps tracking position; marker label transitions are removed and marker clicks jump instead of smooth-scrolling.",
+      "performance": [
+        "CSS driver: scroll() and view() timelines run on the compositor with zero scroll listeners; timeline-scope lets markers outside the sections subscribe to them.",
+        "Fallback driver: one passive, rAF-batched listener (useScrollProgress) reads all section rects first, then writes custom properties — no interleaved layout.",
+        "Support: animation-timeline + timeline-scope in Chromium 116+ and Safari 26+; other engines get the fallback automatically via CSS.supports()."
+      ],
+      "preview": {
+        "height": 560,
+        "scroll": true
+      },
+      "path": "library/src/effects/scroll-progress-rail",
+      "files": [
+        "index.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
       "id": "shader-aurora-plane",
       "name": "Aurora Shader Plane",
       "description": "A full-bleed GLSL background of slow, banded light built from domain-warped value noise. One draw call, one triangle pair, no textures.",
@@ -66,7 +1563,7 @@
           "key": "colorB",
           "label": "Colour B",
           "type": "color",
-          "default": "#2f5bff"
+          "default": "#0f6b57"
         },
         {
           "key": "grain",
@@ -182,6 +1679,102 @@
         "height": 320
       },
       "path": "library/src/effects/split-line-reveal",
+      "files": [
+        "index.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "variable-weight-wave",
+      "name": "Variable Weight Wave",
+      "description": "A headline whose variable-font weight (and optionally width) swells letter by letter under the pointer, breathes when idle and can be swept from the keyboard. Lines are locked after measuring so the block never reflows.",
+      "category": "typography",
+      "specialties": [
+        "cinematic",
+        "product"
+      ],
+      "technology": [
+        "css"
+      ],
+      "interaction": [
+        "pointer",
+        "keyboard",
+        "time"
+      ],
+      "complexity": 2,
+      "intensity": "moderate",
+      "applications": [
+        "hero headline",
+        "brand wordmark",
+        "404 or empty-state title",
+        "section divider statement"
+      ],
+      "dependencies": [],
+      "params": [
+        {
+          "key": "text",
+          "label": "Text",
+          "type": "text",
+          "default": "Weight follows attention",
+          "maxLength": 60
+        },
+        {
+          "key": "minWeight",
+          "label": "Rest weight",
+          "type": "number",
+          "default": 260,
+          "min": 200,
+          "max": 500,
+          "step": 10
+        },
+        {
+          "key": "maxWeight",
+          "label": "Peak weight",
+          "type": "number",
+          "default": 800,
+          "min": 500,
+          "max": 800,
+          "step": 10
+        },
+        {
+          "key": "radius",
+          "label": "Wave radius",
+          "type": "number",
+          "default": 1.1,
+          "min": 0.4,
+          "max": 3,
+          "step": 0.1,
+          "unit": "em"
+        },
+        {
+          "key": "squeeze",
+          "label": "Narrow width at peak",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "key": "idle",
+          "label": "Idle breathing",
+          "type": "boolean",
+          "default": true
+        }
+      ],
+      "accessibility": [
+        "The heading carries the sentence once through aria-label; every per-letter span and the measuring copy are aria-hidden.",
+        "The heading is focusable: keyboard focus sweeps the wave across the line and Arrow/Home/End keys move it letter by letter.",
+        "Text stays real DOM text and scales with zoom; weight never drops below the rest weight chosen for contrast."
+      ],
+      "reducedMotion": "The loop does not run: letters sit at a single mid weight and neither pointer, focus nor idle changes them.",
+      "performance": [
+        "One rAF loop (useRafLoop, paused offscreen) writes a single custom property per letter and skips letters whose value did not change.",
+        "Letter centres are measured once per layout change, never inside the loop.",
+        "Lines are pre-measured and rendered nowrap, so weight changes cannot re-break lines or change the block height."
+      ],
+      "preview": {
+        "height": 380
+      },
+      "path": "library/src/effects/variable-weight-wave",
       "files": [
         "index.tsx",
         "styles.module.css",

@@ -12,7 +12,7 @@ export function installPageHelpers() {
     const origAdd = EventTarget.prototype.addEventListener;
     EventTarget.prototype.addEventListener = function (type) {
       try {
-        if ((type === 'click' || type === 'mousedown' || type === 'pointerdown') && this && /** @type {any} */ (this).nodeType === 1) clickTargets.add(this);
+        if (type === 'click' && this && /** @type {any} */ (this).nodeType === 1) clickTargets.add(this);
       } catch { /* ignore */ }
       return origAdd.apply(this, /** @type {any} */ (arguments));
     };

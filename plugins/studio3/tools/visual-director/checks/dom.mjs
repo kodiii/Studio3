@@ -102,11 +102,11 @@ export function pageDomMeasure(opts) {
 
   // ---- broken layout heuristics ---------------------------------------------
   const zeroMedia = [];
-  for (const el of Array.from(document.querySelectorAll('img,video,canvas,svg,picture,iframe')).slice(0, 300)) {
+  for (const el of Array.from(document.querySelectorAll('img,video,canvas')).slice(0, 300)) {
     if (zeroMedia.length >= 10) break;
     const cs = getComputedStyle(el);
     if (cs.display === 'none' || cs.visibility !== 'visible') continue;
-    if (el.closest('[hidden],[aria-hidden="true"],template,picture') && el.localName !== 'picture') { if (el.closest('[hidden],template')) continue; }
+    if (el.closest('[hidden],template')) continue;
     if (el.parentElement && el.parentElement.closest('svg')) continue;
     if (typeof el.checkVisibility === 'function' && !el.checkVisibility()) continue;
     if (el.localName === 'img' && !el.getAttribute('src') && !el.getAttribute('srcset')) continue;

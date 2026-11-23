@@ -1,0 +1,731 @@
+{
+  "generator": "Studio³ Asset Pipeline",
+  "generatedAt": "2026-11-23T08:52:22.398Z",
+  "tools": {
+    "@gltf-transform/core": "4.5.1",
+    "meshoptimizer": "1.3.0",
+    "draco3dgltf": "1.5.9",
+    "sharp": "0.35.5",
+    "gltf-validator": "2.0.0-dev.3.10"
+  },
+  "ok": true,
+  "name": "orbit-token",
+  "source": {
+    "file": "../../../../assets/models/orbit-token.source.glb",
+    "sha256": "658f9c26d1430e87036ce440b9994f6f18830a06ce78eb7775d653bfaa79b31b",
+    "bytes": 381880
+  },
+  "note": "Profiles are default starting points unless overridden by a budgets/profile file; they are not universal budgets.",
+  "manifest": "orbit-token.manifest.json",
+  "thumbnail": {
+    "status": "ok",
+    "thumbnail": "orbit-token.png",
+    "thumbnailSize": 512,
+    "fallbackImage": "orbit-token.webp",
+    "fallbackSize": 1024,
+    "renderedFrom": "orbit-token.desktop.glb",
+    "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "three": "187"
+  },
+  "variants": [
+    {
+      "generator": "Studio³ Asset Pipeline",
+      "generatedAt": "2026-11-23T08:52:18.762Z",
+      "tools": {
+        "@gltf-transform/core": "4.5.1",
+        "meshoptimizer": "1.3.0",
+        "draco3dgltf": "1.5.9",
+        "sharp": "0.35.5",
+        "gltf-validator": "2.0.0-dev.3.10"
+      },
+      "ok": true,
+      "name": "orbit-token.desktop",
+      "source": {
+        "file": "../../../../assets/models/orbit-token.source.glb",
+        "sha256": "658f9c26d1430e87036ce440b9994f6f18830a06ce78eb7775d653bfaa79b31b",
+        "bytes": 381880
+      },
+      "output": {
+        "file": "orbit-token.desktop.glb",
+        "sha256": "ad97feca2b41d341e9aa39aa2af267644b3b43a1a4ed957aaeb5bcd0253229ca",
+        "bytes": 113184
+      },
+      "profile": {
+        "name": "desktop",
+        "origin": "built-in default",
+        "settings": {
+          "description": "Default starting point for desktop-class GPUs: no geometry simplification, textures ≤ 2048 px.",
+          "compress": "meshopt",
+          "meshoptLevel": "medium",
+          "simplify": null,
+          "textures": {
+            "format": "webp",
+            "maxSize": 2048,
+            "quality": 82,
+            "slots": {
+              "normalTexture": {
+                "quality": 92
+              },
+              "metallicRoughnessTexture": {
+                "quality": 85
+              },
+              "occlusionTexture": {
+                "quality": 85
+              }
+            }
+          }
+        },
+        "note": "Built-in profiles are default starting points, not universal budgets."
+      },
+      "summary": {
+        "bytes": {
+          "before": 381880,
+          "after": 113184,
+          "change": -268696,
+          "percent": -70.36
+        },
+        "triangles": {
+          "before": 5280,
+          "after": 5280,
+          "change": 0,
+          "percent": 0
+        },
+        "uniqueMeshTriangles": {
+          "before": 5280,
+          "after": 5280,
+          "change": 0,
+          "percent": 0
+        },
+        "vertices": {
+          "before": 15840,
+          "after": 14368,
+          "change": -1472,
+          "percent": -9.29
+        },
+        "meshes": {
+          "before": 1,
+          "after": 1,
+          "change": 0,
+          "percent": 0
+        },
+        "materials": {
+          "before": 1,
+          "after": 1,
+          "change": 0,
+          "percent": 0
+        },
+        "textures": {
+          "before": 0,
+          "after": 0,
+          "change": 0,
+          "percent": null
+        },
+        "textureBytes": {
+          "before": 0,
+          "after": 0,
+          "change": 0,
+          "percent": null
+        },
+        "gpuTextureBytesEstimate": {
+          "before": 0,
+          "after": 0,
+          "change": 0,
+          "percent": null
+        },
+        "drawCallsEstimate": {
+          "before": 1,
+          "after": 1,
+          "change": 0,
+          "percent": 0
+        },
+        "animations": {
+          "before": 1,
+          "after": 1,
+          "change": 0,
+          "percent": 0
+        }
+      },
+      "steps": [
+        {
+          "id": "dedup",
+          "title": "Deduplicate accessors, meshes, textures and materials (uniquely named properties are kept)",
+          "status": "ran",
+          "before": {
+            "nodes": 1,
+            "meshes": 1,
+            "primitives": 1,
+            "vertices": 15840,
+            "triangles": 5280,
+            "accessors": 4,
+            "accessorBytes": 380340,
+            "materials": 1,
+            "textures": 0,
+            "textureBytes": 0,
+            "animations": 1
+          },
+          "after": {
+            "nodes": 1,
+            "meshes": 1,
+            "primitives": 1,
+            "vertices": 15840,
+            "triangles": 5280,
+            "accessors": 4,
+            "accessorBytes": 380340,
+            "materials": 1,
+            "textures": 0,
+            "textureBytes": 0,
+            "animations": 1
+          },
+          "ms": 2
+        },
+        {
+          "id": "prune",
+          "title": "Prune unreferenced data (named/empty leaf nodes, extras and vertex attributes are kept)",
+          "status": "ran",
+          "detail": {
+            "keepLeaves": true,
+            "keepExtras": true,
+            "keepAttributes": true,
+            "keepSolidTextures": true
+          },
+          "before": {
+            "nodes": 1,
+            "meshes": 1,
+            "primitives": 1,
+            "vertices": 15840,
+            "triangles": 5280,
+            "accessors": 4,
+            "accessorBytes": 380340,
+            "materials": 1,
+            "textures": 0,
+            "textureBytes": 0,
+            "animations": 1
+          },
+          "after": {
+            "nodes": 1,
+            "meshes": 1,
+            "primitives": 1,
+            "vertices": 15840,
+            "triangles": 5280,
+            "accessors": 4,
+            "accessorBytes": 380340,
+            "materials": 1,
+            "textures": 0,
+            "textureBytes": 0,
+            "animations": 1
+          },
+          "ms": 1
+        },
+        {
+          "id": "join",
+          "title": "Join compatible primitives (opt-in; named nodes and meshes are never merged)",
+          "status": "skipped",
+          "reason": "Not requested (--join). Joining is opt-in because it can merge parts that viewers address individually.",
+          "before": {
+            "nodes": 1,
+            "meshes": 1,
+            "primitives": 1,
+            "vertices": 15840,
+            "triangles": 5280,
+            "accessors": 4,
+            "accessorBytes": 380340,
+            "materials": 1,
+            "textures": 0,
+            "textureBytes": 0,
+            "animations": 1
+          },
+          "after": {
+            "nodes": 1,
+            "meshes": 1,
+            "primitives": 1,
+            "vertices": 15840,
+            "triangles": 5280,
+            "accessors": 4,
+            "accessorBytes": 380340,
+            "materials": 1,
+            "textures": 0,
+            "textureBytes": 0,
+            "animations": 1
+          },
+          "ms": 0
+        },
+        {
+          "id": "weld",
+          "title": "Weld bitwise-identical vertices and build index buffers",
+          "status": "ran",
+          "before": {
+            "nodes": 1,
+            "meshes": 1,
+            "primitives": 1,
+            "vertices": 15840,
+            "triangles": 5280,
+            "accessors": 4,
+            "accessorBytes": 380340,
+            "materials": 1,
+            "textures": 0,
+            "textureBytes": 0,
+            "animations": 1
+          },
+          "after": {
+            "nodes": 1,
+            "meshes": 1,
+            "primitives": 1,
+            "vertices": 14368,
+            "triangles": 5280,
+            "accessors": 5,
+            "accessorBytes": 376692,
+            "materials": 1,
+            "textures": 0,
+            "textureBytes": 0,
+            "animations": 1
+          },
+          "ms": 16
+        },
+        {
+          "id": "simplify",
+          "title": "Simplify geometry (meshoptimizer, borders locked)",
+          "status": "skipped",
+          "reason": "Not requested by the profile/flags; triangle count is preserved.",
+          "before": {
+            "nodes": 1,
+            "meshes": 1,
+            "primitives": 1,
+            "vertices": 14368,
+            "triangles": 5280,
+            "accessors": 5,
+            "accessorBytes": 376692,
+            "materials": 1,
+            "textures": 0,
+            "textureBytes": 0,
+            "animations": 1
+          },
+          "after": {
+            "nodes": 1,
+            "meshes": 1,
+            "primitives": 1,
+            "vertices": 14368,
+            "triangles": 5280,
+            "accessors": 5,
+            "accessorBytes": 376692,
+            "materials": 1,
+            "textures": 0,
+            "textureBytes": 0,
+            "animations": 1
+          },
+          "ms": 0
+        },
+        {
+          "id": "reorder",
+          "title": "Reorder vertices/indices for compression and vertex-cache locality (meshoptimizer)",
+          "status": "ran",
+          "detail": {
+            "target": "size"
+          },
+          "before": {
+            "nodes": 1,
+            "meshes": 1,
+            "primitives": 1,
+            "vertices": 14368,
+            "triangles": 5280,
+            "accessors": 5,
+            "accessorBytes": 376692,
+            "materials": 1,
+            "textures": 0,
+            "textureBytes": 0,
+            "animations": 1
+          },
+          "after": {
+            "nodes": 1,
+            "meshes": 1,
+            "primitives": 1,
+            "vertices": 14368,
+            "triangles": 5280,
+            "accessors": 5,
+            "accessorBytes": 376692,
+            "materials": 1,
+            "textures": 0,
+            "textureBytes": 0,
+            "animations": 1
+          },
+          "ms": 10
+        },
+        {
+          "id": "quantize",
+          "title": "Quantize vertex attributes (KHR_mesh_quantization)",
+          "status": "ran",
+          "detail": {
+            "bits": {
+              "quantizePosition": 14,
+              "quantizeNormal": 10,
+              "quantizeTexcoord": 12,
+              "quantizeColor": 8,
+              "quantizeWeight": 8,
+              "quantizeGeneric": 12
+            },
+            "bitsOrigin": "gltf-transform defaults",
+            "partNodesIsolated": 1,
+            "note": "Meshes of named part nodes were moved to unnamed child nodes so the part nodes keep their original transforms."
+          },
+          "before": {
+            "nodes": 1,
+            "meshes": 1,
+            "primitives": 1,
+            "vertices": 14368,
+            "triangles": 5280,
+            "accessors": 5,
+            "accessorBytes": 376692,
+            "materials": 1,
+            "textures": 0,
+            "textureBytes": 0,
+            "animations": 1
+          },
+          "after": {
+            "nodes": 2,
+            "meshes": 1,
+            "primitives": 1,
+            "vertices": 14368,
+            "triangles": 5280,
+            "accessors": 5,
+            "accessorBytes": 204276,
+            "materials": 1,
+            "textures": 0,
+            "textureBytes": 0,
+            "animations": 1
+          },
+          "ms": 34
+        },
+        {
+          "id": "textures",
+          "title": "Resize / re-encode textures (sharp), per-slot rules",
+          "status": "skipped",
+          "reason": "The asset has no textures.",
+          "before": {
+            "nodes": 2,
+            "meshes": 1,
+            "primitives": 1,
+            "vertices": 14368,
+            "triangles": 5280,
+            "accessors": 5,
+            "accessorBytes": 204276,
+            "materials": 1,
+            "textures": 0,
+            "textureBytes": 0,
+            "animations": 1
+          },
+          "after": {
+            "nodes": 2,
+            "meshes": 1,
+            "primitives": 1,
+            "vertices": 14368,
+            "triangles": 5280,
+            "accessors": 5,
+            "accessorBytes": 204276,
+            "materials": 1,
+            "textures": 0,
+            "textureBytes": 0,
+            "animations": 1
+          },
+          "ms": 1
+        },
+        {
+          "id": "compress",
+          "title": "Mesh compression (meshopt)",
+          "status": "ran",
+          "detail": {
+            "extension": "EXT_meshopt_compression",
+            "level": "medium",
+            "note": "Applied when the GLB is serialised."
+          },
+          "before": {
+            "nodes": 2,
+            "meshes": 1,
+            "primitives": 1,
+            "vertices": 14368,
+            "triangles": 5280,
+            "accessors": 5,
+            "accessorBytes": 204276,
+            "materials": 1,
+            "textures": 0,
+            "textureBytes": 0,
+            "animations": 1
+          },
+          "after": {
+            "nodes": 2,
+            "meshes": 1,
+            "primitives": 1,
+            "vertices": 14368,
+            "triangles": 5280,
+            "accessors": 5,
+            "accessorBytes": 204276,
+            "materials": 1,
+            "textures": 0,
+            "textureBytes": 0,
+            "animations": 1
+          },
+          "ms": 0
+        },
+        {
+          "id": "write",
+          "title": "Write orbit-token.desktop.glb",
+          "status": "ran",
+          "detail": {
+            "bytes": 113184
+          },
+          "before": {
+            "nodes": 2,
+            "meshes": 1,
+            "primitives": 1,
+            "vertices": 14368,
+            "triangles": 5280,
+            "accessors": 5,
+            "accessorBytes": 204276,
+            "materials": 1,
+            "textures": 0,
+            "textureBytes": 0,
+            "animations": 1
+          },
+          "after": {
+            "nodes": 2,
+            "meshes": 1,
+            "primitives": 1,
+            "vertices": 14368,
+            "triangles": 5280,
+            "accessors": 5,
+            "accessorBytes": 204276,
+            "materials": 1,
+            "textures": 0,
+            "textureBytes": 0,
+            "animations": 1
+          },
+          "ms": 18
+        }
+      ],
+      "notes": [],
+      "textures": [],
+      "verification": {
+        "ok": true,
+        "boundsTolerance": 0.002,
+        "checks": [
+          {
+            "id": "validator",
+            "status": "pass",
+            "detail": "No new validator errors (source 0 error(s)/0 warning(s), output 0 error(s)/0 warning(s))."
+          },
+          {
+            "id": "animations",
+            "status": "pass",
+            "detail": "1 clip(s) preserved: Spin (4s)."
+          },
+          {
+            "id": "materials",
+            "status": "pass",
+            "detail": "1 used material name(s) preserved (1 → 1 material objects; unused/duplicate materials may be pruned or merged)."
+          },
+          {
+            "id": "named-nodes",
+            "status": "pass",
+            "detail": "1 named node(s) preserved with parents, extras and transforms."
+          },
+          {
+            "id": "attributes",
+            "status": "pass",
+            "detail": "Vertex attributes (POSITION, NORMAL), 0 skin(s) and morph targets preserved."
+          },
+          {
+            "id": "bounds",
+            "status": "pass",
+            "detail": "Bounding box drift 0.0022% of the diagonal (tolerance 0.20%)."
+          },
+          {
+            "id": "triangles",
+            "status": "pass",
+            "detail": "Rendered triangles unchanged (5280); no simplification ran."
+          },
+          {
+            "id": "source-untouched",
+            "status": "pass",
+            "detail": "Source SHA-256 unchanged (658f9c26d1430e87036ce440b9994f6f18830a06ce78eb7775d653bfaa79b31b)."
+          }
+        ]
+      },
+      "budgets": [],
+      "extensionsUsed": [
+        "EXT_meshopt_compression",
+        "KHR_mesh_quantization"
+      ],
+      "extensionsRequired": [
+        "EXT_meshopt_compression",
+        "KHR_mesh_quantization"
+      ],
+      "decoderRequirements": [
+        {
+          "extension": "EXT_meshopt_compression",
+          "required": true,
+          "needs": "MeshoptDecoder",
+          "three": "import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js'; gltfLoader.setMeshoptDecoder(MeshoptDecoder)"
+        },
+        {
+          "extension": "KHR_mesh_quantization",
+          "required": true,
+          "needs": null,
+          "note": "No decoder needed; supported natively by three.js GLTFLoader and all major engines."
+        }
+      ],
+      "sourcePreserving": {
+        "sourceSha256Before": "658f9c26d1430e87036ce440b9994f6f18830a06ce78eb7775d653bfaa79b31b",
+        "sourceSha256After": "658f9c26d1430e87036ce440b9994f6f18830a06ce78eb7775d653bfaa79b31b",
+        "unchanged": true,
+        "howToRevert": "Outputs are derived files. Delete them and re-run the pipeline from the unchanged source."
+      },
+      "backups": [],
+      "warnings": [],
+      "inspect": {
+        "source": {
+          "totals": {
+            "scenes": 1,
+            "nodes": 1,
+            "namedNodes": 1,
+            "meshes": 1,
+            "primitives": 1,
+            "vertices": 15840,
+            "triangles": 5280,
+            "renderedVertices": 15840,
+            "renderedTriangles": 5280,
+            "materials": 1,
+            "textures": 0,
+            "textureBytes": 0,
+            "animations": 1,
+            "skins": 0,
+            "cameras": 0,
+            "accessors": 4,
+            "gpuTextureBytesEstimate": 0,
+            "drawCallsEstimate": 1
+          },
+          "bounds": {
+            "min": [
+              -0.0315,
+              0,
+              -0.00687
+            ],
+            "max": [
+              0.0315,
+              0.063,
+              0.00687
+            ],
+            "size": [
+              0.063,
+              0.063,
+              0.01374
+            ],
+            "center": [
+              0,
+              0.0315,
+              0
+            ],
+            "diagonal": 0.090149
+          },
+          "meshes": [
+            {
+              "name": "TokenGeo",
+              "primitives": 1,
+              "vertices": 15840,
+              "triangles": 5280,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL"
+              ]
+            }
+          ],
+          "materials": [
+            "TokenMetal"
+          ],
+          "textures": [],
+          "animations": [
+            {
+              "name": "Spin",
+              "duration": 4,
+              "channels": 1
+            }
+          ],
+          "namedNodes": [
+            "Token"
+          ]
+        },
+        "output": {
+          "totals": {
+            "scenes": 1,
+            "nodes": 2,
+            "namedNodes": 1,
+            "meshes": 1,
+            "primitives": 1,
+            "vertices": 14368,
+            "triangles": 5280,
+            "renderedVertices": 14368,
+            "renderedTriangles": 5280,
+            "materials": 1,
+            "textures": 0,
+            "textureBytes": 0,
+            "animations": 1,
+            "skins": 0,
+            "cameras": 0,
+            "accessors": 5,
+            "gpuTextureBytesEstimate": 0,
+            "drawCallsEstimate": 1
+          },
+          "bounds": {
+            "min": [
+              -0.0315,
+              0,
+              -0.006868
+            ],
+            "max": [
+              0.0315,
+              0.063,
+              0.006868
+            ],
+            "size": [
+              0.063,
+              0.063,
+              0.013736
+            ],
+            "center": [
+              0,
+              0.0315,
+              0
+            ],
+            "diagonal": 0.090148
+          },
+          "meshes": [
+            {
+              "name": "TokenGeo",
+              "primitives": 1,
+              "vertices": 14368,
+              "triangles": 5280,
+              "instances": 1,
+              "attributes": [
+                "POSITION",
+                "NORMAL"
+              ]
+            }
+          ],
+          "materials": [
+            "TokenMetal"
+          ],
+          "textures": [],
+          "animations": [
+            {
+              "name": "Spin",
+              "duration": 4,
+              "channels": 1
+            }
+          ],
+          "namedNodes": [
+            "Token"
+          ]
+        }
+      }
+    }
+  ],
+  "backups": []
+}

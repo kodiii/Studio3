@@ -70,7 +70,7 @@ export function resolveFont(key, role) {
   if (hit) {
     return {
       family: hit.name,
-      stack: `"${hit.name}${hit.variable ? ' Variable' : ''}", "${hit.name}", ${stackFor(role === 'mono' ? 'mono' : hit.kind)}`,
+      stack: `${hit.variable ? `"${hit.name} Variable", ` : ''}"${hit.name}", ${stackFor(role === 'mono' ? 'mono' : hit.kind)}`,
       source: hit.package,
       variable: hit.variable,
       license: hit.license,

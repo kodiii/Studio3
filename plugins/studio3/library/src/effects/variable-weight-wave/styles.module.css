@@ -1,0 +1,72 @@
+.root {
+  box-sizing: border-box;
+  width: 100%;
+  padding: clamp(1.5rem, 6cqi, 4rem) clamp(1rem, 5cqi, 3.5rem);
+  display: grid;
+  gap: clamp(1.25rem, 3.5cqi, 2.25rem);
+  justify-items: center;
+}
+.heading {
+  position: relative;
+  margin: 0;
+  width: 100%;
+  font-family: var(--s3-font-display, ui-sans-serif, system-ui, sans-serif);
+  font-size: clamp(2.1rem, 10.5cqi, 6.25rem);
+  font-weight: 400;
+  font-optical-sizing: auto;
+  line-height: 0.96;
+  letter-spacing: -0.03em;
+  text-align: center;
+  color: var(--s3-ink, #11110f);
+  cursor: default;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.heading:focus-visible {
+  outline: 2px solid var(--s3-focus, #1d4ed8);
+  outline-offset: 0.18em;
+  border-radius: var(--s3-radius-s, 4px);
+}
+/* Hidden copy that decides where lines break; measured slightly heavier than rest so a passing wave still fits. */
+.sizer {
+  position: absolute;
+  inset: 0 0 auto 0;
+  visibility: hidden;
+  pointer-events: none;
+  text-wrap: balance;
+  font-variation-settings: 'wght' calc(var(--vw-min) + (var(--vw-max) - var(--vw-min)) * 0.3);
+}
+.line { display: block; white-space: nowrap; }
+.lineFree { display: block; text-wrap: balance; }
+.word { display: inline-block; white-space: nowrap; }
+.letter {
+  --w: 0;
+  font-variation-settings:
+    'wght' calc(var(--vw-min) + (var(--vw-max) - var(--vw-min)) * var(--w)),
+    'wdth' calc(100 - var(--vw-squeeze) * var(--w));
+  color: color-mix(in oklab, var(--s3-ink, #11110f) calc(62% + 38% * var(--w)), var(--s3-ink-muted, #5c5a52));
+}
+.root[data-reduced] .letter { --w: 0.5; }
+
+.caption {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  font-family: var(--s3-font-mono, ui-monospace, monospace);
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--s3-ink-muted, #5c5a52);
+}
+.axis {
+  padding: 0.3rem 0.55rem;
+  border: 1px solid var(--s3-line, #11110f24);
+  border-radius: 999px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.hintText { text-align: center; }
+.keys { white-space: nowrap; }

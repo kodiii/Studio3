@@ -1,0 +1,177 @@
+.root {
+  container-type: inline-size;
+  width: 100%;
+  color: var(--s3-ink, #11110f);
+  font-family: var(--s3-font-text, ui-sans-serif, system-ui, sans-serif);
+}
+.figure {
+  margin: 0 auto;
+  max-width: 880px;
+  padding: clamp(18px, 5cqi, 44px);
+}
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px 24px;
+  flex-wrap: wrap;
+}
+.kicker {
+  margin: 0;
+  font-family: var(--s3-font-mono, ui-monospace, monospace);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--s3-ink-muted, #5c5a52);
+}
+.readout {
+  margin: 10px 0 0;
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+}
+.value {
+  font-family: var(--s3-font-display, ui-sans-serif, system-ui, sans-serif);
+  font-size: clamp(2.5rem, 9cqi, 4rem);
+  font-weight: 700;
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+}
+.context {
+  display: grid;
+  gap: 2px;
+  padding-bottom: 2px;
+  font-size: 0.8125rem;
+  line-height: 1.3;
+  font-variant-numeric: tabular-nums;
+}
+.delta { color: var(--s3-ink-muted, #5c5a52); }
+
+.ranges {
+  display: inline-flex;
+  margin: 0;
+  padding: 3px;
+  border: 1px solid var(--s3-line, #11110f24);
+  border-radius: 999px;
+  min-inline-size: 0;
+}
+.range { position: relative; display: block; }
+.range input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.range span {
+  display: grid;
+  place-items: center;
+  min-width: 48px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-family: var(--s3-font-mono, ui-monospace, monospace);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  color: var(--s3-ink-muted, #5c5a52);
+  transition: background-color var(--s3-duration-fast, 160ms) var(--s3-ease-standard, ease), color var(--s3-duration-fast, 160ms) var(--s3-ease-standard, ease);
+}
+.range input:hover + span { color: var(--s3-ink, #11110f); }
+.range input:checked + span { background: var(--s3-ink, #11110f); color: var(--s3-surface, #fbf9f4); }
+.range input:focus-visible + span { outline: 2px solid var(--s3-focus, #1d4ed8); outline-offset: 2px; }
+
+.plot {
+  position: relative;
+  height: clamp(200px, 40cqi, 320px);
+  margin-top: clamp(16px, 4cqi, 28px);
+  touch-action: pan-y;
+}
+.svg { display: block; overflow: visible; }
+.grid { stroke: var(--s3-line, #11110f24); stroke-width: 1; shape-rendering: crispEdges; }
+.baseline { stroke: var(--s3-ink, #11110f); stroke-width: 1; shape-rendering: crispEdges; }
+.tick {
+  fill: var(--s3-ink-muted, #5c5a52);
+  font-family: var(--s3-font-mono, ui-monospace, monospace);
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+}
+.line {
+  fill: none;
+  stroke: var(--s3-accent, #e03a0c);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.area { fill: var(--s3-accent, #e03a0c); fill-opacity: 0.1; }
+.crosshair { stroke: var(--s3-ink, #11110f); stroke-width: 1; stroke-dasharray: 2 3; shape-rendering: crispEdges; }
+.dot { fill: var(--s3-surface, #fbf9f4); stroke: var(--s3-ink, #11110f); stroke-width: 2; }
+
+.hit {
+  position: absolute;
+  inset: 0;
+  cursor: crosshair;
+  border-radius: var(--s3-radius-s, 4px);
+}
+.hit:focus-visible { outline: 2px solid var(--s3-focus, #1d4ed8); outline-offset: 6px; }
+
+.tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  pointer-events: none;
+}
+.tip > div {
+  position: absolute;
+  bottom: 0;
+  display: grid;
+  gap: 1px;
+  padding: 7px 10px 8px;
+  background: var(--s3-ink, #11110f);
+  color: var(--s3-surface, #fbf9f4);
+  border-radius: var(--s3-radius-s, 4px);
+  white-space: nowrap;
+}
+.tip[data-side='right'] > div { left: 12px; }
+.tip[data-side='left'] > div { right: 12px; }
+.tipLabel {
+  font-family: var(--s3-font-mono, ui-monospace, monospace);
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+.tipValue { font-size: 0.9375rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.caption {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-top: 14px;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--s3-ink-muted, #5c5a52);
+}
+.badge {
+  flex: none;
+  padding: 2px 6px;
+  border: 1px solid var(--s3-line-strong, #11110f);
+  border-radius: 2px;
+  font-family: var(--s3-font-mono, ui-monospace, monospace);
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--s3-ink, #11110f);
+}
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}

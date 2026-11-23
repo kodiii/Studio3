@@ -1,0 +1,88 @@
+// @ts-check
+import fs from 'node:fs';
+import path from 'node:path';
+import { parseArgs } from '../lib/args.mjs';
+import { PLUGIN_ROOT } from '../lib/resolve.mjs';
+import { UserError } from '../lib/log.mjs';
+
+export const help = `studio3 catalog — search the Component & Effect Library
+
+  catalog list [--kind effects|demos] [--json]
+  catalog search <query…> [--category <c>] [--tech <t>] [--specialty <s>] [--interaction <i>]
+                          [--intensity subtle|moderate|bold] [--max-complexity 1|2|3] [--no-deps] [--limit 10] [--json]
+  catalog show <id> [--source] [--json]     print metadata, file paths and (with --source) the recipe source
+
+Recipes live in <plugin>/library/src/effects/<id>/ — copy the folder plus library/src/motion (and src/three for 3D).`;
+
+export function loadCatalog() {
+  const file = path.join(PLUGIN_ROOT, 'library', 'catalog.json');
+  if (!fs.existsSync(file)) throw new UserError(`Catalog not found at ${file}. In a repo checkout run: node scripts/build-catalog.mjs`, 4);
+  return JSON.parse(fs.readFileSync(file, 'utf8'));
+}
+
+/** Rank effects against free-text + facet filters. Pure function (unit-tested). */
+export function searchEffects(effects, query, f = {}) {
+  const terms = String(query ?? '').toLowerCase().split(/\s+/).filter(Boolean);
+  const has = (arr, v) => !v || arr.map(String).includes(String(v));
+  const out = [];
+  for (const e of effects) {
+    if (f.category && e.category !== f.category) continue;
+    if (!has(e.technology, f.tech) || !has(e.specialties, f.specialty) || !has(e.interaction, f.interaction)) continue;
+    if (f.intensity && e.intensity !== f.intensity) continue;
+    if (f.maxComplexity && e.complexity > Number(f.maxComplexity)) continue;
+    if (f.noDeps && e.dependencies.length) continue;
+    let score = terms.length ? 0 : 1;
+    for (const t of terms) {
+      if (e.id.includes(t)) score += 6;
+      if (e.name.toLowerCase().includes(t)) score += 5;
+      if (e.category.includes(t)) score += 4;
+      if (e.technology.some((x) => x.includes(t))) score += 3;
+      if (e.applications.some((a) => a.toLowerCase().includes(t))) score += 3;
+      if (e.description.toLowerCase().includes(t)) score += 2;
+      if (e.specialties.some((x) => x === t)) score += 2;
+    }
+    if (score > 0) out.push({ score, effect: e });
+  }
+  return out.sort((a, b) => b.score - a.score || a.effect.complexity - b.effect.complexity || a.effect.id.localeCompare(b.effect.id));
+}
+
+const row = (e) => `${e.id.padEnd(30)} ${e.category.padEnd(14)} ${e.technology.join('+').padEnd(22)} c${e.complexity} ${e.intensity.padEnd(8)} ${e.name}`;
+
+export async function main(argv) {
+  const args = parseArgs(argv, { boolean: ['json', 'source', 'deps'] });
+  const [sub = 'list', ...rest] = args._;
+  const cat = loadCatalog();
+  if (sub === 'list') {
+    const kind = args.kind ?? 'effects';
+    if (args.json) { console.log(JSON.stringify(cat[kind], null, 2)); return 0; }
+    if (kind === 'demos') for (const d of cat.demos) console.log(`${d.specialty.padEnd(10)} ${d.id.padEnd(26)} ${d.name}`);
+    else for (const e of cat.effects) console.log(row(e));
+    return 0;
+  }
+  if (sub === 'search') {
+    const hits = searchEffects(cat.effects, rest.join(' '), {
+      category: args.category, tech: args.tech, specialty: args.specialty, interaction: args.interaction,
+      intensity: args.intensity, maxComplexity: args['max-complexity'], noDeps: args.deps === false,
+    }).slice(0, Number(args.limit ?? 10));
+    if (args.json) console.log(JSON.stringify(hits.map((h) => ({ score: h.score, ...h.effect })), null, 2));
+    else if (!hits.length) console.log('No matching recipes.');
+    else for (const h of hits) console.log(row(h.effect));
+    return 0;
+  }
+  if (sub === 'show') {
+    const id = rest[0];
+    const item = cat.effects.find((e) => e.id === id) ?? cat.demos.find((d) => d.id === id);
+    if (!item) throw new UserError(`No effect or demo with id "${id}". Try: studio3 catalog search ${id ?? ''}`);
+    const dir = path.join(PLUGIN_ROOT, item.path);
+    const sources = args.source ? Object.fromEntries(item.files.map((f) => [f, fs.readFileSync(path.join(dir, f), 'utf8')])) : undefined;
+    if (args.json) { console.log(JSON.stringify({ ...item, directory: dir, sources }, null, 2)); return 0; }
+    console.log(`${item.name}  (${item.id})\n${item.description ?? item.summary}\n\nDirectory: ${dir}\nFiles: ${item.files.join(', ')}`);
+    if (item.dependencies) console.log(`Dependencies: ${item.dependencies.map((d) => `${d.name}@${d.version}`).join(', ') || 'none'}`);
+    if (item.params) console.log(`Params: ${item.params.map((p) => `${p.key} (${p.type}, default ${JSON.stringify(p.default)})`).join('; ')}`);
+    if (item.reducedMotion) console.log(`Reduced motion: ${item.reducedMotion}`);
+    for (const k of ['accessibility', 'performance']) if (item[k]) console.log(`${k[0].toUpperCase() + k.slice(1)}:\n${item[k].map((s) => `  - ${s}`).join('\n')}`);
+    if (sources) for (const [f, code] of Object.entries(sources)) console.log(`\n───── ${f} ─────\n${code}`);
+    return 0;
+  }
+  throw new UserError(`Unknown catalog subcommand "${sub}".\n\n${help}`);
+}

@@ -1,6 +1,6 @@
 import { demos } from '@studio3/library/registry';
 import { notFound } from 'next/navigation';
-import { DemoStage } from '@/components/DemoStage';
+import { DemoFrame } from '@/components/DemoFrame';
 
 export const dynamicParams = false;
 export function generateStaticParams() {
@@ -10,11 +10,13 @@ export function generateStaticParams() {
 }
 export async function generateMetadata({ params }: { params: Promise<{ specialty: string; id: string }> }) {
   const { specialty, id } = await params;
-  return { title: demos.find((d) => d.meta.specialty === specialty && d.meta.id === id)?.meta.name ?? 'Demo' };
+  const m = demos.find((d) => d.meta.specialty === specialty && d.meta.id === id)?.meta;
+  return { title: m?.name ?? 'Demo', description: m?.summary };
 }
 
 export default async function DemoPage({ params }: { params: Promise<{ specialty: string; id: string }> }) {
   const { specialty, id } = await params;
-  if (!demos.some((d) => d.meta.specialty === specialty && d.meta.id === id)) notFound();
-  return <DemoStage specialty={specialty} id={id} />;
+  const entry = demos.find((d) => d.meta.specialty === specialty && d.meta.id === id);
+  if (!entry) notFound();
+  return <DemoFrame meta={entry.meta} />;
 }

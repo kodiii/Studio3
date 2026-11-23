@@ -214,7 +214,13 @@ export async function inspectDocument(document, opts = {}) {
   const nodes = root.listNodes();
   const namedNodes = nodes.filter((/** @type {any} */ n) => n.getName()).map((/** @type {any} */ n) => {
     const parent = n.getParentNode?.() ?? n.listParents().find((/** @type {any} */ p) => p instanceof NodeClass) ?? null;
-    return { name: n.getName(), parent: parent ? parent.getName() || null : null, extras: n.getExtras() ?? {}, hasMesh: !!n.getMesh() };
+    const mesh = n.getMesh();
+    return {
+      name: n.getName(), parent: parent ? parent.getName() || null : null, extras: n.getExtras() ?? {},
+      hasMesh: !!mesh, mesh: mesh ? root.listMeshes().indexOf(mesh) : null,
+      translation: n.getTranslation().slice(), rotation: n.getRotation().slice(), scale: n.getScale().slice(),
+      worldMatrix: n.getWorldMatrix().slice(),
+    };
   });
 
   const extensionsUsed = root.listExtensionsUsed().map((/** @type {any} */ e) => e.extensionName).sort();

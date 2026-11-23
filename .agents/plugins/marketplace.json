@@ -1,0 +1,12 @@
+{
+  "name": "studio3-marketplace",
+  "interface": { "displayName": "Studio³" },
+  "plugins": [
+    {
+      "name": "studio3",
+      "source": { "source": "local", "path": "./plugins/studio3" },
+      "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" },
+      "category": "Design"
+    }
+  ]
+}

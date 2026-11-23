@@ -5,16 +5,29 @@
   "description": "Studio³ Component, Effect & 3D Library — reusable recipes, the Motion Lab engine and the three-kit.",
   "license": "MIT",
   "type": "module",
-  "sideEffects": ["**/*.css"],
+  "sideEffects": [
+    "**/*.css"
+  ],
   "exports": {
     ".": "./src/index.ts",
-    "./motion": "./src/motion/index.ts",
-    "./three": "./src/three/index.ts",
+    "./types": "./src/types.ts",
     "./registry": "./src/registry.ts",
-    "./*": "./src/*"
+    "./motion": "./src/motion/index.ts",
+    "./motion/tokens": "./src/motion/tokens.ts",
+    "./three": "./src/three/index.ts",
+    "./three/quality": "./src/three/quality.ts",
+    "./three/capabilities": "./src/three/capabilities.ts",
+    "./three/components": "./src/three/components/index.ts",
+    "./catalog.json": "./catalog.json",
+    "./package.json": "./package.json"
   },
-  "scripts": { "typecheck": "tsc --noEmit -p tsconfig.json" },
-  "peerDependencies": { "react": "^19.0.0", "react-dom": "^19.0.0" },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
   "dependencies": {
     "@gsap/react": "^2.1.2",
     "@react-three/drei": "^10.7.9",

@@ -1,0 +1,104 @@
+.root {
+  position: relative;
+  width: min(100% - 32px, 380px);
+  margin: 36px 0 44px;
+  perspective: var(--persp, 1200px);
+  font-family: var(--s3-font-text, ui-sans-serif, system-ui, sans-serif);
+}
+.shadow {
+  position: absolute;
+  inset: auto 6% -22px;
+  height: 36px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, #0b0b0966, #0b0b0900);
+  filter: blur(6px);
+  opacity: 0.55;
+}
+.lift { transform-style: preserve-3d; }
+.card {
+  display: grid;
+  transform-style: preserve-3d;
+  transition: transform var(--dur, 640ms) var(--s3-ease-inOut, cubic-bezier(0.65, 0, 0.35, 1));
+}
+.face {
+  position: relative;
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: clamp(18px, 6cqi, 28px);
+  border-radius: var(--s3-radius-l, 18px);
+  border: 1px solid var(--s3-line, #11110f24);
+  backface-visibility: hidden;
+  overflow: hidden;
+}
+.front { background: #f3f0e8; color: #11110f; --soft: #11110fa6; --rule: #11110f24; }
+.back { background: #171714; color: #f3f0e8; --soft: #f3f0e8b3; --rule: #f3f0e82e; }
+.root[data-axis='y'] .back { transform: rotateY(180deg); }
+.root[data-axis='x'] .back { transform: rotateX(180deg); }
+.kicker {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0;
+  font-family: var(--s3-font-mono, ui-monospace, monospace);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--soft);
+}
+.price { display: grid; gap: 2px; margin: 18px 0 0; }
+.amount {
+  font-family: var(--s3-font-display, ui-sans-serif, system-ui, sans-serif);
+  font-size: clamp(3rem, 20cqi, 4.75rem);
+  font-weight: 700;
+  line-height: 0.9;
+  letter-spacing: -0.05em;
+}
+.per { font-size: 0.8125rem; color: var(--soft); }
+.lede { margin: 0; font-size: 1rem; line-height: 1.35; max-width: 26ch; }
+.points { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; font-size: 0.875rem; color: var(--soft); }
+.points li { display: flex; gap: 10px; align-items: baseline; }
+.points li::before { content: ''; flex: none; width: 6px; height: 6px; border-radius: 50%; background: #e03a0c; transform: translateY(-1px); }
+.table { display: grid; margin: 6px 0 0; }
+.table div { display: grid; grid-template-columns: 5.5rem 1fr; gap: 12px; padding: 10px 0; border-top: 1px solid var(--rule); font-size: 0.875rem; line-height: 1.35; }
+.table dt { font-family: var(--s3-font-mono, ui-monospace, monospace); font-size: 0.6875rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--soft); padding-top: 2px; }
+.table dd { margin: 0; }
+.note { margin: 0; padding-top: 10px; border-top: 1px solid var(--rule); font-size: 0.8125rem; line-height: 1.4; color: var(--soft); }
+.action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 44px;
+  margin-top: auto;
+  padding: 0 16px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color var(--s3-duration-fast, 160ms), color var(--s3-duration-fast, 160ms);
+}
+.front .action:hover { background: #11110f; color: #f3f0e8; }
+.back .action:hover { background: #f3f0e8; color: #11110f; }
+.action:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+/* A band of light that crosses the face mid-turn. */
+.light {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, #ffffff00 30%, #ffffff59 48%, #ffffff00 62%) 0% 0% / 300% 300% no-repeat, linear-gradient(#0b0b0933, #0b0b0933);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Reduced motion: flat cross-fade, no 3D. */
+.root[data-reduced] .card { transition: none; transform: none; }
+.root[data-reduced] .face { transform: none; backface-visibility: visible; opacity: 0; visibility: hidden; transition: opacity 160ms linear, visibility 0s linear 160ms; }
+.root[data-reduced] .face[data-shown] { opacity: 1; visibility: visible; transition: opacity 160ms linear; }
+@media (prefers-reduced-motion: reduce) {
+  .card, .action { transition: none; }
+}

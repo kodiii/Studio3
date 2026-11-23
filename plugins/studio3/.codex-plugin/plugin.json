@@ -1,0 +1,21 @@
+{
+  "name": "studio3",
+  "version": "4.0.0",
+  "description": "Design Intelligence. Motion Engineering. Digital Experiences. Five design specialties (Product, Cinematic, Data, Social, 3D) with shared motion, browser review, experience assessment, design-system and 3D asset tooling.",
+  "keywords": ["design", "frontend", "motion", "animation", "3d", "threejs", "accessibility", "playwright", "design-system"],
+  "skills": "./skills",
+  "interface": {
+    "displayName": "Studio³",
+    "shortDescription": "A design, motion, interaction and 3D engineering studio for your coding agent.",
+    "longDescription": "Studio³ gives a coding agent five design specialties — Product, Cinematic, Data, Social and 3D — backed by working tools: a Motion Lab effect library, Visual Director (Playwright browser QA with 3D diagnostics), Experience Lab (heuristic interaction scoring), a Design Intelligence Engine (studio3.design.json) and a glTF asset pipeline. Tools run locally; no telemetry.",
+    "developerName": "Studio³ Contributors",
+    "category": "Design",
+    "capabilities": ["Read", "Write"],
+    "defaultPrompt": [
+      "Use $studio3:studio-product to design a premium SaaS landing page for this project.",
+      "Use $studio3:studio-review to capture and review this site across desktop, tablet and mobile.",
+      "Use $studio3:studio-3d to add an interactive 3D product viewer with an accessible fallback."
+    ],
+    "brandColor": "#E03A0C"
+  }
+}

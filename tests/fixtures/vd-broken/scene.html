@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Broken 3D scene</title>
+  <link rel="icon" href="data:,">
+  <style>
+    /* Deliberately defective fixture for Visual Director tests. Do not "fix". */
+    body { margin: 0; font-family: system-ui, sans-serif; color: #111; background: #fff; }
+    main { padding: 16px; }
+    .stage { border: 1px solid #999; }
+    canvas { display: block; width: 100%; height: 320px; }  /* defect: 300x150 buffer stretched by CSS */
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Broken 3D scene</h1>
+    <p><a href="index.html">Back</a></p>
+    <div class="stage"><canvas id="scene"></canvas></div>
+  </main>
+  <script>
+    // defect: model reference that does not exist
+    fetch('model.glb').then(function (r) { if (!r.ok) console.warn('model missing'); });
+
+    var canvas = document.getElementById('scene');
+    var gl = canvas.getContext('webgl');
+    // defect: no null check, no fallback -> throws when WebGL is unavailable
+    var vs = gl.createShader(gl.VERTEX_SHADER);
+    gl.shaderSource(vs, 'attribute vec2 p; uniform float a; void main(){ float s = sin(a), k = cos(a); gl_Position = vec4(p.x * k - p.y * s, p.x * s + p.y * k, 0.0, 1.0); }');
+    gl.compileShader(vs);
+    var fs = gl.createShader(gl.FRAGMENT_SHADER);
+    gl.shaderSource(fs, 'precision mediump float; void main(){ gl_FragColor = vec4(0.9, 0.3, 0.2, 1.0); }');
+    gl.compileShader(fs);
+    var program = gl.createProgram();
+    gl.attachShader(program, vs); gl.attachShader(program, fs); gl.linkProgram(program); gl.useProgram(program);
+    gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 0.7, -0.6, -0.5, 0.6, -0.5]), gl.STATIC_DRAW);
+    var P = gl.getAttribLocation(program, 'p');
+    gl.enableVertexAttribArray(P); gl.vertexAttribPointer(P, 2, gl.FLOAT, false, 0, 0);
+    var uA = gl.getUniformLocation(program, 'a');
+    // defect: renders forever, ignores reduced motion, never resizes the drawing buffer
+    function frame(t) {
+      gl.clearColor(0.95, 0.95, 0.95, 1); gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.uniform1f(uA, t / 600);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  </script>
+</body>
+</html>

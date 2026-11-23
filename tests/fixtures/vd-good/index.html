@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Orbit — a clean fixture page</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header>
+    <a class="brand" href="index.html">Orbit</a>
+    <nav aria-label="Primary" class="menu-wrap">
+      <button class="btn secondary" id="menu-button" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="site-menu">Menu</button>
+      <ul class="menu" id="site-menu" role="menu" aria-labelledby="menu-button" hidden>
+        <li role="none"><a role="menuitem" href="index.html">Overview</a></li>
+        <li role="none"><a role="menuitem" href="scene.html">3D scene</a></li>
+        <li role="none"><a role="menuitem" href="#features">Features</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main id="main">
+    <p class="status"><span class="dot" aria-hidden="true"></span> All systems operational</p>
+    <h1 class="rise">Design reviews you can measure</h1>
+    <p class="lede rise">This fixture is a small, accessible page used to verify that Visual Director reports clean results when nothing is wrong.</p>
+    <div class="actions">
+      <a class="btn" href="scene.html">Open the 3D scene</a>
+      <button class="btn secondary" id="open-dialog" type="button" aria-haspopup="dialog">Contact us</button>
+    </div>
+
+    <ul class="cards" id="features">
+      <li class="card"><h2>Measured</h2><p>Layout, assets, accessibility and motion are read from a real browser.</p></li>
+      <li class="card"><h2>Repeatable</h2><p>Every pass writes the same report shape so passes can be compared.</p></li>
+      <li class="card"><h2>Honest</h2><p>Checks that cannot run are reported as skipped, never as passed.</p></li>
+    </ul>
+  </main>
+
+  <dialog id="contact" aria-labelledby="contact-title">
+    <h2 id="contact-title">Contact us</h2>
+    <form method="dialog">
+      <p><label for="email">Email address</label><br>
+        <input id="email" name="email" type="email" autocomplete="email" style="min-height:44px;width:100%;font:inherit;padding:8px;border:1px solid #4b5563;border-radius:6px"></p>
+      <button class="btn" type="submit">Close</button>
+    </form>
+  </dialog>
+
+  <footer><a href="scene.html">3D scene</a></footer>
+
+  <script>
+    (function () {
+      var button = document.getElementById('menu-button');
+      var menu = document.getElementById('site-menu');
+      var items = Array.prototype.slice.call(menu.querySelectorAll('[role="menuitem"]'));
+      function open() { menu.hidden = false; button.setAttribute('aria-expanded', 'true'); items[0].focus(); }
+      function close(returnFocus) { if (menu.hidden) return; menu.hidden = true; button.setAttribute('aria-expanded', 'false'); if (returnFocus) button.focus(); }
+      button.addEventListener('click', function () { if (menu.hidden) open(); else close(true); });
+      menu.addEventListener('keydown', function (e) {
+        var i = items.indexOf(document.activeElement);
+        if (e.key === 'Escape') { e.preventDefault(); close(true); }
+        else if (e.key === 'ArrowDown') { e.preventDefault(); items[(i + 1) % items.length].focus(); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); items[(i - 1 + items.length) % items.length].focus(); }
+        else if (e.key === 'Tab') { close(false); }
+      });
+      document.addEventListener('click', function (e) { if (!menu.contains(e.target) && e.target !== button) close(false); });
+      var dialog = document.getElementById('contact');
+      document.getElementById('open-dialog').addEventListener('click', function () { dialog.showModal(); });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,121 @@
+.root {
+  container-type: inline-size;
+  width: 100%;
+  color: var(--s3-ink, #11110f);
+  font-family: var(--s3-font-text, ui-sans-serif, system-ui, sans-serif);
+}
+.tile {
+  margin: 0 auto;
+  max-width: 720px;
+  padding: clamp(20px, 6cqi, 48px);
+}
+.kicker {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--s3-line-strong, #11110f);
+  font-family: var(--s3-font-mono, ui-monospace, monospace);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.badge {
+  flex: none;
+  padding: 2px 6px;
+  border: 1px solid var(--s3-line, #11110f24);
+  border-radius: 2px;
+  font-size: 0.625rem;
+  color: var(--s3-ink-muted, #5c5a52);
+}
+.number {
+  display: flex;
+  align-items: baseline;
+  margin-top: clamp(18px, 4cqi, 30px);
+  font-family: var(--s3-font-display, ui-sans-serif, system-ui, sans-serif);
+  font-size: clamp(1.75rem, min(15cqi, calc(128cqi / var(--chars, 6))), 7.5rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums lining-nums;
+  white-space: nowrap;
+}
+.digit {
+  position: relative;
+  display: inline-block;
+  height: 1em;
+  /* extra room so glyph tops/bottoms are not clipped by the mask */
+  padding-block: 0.08em;
+  margin-block: -0.08em;
+  overflow: clip;
+  vertical-align: baseline;
+}
+.strip { display: flex; flex-direction: column; will-change: transform; }
+.cell { display: block; height: 1em; line-height: 1; text-align: center; }
+/* neighbours peeking through the mask padding would look like ghosts */
+.cell + .cell { margin-top: 0.16em; }
+.symbol { display: inline-block; white-space: pre; }
+.symbol, .digit { animation: s3NtEnter var(--s3-duration-moderate, 360ms) var(--s3-ease-emphasized, ease) backwards; }
+@keyframes s3NtEnter { from { opacity: 0; transform: translateY(0.25em); } }
+.root[data-reduced] .symbol, .root[data-reduced] .digit { animation: none; }
+@media (prefers-reduced-motion: reduce) { .symbol, .digit { animation: none; } }
+
+.meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: clamp(14px, 3cqi, 22px);
+}
+.delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 5px 11px 5px 9px;
+  border: 1px solid var(--s3-line-strong, #11110f);
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.arrow { font-size: 0.625rem; line-height: 1; }
+.delta[data-dir='up'] { background: var(--s3-ink, #11110f); color: var(--s3-surface, #fbf9f4); }
+.delta[data-dir='down'] .arrow { color: var(--s3-accent, #e03a0c); }
+.delta[data-dir='flat'] { border-color: var(--s3-line, #11110f24); color: var(--s3-ink-muted, #5c5a52); }
+.count {
+  margin: 0;
+  font-family: var(--s3-font-mono, ui-monospace, monospace);
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--s3-ink-muted, #5c5a52);
+  font-variant-numeric: tabular-nums;
+}
+.controls { display: flex; gap: 8px; flex-wrap: wrap; margin-top: clamp(20px, 5cqi, 36px); }
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--s3-line, #11110f24);
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color var(--s3-duration-fast, 160ms) var(--s3-ease-standard, ease), background-color var(--s3-duration-fast, 160ms) var(--s3-ease-standard, ease);
+}
+.btn:hover { border-color: var(--s3-line-strong, #11110f); }
+.btn:active { background: var(--s3-surface-2, #e9e5da); }
+.btn:focus-visible { outline: 2px solid var(--s3-focus, #1d4ed8); outline-offset: 2px; }
+.btn svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+.primary { background: var(--s3-ink, #11110f); border-color: var(--s3-ink, #11110f); color: var(--s3-surface, #fbf9f4); }
+.primary:active { background: var(--s3-ink, #11110f); opacity: 0.85; }
+.srOnly { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }

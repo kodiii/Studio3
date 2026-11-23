@@ -38,13 +38,15 @@ export interface StudioCanvasProps extends Omit<CanvasProps, 'fallback' | 'frame
   /** Force the fallback (useful for tests and "disable 3D" user controls). */
   disabled?: boolean;
   onQualityChange?: (level: QualityLevel) => void;
+  /** Called with the error that made the scene fall back (render error inside the canvas tree). */
+  onSceneError?: (error: Error) => void;
   className?: string;
   style?: CSSProperties;
   children: ReactNode;
 }
 
 export interface Studio3Diagnostics {
-  renderer: { calls: number; triangles: number; geometries: number; textures: number; programs: number };
+  renderer: { calls: number; triangles: number; points: number; lines: number; geometries: number; textures: number; programs: number };
   frameloop: 'always' | 'demand' | 'never';
   quality: QualityLevel;
   dpr: number;
@@ -72,14 +74,17 @@ function Instrumentation({ quality, frameloop, adaptive, onContextLost }: { qual
   const gl = useThree((s) => s.gl);
   const setDpr = useThree((s) => s.setDpr);
   const frames = useRef(0);
+  // Kept in a ref: an inline callback must not tear down and recreate the diagnostics object on every parent render.
+  const lostRef = useRef(onContextLost);
+  lostRef.current = onContextLost;
 
   useEffect(() => {
     const canvas = gl.domElement;
-    const lost = (e: Event) => { e.preventDefault(); if (window.__STUDIO3_3D__) window.__STUDIO3_3D__.contextLost++; onContextLost(); };
+    const lost = (e: Event) => { e.preventDefault(); if (window.__STUDIO3_3D__) window.__STUDIO3_3D__.contextLost++; lostRef.current(); };
     canvas.addEventListener('webglcontextlost', lost);
     const prev = window.__STUDIO3_3D__;
     const diag: Studio3Diagnostics = {
-      renderer: { calls: 0, triangles: 0, geometries: 0, textures: 0, programs: 0 },
+      renderer: { calls: 0, triangles: 0, points: 0, lines: 0, geometries: 0, textures: 0, programs: 0 },
       frameloop, quality: quality.level, dpr: gl.getPixelRatio(), frames: 0, disposed: prev?.disposed ?? 0, contextLost: prev?.contextLost ?? 0,
     };
     window.__STUDIO3_3D__ = diag;
@@ -87,6 +92,8 @@ function Instrumentation({ quality, frameloop, adaptive, onContextLost }: { qual
       const info = gl.info;
       diag.renderer.calls = info.render.calls;
       diag.renderer.triangles = info.render.triangles;
+      diag.renderer.points = info.render.points;
+      diag.renderer.lines = info.render.lines;
       diag.renderer.geometries = info.memory.geometries;
       diag.renderer.textures = info.memory.textures;
       diag.renderer.programs = info.programs?.length ?? 0;
@@ -98,7 +105,7 @@ function Instrumentation({ quality, frameloop, adaptive, onContextLost }: { qual
       canvas.removeEventListener('webglcontextlost', lost);
       if (window.__STUDIO3_3D__ === diag) diag.disposed++;
     };
-  }, [gl, frameloop, quality.level, onContextLost]);
+  }, [gl, frameloop, quality.level]);
 
   const adaptiveRef = useMemo(() => {
     const [min, max] = quality.dpr;
@@ -113,7 +120,7 @@ type Status = 'pending' | 'ready' | 'unsupported' | 'error' | 'lost';
 
 export function StudioCanvas({
   label, description, fallback, quality = 'auto', profiles = defaultQualityProfiles, frameloop = 'demand', paused = false,
-  lazy = true, adaptive = true, disabled = false, onQualityChange, className, style, children, gl, shadows, ...rest
+  lazy = true, adaptive = true, disabled = false, onQualityChange, onSceneError, className, style, children, gl, shadows, ...rest
 }: StudioCanvasProps) {
   const host = useRef<HTMLDivElement>(null);
   const descId = useId();
@@ -132,9 +139,12 @@ export function StudioCanvas({
   useEffect(() => {
     const el = host.current;
     if (!el || typeof IntersectionObserver === 'undefined') { setNear(true); return; }
-    const io = new IntersectionObserver(([e]) => { setVisible(e.isIntersecting); if (e.isIntersecting) setNear(true); }, { rootMargin: '200px' });
+    // Track both signals separately so the loop resumes when the tab becomes visible again.
+    let intersecting = true;
+    const sync = () => setVisible(intersecting && !document.hidden);
+    const io = new IntersectionObserver(([e]) => { intersecting = e.isIntersecting; sync(); if (e.isIntersecting) setNear(true); }, { rootMargin: '200px' });
     io.observe(el);
-    const vis = () => setVisible((v) => v && !document.hidden);
+    const vis = sync;
     document.addEventListener('visibilitychange', vis);
     return () => { io.disconnect(); document.removeEventListener('visibilitychange', vis); };
   }, []);
@@ -169,7 +179,7 @@ export function StudioCanvas({
           </p>
         </div>
       ) : status === 'ready' && near ? (
-        <Boundary key={attempt} onError={() => setStatus('error')}>
+        <Boundary key={attempt} onError={(e) => { setStatus('error'); onSceneError?.(e); }}>
           <QualityCtx.Provider value={profile}>
             <Canvas
               role="img"

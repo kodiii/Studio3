@@ -1,0 +1,359 @@
+{
+  "schemaVersion": 1,
+  "generator": "Studio³ Asset Pipeline",
+  "generatedAt": "2026-11-23T08:52:23.080Z",
+  "notes": {
+    "triangles": "Triangles rendered per frame, counting every instance of shared meshes. vertices = unique vertices uploaded.",
+    "gpuTextureBytesEstimate": "Estimate: uncompressed RGBA8 with mip chain.",
+    "drawCallsEstimate": "Estimate: primitives × instances.",
+    "paths": "All file paths are relative to this manifest."
+  },
+  "assets": [
+    {
+      "id": "orbit-token",
+      "source": {
+        "file": "../../../../assets/models/orbit-token.source.glb",
+        "sha256": "658f9c26d1430e87036ce440b9994f6f18830a06ce78eb7775d653bfaa79b31b",
+        "bytes": 381880,
+        "fromReport": "orbit-token.manifest.json"
+      },
+      "variants": [
+        {
+          "profile": "desktop",
+          "file": "orbit-token.desktop.glb",
+          "bytes": 113184,
+          "sha256": "ad97feca2b41d341e9aa39aa2af267644b3b43a1a4ed957aaeb5bcd0253229ca",
+          "triangles": 5280,
+          "vertices": 14368,
+          "drawCallsEstimate": 1,
+          "textures": [],
+          "gpuTextureBytesEstimate": 0,
+          "extensionsUsed": [
+            "EXT_meshopt_compression",
+            "KHR_mesh_quantization"
+          ],
+          "extensionsRequired": [
+            "EXT_meshopt_compression",
+            "KHR_mesh_quantization"
+          ],
+          "compression": "meshopt",
+          "decoders": [
+            "MeshoptDecoder"
+          ]
+        }
+      ],
+      "thumbnail": "orbit-token.png",
+      "fallbackImage": "orbit-token.webp",
+      "animations": [
+        "Spin"
+      ],
+      "animationClips": [
+        {
+          "name": "Spin",
+          "duration": 4,
+          "targets": [
+            "Token"
+          ]
+        }
+      ],
+      "parts": [
+        "Token"
+      ],
+      "materials": [
+        "TokenMetal"
+      ],
+      "bounds": {
+        "min": [
+          -0.0315,
+          0,
+          -0.006868
+        ],
+        "max": [
+          0.0315,
+          0.063,
+          0.006868
+        ],
+        "size": [
+          0.063,
+          0.063,
+          0.013736
+        ],
+        "center": [
+          0,
+          0.0315,
+          0
+        ]
+      }
+    },
+    {
+      "id": "pulse-speaker",
+      "source": {
+        "file": "../../../../assets/models/pulse-speaker.source.glb",
+        "sha256": "67987c29573ad55165e4e459a99ad2f944dfe229c642e45fae37c78f3f50d6da",
+        "bytes": 19284124,
+        "fromReport": "pulse-speaker.manifest.json"
+      },
+      "variants": [
+        {
+          "profile": "desktop",
+          "file": "pulse-speaker.desktop.glb",
+          "bytes": 2002280,
+          "sha256": "2a5f6147bea2ad68a5ce44718a39b494433da369b3d950d54763fb7adecf9247",
+          "triangles": 263328,
+          "vertices": 133937,
+          "drawCallsEstimate": 14,
+          "textures": [
+            {
+              "w": 2048,
+              "h": 2048,
+              "mime": "image/webp",
+              "bytes": 236302,
+              "slots": [
+                "normalTexture"
+              ]
+            },
+            {
+              "w": 2048,
+              "h": 2048,
+              "mime": "image/webp",
+              "bytes": 122498,
+              "slots": [
+                "occlusionTexture",
+                "metallicRoughnessTexture"
+              ]
+            },
+            {
+              "w": 2048,
+              "h": 2048,
+              "mime": "image/webp",
+              "bytes": 48268,
+              "slots": [
+                "metallicRoughnessTexture"
+              ]
+            },
+            {
+              "w": 2048,
+              "h": 2048,
+              "mime": "image/webp",
+              "bytes": 163354,
+              "slots": [
+                "baseColorTexture"
+              ]
+            }
+          ],
+          "gpuTextureBytesEstimate": 89478484,
+          "extensionsUsed": [
+            "EXT_meshopt_compression",
+            "EXT_texture_webp",
+            "KHR_mesh_quantization"
+          ],
+          "extensionsRequired": [
+            "EXT_meshopt_compression",
+            "EXT_texture_webp",
+            "KHR_mesh_quantization"
+          ],
+          "compression": "meshopt",
+          "decoders": [
+            "MeshoptDecoder"
+          ]
+        },
+        {
+          "profile": "mobile",
+          "file": "pulse-speaker.mobile.glb",
+          "bytes": 1470832,
+          "sha256": "475664e0b43c11029f1fccf5d61496fe37c2ee80ab2d5d67dcbe755690499188",
+          "triangles": 197496,
+          "vertices": 101416,
+          "drawCallsEstimate": 14,
+          "textures": [
+            {
+              "w": 1024,
+              "h": 1024,
+              "mime": "image/webp",
+              "bytes": 118142,
+              "slots": [
+                "normalTexture"
+              ]
+            },
+            {
+              "w": 1024,
+              "h": 1024,
+              "mime": "image/webp",
+              "bytes": 52866,
+              "slots": [
+                "occlusionTexture",
+                "metallicRoughnessTexture"
+              ]
+            },
+            {
+              "w": 1024,
+              "h": 1024,
+              "mime": "image/webp",
+              "bytes": 19412,
+              "slots": [
+                "metallicRoughnessTexture"
+              ]
+            },
+            {
+              "w": 1024,
+              "h": 1024,
+              "mime": "image/webp",
+              "bytes": 25632,
+              "slots": [
+                "baseColorTexture"
+              ]
+            }
+          ],
+          "gpuTextureBytesEstimate": 22369620,
+          "extensionsUsed": [
+            "EXT_meshopt_compression",
+            "EXT_texture_webp",
+            "KHR_mesh_quantization"
+          ],
+          "extensionsRequired": [
+            "EXT_meshopt_compression",
+            "EXT_texture_webp",
+            "KHR_mesh_quantization"
+          ],
+          "compression": "meshopt",
+          "decoders": [
+            "MeshoptDecoder"
+          ]
+        },
+        {
+          "profile": "low-power",
+          "file": "pulse-speaker.low-power.glb",
+          "bytes": 1013712,
+          "sha256": "089f80a11bd511e94c6f4a63ea3344b23b6d2138b80fa2d3e04b50c3fc0e279a",
+          "triangles": 131664,
+          "vertices": 68723,
+          "drawCallsEstimate": 14,
+          "textures": [
+            {
+              "w": 512,
+              "h": 512,
+              "mime": "image/webp",
+              "bytes": 54064,
+              "slots": [
+                "normalTexture"
+              ]
+            },
+            {
+              "w": 512,
+              "h": 512,
+              "mime": "image/webp",
+              "bytes": 31582,
+              "slots": [
+                "occlusionTexture",
+                "metallicRoughnessTexture"
+              ]
+            },
+            {
+              "w": 512,
+              "h": 512,
+              "mime": "image/webp",
+              "bytes": 7938,
+              "slots": [
+                "metallicRoughnessTexture"
+              ]
+            },
+            {
+              "w": 512,
+              "h": 512,
+              "mime": "image/webp",
+              "bytes": 6168,
+              "slots": [
+                "baseColorTexture"
+              ]
+            }
+          ],
+          "gpuTextureBytesEstimate": 5592404,
+          "extensionsUsed": [
+            "EXT_meshopt_compression",
+            "EXT_texture_webp",
+            "KHR_mesh_quantization"
+          ],
+          "extensionsRequired": [
+            "EXT_meshopt_compression",
+            "EXT_texture_webp",
+            "KHR_mesh_quantization"
+          ],
+          "compression": "meshopt",
+          "decoders": [
+            "MeshoptDecoder"
+          ]
+        }
+      ],
+      "thumbnail": "pulse-speaker.png",
+      "fallbackImage": "pulse-speaker.webp",
+      "animations": [
+        "KnobTurn",
+        "LightPulse"
+      ],
+      "animationClips": [
+        {
+          "name": "KnobTurn",
+          "duration": 2,
+          "targets": [
+            "Knob"
+          ]
+        },
+        {
+          "name": "LightPulse",
+          "duration": 1.6,
+          "targets": [
+            "StatusLight"
+          ]
+        }
+      ],
+      "parts": [
+        "PulseSpeaker",
+        "Body",
+        "Grille",
+        "Driver",
+        "DriverRing",
+        "Badge",
+        "Knob",
+        "StatusLight",
+        "StrapPinL",
+        "StrapPinR",
+        "Strap",
+        "Feet",
+        "FootFL",
+        "FootFR",
+        "FootRL",
+        "FootRR"
+      ],
+      "materials": [
+        "ShellMatte",
+        "GrilleMetal",
+        "DriverRubber",
+        "AccentAnodized",
+        "StrapFabric",
+        "LightEmissive"
+      ],
+      "bounds": {
+        "min": [
+          -0.111472,
+          0,
+          -0.039995
+        ],
+        "max": [
+          0.111472,
+          0.143595,
+          0.0453
+        ],
+        "size": [
+          0.222944,
+          0.143595,
+          0.085295
+        ],
+        "center": [
+          0,
+          0.071798,
+          0.002653
+        ]
+      }
+    }
+  ]
+}
