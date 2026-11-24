@@ -118,7 +118,7 @@ export function EffectPlayground({ meta }: { meta: EffectMeta }) {
 
       <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_300px]">
         <section aria-labelledby="source-h" className="min-w-0">
-          <h2 id="source-h" className="mk-label mb-3 text-muted">Source — plugins/maquettekit/library/src/effects/{meta.id}</h2>
+          <h2 id="source-h" className="mk-label mb-3 break-all text-muted">Source — plugins/maquettekit/library/src/effects/{meta.id}</h2>
           <CodeViewer kind="effects" id={meta.id} />
         </section>
         <div className="grid content-start gap-8">

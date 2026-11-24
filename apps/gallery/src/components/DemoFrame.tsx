@@ -83,7 +83,7 @@ export function DemoFrame({ meta }: { meta: DemoMeta }) {
             </section>
           ) : null}
           <section>
-            <h3 className="mk-label mb-3 text-muted">Source — library/src/demos/{meta.specialty}/{meta.id}</h3>
+            <h3 className="mk-label mb-3 break-all text-muted">Source — library/src/demos/{meta.specialty}/{meta.id}</h3>
             {info ? <CodeViewer kind="demos" id={`${meta.specialty}--${meta.id}`} /> : null}
           </section>
         </div>
