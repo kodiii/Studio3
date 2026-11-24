@@ -47,7 +47,7 @@ const PAYLOAD = ['.claude-plugin', '.agents', 'plugins/maquettekit', 'install.sh
   'LICENSE', 'NOTICE.md', 'README.md', 'CHANGELOG.md', 'docs'];
 const stageRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'maquettekit-release-'));
 const stage = path.join(stageRoot, `maquettekit-${version}`);
-const skip = /(^|[\\/])(node_modules|\.next|\.maquettekit|test-results|dist|\.DS_Store)([\\/]|$)/;
+const skip = /(^|[\\/])(node_modules|\.next|\.maquettekit|test-results|dist|\.DS_Store|evals[\\/]results)([\\/]|$)/;
 for (const item of PAYLOAD) {
   const src = path.join(ROOT, item);
   if (!fs.existsSync(src)) throw new Error(`payload item missing: ${item}`);

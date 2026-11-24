@@ -89,7 +89,7 @@ function sourceVersion() {
 }
 
 function copyDir(src, dst) {
-  fs.cpSync(src, dst, { recursive: true, filter: (s) => !/(^|[\\/])(node_modules|\.git|\.next|\.maquettekit|test-results)([\\/]|$)/.test(path.relative(REPO, s)) });
+  fs.cpSync(src, dst, { recursive: true, filter: (s) => !/(^|[\\/])(node_modules|\.git|\.next|\.maquettekit|test-results|evals[\\/]results)([\\/]|$)/.test(path.relative(REPO, s)) });
 }
 
 function backupExisting(oldVersion) {

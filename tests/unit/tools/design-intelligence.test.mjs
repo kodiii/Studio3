@@ -484,6 +484,22 @@ describe('overrides, merge and history (library)', () => {
 });
 
 describe('CLI', () => {
+  it('generate --out - prints the design file to stdout and validate - reads it from stdin (read-only sandboxes)', () => {
+    const r = cli(['generate', '--category', 'retail investing app', '--personality', 'calm,precise', '--seed', '7', '--out', '-']);
+    expect(r.status).toBe(0);
+    const doc = JSON.parse(r.stdout);
+    expect(doc.meta.schemaVersion).toBeTruthy();
+    expect(r.stderr).toMatch(/design file on stdout/);
+    const v = cli(['validate', '-'], { input: r.stdout });
+    expect(v.status).toBe(0);
+    expect(cli(['generate', '--category', 'x', '--out', '-', '--json']).status).toBe(2);
+    expect(cli(['generate', '--category', 'x', '--out', '-', '--merge']).status).toBe(2);
+    expect(cli(['validate', '-'], { input: 'not json' }).stderr).toMatch(/on stdin is not valid JSON/);
+    const t = cli(['init', '--out', '-']);
+    expect(t.status).toBe(0);
+    expect(JSON.parse(t.stdout)).toBeTypeOf('object');
+  });
+
   let dir;
   beforeAll(() => { dir = fs.mkdtempSync(path.join(os.tmpdir(), 's3-design-')); });
   afterAll(() => { fs.rmSync(dir, { recursive: true, force: true }); });

@@ -10,6 +10,17 @@ semantic versioning. Plugin manifests (Claude Code and Codex) always carry the s
   of `--host all`) links the 12 skills into `~/.config/opencode/skills` and `~/.gemini/config/skills`. Skills are
   rendered with `${CLAUDE_PLUGIN_ROOT}` replaced by the installed payload path, so tool commands resolve on hosts that
   do not substitute it (also applied to Claude Code / Codex skills mode). `--host` accepts a comma list.
+- **Skill eval suite** (`plugins/maquettekit/evals/`, run with `claude plugin eval`): 24 cases — routing for every skill
+  plus boundary and negative cases, judgement calls, single-file builds checked against the rules the skills teach,
+  and the plugin's own tooling. `npm run eval` compares with and without the plugin; `npm run eval:triggers` scores
+  routing. `tests/plugin/evals.test.mjs` keeps the suite well-formed.
+- `maquettekit design generate --out -` and `design init --out -` print to stdout, and `design validate -` reads stdin, so
+  the engine works where the shell cannot write files (sandboxes, CI). A failed write now says so and suggests `--out -`.
+
+### Changed
+- The Product, Data and Motion skill descriptions now say to load the skill before planning or advising and for
+  single-file work. The eval suite showed no skill loaded on planning questions or "create `x.html`" requests;
+  routing went from 39/45 to 45/45 and skill loads on build/judgement cases from 0/14 to 12/14 (default model).
 
 ### Fixed
 - Long source-path headings in the gallery wrap instead of widening the page at 390 px.

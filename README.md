@@ -214,6 +214,8 @@ npm run validate      # plugin packaging (both hosts); runs `claude plugin valid
 npm run typecheck
 npm test              # unit (tools + library) and plugin tests (manifests, skills, installer, release archive)
 npm run build && npm run test:e2e   # every recipe and demo in Chromium: errors, axe, reduced motion, 390px, 3D, fallbacks
+npm run eval:triggers # skill routing (claude plugin eval; runs real agent sessions, billed to you)
+npm run eval -- --runs 1   # quality with vs without the plugin — see plugins/maquettekit/evals/README.md
 ```
 
 Graphics-dependent tests run on software WebGL (SwiftShader) in headless Chromium; WebGPU is not available there and

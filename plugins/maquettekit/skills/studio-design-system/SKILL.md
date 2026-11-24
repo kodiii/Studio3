@@ -43,7 +43,8 @@ do not substitute that variable (Codex), the same file is `../../tools/maquettek
    runner-up with one line each; force one with `--direction <id>` only when the user picks it.
 4. **Generate.** `maquettekit design generate --brief brief.json --out maquettekit.design.json --css src/styles/tokens.css`
    (add `--tailwind`, `--ts` or `--dtcg` to suit the stack; `--seed <n>` for byte-reproducible output). Read every
-   `! Assumption:` line it prints and either accept it or fix the brief.
+   `! Assumption:` line it prints and either accept it or fix the brief. If shell commands cannot write files here
+   (read-only sandbox), use `--out -` and save stdout with your own file-writing tool; `validate -` reads stdin.
 5. **Validate and explain.** `maquettekit design validate maquettekit.design.json` must report valid (contrast pairs, scale
    monotonicity, token references). `maquettekit design explain … --section color` (or any section) produces rationale
    you can paste into a design brief for the user.

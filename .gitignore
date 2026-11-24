@@ -11,3 +11,4 @@ playwright-report
 next-env.d.ts
 dist
 .next-prod
+plugins/maquettekit/evals/results

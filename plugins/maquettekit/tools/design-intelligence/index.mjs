@@ -27,13 +27,14 @@ export const help = `Maquettekit Design Intelligence Engine — deterministic, c
 Usage: maquettekit design <command> [options]
 
 Commands:
-  init [--out brief.json] [--force]
+  init [--out brief.json | -] [--force]
       Write an annotated brief template.
 
-  generate [--brief <brief.json>] [--out maquettekit.design.json] [--css <file>] [--tailwind <file>]
+  generate [--brief <brief.json>] [--out maquettekit.design.json | -] [--css <file>] [--tailwind <file>]
            [--ts <file>] [--dtcg <file>] [--seed <n>] [--direction <id>] [--force | --merge] [--json]
       Generate the design decision file (+ optional token exports).
       Refuses to overwrite an existing file unless --force (replace) or --merge (keep "overrides").
+      --out - prints the design file to stdout (for read-only sandboxes and pipes; progress stays on stderr).
       With --seed the output is byte-reproducible (no timestamp). Without a seed the brief hash seeds
       the generator and a generatedAt timestamp is recorded.
       Brief fields as flags (override --brief values):
@@ -45,8 +46,8 @@ Commands:
         --libs a,b               --motion essential|expressive|immersive
         --3d [--3d-purpose <text>]                          --specialty product|cinematic|data|social|3d
 
-  validate <maquettekit.design.json> [--json]
-      Schema + semantic validation (contrast pairs, scale monotonicity, token references).
+  validate <maquettekit.design.json | -> [--json]
+      Schema + semantic validation (contrast pairs, scale monotonicity, token references). "-" reads stdin.
       Exit code 0 = valid, 1 = invalid.
 
   explain <maquettekit.design.json> [--section ${SECTIONS.join('|')}] [--out <file.md>]
@@ -65,20 +66,32 @@ re-validated, and preserved by "generate --merge".`;
 const BOOLEANS = ['force', 'merge', 'json', '3d', 'low-end'];
 const readJson = (file, what) => {
   if (!file || file === true) throw new UserError(`Missing ${what} path.`);
+  if (file === '-') {
+    try { return JSON.parse(fs.readFileSync(0, 'utf8')); } catch (e) { throw new UserError(`${what} on stdin is not valid JSON: ${/** @type {Error} */ (e).message}`); }
+  }
   const p = path.resolve(String(file));
   if (!fs.existsSync(p)) throw new UserError(`${what} not found: ${p}`);
   try { return JSON.parse(fs.readFileSync(p, 'utf8')); } catch (e) { throw new UserError(`${what} is not valid JSON (${p}): ${/** @type {Error} */ (e).message}`); }
 };
 const write = (file, content) => {
   const p = path.resolve(String(file));
-  fs.mkdirSync(path.dirname(p), { recursive: true });
-  fs.writeFileSync(p, content);
+  try {
+    fs.mkdirSync(path.dirname(p), { recursive: true });
+    fs.writeFileSync(p, content);
+  } catch (e) {
+    const code = /** @type {NodeJS.ErrnoException} */ (e).code;
+    if (code === 'EROFS' || code === 'EACCES' || code === 'EPERM') {
+      throw new UserError(`Cannot write ${p} (${code}: the filesystem is read-only or not writable here).\n  Use --out - to print it to stdout and save it with your own tools, then run "design validate <file>" (or pipe it: "design validate -").`);
+    }
+    throw e;
+  }
   return p;
 };
 const stripComments = (obj) => (obj && typeof obj === 'object' && !Array.isArray(obj) ? Object.fromEntries(Object.entries(obj).filter(([k]) => !k.startsWith('_') && k !== '$schema').map(([k, v]) => [k, stripComments(v)])) : obj);
 
 function cmdInit(a) {
   const out = typeof a.out === 'string' ? a.out : 'brief.json';
+  if (out === '-') { process.stdout.write(`${JSON.stringify(briefTemplate(), null, 2)}\n`); return 0; }
   if (fs.existsSync(path.resolve(out)) && !a.force) throw new UserError(`${out} already exists. Use --force to overwrite.`);
   const p = write(out, `${JSON.stringify(briefTemplate(), null, 2)}\n`);
   log.ok(`Brief template written to ${p}`);
@@ -91,9 +104,12 @@ function cmdGenerate(a) {
   const flags = briefFromFlags(a);
   if (!a.brief && Object.keys(flags).length === 0) throw new UserError('Nothing to generate from. Pass --brief <file> or brief flags such as --category and --aesthetic (see "maquettekit design --help").');
   const brief = deepMerge(fromFile, flags);
-  const out = path.resolve(typeof a.out === 'string' ? a.out : 'maquettekit.design.json');
+  const toStdout = a.out === '-';
+  if (toStdout && a.json) throw new UserError('--out - prints the design file itself; drop --json (the summary goes to stderr).');
+  if (toStdout && a.merge) throw new UserError('--merge needs the existing design file: pass --out <file> instead of --out -.');
+  const out = toStdout ? '-' : path.resolve(typeof a.out === 'string' ? a.out : 'maquettekit.design.json');
   if (a.force && a.merge) throw new UserError('Use either --force (replace everything) or --merge (keep overrides), not both.');
-  const exists = fs.existsSync(out);
+  const exists = !toStdout && fs.existsSync(out);
   if (exists && !a.force && !a.merge) {
     throw new UserError(`${out} already exists — refusing to overwrite a persisted design decision.\n  --merge   regenerate and keep its "overrides" (records a history entry)\n  --force   regenerate from scratch, discarding overrides (history is kept)`);
   }
@@ -103,16 +119,17 @@ function cmdGenerate(a) {
   if (exists) { try { previous = JSON.parse(fs.readFileSync(out, 'utf8')); } catch { if (a.merge) throw new UserError(`${out} is not valid JSON; cannot --merge. Fix it or use --force.`); } }
   const doc = previous ? regenerateDesign(brief, previous, { ...opts, keepOverrides: Boolean(a.merge) }) : generateDesign(brief, opts);
   const result = validateDesign(doc);
-  write(out, `${JSON.stringify(doc, null, 2)}\n`);
+  if (toStdout) process.stdout.write(`${JSON.stringify(doc, null, 2)}\n`);
+  else write(out, `${JSON.stringify(doc, null, 2)}\n`);
   /** @type {Record<string, string>} */
-  const written = { design: out };
+  const written = { design: toStdout ? 'stdout' : out };
   for (const [flag, format] of [['css', 'css'], ['tailwind', 'tailwind'], ['ts', 'ts'], ['dtcg', 'json-dtcg']]) {
     if (typeof a[flag] === 'string') written[flag] = write(a[flag], exportTokens(doc, format));
   }
   const sel = doc.meta.selection;
   if (a.json) console.log(JSON.stringify({ written, direction: doc.visualDirection.id, score: sel.chosen.score, runnerUp: sel.runnerUp.id, briefHash: doc.meta.briefHash, valid: result.valid, errors: result.errors, assumptions: doc.meta.assumptions }, null, 2));
   else {
-    log.ok(`${previous ? (a.merge ? 'Regenerated (overrides kept)' : 'Regenerated') : 'Generated'} ${out}`);
+    log.ok(`${previous ? (a.merge ? 'Regenerated (overrides kept)' : 'Regenerated') : 'Generated'} ${toStdout ? 'design file on stdout' : out}`);
     log.info(`  Direction   ${doc.visualDirection.name} (${doc.visualDirection.id}) — score ${sel.chosen.score}; runner-up ${sel.runnerUp.id} ${sel.runnerUp.score}`);
     log.info(`  Thesis      ${doc.visualDirection.thesis}`);
     log.info(`  Type        ${doc.typography.families.display.family} / ${doc.typography.families.text.family} / ${doc.typography.families.mono.family}`);

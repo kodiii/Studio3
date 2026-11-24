@@ -1,6 +1,6 @@
 ---
 name: studio-data
-description: Data Studio. Designs and builds interfaces that make complex information immediately understandable - trading dashboards and financial terminals, crypto and market analytics, real-time monitoring and observability, BI and KPI dashboards, AI-agent and LLM run monitoring, performance dashboards, interactive charts, data tables and statistics explorers. Use when the request mentions a dashboard, chart, graph, data table, KPI, analytics, live or streaming data, alerts, or "visualise this data". Not for marketing pages that only quote numbers (studio-product), scroll-led data stories (studio-cinematic), polls and social counts (studio-social), or the WebGL scene itself (studio-3d).
+description: Data Studio. Use when doing any dashboard, chart, graph, data table, KPI or analytics work — load it before planning, advising or writing code, even for a single chart or HTML dashboard file, and for questions such as "which chart should I use?". Covers trading dashboards and financial terminals, crypto and market analytics, real-time monitoring and observability, BI and KPI dashboards, AI-agent and LLM run monitoring, interactive charts, data tables and statistics explorers, live or streaming data and alerts. Not for marketing pages that only quote numbers (studio-product), scroll-led data stories (studio-cinematic), polls and social counts (studio-social), or the WebGL scene itself (studio-3d).
 argument-hint: "[data, question or dashboard to build]"
 license: MIT
 metadata:

@@ -17,6 +17,8 @@
     "test:unit": "vitest run",
     "test:plugin": "node --test tests/plugin/*.test.mjs",
     "test:e2e": "playwright test --trace off",
+    "eval": "cd plugins/maquettekit && claude plugin eval . --no-publish --allow-tools Bash Write Edit",
+    "eval:triggers": "cd plugins/maquettekit && claude plugin eval . --no-publish --tag trigger --ablation none",
     "validate": "node scripts/validate-plugin.mjs",
     "doctor": "node plugins/maquettekit/tools/maquettekit.mjs doctor",
     "release": "node scripts/package-release.mjs"

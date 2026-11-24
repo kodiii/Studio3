@@ -1,6 +1,6 @@
 ---
 name: studio-motion
-description: Motion Lab, the shared animation and choreography engine. Chooses the lightest animation technology (CSS, WAAPI, Motion, GSAP), applies motion tokens and experience profiles, orchestrates sequences, stagger, shared-element and route transitions, scroll-linked and 3D-synchronised motion, implements the three-tier reduced-motion policy and verifies cleanup. Use when the request says animate, transition, micro-interaction, stagger, choreography, easing, spring, scroll animation, page transition, reduced motion, or when a studio runs its motion pass. Not for whole pages or stories (studio-product, studio-cinematic, studio-data, studio-social) or the WebGL scene itself (studio-3d).
+description: Motion Lab. Use when doing any animation or interaction-feedback work — load it before recommending timings or easing or writing code, even for a single CSS or JS animation - entrances, stagger, hover and press feedback, micro-interactions, transitions, choreography, easing, springs, scroll-linked animation, page and shared-element transitions, reduced motion. The shared animation engine: chooses the lightest technology (CSS, WAAPI, Motion, GSAP), applies motion tokens and experience profiles, implements the three-tier reduced-motion policy and verifies cleanup; studios run it for their motion pass. Not for whole pages or stories (studio-product, studio-cinematic, studio-data, studio-social) or the WebGL scene itself (studio-3d).
 argument-hint: "[element, interaction or sequence to animate]"
 license: MIT
 metadata:
