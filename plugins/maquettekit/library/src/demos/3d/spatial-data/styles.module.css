@@ -1,0 +1,166 @@
+/* Meridian atlas — cartographic paper: a fine survey grid, mono annotations, categorical colour only on data. */
+.root { --grid: color-mix(in srgb, var(--mk-ink, #11110f) 7%, transparent); }
+
+.stage {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  max-height: 78svh;
+  border: 1px solid var(--mk-line-strong, #11110f);
+  border-radius: var(--mk-radius-m, 10px);
+  background-color: var(--mk-surface, #fbf9f4);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 32px 32px;
+  background-position: -1px -1px;
+}
+:global([data-theme='dark']) .stage { background-color: #0e0e0c; }
+@container (width >= 40rem) { .stage { aspect-ratio: 16 / 11; } }
+.stage canvas:focus-visible { outline: 2px solid var(--mk-focus, #1d4ed8); outline-offset: -4px; }
+
+.clusterLabel, .nodeLabel {
+  position: absolute;
+  left: 0;
+  top: 0;
+  visibility: hidden;
+  white-space: nowrap;
+  will-change: transform;
+}
+.clusterLabel {
+  font: 600 11px/1 var(--mk-font-mono, ui-monospace, monospace);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 3px 5px;
+  background: var(--mk-surface, #fbf9f4);
+  border-radius: 3px;
+}
+:global([data-theme='dark']) .clusterLabel { background: #0e0e0c; }
+.nodeLabel {
+  margin-top: -4px;
+  padding: 3px 6px;
+  font: 11.5px/1.1 var(--mk-font-mono, ui-monospace, monospace);
+  color: var(--mk-ink, #11110f);
+  background: var(--mk-surface, #fbf9f4);
+  border: 1px solid var(--mk-line, #11110f24);
+  border-radius: 3px;
+}
+.nodeLabelOn { background: var(--mk-ink, #11110f); color: var(--mk-bg, #f3f0e8); border-color: var(--mk-ink, #11110f); font-weight: 600; }
+
+.seg {
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--mk-line-strong, #11110f);
+  font-size: 13px;
+  cursor: pointer;
+  background: var(--mk-surface, #fbf9f4);
+}
+.seg:first-of-type { border-radius: 999px 0 0 999px; }
+.seg:last-of-type { border-radius: 0 999px 999px 0; margin-left: -1px; }
+.seg:has(input:checked) { background: var(--mk-ink, #11110f); color: var(--mk-bg, #f3f0e8); }
+.seg:has(input:focus-visible) { outline: 2px solid var(--mk-focus, #1d4ed8); outline-offset: 2px; position: relative; z-index: 1; }
+
+.search {
+  width: 100%;
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--mk-line-strong, #11110f);
+  border-radius: 999px;
+  background: var(--mk-surface, #fbf9f4);
+  color: var(--mk-ink, #11110f);
+  font: 13.5px var(--mk-font-text, system-ui, sans-serif);
+}
+.search::placeholder { color: var(--mk-ink-muted, #5c5a52); }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid var(--mk-line-strong, #11110f);
+  border-radius: 999px;
+  background: var(--mk-surface, #fbf9f4);
+  color: var(--mk-ink, #11110f);
+  font-size: 13px;
+}
+.btn:hover { background: var(--mk-surface-2, #e9e5da); }
+
+.pill {
+  min-height: 28px;
+  padding: 0 9px;
+  border: 1px solid var(--mk-line, #11110f24);
+  border-radius: 999px;
+  background: var(--mk-bg, #f3f0e8);
+  color: var(--mk-ink, #11110f);
+  font: 12px var(--mk-font-mono, ui-monospace, monospace);
+}
+.pill:hover:not(:disabled) { border-color: var(--mk-line-strong, #11110f); }
+.pill:disabled { color: var(--mk-ink-muted, #5c5a52); text-decoration: line-through; cursor: not-allowed; }
+
+.filter {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 36px;
+  padding: 0 4px;
+  font-size: 14px;
+  border-bottom: 1px solid var(--mk-line, #11110f24);
+  cursor: pointer;
+}
+.filter input { width: 16px; height: 16px; accent-color: var(--mk-ink, #11110f); }
+.dot { width: 12px; height: 12px; border-radius: 50%; flex: none; }
+
+.tableBox {
+  max-height: 460px;
+  overflow: auto;
+  border: 1px solid var(--mk-line-strong, #11110f);
+  border-radius: var(--mk-radius-m, 10px);
+  background: var(--mk-surface, #fbf9f4);
+}
+.table { width: 100%; min-width: 640px; border-collapse: collapse; font-size: 13.5px; }
+.table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--mk-surface-2, #e9e5da);
+  text-align: left;
+  font-weight: 500;
+  border-bottom: 1px solid var(--mk-line-strong, #11110f);
+}
+.table th, .table td { padding: 0 12px; height: 40px; border-bottom: 1px solid var(--mk-line, #11110f24); }
+.table tbody th { font-weight: 400; text-align: left; }
+.table tbody tr[data-hovered] { background: var(--mk-surface-2, #e9e5da); }
+.table tbody tr[data-selected] { background: var(--mk-ink, #11110f); color: var(--mk-bg, #f3f0e8); }
+.table .num { text-align: right; font-family: var(--mk-font-mono, ui-monospace, monospace); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.table thead .num .sortBtn { justify-content: flex-end; }
+.sortBtn {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+.sortMark { font-family: var(--mk-font-mono, ui-monospace, monospace); color: var(--mk-ink-muted, #5c5a52); }
+.rowBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: 13px var(--mk-font-mono, ui-monospace, monospace);
+  text-align: left;
+}
+.rowBtn[aria-pressed='true'] { font-weight: 700; }

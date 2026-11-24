@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 // Dev helper: axe-core (WCAG 2.x A/AA) report for gallery routes in light and dark themes, with measured values.
 // Usage: node scripts/axe-report.mjs <effect-id | /route> [...] [--all-impacts]
-// Base URL: $STUDIO3_BASE_URL or http://localhost:3333. Effect ids are scanned inside their preview stage.
+// Base URL: $MAQUETTEKIT_BASE_URL or http://localhost:3333. Effect ids are scanned inside their preview stage.
 import { chromium } from 'playwright';
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 
 const axe = readFileSync(createRequire(import.meta.url).resolve('axe-core/axe.min.js'), 'utf8');
-const base = process.env.STUDIO3_BASE_URL ?? 'http://localhost:3333';
+const base = process.env.MAQUETTEKIT_BASE_URL ?? 'http://localhost:3333';
 const all = process.argv.includes('--all-impacts');
 const targets = process.argv.slice(2).filter((a) => !a.startsWith('--'));
 const b = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
@@ -17,7 +17,7 @@ for (const t of targets) {
   const scope = t.startsWith('/') ? 'body' : `[data-effect-stage="${t}"]`;
   for (const scheme of ['light', 'dark']) {
     const p = await b.newPage({ colorScheme: scheme, viewport: { width: 1280, height: 800 } });
-    await p.addInitScript((s) => { try { localStorage.setItem('s3-theme', s); } catch { /* */ } }, scheme);
+    await p.addInitScript((s) => { try { localStorage.setItem('mk-theme', s); } catch { /* */ } }, scheme);
     await p.goto(base + route);
     await p.waitForTimeout(2500);
     await p.addScriptTag({ content: axe });

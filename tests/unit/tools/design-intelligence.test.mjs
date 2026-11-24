@@ -4,19 +4,19 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { generateDesign, regenerateDesign, applyOverrides } from '../../../plugins/studio3/tools/design-intelligence/generate.mjs';
-import { validateDesign } from '../../../plugins/studio3/tools/design-intelligence/validate.mjs';
-import { explainDesign } from '../../../plugins/studio3/tools/design-intelligence/explain.mjs';
-import { toCss, toTailwind, toTs, toDtcg, exportTokens } from '../../../plugins/studio3/tools/design-intelligence/exports.mjs';
-import { DIRECTIONS, GLOBAL_AVOID } from '../../../plugins/studio3/tools/design-intelligence/directions.mjs';
-import { FONTS, resolveFont } from '../../../plugins/studio3/tools/design-intelligence/fonts.mjs';
-import { normalizeBrief, briefTemplate, canonicalCategory, isReactStack } from '../../../plugins/studio3/tools/design-intelligence/brief.mjs';
-import { loadSchema, validateSchema } from '../../../plugins/studio3/tools/design-intelligence/schema.mjs';
-import { contrastRatio, hexToOklch } from '../../../plugins/studio3/tools/design-intelligence/color.mjs';
-import { getPath } from '../../../plugins/studio3/tools/design-intelligence/util.mjs';
+import { generateDesign, regenerateDesign, applyOverrides } from '../../../plugins/maquettekit/tools/design-intelligence/generate.mjs';
+import { validateDesign } from '../../../plugins/maquettekit/tools/design-intelligence/validate.mjs';
+import { explainDesign } from '../../../plugins/maquettekit/tools/design-intelligence/explain.mjs';
+import { toCss, toTailwind, toTs, toDtcg, exportTokens } from '../../../plugins/maquettekit/tools/design-intelligence/exports.mjs';
+import { DIRECTIONS, GLOBAL_AVOID } from '../../../plugins/maquettekit/tools/design-intelligence/directions.mjs';
+import { FONTS, resolveFont } from '../../../plugins/maquettekit/tools/design-intelligence/fonts.mjs';
+import { normalizeBrief, briefTemplate, canonicalCategory, isReactStack } from '../../../plugins/maquettekit/tools/design-intelligence/brief.mjs';
+import { loadSchema, validateSchema } from '../../../plugins/maquettekit/tools/design-intelligence/schema.mjs';
+import { contrastRatio, hexToOklch } from '../../../plugins/maquettekit/tools/design-intelligence/color.mjs';
+import { getPath } from '../../../plugins/maquettekit/tools/design-intelligence/util.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
-const CLI = path.join(ROOT, 'plugins/studio3/tools/studio3.mjs');
+const CLI = path.join(ROOT, 'plugins/maquettekit/tools/maquettekit.mjs');
 const cli = (args, opts = {}) => spawnSync(process.execPath, [CLI, 'design', ...args], { encoding: 'utf8', ...opts });
 
 const BASE = {
@@ -133,7 +133,7 @@ describe('determinism', () => {
 });
 
 describe('schema validity across a matrix of briefs', () => {
-  const schema = loadSchema('studio3.design');
+  const schema = loadSchema('maquettekit.design');
   const specialties = ['product', 'cinematic', 'data', 'social', '3d'];
   const motions = ['essential', 'expressive', 'immersive'];
   const stacks = [{ framework: 'next', styling: 'tailwind', libs: [] }, { framework: 'vue', styling: 'css', libs: [] }, { framework: 'sveltekit', styling: 'scss', libs: ['gsap'] }, { framework: 'astro', styling: 'tailwind', libs: [] }, { framework: 'react', styling: 'css-modules', libs: ['framer-motion'] }];
@@ -355,13 +355,13 @@ describe('exports', () => {
       expect(css).toMatch(/prefers-color-scheme: dark/);
       expect(css).toMatch(/:root\[data-theme="dark"\]/);
       expect(css).toMatch(/prefers-reduced-motion: reduce/);
-      expect(css).toContain(`--s3-color-primary: ${fmt === 'hex' ? doc.color.light.roles.primary.hex : doc.color.light.roles.primary.oklch};`);
-      expect(css).toContain('--s3-color-data-8:');
-      expect(css).toContain(`--s3-text-5xl: ${doc.typography.scale.steps['5xl'].clamp};`);
+      expect(css).toContain(`--mk-color-primary: ${fmt === 'hex' ? doc.color.light.roles.primary.hex : doc.color.light.roles.primary.oklch};`);
+      expect(css).toContain('--mk-color-data-8:');
+      expect(css).toContain(`--mk-text-5xl: ${doc.typography.scale.steps['5xl'].clamp};`);
       // every declaration has a value
-      for (const m of css.matchAll(/(--s3-[a-z0-9_-]+):\s*([^;]*);/g)) expect(m[2].trim().length, m[1]).toBeGreaterThan(0);
+      for (const m of css.matchAll(/(--mk-[a-z0-9_-]+):\s*([^;]*);/g)) expect(m[2].trim().length, m[1]).toBeGreaterThan(0);
       const reduced = css.slice(css.indexOf('@media (prefers-reduced-motion: reduce)'));
-      for (const m of reduced.matchAll(/--s3-duration-[a-z]+: (\d+)ms/g)) expect(Number(m[1])).toBeLessThanOrEqual(200);
+      for (const m of reduced.matchAll(/--mk-duration-[a-z]+: (\d+)ms/g)) expect(Number(m[1])).toBeLessThanOrEqual(200);
     }
     const darkFirst = toCss(generateDesign(brief(), { seed: 1, direction: 'dark-cinema' }));
     expect(darkFirst).toMatch(/:root \{\n {2}color-scheme: dark;/);
@@ -448,12 +448,12 @@ describe('overrides, merge and history (library)', () => {
     expect(out.color.light.roles.primary.oklch).toMatch(/^oklch\(/);
     expect(out.color.light.roles.primary.oklch).not.toBe(doc.color.light.roles.primary.oklch);
     expect(out.motion.durations.base).toBe(260);
-    expect(out.meta.generator).toBe('studio3-design-intelligence');
+    expect(out.meta.generator).toBe('maquettekit-design-intelligence');
     expect(out.meta.overridesIgnored).toEqual(['meta']);
     expect(out.meta.overridesApplied).toEqual(['color.light.roles.primary.hex', 'motion.durations.base']);
     expect(applyOverrides(out)).toEqual(out); // idempotent
-    expect(toCss(doc)).toContain('--s3-color-primary: #0a3d91;');
-    expect(toCss(doc)).toContain('--s3-duration-base: 260ms;');
+    expect(toCss(doc)).toContain('--mk-color-primary: #0a3d91;');
+    expect(toCss(doc)).toContain('--mk-duration-base: 260ms;');
     expect(JSON.parse(/= (\{[\s\S]*\}) as const/.exec(toTs(doc))[1]).color.light.primary).toBe('#0a3d91');
     expect(toDtcg(doc).color.light.primary.$value.hex).toBe('#0a3d91');
     expect(doc.color.light.roles.primary.hex).not.toBe('#0a3d91'); // input not mutated
@@ -498,18 +498,18 @@ describe('CLI', () => {
     expect(again.stderr).toMatch(/already exists/);
   });
   it('generate from a brief file writes the design and all exports; seeded output is byte-reproducible', () => {
-    const args = ['generate', '--brief', p('brief.json'), '--seed', '7', '--out', p('a/studio3.design.json'), '--css', p('a/tokens.css'), '--tailwind', p('a/theme.css'), '--ts', p('a/tokens.ts'), '--dtcg', p('a/tokens.json')];
+    const args = ['generate', '--brief', p('brief.json'), '--seed', '7', '--out', p('a/maquettekit.design.json'), '--css', p('a/tokens.css'), '--tailwind', p('a/theme.css'), '--ts', p('a/tokens.ts'), '--dtcg', p('a/tokens.json')];
     const r = cli(args);
     expect(r.status, r.stderr).toBe(0);
-    for (const f of ['a/studio3.design.json', 'a/tokens.css', 'a/theme.css', 'a/tokens.ts', 'a/tokens.json']) expect(fs.statSync(p(f)).size).toBeGreaterThan(500);
+    for (const f of ['a/maquettekit.design.json', 'a/tokens.css', 'a/theme.css', 'a/tokens.ts', 'a/tokens.json']) expect(fs.statSync(p(f)).size).toBeGreaterThan(500);
     const r2 = cli(args.map((x) => x.replace(`${path.sep}a${path.sep}`, `${path.sep}b${path.sep}`)));
     expect(r2.status).toBe(0);
-    expect(fs.readFileSync(p('b/studio3.design.json'), 'utf8')).toBe(fs.readFileSync(p('a/studio3.design.json'), 'utf8'));
+    expect(fs.readFileSync(p('b/maquettekit.design.json'), 'utf8')).toBe(fs.readFileSync(p('a/maquettekit.design.json'), 'utf8'));
     expect(fs.readFileSync(p('b/tokens.css'), 'utf8')).toBe(fs.readFileSync(p('a/tokens.css'), 'utf8'));
-    expect(fs.readFileSync(p('a/studio3.design.json'), 'utf8')).not.toMatch(/generatedAt/);
+    expect(fs.readFileSync(p('a/maquettekit.design.json'), 'utf8')).not.toMatch(/generatedAt/);
   });
   it('refuses to overwrite without --force/--merge; --merge keeps overrides and records history', () => {
-    const out = p('a/studio3.design.json');
+    const out = p('a/maquettekit.design.json');
     const refuse = cli(['generate', '--brief', p('brief.json'), '--out', out]);
     expect(refuse.status).toBe(2);
     expect(refuse.stderr).toMatch(/refusing to overwrite/);
@@ -530,7 +530,7 @@ describe('CLI', () => {
     expect(after.history[1].date).toMatch(/^\d{4}-\d\d-\d\dT/);
     expect(after.history[1].briefHash).not.toBe(after.history[0].briefHash);
     expect(after.meta.generatedAt).toMatch(/^\d{4}-/);
-    expect(fs.readFileSync(p('a/tokens.css'), 'utf8')).toContain('--s3-color-primary: #123a8c;');
+    expect(fs.readFileSync(p('a/tokens.css'), 'utf8')).toContain('--mk-color-primary: #123a8c;');
     const forced = cli(['generate', '--brief', p('brief.json'), '--out', out, '--force']);
     expect(forced.status).toBe(0);
     const reset = JSON.parse(fs.readFileSync(out, 'utf8'));
@@ -604,9 +604,9 @@ describe('library alias layer (CSS export ↔ component library contract)', () =
     it(`${direction}: every recipe-facing variable is defined and resolves to a defined token`, () => {
       const doc = generateDesign(brief(), { seed: 3, direction });
       const css = toCss(doc);
-      const defined = new Set([...css.matchAll(/(--s3-[a-z0-9-]+)\s*:/g)].map((m) => m[1]));
-      for (const v of LIBRARY_VARS) expect(defined.has(`--s3-${v}`), `--s3-${v} defined`).toBe(true);
-      for (const [, target] of css.matchAll(/--s3-(?:bg|surface|surface-2|ink|ink-muted|line|line-strong|signal|on-signal|accent|focus|success|danger|font-serif|radius-[sml]):\s*var\((--s3-[a-z0-9-]+)\)/g)) {
+      const defined = new Set([...css.matchAll(/(--mk-[a-z0-9-]+)\s*:/g)].map((m) => m[1]));
+      for (const v of LIBRARY_VARS) expect(defined.has(`--mk-${v}`), `--mk-${v} defined`).toBe(true);
+      for (const [, target] of css.matchAll(/--mk-(?:bg|surface|surface-2|ink|ink-muted|line|line-strong|signal|on-signal|accent|focus|success|danger|font-serif|radius-[sml]):\s*var\((--mk-[a-z0-9-]+)\)/g)) {
         expect(defined.has(target), `alias target ${target} defined`).toBe(true);
       }
     });
@@ -616,26 +616,26 @@ describe('library alias layer (CSS export ↔ component library contract)', () =
     const doc = generateDesign(brief(), { seed: 3 });
     expect(Object.keys(doc.motion.durations)).toEqual(expect.arrayContaining(['instant', 'fast', 'base', 'slow', 'slower', 'scene']));
     const css = toCss(doc);
-    const defined = new Set([...css.matchAll(/(--s3-[a-z0-9-]+)\s*:/g)].map((m) => m[1]));
-    for (const k of ['instant', 'fast', 'base', 'moderate', 'slow', 'cinematic']) expect(defined.has(`--s3-duration-${k}`), `--s3-duration-${k}`).toBe(true);
-    for (const k of ['standard', 'enter', 'exit', 'emphasized']) expect(defined.has(`--s3-ease-${k}`), `--s3-ease-${k}`).toBe(true);
+    const defined = new Set([...css.matchAll(/(--mk-[a-z0-9-]+)\s*:/g)].map((m) => m[1]));
+    for (const k of ['instant', 'fast', 'base', 'moderate', 'slow', 'cinematic']) expect(defined.has(`--mk-duration-${k}`), `--mk-duration-${k}`).toBe(true);
+    for (const k of ['standard', 'enter', 'exit', 'emphasized']) expect(defined.has(`--mk-ease-${k}`), `--mk-ease-${k}`).toBe(true);
     const aliases = aliasBlock(css);
-    expect(aliases).toMatch(/--s3-duration-moderate: calc\(\(var\(--s3-duration-base\) \+ var\(--s3-duration-slow\)\) \/ 2\);/);
-    expect(aliases).toMatch(/--s3-duration-cinematic: var\(--s3-duration-scene\);/);
+    expect(aliases).toMatch(/--mk-duration-moderate: calc\(\(var\(--mk-duration-base\) \+ var\(--mk-duration-slow\)\) \/ 2\);/);
+    expect(aliases).toMatch(/--mk-duration-cinematic: var\(--mk-duration-scene\);/);
     // never literal values: the reduced-motion block caps the design durations they point at
-    for (const [, v] of aliases.matchAll(/--s3-duration-[a-z]+: ([^;]+);/g)) expect(v).not.toMatch(/^\d/);
+    for (const [, v] of aliases.matchAll(/--mk-duration-[a-z]+: ([^;]+);/g)) expect(v).not.toMatch(/^\d/);
     const reduced = css.split('@media (prefers-reduced-motion: reduce)')[1];
-    for (const k of ['base', 'slow', 'scene']) expect(reduced).toContain(`--s3-duration-${k}:`);
+    for (const k of ['base', 'slow', 'scene']) expect(reduced).toContain(`--mk-duration-${k}:`);
     // inOut is left to the recipes' own symmetric fallback (no design easing is an in-out curve)
-    expect(defined.has('--s3-ease-inOut')).toBe(false);
+    expect(defined.has('--mk-ease-inOut')).toBe(false);
   });
   it('motion: names the design already defines are not re-declared; cinematic falls back to slower', () => {
     const doc = generateDesign(brief(), { seed: 3 });
     doc.motion.durations.moderate = 333;
     delete doc.motion.durations.scene;
     const css = toCss(doc);
-    expect(css.match(/--s3-duration-moderate:/g)).toHaveLength(2); // the design token + its reduced-motion cap, no alias
-    expect(aliasBlock(css)).not.toContain('--s3-duration-moderate');
-    expect(aliasBlock(css)).toMatch(/--s3-duration-cinematic: var\(--s3-duration-slower\);/);
+    expect(css.match(/--mk-duration-moderate:/g)).toHaveLength(2); // the design token + its reduced-motion cap, no alias
+    expect(aliasBlock(css)).not.toContain('--mk-duration-moderate');
+    expect(aliasBlock(css)).toMatch(/--mk-duration-cinematic: var\(--mk-duration-slower\);/);
   });
 });

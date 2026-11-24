@@ -7,117 +7,117 @@
 @import '@fontsource/instrument-serif/400-italic.css';
 
 /* Tailwind scans the library so demos may use utilities. Effects stay utility-free (portable). */
-@source '../../../../plugins/studio3/library/src';
+@source '../../../../plugins/maquettekit/library/src';
 
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 
-/* ── Studio³ identity ─────────────────────────────────────────────────────────
+/* ── Maquettekit identity ─────────────────────────────────────────────────────────
    Paper + ink + one signal colour. Hairline rules, editorial grid, mono indices.
    Each specialty owns one accent; nothing else gets colour. */
 :root {
-  --s3-font-display: 'Bricolage Grotesque Variable', 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
-  --s3-font-text: 'Geist Variable', 'Geist', ui-sans-serif, system-ui, sans-serif;
-  --s3-font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
-  --s3-font-serif: 'Instrument Serif', 'Iowan Old Style', Georgia, serif;
+  --mk-font-display: 'Bricolage Grotesque Variable', 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
+  --mk-font-text: 'Geist Variable', 'Geist', ui-sans-serif, system-ui, sans-serif;
+  --mk-font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --mk-font-serif: 'Instrument Serif', 'Iowan Old Style', Georgia, serif;
 
-  --s3-bg: #f3f0e8;
-  --s3-surface: #fbf9f4;
-  --s3-surface-2: #e9e5da;
-  --s3-ink: #11110f;
-  --s3-ink-muted: #5c5a52;
-  --s3-line: #11110f24;
-  --s3-line-strong: #11110f;
-  --s3-signal: #bf2f09;
-  --s3-on-signal: #ffffff;
-  --s3-focus: #1d4ed8;
-  --s3-success: #0a6e4d;
-  --s3-danger: #b42318;
+  --mk-bg: #f3f0e8;
+  --mk-surface: #fbf9f4;
+  --mk-surface-2: #e9e5da;
+  --mk-ink: #11110f;
+  --mk-ink-muted: #5c5a52;
+  --mk-line: #11110f24;
+  --mk-line-strong: #11110f;
+  --mk-signal: #bf2f09;
+  --mk-on-signal: #ffffff;
+  --mk-focus: #1d4ed8;
+  --mk-success: #0a6e4d;
+  --mk-danger: #b42318;
 
-  --s3-accent-product: #2446d8;
-  --s3-accent-cinematic: #bf2f09;
-  --s3-accent-data: #0a6e4d;
-  --s3-accent-social: #b8166f;
-  --s3-accent-3d: #8a5a00;
-  --s3-accent: var(--s3-signal);
+  --mk-accent-product: #2446d8;
+  --mk-accent-cinematic: #bf2f09;
+  --mk-accent-data: #0a6e4d;
+  --mk-accent-social: #b8166f;
+  --mk-accent-3d: #8a5a00;
+  --mk-accent: var(--mk-signal);
 
-  --s3-radius-s: 4px;
-  --s3-radius-m: 10px;
-  --s3-radius-l: 18px;
+  --mk-radius-s: 4px;
+  --mk-radius-m: 10px;
+  --mk-radius-l: 18px;
 
-  --s3-duration-instant: 90ms; --s3-duration-fast: 160ms; --s3-duration-base: 240ms; --s3-duration-moderate: 360ms;
-  --s3-duration-slow: 560ms; --s3-duration-cinematic: 900ms;
-  --s3-ease-standard: cubic-bezier(0.2, 0, 0, 1); --s3-ease-enter: cubic-bezier(0.05, 0.7, 0.1, 1);
-  --s3-ease-exit: cubic-bezier(0.3, 0, 0.8, 0.15); --s3-ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
-  --s3-ease-inOut: cubic-bezier(0.65, 0, 0.35, 1); --s3-ease-overshoot: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --mk-duration-instant: 90ms; --mk-duration-fast: 160ms; --mk-duration-base: 240ms; --mk-duration-moderate: 360ms;
+  --mk-duration-slow: 560ms; --mk-duration-cinematic: 900ms;
+  --mk-ease-standard: cubic-bezier(0.2, 0, 0, 1); --mk-ease-enter: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --mk-ease-exit: cubic-bezier(0.3, 0, 0.8, 0.15); --mk-ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
+  --mk-ease-inOut: cubic-bezier(0.65, 0, 0.35, 1); --mk-ease-overshoot: cubic-bezier(0.34, 1.56, 0.64, 1);
   color-scheme: light;
 }
 [data-theme='dark'] {
-  --s3-bg: #0e0e0c;
-  --s3-surface: #171714;
-  --s3-surface-2: #22221e;
-  --s3-ink: #f3f0e8;
-  --s3-ink-muted: #a8a59a;
-  --s3-line: #f3f0e826;
-  --s3-line-strong: #f3f0e8;
-  --s3-signal: #ff5a2b;
-  --s3-on-signal: #11110f;
-  --s3-focus: #8ab4ff;
-  --s3-success: #3ecf9a;
-  --s3-danger: #ff7b6b;
-  --s3-accent-product: #7d97ff;
-  --s3-accent-cinematic: #ff5a2b;
-  --s3-accent-data: #3ecf9a;
-  --s3-accent-social: #ff6fb8;
-  --s3-accent-3d: #f2b632;
+  --mk-bg: #0e0e0c;
+  --mk-surface: #171714;
+  --mk-surface-2: #22221e;
+  --mk-ink: #f3f0e8;
+  --mk-ink-muted: #a8a59a;
+  --mk-line: #f3f0e826;
+  --mk-line-strong: #f3f0e8;
+  --mk-signal: #ff5a2b;
+  --mk-on-signal: #11110f;
+  --mk-focus: #8ab4ff;
+  --mk-success: #3ecf9a;
+  --mk-danger: #ff7b6b;
+  --mk-accent-product: #7d97ff;
+  --mk-accent-cinematic: #ff5a2b;
+  --mk-accent-data: #3ecf9a;
+  --mk-accent-social: #ff6fb8;
+  --mk-accent-3d: #f2b632;
   color-scheme: dark;
 }
-[data-specialty='product'] { --s3-accent: var(--s3-accent-product); }
-[data-specialty='cinematic'] { --s3-accent: var(--s3-accent-cinematic); }
-[data-specialty='data'] { --s3-accent: var(--s3-accent-data); }
-[data-specialty='social'] { --s3-accent: var(--s3-accent-social); }
-[data-specialty='3d'] { --s3-accent: var(--s3-accent-3d); }
+[data-specialty='product'] { --mk-accent: var(--mk-accent-product); }
+[data-specialty='cinematic'] { --mk-accent: var(--mk-accent-cinematic); }
+[data-specialty='data'] { --mk-accent: var(--mk-accent-data); }
+[data-specialty='social'] { --mk-accent: var(--mk-accent-social); }
+[data-specialty='3d'] { --mk-accent: var(--mk-accent-3d); }
 /* Always-dark stage (WebGL previews, cinematic demos) */
 [data-stage='ink'] {
-  --s3-bg: #0e0e0c; --s3-surface: #171714; --s3-surface-2: #22221e; --s3-ink: #f3f0e8; --s3-ink-muted: #a8a59a;
-  --s3-line: #f3f0e826; --s3-line-strong: #f3f0e8; --s3-signal: #ff5a2b; --s3-on-signal: #11110f; --s3-focus: #8ab4ff;
+  --mk-bg: #0e0e0c; --mk-surface: #171714; --mk-surface-2: #22221e; --mk-ink: #f3f0e8; --mk-ink-muted: #a8a59a;
+  --mk-line: #f3f0e826; --mk-line-strong: #f3f0e8; --mk-signal: #ff5a2b; --mk-on-signal: #11110f; --mk-focus: #8ab4ff;
   color-scheme: dark;
 }
 
 @theme inline {
-  --font-display: var(--s3-font-display);
-  --font-sans: var(--s3-font-text);
-  --font-mono: var(--s3-font-mono);
-  --font-serif: var(--s3-font-serif);
-  --color-bg: var(--s3-bg);
-  --color-surface: var(--s3-surface);
-  --color-surface-2: var(--s3-surface-2);
-  --color-ink: var(--s3-ink);
-  --color-muted: var(--s3-ink-muted);
-  --color-line: var(--s3-line);
-  --color-line-strong: var(--s3-line-strong);
-  --color-signal: var(--s3-signal);
-  --color-on-signal: var(--s3-on-signal);
-  --color-accent: var(--s3-accent);
-  --color-focus: var(--s3-focus);
-  --color-success: var(--s3-success);
-  --color-danger: var(--s3-danger);
-  --ease-standard: var(--s3-ease-standard);
-  --ease-emphasized: var(--s3-ease-emphasized);
+  --font-display: var(--mk-font-display);
+  --font-sans: var(--mk-font-text);
+  --font-mono: var(--mk-font-mono);
+  --font-serif: var(--mk-font-serif);
+  --color-bg: var(--mk-bg);
+  --color-surface: var(--mk-surface);
+  --color-surface-2: var(--mk-surface-2);
+  --color-ink: var(--mk-ink);
+  --color-muted: var(--mk-ink-muted);
+  --color-line: var(--mk-line);
+  --color-line-strong: var(--mk-line-strong);
+  --color-signal: var(--mk-signal);
+  --color-on-signal: var(--mk-on-signal);
+  --color-accent: var(--mk-accent);
+  --color-focus: var(--mk-focus);
+  --color-success: var(--mk-success);
+  --color-danger: var(--mk-danger);
+  --ease-standard: var(--mk-ease-standard);
+  --ease-emphasized: var(--mk-ease-emphasized);
 }
 
 @layer base {
-  html { background: var(--s3-bg); color: var(--s3-ink); font-family: var(--s3-font-text); -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
-  body { min-height: 100dvh; background: var(--s3-bg); }
-  :focus-visible { outline: 2px solid var(--s3-focus); outline-offset: 2px; border-radius: 2px; }
-  ::selection { background: var(--s3-signal); color: var(--s3-on-signal); }
+  html { background: var(--mk-bg); color: var(--mk-ink); font-family: var(--mk-font-text); -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+  body { min-height: 100dvh; background: var(--mk-bg); }
+  :focus-visible { outline: 2px solid var(--mk-focus); outline-offset: 2px; border-radius: 2px; }
+  ::selection { background: var(--mk-signal); color: var(--mk-on-signal); }
   button, [role='button'], summary, a { -webkit-tap-highlight-color: transparent; }
   button:not(:disabled), [role='button'], summary { cursor: pointer; }
 }
 
 @layer utilities {
-  .s3-label { font-family: var(--s3-font-mono); font-size: 0.6875rem; letter-spacing: 0.08em; text-transform: uppercase; }
-  .s3-display { font-family: var(--s3-font-display); font-weight: 700; letter-spacing: -0.035em; line-height: 0.95; }
-  .s3-sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .mk-label { font-family: var(--mk-font-mono); font-size: 0.6875rem; letter-spacing: 0.08em; text-transform: uppercase; }
+  .mk-display { font-family: var(--mk-font-display); font-weight: 700; letter-spacing: -0.035em; line-height: 0.95; }
+  .mk-sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 }
 
 /* App-level reduced motion (the in-app toggle sets data-reduced on <html>) */

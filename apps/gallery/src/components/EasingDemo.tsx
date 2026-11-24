@@ -1,5 +1,5 @@
 'use client';
-import { useReducedMotion } from '@studio3/library/motion';
+import { useReducedMotion } from '@maquettekit/library/motion';
 import { useRef } from 'react';
 
 interface Curve { name: string; css: string; ms: number; note?: string }
@@ -26,10 +26,10 @@ export function EasingDemo({ easings, springs }: { easings: Curve[]; springs: Cu
   );
   return (
     <div ref={root}>
-      <button type="button" onClick={play} className="s3-label mb-3 rounded-full bg-ink px-4 py-2 text-bg">Play all</button>
+      <button type="button" onClick={play} className="mk-label mb-3 rounded-full bg-ink px-4 py-2 text-bg">Play all</button>
       {reduced ? <p className="mb-2 text-xs text-muted">Reduced motion is on: dots jump to their end state.</p> : null}
       <ul>{easings.map((c) => <Row key={c.name} c={c} />)}</ul>
-      <p className="s3-label mb-1 mt-6 text-muted">Springs (sampled to CSS linear())</p>
+      <p className="mk-label mb-1 mt-6 text-muted">Springs (sampled to CSS linear())</p>
       <ul>{springs.map((c) => <Row key={c.name} c={c} />)}</ul>
     </div>
   );

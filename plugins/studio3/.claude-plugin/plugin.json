@@ -1,9 +1,0 @@
-{
-  "name": "studio3",
-  "displayName": "Studio³",
-  "version": "4.0.0",
-  "description": "Design Intelligence. Motion Engineering. Digital Experiences. Five design specialties (Product, Cinematic, Data, Social, 3D) with a shared Motion Lab, Visual Director browser QA, Experience Lab, Design Intelligence Engine, a component & effect library and a 3D asset pipeline.",
-  "author": { "name": "Studio³ Contributors" },
-  "license": "MIT",
-  "keywords": ["design", "frontend", "motion", "animation", "3d", "threejs", "react-three-fiber", "gsap", "accessibility", "playwright", "design-system", "dataviz"]
-}

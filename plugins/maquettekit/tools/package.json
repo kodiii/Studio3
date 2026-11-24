@@ -1,0 +1,23 @@
+{
+  "name": "@maquettekit/tools",
+  "version": "4.0.0",
+  "private": true,
+  "description": "Maquettekit engineering tools: Visual Director, Experience Lab, Design Intelligence Engine, 3D Asset Pipeline, doctor.",
+  "license": "MIT",
+  "type": "module",
+  "bin": { "maquettekit": "./maquettekit.mjs" },
+  "scripts": { "typecheck": "tsc --noEmit -p tsconfig.json" },
+  "dependencies": {
+    "@gltf-transform/core": "^4.5.1",
+    "@gltf-transform/extensions": "^4.5.1",
+    "@gltf-transform/functions": "^4.5.1",
+    "axe-core": "^4.14.1",
+    "draco3dgltf": "^1.5.9",
+    "gltf-validator": "^2.0.0-dev.3.10",
+    "meshoptimizer": "^1.3.0",
+    "pixelmatch": "^8.0.0",
+    "playwright": "1.63.0",
+    "pngjs": "^7.0.0",
+    "sharp": "^0.35.5"
+  }
+}

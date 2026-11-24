@@ -23,7 +23,7 @@ const NAV = [
 export function Wordmark({ className = '' }: { className?: string }) {
   return (
     <span className={`font-display font-bold tracking-[-0.04em] ${className}`}>
-      Studio<sup className="ml-[0.04em] align-super text-[0.55em] font-semibold text-signal">3</sup>
+      Maquette<span className="font-serif font-normal italic tracking-normal text-signal">kit</span>
     </span>
   );
 }
@@ -35,7 +35,7 @@ function Toggle({ pressed, onChange, children }: { pressed: boolean; onChange: (
       type="button"
       aria-pressed={pressed}
       onClick={() => onChange(!pressed)}
-      className="s3-label inline-flex h-9 items-center gap-2 rounded-full border border-line px-3 text-ink transition-colors duration-150 hover:border-line-strong aria-pressed:border-line-strong aria-pressed:bg-ink aria-pressed:text-bg"
+      className="mk-label inline-flex h-9 items-center gap-2 rounded-full border border-line px-3 text-ink transition-colors duration-150 hover:border-line-strong aria-pressed:border-line-strong aria-pressed:bg-ink aria-pressed:text-bg"
     >
       {children}
     </button>
@@ -72,18 +72,18 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-bg/90 backdrop-blur-sm">
-      <a href="#main" className="s3-label absolute left-3 top-3 -translate-y-16 rounded bg-ink px-3 py-2 text-bg focus:translate-y-0">Skip to content</a>
+      <a href="#main" className="mk-label absolute left-3 top-3 -translate-y-16 rounded bg-ink px-3 py-2 text-bg focus:translate-y-0">Skip to content</a>
       <div className="mx-auto flex h-14 max-w-[1400px] items-center justify-between gap-4 px-4 sm:px-6">
         <Link href="/" className="flex items-baseline gap-3 py-3 decoration-signal decoration-2 underline-offset-[6px] hover:underline">
           <Wordmark className="text-[1.35rem] leading-none" />
-          <span className="s3-label hidden text-muted md:inline">v4.0 Gallery</span>
+          <span className="mk-label hidden text-muted md:inline">v4.0 Gallery</span>
         </Link>
         <nav aria-label="Primary" className="hidden items-center gap-1 lg:flex">
           {NAV.map((n) => {
             const active = pathname === n.href || pathname.startsWith(n.href + '/');
             return (
               <Link key={n.href} href={n.href} aria-current={active ? 'page' : undefined}
-                className="s3-label relative rounded-full px-3 py-2 text-muted transition-colors duration-150 hover:bg-surface-2 hover:text-ink aria-[current=page]:text-ink">
+                className="mk-label relative rounded-full px-3 py-2 text-muted transition-colors duration-150 hover:bg-surface-2 hover:text-ink aria-[current=page]:text-ink">
                 {n.label}
                 {active ? <span aria-hidden="true" className="absolute inset-x-3 -bottom-[11px] h-[2px] bg-signal" /> : null}
               </Link>
@@ -92,10 +92,10 @@ export function SiteHeader() {
         </nav>
         <div className="flex items-center gap-2">
           <div className="hidden sm:block"><SettingsControls /></div>
-          <a href={REPO_URL} target="_blank" rel="noreferrer" className="s3-label inline-flex h-9 items-center gap-2 rounded-full border border-line px-3 text-ink transition-colors duration-150 hover:border-line-strong hover:bg-surface-2">
-            <GitHubMark /><span className="hidden md:inline">GitHub</span><span className="s3-sr-only md:hidden">Studio³ on GitHub</span>
+          <a href={REPO_URL} target="_blank" rel="noreferrer" className="mk-label inline-flex h-9 items-center gap-2 rounded-full border border-line px-3 text-ink transition-colors duration-150 hover:border-line-strong hover:bg-surface-2">
+            <GitHubMark /><span className="hidden md:inline">GitHub</span><span className="mk-sr-only md:hidden">Maquettekit on GitHub</span>
           </a>
-          <button type="button" className="s3-label inline-flex h-9 items-center rounded-full border border-line px-3 lg:hidden" aria-expanded={open} aria-controls="site-menu" onClick={() => setOpen((o) => !o)}>
+          <button type="button" className="mk-label inline-flex h-9 items-center rounded-full border border-line px-3 lg:hidden" aria-expanded={open} aria-controls="site-menu" onClick={() => setOpen((o) => !o)}>
             {open ? 'Close' : 'Menu'}
           </button>
         </div>
@@ -103,9 +103,9 @@ export function SiteHeader() {
       <div id="site-menu" ref={panel} hidden={!open} className="border-t border-line bg-bg lg:hidden">
         <nav aria-label="Mobile" className="mx-auto grid max-w-[1400px] gap-1 px-4 py-4 sm:px-6">
           {NAV.map((n) => <Link key={n.href} href={n.href} className="font-display border-b border-line py-3 text-2xl font-semibold tracking-tight">{n.label}</Link>)}
-          <p className="s3-label mt-4 text-muted">Specialties</p>
+          <p className="mk-label mt-4 text-muted">Specialties</p>
           <div className="flex flex-wrap gap-2 py-2">
-            {SPECIALTIES.map((s) => <Link key={s.id} href={`/studios/${s.id}`} className="s3-label rounded-full border border-line px-3 py-2">{s.name}</Link>)}
+            {SPECIALTIES.map((s) => <Link key={s.id} href={`/studios/${s.id}`} className="mk-label rounded-full border border-line px-3 py-2">{s.name}</Link>)}
           </div>
           <div className="pt-3 sm:hidden"><SettingsControls /></div>
         </nav>
@@ -122,7 +122,7 @@ export function SiteFooter() {
           <Wordmark className="text-3xl" />
           <p className="mt-3 max-w-md text-sm text-muted">Design Intelligence. Motion Engineering. Digital Experiences. Everything on this site is running source from the plugin’s library — nothing is a mock-up.</p>
         </div>
-        <ul className="s3-label grid grid-cols-2 gap-x-10 gap-y-2 text-muted">
+        <ul className="mk-label grid grid-cols-2 gap-x-10 gap-y-2 text-muted">
           <li><Link className="hover:text-ink" href="/effects">Effects</Link></li>
           <li><Link className="hover:text-ink" href="/studios">Studios</Link></li>
           <li><Link className="hover:text-ink" href="/3d">3D Gallery</Link></li>
@@ -130,7 +130,7 @@ export function SiteFooter() {
           <li className="col-span-2"><a className="inline-flex items-center gap-2 hover:text-ink" href={REPO_URL} target="_blank" rel="noreferrer"><GitHubMark size={14} /> Source on GitHub</a></li>
         </ul>
       </div>
-      <p className="s3-label border-t border-line px-4 py-4 text-center text-muted sm:px-6">MIT licensed · No telemetry · All demo data is simulated and labelled as such</p>
+      <p className="mk-label border-t border-line px-4 py-4 text-center text-muted sm:px-6">MIT licensed · No telemetry · All demo data is simulated and labelled as such</p>
     </footer>
   );
 }

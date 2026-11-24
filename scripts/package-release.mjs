@@ -2,9 +2,9 @@
 // @ts-check
 /**
  * Builds release archives in dist/:
- *   studio3-plugin-<version>.tar.gz   installable payload: marketplace manifests, plugins/studio3, installer, docs
- *   studio3-source-<version>.tar.gz   full source of HEAD (git archive) — requires a clean, committed tree
- *   studio3-source-<version>.zip      same, zip
+ *   maquettekit-plugin-<version>.tar.gz   installable payload: marketplace manifests, plugins/maquettekit, installer, docs
+ *   maquettekit-source-<version>.tar.gz   full source of HEAD (git archive) — requires a clean, committed tree
+ *   maquettekit-source-<version>.zip      same, zip
  *   SHA256SUMS                        checksums of the above
  * Usage: node scripts/package-release.mjs [--allow-dirty] [--out dist] [--skip-checks]
  *   --skip-checks  local smoke builds only: skip the catalogue/validation preconditions (never for a real release)
@@ -28,7 +28,7 @@ const run = (cmd, a, opts = {}) => {
 };
 
 // 1. preconditions
-for (const [label, file] of [['claude', 'plugins/studio3/.claude-plugin/plugin.json'], ['codex', 'plugins/studio3/.codex-plugin/plugin.json']]) {
+for (const [label, file] of [['claude', 'plugins/maquettekit/.claude-plugin/plugin.json'], ['codex', 'plugins/maquettekit/.codex-plugin/plugin.json']]) {
   const v = JSON.parse(fs.readFileSync(path.join(ROOT, file), 'utf8')).version;
   if (v !== version) throw new Error(`${label} manifest version ${v} != package.json ${version}`);
 }
@@ -43,26 +43,26 @@ if (dirty && !args.includes('--allow-dirty')) throw new Error('Working tree is n
 fs.mkdirSync(OUT, { recursive: true });
 
 // 2. plugin payload
-const PAYLOAD = ['.claude-plugin', '.agents', 'plugins/studio3', 'install.sh', 'uninstall.sh', 'scripts/install.mjs',
+const PAYLOAD = ['.claude-plugin', '.agents', 'plugins/maquettekit', 'install.sh', 'uninstall.sh', 'scripts/install.mjs',
   'LICENSE', 'NOTICE.md', 'README.md', 'CHANGELOG.md', 'docs'];
-const stageRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'studio3-release-'));
-const stage = path.join(stageRoot, `studio3-${version}`);
-const skip = /(^|[\\/])(node_modules|\.next|\.studio3|test-results|dist|\.DS_Store)([\\/]|$)/;
+const stageRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'maquettekit-release-'));
+const stage = path.join(stageRoot, `maquettekit-${version}`);
+const skip = /(^|[\\/])(node_modules|\.next|\.maquettekit|test-results|dist|\.DS_Store)([\\/]|$)/;
 for (const item of PAYLOAD) {
   const src = path.join(ROOT, item);
   if (!fs.existsSync(src)) throw new Error(`payload item missing: ${item}`);
   fs.cpSync(src, path.join(stage, item), { recursive: true, filter: (s) => !skip.test(path.relative(ROOT, s)) });
 }
-const pluginTar = path.join(OUT, `studio3-plugin-${version}.tar.gz`);
-run('tar', ['-czf', pluginTar, '-C', stageRoot, `studio3-${version}`]);
+const pluginTar = path.join(OUT, `maquettekit-plugin-${version}.tar.gz`);
+run('tar', ['-czf', pluginTar, '-C', stageRoot, `maquettekit-${version}`]);
 fs.rmSync(stageRoot, { recursive: true, force: true });
 
 // 3. source archives of HEAD
 const outputs = [pluginTar];
 if (!dirty) {
   for (const fmt of ['tar.gz', 'zip']) {
-    const file = path.join(OUT, `studio3-source-${version}.${fmt}`);
-    run('git', ['archive', '--format', fmt, '--prefix', `studio3-${version}/`, '-o', file, 'HEAD']);
+    const file = path.join(OUT, `maquettekit-source-${version}.${fmt}`);
+    run('git', ['archive', '--format', fmt, '--prefix', `maquettekit-${version}/`, '-o', file, 'HEAD']);
     outputs.push(file);
   }
 } else console.error('! dirty tree: source archives skipped (they are built from HEAD)');

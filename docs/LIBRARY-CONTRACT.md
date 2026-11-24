@@ -1,12 +1,12 @@
 # Library contract — effects, demos, and the gallery
 
-This is the contract every recipe and demo in `plugins/studio3/library` follows. The gallery, the catalog
+This is the contract every recipe and demo in `plugins/maquettekit/library` follows. The gallery, the catalog
 generator, the tests and the skills all depend on it.
 
 ## Layout
 
 ```
-plugins/studio3/library/src/
+plugins/maquettekit/library/src/
   types.ts                  EffectMeta, DemoMeta, ParamSpec, EffectProps …
   motion/                   Motion Lab engine: tokens, createSequence/flip/viewTransition, hooks, useStudioMotion
   three/                    three-kit: detectCapabilities, quality profiles, dispose helpers, StudioCanvas, createVanillaScene
@@ -28,11 +28,11 @@ those into errors.
 1. **Self-contained and portable.** A recipe folder must be copy-pasteable into another React project together with
    `motion/` (and `three/` for 3D recipes). No Tailwind classes in effects: use a co-located CSS module or inline styles.
    Import shared code only from `../../motion`, `../../three`, `../../types`.
-2. **Theme through CSS variables with fallbacks**: `var(--s3-ink, #11110f)`, `--s3-bg`, `--s3-surface`, `--s3-surface-2`,
-   `--s3-ink-muted`, `--s3-line`, `--s3-line-strong`, `--s3-signal`, `--s3-on-signal`, `--s3-accent`, `--s3-focus`,
-   fonts `--s3-font-display|text|mono|serif`, radii `--s3-radius-s|m|l`. Both light and dark themes must work.
-3. **Motion tokens, not magic numbers**: durations/easings/springs from `motion/tokens` (or the `--s3-duration-*` /
-   `--s3-ease-*` custom properties in CSS).
+2. **Theme through CSS variables with fallbacks**: `var(--mk-ink, #11110f)`, `--mk-bg`, `--mk-surface`, `--mk-surface-2`,
+   `--mk-ink-muted`, `--mk-line`, `--mk-line-strong`, `--mk-signal`, `--mk-on-signal`, `--mk-accent`, `--mk-focus`,
+   fonts `--mk-font-display|text|mono|serif`, radii `--mk-radius-s|m|l`. Both light and dark themes must work.
+3. **Motion tokens, not magic numbers**: durations/easings/springs from `motion/tokens` (or the `--mk-duration-*` /
+   `--mk-ease-*` custom properties in CSS).
 4. **Reduced motion is mandatory** and read from `useStudioMotion().reduced` (it merges the OS preference with the app
    toggle). CSS-only motion must also sit behind `@media (prefers-reduced-motion: no-preference)` or be neutralised under
    `reduce`. Follow the three-tier policy: remove decorative motion; replace state-change motion with a ≤200 ms opacity
@@ -69,7 +69,7 @@ Demos are full-page compositions (default export, no props) rendered at `/demos/
 `container-type: inline-size` and `min-height: 100dvh`. They follow all effect rules, except: Tailwind utilities mapped to
 the tokens are allowed (`bg-bg`, `bg-surface`, `bg-surface-2`, `text-ink`, `text-muted`, `border-line`,
 `border-line-strong`, `text-signal`/`bg-signal`, `text-on-signal`, `text-accent`/`bg-accent`, `font-display`,
-`font-sans`, `font-mono`, `font-serif`, `.s3-label`, `.s3-display`) alongside CSS modules. Use `@container` variants
+`font-sans`, `font-mono`, `font-serif`, `.mk-label`, `.mk-display`) alongside CSS modules. Use `@container` variants
 (`@md:`, `@lg:` …) rather than viewport breakpoints. Demos should compose recipes from `effects/` where one exists
 (import the default export and pass `params`), and list them in `meta.uses`. `uses` means *imported and rendered* — the
 contract test fails if an id in `uses` is not imported. When you re-implement a recipe's technique locally (for example
@@ -79,7 +79,7 @@ fictional; simulated data is labelled in the UI and described in `meta.dataNote`
 
 ## Verifying
 
-- Typecheck: `npx tsc --noEmit -p plugins/studio3/library/tsconfig.json`
+- Typecheck: `npx tsc --noEmit -p plugins/maquettekit/library/tsconfig.json`
 - Live: dev server on http://localhost:3333 → `/effects/<id>` and `/demos/<specialty>/<id>`
 - Screenshot + console errors: `node scripts/shot.mjs /effects/<id> out.png [width] [height] [--reduced] [--dark] [--full] [--wait ms]`
 - Accessibility with measured values, light and dark: `node scripts/axe-report.mjs <effect-id | /route>`

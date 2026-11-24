@@ -1,5 +1,5 @@
 'use client';
-import type { EffectMeta } from '@studio3/library/types';
+import type { EffectMeta } from '@maquettekit/library/types';
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { SPECIALTIES, TECH_LABEL, isWebGL } from '@/lib/site';
@@ -42,11 +42,11 @@ function CardPreview({ meta }: { meta: EffectMeta }) {
       {live ? (
         <div inert aria-hidden="true" className="pointer-events-none absolute inset-0 [&>div]:!min-h-0 [&>div]:h-full"><EffectStage id={meta.id} /></div>
       ) : (
-        <div aria-hidden="true" className="absolute inset-0 grid place-items-center" style={{ backgroundImage: 'radial-gradient(var(--s3-line) 1px, transparent 1px)', backgroundSize: '14px 14px' }}>
-          <span className="s3-label rounded-full bg-surface px-2.5 py-1 text-muted">{meta.category}</span>
+        <div aria-hidden="true" className="absolute inset-0 grid place-items-center" style={{ backgroundImage: 'radial-gradient(var(--mk-line) 1px, transparent 1px)', backgroundSize: '14px 14px' }}>
+          <span className="mk-label rounded-full bg-surface px-2.5 py-1 text-muted">{meta.category}</span>
         </div>
       )}
-      {gl && !live ? <span className="s3-label absolute bottom-2 left-2 rounded-full bg-ink px-2 py-1 text-bg">WebGL · hover to run</span> : null}
+      {gl && !live ? <span className="mk-label absolute bottom-2 left-2 rounded-full bg-ink px-2 py-1 text-bg">WebGL · hover to run</span> : null}
     </div>
   );
 }
@@ -54,7 +54,7 @@ function CardPreview({ meta }: { meta: EffectMeta }) {
 function FacetRow({ label, facet, options, filters, set, render }: { label: string; facet: Facet; options: readonly string[]; filters: Filters; set: (f: Facet, v: string | null) => void; render?: (v: string) => string }) {
   return (
     <fieldset className="grid gap-2 border-t border-line pt-3 md:grid-cols-[110px_1fr]">
-      <legend className="s3-label float-left text-muted md:pt-1.5">{label}</legend>
+      <legend className="mk-label float-left text-muted md:pt-1.5">{label}</legend>
       <div className="flex flex-wrap gap-1.5">
         {options.map((o) => {
           const on = filters[facet] === o;
@@ -112,17 +112,17 @@ export function EffectCatalog({ metas, initialSpecialty = null }: { metas: reado
       <div className="sticky top-14 z-30 -mx-4 border-b border-line bg-bg/95 px-4 py-2.5 backdrop-blur-sm sm:-mx-6 sm:px-6">
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <label className="relative min-w-[200px] flex-1">
-            <span className="s3-sr-only">Search effects</span>
+            <span className="mk-sr-only">Search effects</span>
             <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search recipes — “scroll”, “button”, “shader”…" data-effect-search=""
               className="h-10 w-full rounded-full border border-line bg-surface px-4 text-sm placeholder:text-muted focus-visible:border-line-strong" />
           </label>
           <button ref={toggle} type="button" aria-expanded={showFilters} aria-controls="effect-filters" onClick={() => setShowFilters((s) => !s)} data-filters-toggle=""
-            className="s3-label inline-flex h-10 items-center gap-2 rounded-full border border-line px-4 transition-colors duration-150 hover:border-line-strong aria-expanded:border-line-strong aria-expanded:bg-ink aria-expanded:text-bg">
+            className="mk-label inline-flex h-10 items-center gap-2 rounded-full border border-line px-4 transition-colors duration-150 hover:border-line-strong aria-expanded:border-line-strong aria-expanded:bg-ink aria-expanded:text-bg">
             Filters
             {panelFacets.length ? <span className="grid h-5 min-w-5 place-items-center rounded-full bg-signal px-1 text-on-signal">{panelFacets.length}</span> : null}
           </button>
-          <p className="s3-label text-muted" role="status" aria-live="polite" data-result-count={results.length}>{results.length} of {metas.length}</p>
-          {activeCount ? <button type="button" className="s3-label underline underline-offset-4 hover:text-signal" onClick={() => { setFilters(EMPTY); setQ(''); }}>Clear all</button> : null}
+          <p className="mk-label text-muted" role="status" aria-live="polite" data-result-count={results.length}>{results.length} of {metas.length}</p>
+          {activeCount ? <button type="button" className="mk-label underline underline-offset-4 hover:text-signal" onClick={() => { setFilters(EMPTY); setQ(''); }}>Clear all</button> : null}
         </div>
         {/* Category: the most-used facet stays one tap away, as a single horizontally scrolling row. */}
         <div role="group" aria-label="Category" className="-mx-4 mt-2 flex gap-1.5 overflow-x-auto px-4 pb-0.5 [scrollbar-width:none] sm:-mx-6 sm:px-6">
@@ -138,7 +138,7 @@ export function EffectCatalog({ metas, initialSpecialty = null }: { metas: reado
             {panelFacets.map((f) => (
               <li key={f}>
                 <button type="button" onClick={() => set(f, null)} className="inline-flex items-center gap-1.5 rounded-full bg-surface-2 px-3 py-1 text-xs hover:bg-line">
-                  <span className="text-muted">{f}:</span> {chipLabel(f, filters[f]!)} <span aria-hidden="true">×</span><span className="s3-sr-only">remove filter</span>
+                  <span className="text-muted">{f}:</span> {chipLabel(f, filters[f]!)} <span aria-hidden="true">×</span><span className="mk-sr-only">remove filter</span>
                 </button>
               </li>
             ))}
@@ -157,8 +157,8 @@ export function EffectCatalog({ metas, initialSpecialty = null }: { metas: reado
           <FacetRow label="Intensity" facet="intensity" options={['subtle', 'moderate', 'bold']} filters={filters} set={set} />
         </div>
         <div className="mt-4 flex items-center justify-between gap-3">
-          <p className="s3-label text-muted">{results.length} matching</p>
-          <button type="button" onClick={close} className="s3-label rounded-full bg-ink px-5 py-2 text-bg hover:bg-signal hover:text-on-signal">Done</button>
+          <p className="mk-label text-muted">{results.length} matching</p>
+          <button type="button" onClick={close} className="mk-label rounded-full bg-ink px-5 py-2 text-bg hover:bg-signal hover:text-on-signal">Done</button>
         </div>
       </div>
 
@@ -172,10 +172,10 @@ export function EffectCatalog({ metas, initialSpecialty = null }: { metas: reado
                   <h3 className="font-display text-xl font-semibold tracking-tight">
                     <Link href={`/effects/${m.id}`} className="after:absolute after:inset-0 group-hover:underline group-hover:decoration-signal group-hover:underline-offset-4">{m.name}</Link>
                   </h3>
-                  <span className="s3-label shrink-0 text-muted">{m.category}</span>
+                  <span className="mk-label shrink-0 text-muted">{m.category}</span>
                 </div>
                 <p className="line-clamp-2 text-sm text-muted">{m.description}</p>
-                <p className="s3-label flex flex-wrap gap-x-3 gap-y-1 pt-1 text-muted">
+                <p className="mk-label flex flex-wrap gap-x-3 gap-y-1 pt-1 text-muted">
                   <span>{m.technology.map((t) => TECH_LABEL[t] ?? t).join(' + ')}</span>
                   <span>{COMPLEXITY[String(m.complexity) as '1']}</span>
                   <span>{m.intensity}</span>

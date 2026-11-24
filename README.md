@@ -1,6 +1,6 @@
 <div align="center">
 
-# Studio³
+# Maquettekit
 
 **Design Intelligence. Motion Engineering. Digital Experiences.**
 
@@ -13,10 +13,10 @@ five design specialties on one shared engine, with tools that run real browsers 
 
 ---
 
-Studio³ is not a prompt collection. It gives your coding agent working infrastructure:
+Maquettekit is not a prompt collection. It gives your coding agent working infrastructure:
 
 - **12 skills** that tell the agent *how* a professional studio works — briefs, art direction, motion, 3D, review.
-- **A CLI** (`studio3`) that the skills drive: a design-system generator, a Playwright-based visual reviewer with 3D
+- **A CLI** (`maquettekit`) that the skills drive: a design-system generator, a Playwright-based visual reviewer with 3D
   diagnostics, an interaction-quality assessor, and a glTF optimisation pipeline.
 - **A component & effect library** of tested recipes (WAAPI/CSS, Motion, GSAP, D3, three.js/R3F) and full demos —
   shipped as source inside the plugin, browsable in the gallery.
@@ -29,11 +29,11 @@ then measures and refines it in a real browser.
 
 | Studio | Philosophy | Claude Code | Codex |
 | - | - | - | - |
-| **Product** | Make people want to use it. | `/studio3:studio-product` | `$studio3:studio-product` |
-| **Cinematic** | Make people remember it. | `/studio3:studio-cinematic` | `$studio3:studio-cinematic` |
-| **Data** | Make complex information immediately understandable. | `/studio3:studio-data` | `$studio3:studio-data` |
-| **Social** | Make people participate. | `/studio3:studio-social` | `$studio3:studio-social` |
-| **3D** | Make digital experiences feel tangible. | `/studio3:studio-3d` | `$studio3:studio-3d` |
+| **Product** | Make people want to use it. | `/maquettekit:studio-product` | `$maquettekit:studio-product` |
+| **Cinematic** | Make people remember it. | `/maquettekit:studio-cinematic` | `$maquettekit:studio-cinematic` |
+| **Data** | Make complex information immediately understandable. | `/maquettekit:studio-data` | `$maquettekit:studio-data` |
+| **Social** | Make people participate. | `/maquettekit:studio-social` | `$maquettekit:studio-social` |
+| **3D** | Make digital experiences feel tangible. | `/maquettekit:studio-3d` | `$maquettekit:studio-3d` |
 
 Specialties are independent but collaborate: Product calls 3D for configurators, Cinematic calls 3D for scroll-driven
 scenes, Data calls 3D for spatial data (only when depth carries information), Social calls Motion for interactions,
@@ -44,12 +44,12 @@ and every studio hands verification to Visual Director.
 | Module | Skill | Tool | What it does |
 | - | - | - | - |
 | Motion Lab | `studio-motion` | library `motion/` | Motion tokens, `createSequence`/`flip`/`viewTransition` orchestration, reduced-motion policy, recipe catalogue |
-| Visual Director | `studio-review` | `studio3 review` | Captures desktop/tablet/mobile × normal/reduced motion, states and frames; deterministic checks (overflow, clipping, assets, console, axe-core, keyboard, focus, tap targets, reduced motion); 3D diagnostics incl. a no-WebGL run; improve → retest loop with comparisons |
-| Experience Lab | `studio-experience` | `studio3 experience` | Transparent heuristic scoring across 14 interaction dimensions with Essential / Expressive / Immersive profiles and accessibility gates |
-| Design Intelligence | `studio-design-system` | `studio3 design` | Brief → `studio3.design.json` (art direction, type, OKLCH colour with enforced contrast, motion, 3D direction, libraries) → CSS / Tailwind v4 / TS / DTCG tokens |
-| Component & Effect Library | `studio-components` | `studio3 catalog` | Search and adapt tested recipes and demos |
-| 3D Asset Pipeline | `studio-asset-optimizer` | `studio3 assets` | Inspect, validate, optimise (meshopt/Draco, quantisation, WebP/KTX2), variants per device, manifests, thumbnails — sources never modified |
-| Setup | `studio-setup` | `studio3 doctor`, `studio3 setup` | Diagnostics, optional dependencies, host install checks |
+| Visual Director | `studio-review` | `maquettekit review` | Captures desktop/tablet/mobile × normal/reduced motion, states and frames; deterministic checks (overflow, clipping, assets, console, axe-core, keyboard, focus, tap targets, reduced motion); 3D diagnostics incl. a no-WebGL run; improve → retest loop with comparisons |
+| Experience Lab | `studio-experience` | `maquettekit experience` | Transparent heuristic scoring across 14 interaction dimensions with Essential / Expressive / Immersive profiles and accessibility gates |
+| Design Intelligence | `studio-design-system` | `maquettekit design` | Brief → `maquettekit.design.json` (art direction, type, OKLCH colour with enforced contrast, motion, 3D direction, libraries) → CSS / Tailwind v4 / TS / DTCG tokens |
+| Component & Effect Library | `studio-components` | `maquettekit catalog` | Search and adapt tested recipes and demos |
+| 3D Asset Pipeline | `studio-asset-optimizer` | `maquettekit assets` | Inspect, validate, optimise (meshopt/Draco, quantisation, WebP/KTX2), variants per device, manifests, thumbnails — sources never modified |
+| Setup | `studio-setup` | `maquettekit doctor`, `maquettekit setup` | Diagnostics, optional dependencies, host install checks |
 
 ## Install
 
@@ -59,7 +59,7 @@ Requirements: **Node.js ≥ 20.11** and git. Optional for browser tools: a Chrom
 
 ```bash
 brew install node            # or use nvm / fnm
-git clone https://github.com/kodiii/Studio3 studio3 && cd studio3
+git clone https://github.com/kodiii/Studio3 maquettekit && cd maquettekit
 ./install.sh                 # detects Claude Code / Codex and installs the plugin into each
 ```
 
@@ -67,29 +67,29 @@ git clone https://github.com/kodiii/Studio3 studio3 && cd studio3
 
 ```bash
 # Node 22 via your package manager, nvm or nodesource
-git clone https://github.com/kodiii/Studio3 studio3 && cd studio3
+git clone https://github.com/kodiii/Studio3 maquettekit && cd maquettekit
 ./install.sh
 ```
 
-The installer copies the plugin payload to `~/.studio3/marketplace` (archiving any previous version to
-`~/.studio3/backups/`), registers it as a local marketplace and installs `studio3@studio3-marketplace` with each host
+The installer copies the plugin payload to `~/.maquettekit/marketplace` (archiving any previous version to
+`~/.maquettekit/backups/`), registers it as a local marketplace and installs `maquettekit@maquettekit-marketplace` with each host
 CLI it finds. Options: `--host claude|codex|all`, `--mode plugin|skills`, `--dry-run`, `--force`, `--verify`.
 Uninstall with `./uninstall.sh` (`--purge` also removes backups and tool dependencies). Status: `node scripts/install.mjs status`.
 
 ### With your agent (Claude Code or Codex)
 
-Paste this into a Claude Code or Codex session and the agent installs Studio³ itself:
+Paste this into a Claude Code or Codex session and the agent installs Maquettekit itself:
 
 ```text
-Install the Studio³ plugin: clone https://github.com/kodiii/Studio3 into ~/studio3-src,
+Install the Maquettekit plugin: clone https://github.com/kodiii/Studio3 into ~/maquettekit-src,
 read install.sh and scripts/install.mjs before running anything, then run
 ./install.sh --verify and show me the output. Afterwards tell me how to load the skills
 in this session.
 ```
 
-`install.sh` detects which host CLIs are present, registers the plugin with each and runs `studio3 doctor`.
+`install.sh` detects which host CLIs are present, registers the plugin with each and runs `maquettekit doctor`.
 Plugins load when a session starts: restart the session (or run `/reload-plugins` in Claude Code). The skills then appear
-as `/studio3:studio-product` (Claude Code) and `$studio3:studio-product` (Codex). If the repository is private, the
+as `/maquettekit:studio-product` (Claude Code) and `$maquettekit:studio-product` (Codex). If the repository is private, the
 machine needs GitHub credentials that can read it.
 
 ### Manually, with the host CLIs
@@ -97,14 +97,14 @@ machine needs GitHub credentials that can read it.
 ```bash
 # Claude Code
 claude plugin marketplace add kodiii/Studio3           # or a local path
-claude plugin install studio3@studio3-marketplace
+claude plugin install maquettekit@maquettekit-marketplace
 
 # Codex
 codex plugin marketplace add https://github.com/kodiii/Studio3   # or a local path
-codex plugin add studio3@studio3-marketplace
+codex plugin add maquettekit@maquettekit-marketplace
 ```
 
-Each host reads its own manifest (`plugins/studio3/.claude-plugin/plugin.json`, `plugins/studio3/.codex-plugin/plugin.json`)
+Each host reads its own manifest (`plugins/maquettekit/.claude-plugin/plugin.json`, `plugins/maquettekit/.codex-plugin/plugin.json`)
 and marketplace (`.claude-plugin/marketplace.json`, `.agents/plugins/marketplace.json`).
 
 ### Optional tool dependencies
@@ -113,34 +113,34 @@ The design, catalogue and doctor commands need nothing. Browser and asset tools 
 them once (explicit, local, no telemetry):
 
 ```bash
-node ~/.studio3/marketplace/plugins/studio3/tools/studio3.mjs setup              # everything
-node ~/.studio3/marketplace/plugins/studio3/tools/studio3.mjs setup --browsers   # also download Chromium
-node ~/.studio3/marketplace/plugins/studio3/tools/studio3.mjs doctor --browser   # verify
+node ~/.maquettekit/marketplace/plugins/maquettekit/tools/maquettekit.mjs setup              # everything
+node ~/.maquettekit/marketplace/plugins/maquettekit/tools/maquettekit.mjs setup --browsers   # also download Chromium
+node ~/.maquettekit/marketplace/plugins/maquettekit/tools/maquettekit.mjs doctor --browser   # verify
 ```
 
 ## Use
 
-In Claude Code type `/studio3:` to see the skills; in Codex mention `$studio3:<skill>`. Skills also trigger from plain
+In Claude Code type `/maquettekit:` to see the skills; in Codex mention `$maquettekit:<skill>`. Skills also trigger from plain
 requests ("design a pricing page", "make this hero cinematic", "review this site on mobile", "optimise this GLB").
 
 ```text
-/studio3:studio-design-system  fintech app for retail investors, calm and precise, expressive motion
-/studio3:studio-product        premium SaaS landing page for our scheduling API
-/studio3:studio-3d             interactive configurator for assets/models/chair.glb with an accessible fallback
-/studio3:studio-review         http://localhost:3000 — routes / and /pricing
+/maquettekit:studio-design-system  fintech app for retail investors, calm and precise, expressive motion
+/maquettekit:studio-product        premium SaaS landing page for our scheduling API
+/maquettekit:studio-3d             interactive configurator for assets/models/chair.glb with an accessible fallback
+/maquettekit:studio-review         http://localhost:3000 — routes / and /pricing
 ```
 
 The CLI is usable on its own:
 
 ```bash
-studio3 design generate --category saas --audience "ops leads" --motion expressive --out studio3.design.json --css tokens.css
-studio3 review run --url http://localhost:3000 --routes /,/pricing
-studio3 experience assess --url http://localhost:3000 --profile expressive
-studio3 assets variants model.glb --out public/models --thumbnail
-studio3 catalog search "scroll pinned"
+maquettekit design generate --category saas --audience "ops leads" --motion expressive --out maquettekit.design.json --css tokens.css
+maquettekit review run --url http://localhost:3000 --routes /,/pricing
+maquettekit experience assess --url http://localhost:3000 --profile expressive
+maquettekit assets variants model.glb --out public/models --thumbnail
+maquettekit catalog search "scroll pinned"
 ```
 
-(`studio3` = `node <plugin>/tools/studio3.mjs`; `--help` on any command lists every option.)
+(`maquettekit` = `node <plugin>/tools/maquettekit.mjs`; `--help` on any command lists every option.)
 
 ## Gallery
 
@@ -157,7 +157,7 @@ playback, quality levels with the real variant sizes, renderer statistics and fa
 ### Deploy the gallery (Vercel)
 
 Import the GitHub repository in Vercel with **Root Directory** `apps/gallery` (framework: Next.js; "Include files outside
-the root directory" left on — the build regenerates the catalogue from `plugins/studio3/library`). Install and build
+the root directory" left on — the build regenerates the catalogue from `plugins/maquettekit/library`). Install and build
 commands are the defaults: Vercel installs the npm workspaces from the repository root and runs `npm run build`, whose
 `prebuild` step rebuilds the catalogue. The gallery is fully static (81 prerendered pages) and makes no external
 requests at runtime.
@@ -167,13 +167,13 @@ requests at runtime.
 ```
 .claude-plugin/marketplace.json      Claude Code marketplace
 .agents/plugins/marketplace.json     Codex marketplace
-plugins/studio3/                     the plugin (self-contained payload)
+plugins/maquettekit/                     the plugin (self-contained payload)
   .claude-plugin/plugin.json         Claude Code manifest
   .codex-plugin/plugin.json          Codex manifest
   skills/<12 skills>/                SKILL.md + references/
   shared/                            cross-skill docs: workflow, tooling, design principles, accessibility, performance,
                                      experience profiles, technology selection; JSON schemas
-  tools/                             the studio3 CLI: design-intelligence, visual-director, experience-lab,
+  tools/                             the maquettekit CLI: design-intelligence, visual-director, experience-lab,
                                      asset-pipeline, catalog, doctor, setup, lib
   library/                           Component & Effect Library: src/motion, src/three, src/effects, src/demos,
                                      catalog.json, CATALOG.md
@@ -232,8 +232,8 @@ macOS CI job (defined in `.github/workflows/ci.yml`).
 
 ## Security and privacy
 
-- No telemetry. Tools bind to `127.0.0.1`, write only to your project's `.studio3/` and the paths you pass.
-- Nothing is downloaded implicitly: optional packages and browsers are installed only by `studio3 setup`.
+- No telemetry. Tools bind to `127.0.0.1`, write only to your project's `.maquettekit/` and the paths you pass.
+- Nothing is downloaded implicitly: optional packages and browsers are installed only by `maquettekit setup`.
 - Nothing is uploaded: no project file, screenshot or model leaves the machine.
 - Host CLIs and external programs are invoked with argument arrays, never through a shell string.
 - Source 3D assets are opened read-only; outputs go elsewhere and overwrites are refused unless forced (with a backup).

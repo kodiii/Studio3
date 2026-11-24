@@ -7,7 +7,7 @@ import { NO_WEBGL, diagnostics, trackErrors } from './helpers';
  * Runs on software WebGL (SwiftShader): the auto quality profile resolves to "low" there.
  */
 const STAGE = '[data-viewer-stage]';
-const HOST = `${STAGE} [data-studio3-canvas]`;
+const HOST = `${STAGE} [data-maquettekit-canvas]`;
 
 interface Diag { frames: number; disposed: number; frameloop: string; renderer: { triangles: number; calls: number } }
 const diag = async (page: Page) => (await diagnostics(page)) as unknown as Diag | null;
@@ -122,17 +122,17 @@ test.describe('3D gallery (/3d)', () => {
       // Remember the diagnostics object of the canvas being left: after navigating back, wait for the NEW canvas to
       // register its own object and render, otherwise the stale object (frames > 0) would satisfy the wait and the
       // next navigation could leave before the new renderer even mounted.
-      await page.evaluate(() => { (window as unknown as { __s3PrevDiag?: unknown }).__s3PrevDiag = (window as unknown as { __STUDIO3_3D__?: unknown }).__STUDIO3_3D__; });
+      await page.evaluate(() => { (window as unknown as { __s3PrevDiag?: unknown }).__s3PrevDiag = (window as unknown as { __MAQUETTEKIT_3D__?: unknown }).__MAQUETTEKIT_3D__; });
       await page.goBack();
       await page.waitForURL('**/3d');
       await expect(page.locator(`${STAGE} canvas`)).toBeVisible({ timeout: 30_000 });
       await expect.poll(() => page.evaluate(() => {
-        const w = window as unknown as { __STUDIO3_3D__?: { frames: number }; __s3PrevDiag?: unknown };
-        return !!w.__STUDIO3_3D__ && w.__STUDIO3_3D__ !== w.__s3PrevDiag && w.__STUDIO3_3D__.frames > 0;
+        const w = window as unknown as { __MAQUETTEKIT_3D__?: { frames: number }; __s3PrevDiag?: unknown };
+        return !!w.__MAQUETTEKIT_3D__ && w.__MAQUETTEKIT_3D__ !== w.__s3PrevDiag && w.__MAQUETTEKIT_3D__.frames > 0;
       }), { timeout: 30_000 }).toBe(true);
     }
     const d = await diag(page);
-    expect(d!.disposed, '__STUDIO3_3D__.disposed counts each canvas teardown').toBeGreaterThanOrEqual(first + 3);
+    expect(d!.disposed, '__MAQUETTEKIT_3D__.disposed counts each canvas teardown').toBeGreaterThanOrEqual(first + 3);
     expect(warnings).toEqual([]);
   });
 
@@ -141,7 +141,7 @@ test.describe('3D gallery (/3d)', () => {
     const pageErrors: string[] = [];
     page.on('pageerror', (e) => pageErrors.push(e.message));
     await page.goto('/3d');
-    const fallback = page.locator(`${STAGE} [data-studio3-fallback]`);
+    const fallback = page.locator(`${STAGE} [data-maquettekit-fallback]`);
     await expect(fallback).toBeVisible({ timeout: 20_000 });
     await expect(fallback.locator('img')).toHaveAttribute('src', /pulse-speaker\.webp$/);
     await expect(fallback.locator('dl')).toContainText('Colourway');
@@ -153,7 +153,7 @@ test.describe('3D gallery (/3d)', () => {
     await page.goto('/3d');
     await modelReady(page);
     await page.getByRole('checkbox', { name: 'Interactive 3D' }).uncheck();
-    await expect(page.locator(`${STAGE} [data-studio3-fallback]`)).toBeVisible();
+    await expect(page.locator(`${STAGE} [data-maquettekit-fallback]`)).toBeVisible();
     await expect(page.locator(`${STAGE} canvas`)).toHaveCount(0);
   });
 

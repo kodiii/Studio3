@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
-import { loadCatalog, searchEffects } from '../../../plugins/studio3/tools/catalog/index.mjs';
+import { loadCatalog, searchEffects } from '../../../plugins/maquettekit/tools/catalog/index.mjs';
 
-const CLI = path.resolve('plugins/studio3/tools/studio3.mjs');
+const CLI = path.resolve('plugins/maquettekit/tools/maquettekit.mjs');
 const fx = (o) => ({ id: 'x', name: 'X', description: '', category: 'cards', technology: ['css'], specialties: ['product'], interaction: ['hover'], applications: [], dependencies: [], complexity: 1, intensity: 'subtle', ...o });
 
 describe('catalog search', () => {

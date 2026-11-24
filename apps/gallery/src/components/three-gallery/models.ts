@@ -1,4 +1,4 @@
-import type { CameraPose, MaterialOverride, PartSelector } from '@studio3/library/three';
+import type { CameraPose, MaterialOverride, PartSelector } from '@maquettekit/library/three';
 
 export interface Colourway { id: string; name: string; swatch: [string, string]; overrides: Partial<Record<PartSelector, MaterialOverride>> }
 export interface Finish { id: string; name: string; note: string; overrides: Partial<Record<PartSelector, MaterialOverride>> }

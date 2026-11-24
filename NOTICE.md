@@ -1,9 +1,9 @@
 # Notices and attribution
 
-Studio³ is MIT-licensed (see `LICENSE`). It contains no source code or prose copied from other projects. It
+Maquettekit is MIT-licensed (see `LICENSE`). It contains no source code or prose copied from other projects. It
 depends on, or optionally loads, the third-party software below; each remains under its own licence. Nothing below is
-bundled inside the plugin directory (`plugins/studio3/`): runtime dependencies are installed by the user (`npm`) or by
-the explicit `studio3 setup` command.
+bundled inside the plugin directory (`plugins/maquettekit/`): runtime dependencies are installed by the user (`npm`) or by
+the explicit `maquettekit setup` command.
 
 ## Runtime dependencies used by library recipes and demos (installed by the consuming project)
 
@@ -17,7 +17,7 @@ the explicit `studio3 setup` command.
 | gsap, @gsap/react | GreenSock Standard "No Charge" License — https://gsap.com/standard-license | Free to use, including commercially, under GreenSock's terms; not an OSI licence. Review the terms before shipping. |
 | d3 | ISC | |
 
-## Optional tool dependencies (`studio3 setup`)
+## Optional tool dependencies (`maquettekit setup`)
 
 | Package | Licence |
 | - | - |
@@ -41,7 +41,7 @@ next (MIT), tailwindcss and @tailwindcss/postcss (MIT), typescript (Apache-2.0),
 
 Fonts (self-hosted through Fontsource packages, SIL Open Font License 1.1): Bricolage Grotesque, Geist, JetBrains Mono,
 Instrument Serif. The Design Intelligence Engine recommends only open-licensed families and records each family's
-licence in `studio3.design.json`.
+licence in `maquettekit.design.json`.
 
 ## Sample assets
 
@@ -51,7 +51,7 @@ fictional; simulated data is labelled as such in the UI.
 
 ## Prior art (referenced, not copied)
 
-Studio³'s design was informed by reading these projects; see `docs/SOURCE-RESEARCH.md` for what was taken as an idea
+Maquettekit's design was informed by reading these projects; see `docs/SOURCE-RESEARCH.md` for what was taken as an idea
 and why nothing was integrated:
 Impeccable (pbakaus/impeccable, Apache-2.0), UI UX Pro Max (nextlevelbuilder/ui-ux-pro-max-skill, MIT), Anthropic
 frontend-design skill (anthropics/skills, Apache-2.0), Taste Skill (Leonxlnx/taste-skill, MIT), Vercel agent-skills
@@ -59,5 +59,5 @@ frontend-design skill (anthropics/skills, Apache-2.0), Taste Skill (Leonxlnx/tas
 web-animation-skills and motion-skills (MIT), Motion UI (Rkj0123/motion-ui-skill, MIT), LottieFiles motion-design-skill
 (MIT), motion-ref-skill (joepUI/motion-ref-skill, MIT).
 
-Claude Code and Codex are products of their respective owners; Studio³ is an independent project and is not affiliated
+Claude Code and Codex are products of their respective owners; Maquettekit is an independent project and is not affiliated
 with or endorsed by Anthropic, OpenAI or GreenSock.

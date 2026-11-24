@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generator": "Studio³ Asset Pipeline",
+  "generator": "Maquettekit Asset Pipeline",
   "generatedAt": "2026-11-23T11:44:05.900Z",
   "notes": {
     "triangles": "Triangles rendered per frame, counting every instance of shared meshes. vertices = unique vertices uploaded.",

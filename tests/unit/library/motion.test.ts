@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createCleanup, createSequence, cssEase, duration, easing, motionTokensCss, profileScale, spring, springToLinear, staggerDelay } from '../../../plugins/studio3/library/src/motion';
-import { resolveParams, type ParamSpec } from '../../../plugins/studio3/library/src/types';
+import { createCleanup, createSequence, cssEase, duration, easing, motionTokensCss, profileScale, spring, springToLinear, staggerDelay } from '../../../plugins/maquettekit/library/src/motion';
+import { resolveParams, type ParamSpec } from '../../../plugins/maquettekit/library/src/types';
 import { installDomShims, type AnimateCall } from './dom-shims';
 
 describe('motion tokens', () => {
@@ -31,8 +31,8 @@ describe('motion tokens', () => {
   });
   it('motionTokensCss emits every duration and easing as a custom property', () => {
     const css = motionTokensCss();
-    for (const k of Object.keys(duration)) expect(css).toContain(`--s3-duration-${k}:`);
-    for (const k of Object.keys(easing)) expect(css).toContain(`--s3-ease-${k}:`);
+    for (const k of Object.keys(duration)) expect(css).toContain(`--mk-duration-${k}:`);
+    for (const k of Object.keys(easing)) expect(css).toContain(`--mk-ease-${k}:`);
   });
 });
 

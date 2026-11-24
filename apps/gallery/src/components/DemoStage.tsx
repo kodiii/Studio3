@@ -1,6 +1,6 @@
 'use client';
-import { demos } from '@studio3/library/registry';
-import type { DemoComponent } from '@studio3/library/types';
+import { demos } from '@maquettekit/library/registry';
+import type { DemoComponent } from '@maquettekit/library/types';
 import { Component, Suspense, lazy, useEffect, useState, type ReactNode } from 'react';
 
 const cache = new Map<string, React.LazyExoticComponent<DemoComponent>>();
@@ -27,11 +27,11 @@ export function DemoStage({ specialty, id }: { specialty: string; id: string }) 
     <div data-demo-stage={key} data-specialty={specialty} className="relative min-h-[100dvh] w-full" style={{ containerType: 'inline-size' }}>
       {mounted ? (
         <DemoBoundary>
-          <Suspense fallback={<p className="s3-label p-6 text-muted" aria-live="polite">Loading demo…</p>}>
+          <Suspense fallback={<p className="mk-label p-6 text-muted" aria-live="polite">Loading demo…</p>}>
             <Demo />
           </Suspense>
         </DemoBoundary>
-      ) : <p className="s3-label p-6 text-muted" aria-live="polite">Loading demo…</p>}
+      ) : <p className="mk-label p-6 text-muted" aria-live="polite">Loading demo…</p>}
     </div>
   );
 }

@@ -1,9 +1,9 @@
 // @vitest-environment jsdom
 import { BoxGeometry, Mesh, MeshStandardMaterial, Object3D, Scene, ShaderMaterial, Texture } from 'three';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
-import { createAdaptiveQuality, createQualityProfiles, defaultQualityProfiles, pickQualityLevel, qualityProfilesFromDesign, stepDownQuality } from '../../../plugins/studio3/library/src/three/quality';
-import { disposeObject, ResourceTracker } from '../../../plugins/studio3/library/src/three/dispose';
-import { detectCapabilities, detectWebGPU, type GraphicsCapabilities } from '../../../plugins/studio3/library/src/three/capabilities';
+import { createAdaptiveQuality, createQualityProfiles, defaultQualityProfiles, pickQualityLevel, qualityProfilesFromDesign, stepDownQuality } from '../../../plugins/maquettekit/library/src/three/quality';
+import { disposeObject, ResourceTracker } from '../../../plugins/maquettekit/library/src/three/dispose';
+import { detectCapabilities, detectWebGPU, type GraphicsCapabilities } from '../../../plugins/maquettekit/library/src/three/capabilities';
 import { installDomShims, type Shims } from './dom-shims';
 
 const caps = (o: Partial<GraphicsCapabilities>): GraphicsCapabilities => ({ webgl: true, webgl2: true, webgpuApi: false, maxTextureSize: 8192, renderer: null, softwareRenderer: false, deviceClass: 'desktop', ...o });

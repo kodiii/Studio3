@@ -11,10 +11,10 @@ import { StrictMode, type ComponentType } from 'react';
 import { act, cleanup, render, renderHook } from '@testing-library/react';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { installDomShims, type Shims } from './dom-shims';
-import { resolveParams, type EffectMeta } from '../../../plugins/studio3/library/src/types';
-import { StudioMotionProvider, useStudioMotion } from '../../../plugins/studio3/library/src/motion';
+import { resolveParams, type EffectMeta } from '../../../plugins/maquettekit/library/src/types';
+import { StudioMotionProvider, useStudioMotion } from '../../../plugins/maquettekit/library/src/motion';
 
-const catalog = JSON.parse(fs.readFileSync(path.resolve('plugins/studio3/library/catalog.json'), 'utf8')) as { effects: EffectMeta[] };
+const catalog = JSON.parse(fs.readFileSync(path.resolve('plugins/maquettekit/library/catalog.json'), 'utf8')) as { effects: EffectMeta[] };
 const WEBGL = new Set(['three', 'r3f', 'glsl', 'drei', 'rapier']);
 const domEffects = catalog.effects.filter((e) => !e.technology.some((t) => WEBGL.has(t)));
 
@@ -52,7 +52,7 @@ describe('useStudioMotion', () => {
 
 describe.each(domEffects.map((e) => [e.id, e] as const))('recipe %s', (id, meta) => {
   it('renders in StrictMode and releases every resource on unmount', async () => {
-    const mod = (await import(`../../../plugins/studio3/library/src/effects/${id}/index.tsx`)) as { default: ComponentType<{ params: Record<string, unknown> }> };
+    const mod = (await import(`../../../plugins/maquettekit/library/src/effects/${id}/index.tsx`)) as { default: ComponentType<{ params: Record<string, unknown> }> };
     const Effect = mod.default;
     const params = resolveParams(meta.params);
     // warm-up mount: module-level singletons initialise here

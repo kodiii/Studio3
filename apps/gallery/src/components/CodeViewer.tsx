@@ -49,10 +49,10 @@ export function CodeViewer({ kind, id }: { kind: 'effects' | 'demos'; id: string
   };
 
   if (error) return <p role="alert" className="font-mono text-sm text-danger">Could not load source ({error}).</p>;
-  if (!files || !file) return <p className="s3-label text-muted" aria-live="polite">Loading source…</p>;
+  if (!files || !file) return <p className="mk-label text-muted" aria-live="polite">Loading source…</p>;
 
   return (
-    <div data-code-viewer="" data-stage="ink" className="overflow-hidden rounded-[var(--s3-radius-m)] border border-line bg-bg text-ink">
+    <div data-code-viewer="" data-stage="ink" className="overflow-hidden rounded-[var(--mk-radius-m)] border border-line bg-bg text-ink">
       <div className="flex items-center justify-between gap-2 border-b border-line pr-2">
         <div role="tablist" aria-label="Source files" className="flex min-w-0 overflow-x-auto">
           {files.map((f, i) => (
@@ -68,7 +68,7 @@ export function CodeViewer({ kind, id }: { kind: 'effects' | 'demos'; id: string
             </button>
           ))}
         </div>
-        <button type="button" onClick={copy} data-copy-code="" className="s3-label shrink-0 rounded-full border border-line px-3 py-1.5 hover:border-line-strong">
+        <button type="button" onClick={copy} data-copy-code="" className="mk-label shrink-0 rounded-full border border-line px-3 py-1.5 hover:border-line-strong">
           <span aria-live="polite">{copied === 'ok' ? 'Copied' : copied === 'fail' ? 'Copy failed' : 'Copy code'}</span>
         </button>
       </div>

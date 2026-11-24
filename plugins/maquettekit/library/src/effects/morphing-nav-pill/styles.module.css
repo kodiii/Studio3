@@ -1,0 +1,130 @@
+.root {
+  box-sizing: border-box;
+  width: min(100% - 2rem, 35rem);
+  margin: clamp(1.25rem, 4cqi, 2.5rem) auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(1.25rem, 3.5cqi, 2rem);
+  color: var(--mk-ink, #11110f);
+  font-family: var(--mk-font-text, ui-sans-serif, system-ui, sans-serif);
+}
+
+/* ── Tab list ─────────────────────────────────────────────────────────── */
+.tablist {
+  position: relative;
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-radius: 999px;
+  background: var(--mk-surface-2, #e9e5da);
+}
+.root[data-shape='block'] .tablist { border-radius: 11px; }
+.root[data-shape='underline'] .tablist {
+  padding: 0;
+  gap: clamp(0.25rem, 2cqi, 1rem);
+  border-radius: 0;
+  background: none;
+  box-shadow: inset 0 -1px 0 var(--mk-line, #11110f24);
+}
+.tab {
+  position: relative;
+  flex: 1 0 auto;
+  min-height: 2.75rem;
+  padding: 0 clamp(0.75rem, 3cqi, 1.25rem);
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--mk-ink-muted, #5c5a52);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--mk-duration-base, 240ms) var(--mk-ease-standard, ease);
+}
+.root[data-shape='block'] .tab { border-radius: 7px; }
+.root[data-shape='underline'] .tab { flex: 0 0 auto; padding-inline: 0.25rem; border-radius: 2px; }
+.tab:hover { color: var(--mk-ink, #11110f); }
+.tab[aria-selected='true'] { color: var(--mk-surface, #fbf9f4); }
+.root[data-shape='block'] .tab[aria-selected='true'],
+.root[data-shape='underline'] .tab[aria-selected='true'] { color: var(--mk-ink, #11110f); }
+.tab:focus-visible { outline: 2px solid var(--mk-focus, #1d4ed8); outline-offset: 2px; }
+.tabLabel { position: relative; z-index: 1; }
+
+.indicator, .ghost {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.indicator { background: var(--mk-ink, #11110f); }
+.ghost { background: color-mix(in oklab, var(--mk-ink, #11110f) 9%, transparent); }
+.root[data-shape='block'] .indicator {
+  background: var(--mk-surface, #fbf9f4);
+  box-shadow: 0 0 0 1px var(--mk-line, #11110f24), 0 1px 2px rgb(0 0 0 / 0.08);
+}
+.root[data-shape='underline'] .indicator { inset: auto 0 0 0; height: 2px; background: var(--mk-signal, #bf2f09); }
+.root[data-shape='underline'] .ghost { inset: auto 0 0 0; height: 2px; background: var(--mk-line-strong, #11110f); opacity: 0.35; }
+
+/* ── Panels: one grid cell, tallest panel wins, no layout shift ───────── */
+.panels { display: grid; }
+.panel {
+  grid-area: 1 / 1;
+  display: grid;
+  align-content: start;
+  gap: 0.6rem;
+  padding: clamp(1.1rem, 4cqi, 1.75rem);
+  border: 1px solid var(--mk-line, #11110f24);
+  border-radius: var(--mk-radius-l, 18px);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(6px);
+  transition:
+    opacity var(--mk-duration-fast, 160ms) var(--mk-ease-standard, ease),
+    transform 0s linear var(--mk-duration-fast, 160ms),
+    visibility 0s linear var(--mk-duration-fast, 160ms);
+}
+.panel[data-active] {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition:
+    opacity var(--mk-duration-moderate, 360ms) var(--mk-ease-standard, ease) 60ms,
+    transform var(--mk-duration-moderate, 360ms) var(--mk-ease-emphasized, ease) 60ms,
+    visibility 0s;
+}
+.root[data-reduced] .panel { transform: none; transition: opacity 160ms linear, visibility 0s linear 160ms; }
+.root[data-reduced] .panel[data-active] { transition: opacity 160ms linear, visibility 0s; }
+.panel:focus-visible { outline: 2px solid var(--mk-focus, #1d4ed8); outline-offset: 3px; }
+.index {
+  margin: 0;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-family: var(--mk-font-mono, ui-monospace, monospace);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  color: var(--mk-ink-muted, #5c5a52);
+}
+.sample { color: var(--mk-ink-muted, #5c5a52); }
+.title {
+  margin: 0.5rem 0 0;
+  font-family: var(--mk-font-display, ui-sans-serif, system-ui, sans-serif);
+  font-size: clamp(1.5rem, 6cqi, 2.25rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+.copy {
+  margin: 0;
+  max-width: 38ch;
+  min-height: 3lh;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--mk-ink-muted, #5c5a52);
+  text-wrap: pretty;
+}

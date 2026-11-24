@@ -1,10 +1,10 @@
 /**
  * jsdom shims for library tests + leak tracking.
  * jsdom lacks WAAPI, matchMedia, Intersection/ResizeObserver, canvas, CSS.supports and more. The shims are
- * deterministic, and every resource created by code under plugins/studio3/library/src is attributed by its
+ * deterministic, and every resource created by code under plugins/maquettekit/library/src is attributed by its
  * creation stack so leak checks ignore third-party internals (GSAP's ticker, Motion's frame loop, React).
  */
-const LIB_FRAME = /plugins[\\/]studio3[\\/]library[\\/]src[\\/]/;
+const LIB_FRAME = /plugins[\\/]maquettekit[\\/]library[\\/]src[\\/]/;
 const ownedByLibrary = (): boolean => LIB_FRAME.test(new Error().stack ?? '');
 
 export interface AnimateCall {

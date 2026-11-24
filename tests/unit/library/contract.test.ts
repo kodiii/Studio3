@@ -2,9 +2,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { EFFECT_CATEGORIES, SPECIALTIES } from '../../../plugins/studio3/library/src/types';
+import { EFFECT_CATEGORIES, SPECIALTIES } from '../../../plugins/maquettekit/library/src/types';
 
-const LIB = path.resolve('plugins/studio3/library');
+const LIB = path.resolve('plugins/maquettekit/library');
 const catalog = JSON.parse(fs.readFileSync(path.join(LIB, 'catalog.json'), 'utf8')) as {
   effects: Array<Record<string, any>>; demos: Array<Record<string, any>>;
 };

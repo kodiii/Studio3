@@ -1,4 +1,4 @@
-import { demos, effects } from '@studio3/library/registry';
+import { demos, effects } from '@maquettekit/library/registry';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { DemoList } from '@/components/DemoList';
@@ -24,22 +24,22 @@ export default async function StudioPage({ params }: { params: Promise<{ special
       <div data-specialty={s.id} className="mx-auto max-w-[1400px] px-4 sm:px-6">
         <header className="grid gap-6 border-b border-line-strong py-10 md:grid-cols-[1fr_auto] md:items-end">
           <div>
-            <p className="s3-label text-accent">Specialty {specialtyIndex(s.id)} / 05</p>
-            <h1 className="s3-display mt-3 text-[clamp(2.75rem,9vw,7.5rem)]">{s.name}</h1>
+            <p className="mk-label text-accent">Specialty {specialtyIndex(s.id)} / 05</p>
+            <h1 className="mk-display mt-3 text-[clamp(2.75rem,9vw,7.5rem)]">{s.name}</h1>
             <p className="font-serif mt-3 text-[clamp(1.5rem,3vw,2.5rem)] italic leading-tight text-muted">{s.philosophy}</p>
           </div>
-          <div className="s3-label grid gap-2 text-muted">
-            <p>Claude Code <code className="ml-2 font-mono normal-case tracking-normal text-ink">/studio3:{s.skill}</code></p>
-            <p>Codex <code className="ml-2 font-mono normal-case tracking-normal text-ink">$studio3:{s.skill}</code></p>
+          <div className="mk-label grid gap-2 text-muted">
+            <p>Claude Code <code className="ml-2 font-mono normal-case tracking-normal text-ink">/maquettekit:{s.skill}</code></p>
+            <p>Codex <code className="ml-2 font-mono normal-case tracking-normal text-ink">$maquettekit:{s.skill}</code></p>
             {s.id === '3d' ? <Link href="/3d" className="text-ink underline underline-offset-4">Open the 3D model gallery →</Link> : null}
           </div>
         </header>
         <section aria-labelledby="demos-h" className="py-10">
-          <h2 id="demos-h" className="s3-label mb-4 text-muted">Demonstrations — {list.length}</h2>
+          <h2 id="demos-h" className="mk-label mb-4 text-muted">Demonstrations — {list.length}</h2>
           <DemoList demos={list} />
         </section>
         <section aria-labelledby="recipes-h" className="pb-10">
-          <h2 id="recipes-h" className="s3-label mb-2 text-muted">Recipes used by this studio — {metas.length}</h2>
+          <h2 id="recipes-h" className="mk-label mb-2 text-muted">Recipes used by this studio — {metas.length}</h2>
           <EffectCatalog metas={metas} />
         </section>
       </div>

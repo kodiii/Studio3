@@ -105,7 +105,7 @@ for (const d of catalog.demos) {
         await page.goto(`/demos/${key}`);
         await ready(page, key);
         await page.waitForTimeout(2000);
-        await expect(page.locator('[data-studio3-fallback]').first()).toBeVisible();
+        await expect(page.locator('[data-maquettekit-fallback]').first()).toBeVisible();
         expect(await page.locator(`[data-demo-stage="${key}"] canvas`).count(), 'no WebGL canvas when WebGL is unavailable').toBe(0);
         expect(pageErrors).toEqual([]);
       });

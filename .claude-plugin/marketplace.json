@@ -1,11 +1,11 @@
 {
-  "name": "studio3-marketplace",
-  "description": "Studio³ — design, motion, interaction and 3D engineering skills for AI coding agents.",
-  "owner": { "name": "Studio³ Contributors" },
+  "name": "maquettekit-marketplace",
+  "description": "Maquettekit — design, motion, interaction and 3D engineering skills for AI coding agents.",
+  "owner": { "name": "Maquettekit Contributors" },
   "plugins": [
     {
-      "name": "studio3",
-      "source": "./plugins/studio3",
+      "name": "maquettekit",
+      "source": "./plugins/maquettekit",
       "description": "Five design specialties with shared motion, review, experience, design-system and 3D asset tooling.",
       "version": "4.0.0",
       "category": "design",

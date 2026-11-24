@@ -1,5 +1,5 @@
 {
-  "generator": "Studio³ Asset Pipeline",
+  "generator": "Maquettekit Asset Pipeline",
   "generatedAt": "2026-11-23T11:44:05.270Z",
   "tools": {
     "@gltf-transform/core": "4.5.1",
@@ -29,7 +29,7 @@
   },
   "variants": [
     {
-      "generator": "Studio³ Asset Pipeline",
+      "generator": "Maquettekit Asset Pipeline",
       "generatedAt": "2026-11-23T11:44:00.472Z",
       "tools": {
         "@gltf-transform/core": "4.5.1",

@@ -33,7 +33,7 @@
     "src/**/*.ts",
     "src/**/*.tsx",
     ".next/types/**/*.ts",
-    "../../plugins/studio3/library/src/global.d.ts",
+    "../../plugins/maquettekit/library/src/global.d.ts",
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [

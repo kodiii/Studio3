@@ -13,5 +13,5 @@ page.on('requestfailed', (r) => errors.push('requestfailed: ' + r.url()));
 await page.goto((process.env.BASE ?? 'http://localhost:3333') + route, { waitUntil: 'load' });
 await page.waitForTimeout(waitIdx >= 0 ? +flags[waitIdx + 1] : 1500);
 await page.screenshot({ path: out, fullPage: flags.includes('--full') });
-console.log(JSON.stringify({ route, out, errors: errors.slice(0, 8), diag: await page.evaluate(() => window.__STUDIO3_3D__ ?? null) }));
+console.log(JSON.stringify({ route, out, errors: errors.slice(0, 8), diag: await page.evaluate(() => window.__MAQUETTEKIT_3D__ ?? null) }));
 await browser.close();

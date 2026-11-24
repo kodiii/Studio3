@@ -1,0 +1,185 @@
+.root {
+  box-sizing: border-box;
+  container-type: inline-size;
+  width: min(100% - 2rem, 34rem);
+  margin: clamp(1.5rem, 5cqi, 3rem) auto;
+  color: var(--mk-ink, #11110f);
+  font-family: var(--mk-font-text, ui-sans-serif, system-ui, sans-serif);
+}
+.card {
+  display: grid;
+  gap: 0.75rem;
+  padding: clamp(1.125rem, 5cqi, 2rem);
+  border: 1px solid var(--mk-line, #11110f24);
+  border-radius: var(--mk-radius-l, 18px);
+  background: var(--mk-surface, #fbf9f4);
+}
+.kicker, .footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.25rem 1rem;
+  font-family: var(--mk-font-mono, ui-monospace, monospace);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mk-ink-muted, #5c5a52);
+}
+.kicker { margin: 0 0 0.25rem; }
+.title {
+  margin: 0;
+  font-family: var(--mk-font-display, ui-sans-serif, system-ui, sans-serif);
+  font-size: clamp(1.625rem, 7cqi, 2.375rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+.dek { margin: 0; font-size: 0.9375rem; line-height: 1.5; color: var(--mk-ink-muted, #5c5a52); }
+
+/* ── Form ─────────────────────────────────────────────────────────────── */
+.form { display: grid; gap: 0.5rem; margin-top: 0.75rem; }
+.fieldLabel { font-size: 0.8125rem; font-weight: 600; }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.625rem; align-items: center; }
+@container (max-width: 26rem) {
+  .row { grid-template-columns: minmax(0, 1fr); }
+}
+.input {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  height: 3rem;
+  padding: 0 1rem;
+  border: 1px solid color-mix(in oklab, var(--mk-ink, #11110f) 58%, var(--mk-surface, #fbf9f4));
+  border-radius: 999px;
+  background: var(--mk-surface, #fbf9f4);
+  color: var(--mk-ink, #11110f);
+  font: inherit;
+  font-size: 1rem;
+}
+.input:focus-visible { outline: 2px solid var(--mk-focus, #1d4ed8); outline-offset: 2px; }
+.input[aria-invalid='true'] { border-color: var(--mk-danger, #b42318); box-shadow: inset 0 0 0 1px var(--mk-danger, #b42318); }
+.input:read-only { color: var(--mk-ink-muted, #5c5a52); }
+
+/* The slot is as wide as the longest label (sizer); the button morphs inside it. */
+.slot { display: grid; justify-items: center; min-width: 0; }
+.sizer, .button { grid-area: 1 / 1; }
+.sizer {
+  display: grid;
+  height: 0;
+  padding: 0 1.5rem;
+  overflow: hidden;
+  visibility: hidden;
+  font-size: 1rem;
+  font-weight: 600;
+}
+.sizer > span { grid-area: 1 / 1; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; white-space: nowrap; }
+
+.button {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  height: 3rem;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 999px;
+  background: var(--mk-ink, #11110f);
+  color: var(--mk-surface, #fbf9f4);
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition: background-color var(--mk-duration-base, 240ms) var(--mk-ease-standard, ease);
+}
+.button:focus-visible { outline: 2px solid var(--mk-focus, #1d4ed8); outline-offset: 3px; }
+@media (hover: hover) {
+  .button[data-phase='idle']:hover,
+  .button[data-phase='retry']:hover { background: color-mix(in oklab, var(--mk-ink, #11110f) 84%, var(--mk-signal, #bf2f09)); }
+}
+.button[aria-disabled='true'] { cursor: default; }
+.button[data-phase='sending'] { cursor: progress; }
+.button[data-phase='success'],
+.button[data-phase='done'] { background: var(--mk-success, #0a6e4d); }
+.button[data-phase='failed'] { background: var(--mk-danger, #b42318); }
+
+.label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.inlineIcon { flex: none; }
+
+.ring, .mark {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 1.625rem;
+  height: 1.625rem;
+  overflow: visible;
+  pointer-events: none;
+}
+.ring { opacity: 0; }
+.track { fill: none; stroke: currentColor; stroke-opacity: 0.3; stroke-width: 2.4; }
+.arc { fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; }
+.stroke { fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; }
+.check { stroke-dashoffset: 1; opacity: 0; }
+.bang { stroke-dashoffset: 1; opacity: 0; }
+.dot { fill: none; stroke: currentColor; stroke-width: 2.9; stroke-linecap: round; }
+
+/* ── Status + footer ──────────────────────────────────────────────────── */
+.status {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  min-height: 3em;
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.hint { color: var(--mk-ink-muted, #5c5a52); }
+.statusIcon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: 0.0625rem;
+  border-radius: 50%;
+  background: var(--mk-ink-muted, #5c5a52);
+  color: var(--mk-surface, #fbf9f4);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.status[data-tone='success'] .statusIcon { background: var(--mk-success, #0a6e4d); }
+.status[data-tone='error'] .statusIcon { background: var(--mk-danger, #b42318); }
+
+.footer { margin-top: 0.25rem; padding-top: 0.875rem; border-top: 1px solid var(--mk-line, #11110f24); }
+.reset {
+  min-height: 2rem;
+  padding: 0 0.25rem;
+  border: 0;
+  background: none;
+  color: var(--mk-ink, #11110f);
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
+  cursor: pointer;
+}
+.reset:focus-visible { outline: 2px solid var(--mk-focus, #1d4ed8); outline-offset: 2px; border-radius: 2px; }
+
+/* Reduced motion: the pill never morphs; labels and colours change in place. */
+.root[data-reduced] .ring,
+.root[data-reduced] .mark { display: none; }
+.root[data-reduced] .button { transition: background-color 160ms linear; }

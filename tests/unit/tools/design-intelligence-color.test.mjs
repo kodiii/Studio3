@@ -2,9 +2,9 @@ import { describe, it, expect } from 'vitest';
 import {
   hexToRgb, rgbToHex, hexToOklch, oklchToHex, gamutMap, inSrgbGamut, relativeLuminance, contrastRatio,
   fitContrast, formatOklch, parseOklch, token, deltaEOk, simulateCvd, srgbToLinear, linearToSrgb,
-} from '../../../plugins/studio3/tools/design-intelligence/color.mjs';
-import { createRng, stableStringify, hashOf, deepMerge } from '../../../plugins/studio3/tools/design-intelligence/util.mjs';
-import { validateSchema } from '../../../plugins/studio3/tools/design-intelligence/schema.mjs';
+} from '../../../plugins/maquettekit/tools/design-intelligence/color.mjs';
+import { createRng, stableStringify, hashOf, deepMerge } from '../../../plugins/maquettekit/tools/design-intelligence/util.mjs';
+import { validateSchema } from '../../../plugins/maquettekit/tools/design-intelligence/schema.mjs';
 
 describe('colour maths', () => {
   it('parses and formats hex', () => {

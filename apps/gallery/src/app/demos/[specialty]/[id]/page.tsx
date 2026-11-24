@@ -1,4 +1,4 @@
-import { demos } from '@studio3/library/registry';
+import { demos } from '@maquettekit/library/registry';
 import { notFound } from 'next/navigation';
 import { DemoFrame } from '@/components/DemoFrame';
 

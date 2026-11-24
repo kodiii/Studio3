@@ -5,7 +5,7 @@
 - Manifest: `pulse-speaker.manifest.json`
 - Thumbnail: ok — `pulse-speaker.png`, fallback `pulse-speaker.webp`
 - Profiles are default starting points unless overridden by a budgets/profile file; they are not universal budgets.
-- Generated: 2026-11-23T11:43:59.470Z by Studio³ Asset Pipeline
+- Generated: 2026-11-23T11:43:59.470Z by Maquettekit Asset Pipeline
 
 | Variant | File | Size | vs source | Triangles | Vertices | Textures (largest) | GPU texture memory (estimate) | Compression | Verified |
 | --- | --- | ---: | ---: | ---: | ---: | --- | ---: | --- | --- |

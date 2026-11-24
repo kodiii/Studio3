@@ -17,7 +17,7 @@ for (const e of catalog.effects) {
       // wait until the lazy chunk replaced the loading label
       await expect(stage.getByText('Loading preview…')).toHaveCount(0);
       if (isWebGL(e.technology)) {
-        await expect(stage.locator('canvas, [data-studio3-fallback]').first()).toBeVisible();
+        await expect(stage.locator('canvas, [data-maquettekit-fallback]').first()).toBeVisible();
       }
       await page.waitForTimeout(600);
       const box = await stage.boundingBox();
@@ -44,7 +44,7 @@ for (const e of catalog.effects) {
       await expect(stage.locator('[data-effect-error]')).toHaveCount(0);
       await expect(stage.getByText('Loading preview…')).toHaveCount(0);
       if (isWebGL(e.technology)) {
-        await expect(stage.locator('canvas, [data-studio3-fallback]').first()).toBeVisible();
+        await expect(stage.locator('canvas, [data-maquettekit-fallback]').first()).toBeVisible();
       }
       // Same settle as the light test: axe must judge the resting state, not a mid-fade frame.
       await page.waitForTimeout(600 + 1800);

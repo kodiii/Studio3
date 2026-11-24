@@ -9,7 +9,7 @@ import { cleanup, render } from '@testing-library/react';
 import { BoxGeometry, Group, Mesh, MeshStandardMaterial } from 'three';
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { installDomShims, type Shims } from './dom-shims';
-import { PartController, PartControllerCore } from '../../../plugins/studio3/library/src/three/components/PartController';
+import { PartController, PartControllerCore } from '../../../plugins/maquettekit/library/src/three/components/PartController';
 
 vi.mock('@react-three/fiber', () => ({
   useThree: (sel: (s: { invalidate: () => void }) => unknown) => sel({ invalidate: () => {} }),

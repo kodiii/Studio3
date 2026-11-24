@@ -39,7 +39,7 @@ test('skill descriptions are unique and name their trigger', () => {
 test('Claude and Codex manifests agree on name and version but are separate files', () => {
   const a = JSON.parse(fs.readFileSync(path.join(PLUGIN, '.claude-plugin/plugin.json'), 'utf8'));
   const b = JSON.parse(fs.readFileSync(path.join(PLUGIN, '.codex-plugin/plugin.json'), 'utf8'));
-  assert.equal(a.name, 'studio3'); assert.equal(b.name, 'studio3');
+  assert.equal(a.name, 'maquettekit'); assert.equal(b.name, 'maquettekit');
   assert.equal(a.version, b.version);
   assert.equal(a.version, JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')).version);
   assert.ok(b.interface?.displayName, 'Codex interface block present');
@@ -49,8 +49,8 @@ test('Claude and Codex manifests agree on name and version but are separate file
 test('marketplace definitions point at the plugin directory', () => {
   const c = JSON.parse(fs.readFileSync(path.join(ROOT, '.claude-plugin/marketplace.json'), 'utf8'));
   const x = JSON.parse(fs.readFileSync(path.join(ROOT, '.agents/plugins/marketplace.json'), 'utf8'));
-  assert.equal(c.plugins[0].source, './plugins/studio3');
-  assert.deepEqual(x.plugins[0].source, { source: 'local', path: './plugins/studio3' });
+  assert.equal(c.plugins[0].source, './plugins/maquettekit');
+  assert.deepEqual(x.plugins[0].source, { source: 'local', path: './plugins/maquettekit' });
   assert.equal(c.name, x.name);
 });
 
@@ -65,7 +65,7 @@ test('plugin payload is self-contained (no node_modules, no secrets, tools prese
 });
 
 test('tool dispatcher answers --help and --version without dependencies', () => {
-  const cli = path.join(PLUGIN, 'tools', 'studio3.mjs');
+  const cli = path.join(PLUGIN, 'tools', 'maquettekit.mjs');
   const v = spawnSync(process.execPath, [cli, '--version'], { encoding: 'utf8' });
   assert.equal(v.status, 0); assert.match(v.stdout.trim(), /^\d+\.\d+\.\d+$/);
   for (const c of ['doctor', 'setup', 'design', 'review', 'experience', 'assets', 'catalog']) {

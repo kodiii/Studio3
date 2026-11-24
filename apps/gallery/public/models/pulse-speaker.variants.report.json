@@ -1,5 +1,5 @@
 {
-  "generator": "Studio³ Asset Pipeline",
+  "generator": "Maquettekit Asset Pipeline",
   "generatedAt": "2026-11-23T11:43:59.470Z",
   "tools": {
     "@gltf-transform/core": "4.5.1",
@@ -29,7 +29,7 @@
   },
   "variants": [
     {
-      "generator": "Studio³ Asset Pipeline",
+      "generator": "Maquettekit Asset Pipeline",
       "generatedAt": "2026-11-23T11:43:49.793Z",
       "tools": {
         "@gltf-transform/core": "4.5.1",
@@ -1284,7 +1284,7 @@
       }
     },
     {
-      "generator": "Studio³ Asset Pipeline",
+      "generator": "Maquettekit Asset Pipeline",
       "generatedAt": "2026-11-23T11:43:51.240Z",
       "tools": {
         "@gltf-transform/core": "4.5.1",
@@ -2551,7 +2551,7 @@
       }
     },
     {
-      "generator": "Studio³ Asset Pipeline",
+      "generator": "Maquettekit Asset Pipeline",
       "generatedAt": "2026-11-23T11:43:52.282Z",
       "tools": {
         "@gltf-transform/core": "4.5.1",

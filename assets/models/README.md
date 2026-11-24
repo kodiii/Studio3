@@ -1,4 +1,4 @@
-# Studio³ sample models — contract
+# Maquettekit sample models — contract
 
 Original, procedurally generated assets (no third-party content; MIT, same as the repo).
 Regenerate deterministically with `node scripts/generate-sample-models.mjs` (seeded, no timestamps).
@@ -6,9 +6,9 @@ These `*.source.glb` files are **sources**: never edit or overwrite them. Delive
 `apps/gallery/public/models/` and are rebuilt from the sources:
 
 ```bash
-node plugins/studio3/tools/studio3.mjs assets variants assets/models/pulse-speaker.source.glb --out apps/gallery/public/models --thumbnail
-node plugins/studio3/tools/studio3.mjs assets variants assets/models/orbit-token.source.glb  --out apps/gallery/public/models --profiles desktop --thumbnail
-node plugins/studio3/tools/studio3.mjs assets manifest apps/gallery/public/models
+node plugins/maquettekit/tools/maquettekit.mjs assets variants assets/models/pulse-speaker.source.glb --out apps/gallery/public/models --thumbnail
+node plugins/maquettekit/tools/maquettekit.mjs assets variants assets/models/orbit-token.source.glb  --out apps/gallery/public/models --profiles desktop --thumbnail
+node plugins/maquettekit/tools/maquettekit.mjs assets manifest apps/gallery/public/models
 ```
 
 Units are metres, +Y up, +Z front, centred on x/z = 0 and sitting on y = 0.

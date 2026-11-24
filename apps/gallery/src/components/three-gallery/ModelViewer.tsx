@@ -5,7 +5,7 @@ import {
   useCanvasDiagnostics, useModelManifest, useModelProgress,
   type AnimationPlayerHandle, type AnimationState, type CameraRigHandle, type LightingPresetName, type LoadedModel, type ModelStats,
   type OrbitInspectHandle, type QualityLevel,
-} from '@studio3/library/three';
+} from '@maquettekit/library/three';
 import { Suspense, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { VIEWER_MODELS } from './models';
 import { ChipGroup, Section, Stat, ToolButton } from './ui';
@@ -66,7 +66,7 @@ export function ModelViewer() {
   }, []);
   // StudioCanvas marks the host with data-status once capabilities are known.
   useEffect(() => {
-    const el = stage.current?.querySelector('[data-studio3-canvas]');
+    const el = stage.current?.querySelector('[data-maquettekit-canvas]');
     if (!el) return;
     const read = () => { const s = el.getAttribute('data-status'); setWebgl(s === 'unsupported' ? 'off' : s === 'pending' ? 'pending' : 'ok'); };
     read();
@@ -105,7 +105,7 @@ export function ModelViewer() {
         <div
           ref={stage}
           data-viewer-stage=""
-          className="s3-viewer-stage relative aspect-[4/5] max-h-[78dvh] w-full overflow-hidden rounded-[10px] border border-line sm:aspect-[4/3] [&:fullscreen]:max-h-none [&:fullscreen]:rounded-none"
+          className="mk-viewer-stage relative aspect-[4/5] max-h-[78dvh] w-full overflow-hidden rounded-[10px] border border-line sm:aspect-[4/3] [&:fullscreen]:max-h-none [&:fullscreen]:rounded-none"
         >
           <StudioCanvas
             key={cfg.id}
@@ -143,17 +143,17 @@ export function ModelViewer() {
           ) : null}
 
           <div className="pointer-events-none absolute left-3 top-3 flex flex-col items-start gap-1">
-            <span className="s3-label rounded-[3px] bg-surface/85 px-2 py-1 backdrop-blur-sm">{cfg.name}</span>
-            {variant && live ? <span className="s3-label rounded-[3px] bg-surface/85 px-2 py-1 text-muted backdrop-blur-sm" data-variant={variant.profile}>{variant.profile} · {formatBytes(variant.bytes)}</span> : null}
+            <span className="mk-label rounded-[3px] bg-surface/85 px-2 py-1 backdrop-blur-sm">{cfg.name}</span>
+            {variant && live ? <span className="mk-label rounded-[3px] bg-surface/85 px-2 py-1 text-muted backdrop-blur-sm" data-variant={variant.profile}>{variant.profile} · {formatBytes(variant.bytes)}</span> : null}
           </div>
 
           {loading ? (
             <div className="absolute inset-x-3 top-3 ml-auto w-44 rounded-[4px] border border-line bg-surface/90 p-2 backdrop-blur-sm" data-loading="">
-              <p className="s3-label m-0 flex justify-between text-muted" aria-live="polite">
+              <p className="mk-label m-0 flex justify-between text-muted" aria-live="polite">
                 <span>{progress.status === 'decoding' ? 'Decoding' : 'Loading'}</span>
                 <span>{progress.fraction != null ? `${Math.round(progress.fraction * 100)}%` : formatBytes(progress.loaded)}</span>
               </p>
-              <progress className="s3-progress mt-1.5 block h-1 w-full" aria-label={`Loading ${cfg.name}`} max={1} {...(progress.fraction != null && progress.status !== 'decoding' ? { value: progress.fraction } : {})} />
+              <progress className="mk-progress mt-1.5 block h-1 w-full" aria-label={`Loading ${cfg.name}`} max={1} {...(progress.fraction != null && progress.status !== 'decoding' ? { value: progress.fraction } : {})} />
             </div>
           ) : null}
 
@@ -179,7 +179,7 @@ export function ModelViewer() {
         {/* ── Statistics ─────────────────────────────────────── */}
         <div className="mt-8 grid gap-x-8 gap-y-6 sm:grid-cols-2" data-viewer-stats="">
           <div>
-            <h3 className="s3-label mb-2 text-muted">Model · read from the loaded file</h3>
+            <h3 className="mk-label mb-2 text-muted">Model · read from the loaded file</h3>
             <dl className="m-0 border-t border-line">
               <Stat label="Triangles" id="triangles" value={formatCount(stats?.triangles)} />
               <Stat label="Vertices" value={formatCount(stats?.vertices)} />
@@ -192,7 +192,7 @@ export function ModelViewer() {
             </dl>
           </div>
           <div>
-            <h3 className="s3-label mb-2 text-muted">Renderer · live from renderer.info</h3>
+            <h3 className="mk-label mb-2 text-muted">Renderer · live from renderer.info</h3>
             <dl className="m-0 border-t border-line">
               <Stat label="Draw calls" id="draw-calls" note="last frame" value={live ? formatCount(diag?.renderer.calls) : '—'} />
               <Stat label="Triangles" id="frame-triangles" note="last frame" value={live ? formatCount(diag?.renderer.triangles) : '—'} />
@@ -234,7 +234,7 @@ export function ModelViewer() {
               <div className="flex items-center gap-2">
                 <button type="button" className="h-9 min-w-20 rounded-[4px] bg-ink px-3 text-[13px] font-medium text-bg disabled:opacity-40" disabled={!live} aria-pressed={anim.playing} onClick={() => player.current?.toggle()}>{anim.playing ? 'Pause' : 'Play'}</button>
                 <label className="flex min-w-0 flex-1 items-center gap-2 text-[13px]">
-                  <span className="s3-sr-only">Scrub animation time</span>
+                  <span className="mk-sr-only">Scrub animation time</span>
                   <input type="range" className="s3-range w-full" min={0} max={anim.duration || 1} step={0.01} value={Math.min(anim.time, anim.duration || 1)} disabled={!live} onChange={(e) => player.current?.seek(Number(e.target.value))} aria-valuetext={`${anim.time.toFixed(2)} of ${anim.duration.toFixed(2)} seconds`} />
                 </label>
               </div>

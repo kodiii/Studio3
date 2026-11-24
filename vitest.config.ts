@@ -17,6 +17,6 @@ export default defineConfig({
     testTimeout: 60_000,
     hookTimeout: 60_000,
     css: { modules: { classNameStrategy: 'non-scoped' } },
-    server: { deps: { inline: [/@studio3\/library/, /@gsap\/react/] } },
+    server: { deps: { inline: [/@maquettekit\/library/, /@gsap\/react/] } },
   },
 });

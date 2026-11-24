@@ -1,0 +1,221 @@
+/*
+ * Radio Haar — the night forecast as a broadcast transcript. Type is the only material: a timecode gutter,
+ * mono for the broadcast data, Instrument Serif for the presenter's voice and Bricolage Grotesque with all
+ * three axes for everything that moves. The display family must be loaded with its standard axes
+ * (wght + wdth + opsz) — in the gallery, @fontsource-variable/bricolage-grotesque/standard.css.
+ */
+.root {
+  --kt-pad: clamp(16px, 4cqi, 56px);
+  --kt-axes: var(--mk-font-display, ui-sans-serif, system-ui, sans-serif);
+  position: relative;
+  overflow-x: clip;
+  background: var(--mk-bg, #f3f0e8);
+  color: var(--mk-ink, #11110f);
+  font-family: var(--mk-font-text, ui-sans-serif, system-ui, sans-serif);
+  font-synthesis: none;
+}
+
+/* ── On-air bar ─────────────────────────────────────────────── */
+.bar {
+  position: sticky;
+  top: 44px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 52px;
+  padding: 0 var(--kt-pad);
+  background: var(--mk-bg, #f3f0e8);
+  border-bottom: 1px solid var(--mk-line, #11110f24);
+}
+.station, .barNote {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  margin: 0;
+  font-family: var(--mk-font-mono, ui-monospace, monospace);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.barNote { color: var(--mk-ink-muted, #5c5a52); text-align: end; }
+.lamp { width: 9px; height: 9px; border-radius: 50%; background: var(--mk-signal, #bf2f09); box-shadow: 0 0 0 3px color-mix(in oklab, var(--mk-signal, #bf2f09) 22%, transparent); }
+.stationName { font-family: var(--kt-axes); font-size: 1.0625rem; font-weight: 760; font-stretch: 80%; letter-spacing: -0.01em; text-transform: none; }
+.fict { color: var(--mk-ink-muted, #5c5a52); }
+@container (max-width: 30rem) { .fict { display: none; } }
+.pause {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--mk-line-strong, #11110f);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--mk-ink, #11110f);
+  font-family: var(--mk-font-mono, ui-monospace, monospace);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.pause:hover, .pause[aria-pressed='true'] { background: var(--mk-ink, #11110f); color: var(--mk-bg, #f3f0e8); }
+.pause:focus-visible { outline: 2px solid var(--mk-focus, #1d4ed8); outline-offset: 3px; }
+
+/* ── Transcript cues: timecode gutter + body ────────────────── */
+.cue {
+  position: relative;
+  display: grid;
+  gap: 14px;
+  padding: clamp(64px, 10cqi, 150px) var(--kt-pad);
+  border-bottom: 1px solid var(--mk-line, #11110f24);
+}
+@container (min-width: 56rem) {
+  .cue { grid-template-columns: 7.5rem minmax(0, 1fr); column-gap: clamp(24px, 3cqi, 48px); }
+}
+.time {
+  position: sticky;
+  top: calc(44px + 52px + 24px);
+  align-self: start;
+  margin: 0;
+  font-family: var(--mk-font-mono, ui-monospace, monospace);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+  color: var(--mk-ink-muted, #5c5a52);
+}
+.cueBody { display: grid; gap: clamp(18px, 2.6cqi, 36px); min-width: 0; }
+.label, .kicker {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  font-family: var(--mk-font-mono, ui-monospace, monospace);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mk-ink, #11110f);
+}
+.label::before { content: ''; flex: none; width: 28px; height: 1px; background: var(--mk-signal, #bf2f09); }
+.kicker { display: block; line-height: 1.6; color: var(--mk-ink-muted, #5c5a52); }
+@container (max-width: 56rem) { .time { position: static; } }
+
+/* Hero: the weight-wave recipe, set left and large */
+.hero { min-height: calc(100svh - 44px - 53px); align-content: end; padding-top: clamp(40px, 6cqi, 96px); padding-bottom: clamp(32px, 4cqi, 56px); }
+.wave > div { justify-items: start; padding: 0; gap: 18px; }
+.wave h2 {
+  font-family: var(--kt-axes);
+  font-size: clamp(3.3rem, 0.4rem + 14.6cqi, 15.5rem);
+  line-height: 0.86;
+  letter-spacing: -0.035em;
+  text-align: start;
+}
+.wave p { justify-content: flex-start; }
+@container (max-width: 40rem) { .hero { min-height: 0; padding-top: 72px; } }
+@container (max-width: 40rem) { .wave h2 { font-size: clamp(3.3rem, 22cqi, 6rem); } }
+.voice {
+  justify-self: end;
+  max-width: 21ch;
+  margin: 0;
+  font-family: var(--mk-font-serif, Georgia, serif);
+  font-size: clamp(1.5rem, 0.9rem + 2.2cqi, 2.9rem);
+  font-style: italic;
+  line-height: 1.08;
+  text-align: end;
+  text-wrap: balance;
+}
+.dial { display: block; width: 100%; height: auto; margin-top: clamp(8px, 2cqi, 24px); }
+.dialRule { stroke: var(--mk-ink, #11110f); stroke-width: 1; }
+.tick { stroke: var(--mk-ink-muted, #5c5a52); stroke-width: 1; }
+.tickMajor { stroke: var(--mk-ink, #11110f); stroke-width: 1.4; }
+.dialNum { font-family: var(--mk-font-mono, ui-monospace, monospace); font-size: 12px; text-anchor: middle; fill: var(--mk-ink-muted, #5c5a52); }
+.needle path { stroke: var(--mk-signal, #bf2f09); stroke-width: 2.2; }
+.needle circle { fill: var(--mk-signal, #bf2f09); }
+.readout { font-family: var(--mk-font-mono, ui-monospace, monospace); font-size: 14px; font-weight: 600; fill: var(--mk-signal, #bf2f09); }
+
+/* Tuning in: the scramble-decode recipe, left-aligned and wider */
+.decode > div { width: 100%; max-width: 64rem; margin: 0; }
+.decodeHold { min-height: 12rem; margin: 0; opacity: 0; }
+
+/* Sea areas chart */
+.chartFrame { overflow: clip; margin-inline: calc(-1 * var(--kt-pad)); }
+.chart { display: block; width: 100%; height: auto; }
+@container (max-width: 40rem) { .chart { width: 190%; margin-left: -42%; } }
+.land { fill: var(--mk-surface-2, #e9e5da); }
+.hatch path { stroke: var(--mk-line, #11110f24); stroke-width: 1.2; }
+.coast { fill: none; stroke: var(--mk-ink, #11110f); stroke-width: 1.6; stroke-linejoin: round; }
+.depth { fill: none; stroke: var(--mk-ink-muted, #5c5a52); stroke-width: 1; stroke-dasharray: 2 7; }
+.sounding { font-family: var(--mk-font-mono, ui-monospace, monospace); font-size: 13px; font-style: italic; fill: var(--mk-ink-muted, #5c5a52); }
+.rose circle, .rose path { fill: none; stroke: var(--mk-ink-muted, #5c5a52); stroke-width: 1; }
+.rose .roseN { fill: var(--mk-signal, #bf2f09); stroke: none; }
+.rose text { font-family: var(--mk-font-mono, ui-monospace, monospace); font-size: 13px; fill: var(--mk-ink, #11110f); }
+.areaText { font-family: var(--kt-axes); font-size: 26px; font-weight: 600; font-stretch: 88%; letter-spacing: 0.01em; fill: var(--mk-ink, #11110f); }
+.chart[data-moving] .areaText { font-size: 36px; }
+.areaList { margin: 0; font-family: var(--mk-font-mono, ui-monospace, monospace); font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--mk-ink-muted, #5c5a52); }
+
+/* Wind: one row per area; the axes are custom properties written by the scrubbed timeline */
+.winds { display: grid; gap: clamp(10px, 1.6cqi, 22px); margin: 0; padding: 0; list-style: none; transform-origin: 0 50%; }
+.windRow { display: grid; gap: 6px 24px; align-items: baseline; padding-bottom: clamp(10px, 1.4cqi, 18px); border-bottom: 1px solid var(--mk-line, #11110f24); }
+@container (min-width: 48rem) { .windRow { grid-template-columns: minmax(0, 1fr) minmax(13rem, 21rem); } }
+.windArea, .scaleGlyph {
+  font-family: var(--kt-axes);
+  font-weight: var(--wght, 400);
+  font-stretch: calc(var(--wdth, 100) * 1%);
+  font-variation-settings: 'opsz' var(--opsz, 14);
+}
+.windArea { font-size: clamp(2.6rem, 0.6rem + 8.4cqi, 9rem); line-height: 0.95; letter-spacing: -0.02em; white-space: nowrap; }
+.windText {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--mk-font-mono, ui-monospace, monospace);
+  font-size: 0.8125rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.windText[data-gale] { color: var(--mk-signal, #bf2f09); font-weight: 600; }
+.arrow { flex: none; width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; transform-box: fill-box; transform-origin: center; }
+.scale { display: grid; gap: 12px; margin: 0; }
+.scaleRow { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); border-block: 1px solid var(--mk-line, #11110f24); }
+.scaleCell { display: grid; justify-items: start; gap: 4px; padding: 10px 6px 8px; border-inline-end: 1px solid var(--mk-line, #11110f24); }
+.scaleCell:last-child { border-inline-end: 0; }
+.scaleGlyph { font-size: clamp(1.4rem, 4cqi, 3.4rem); line-height: 1; }
+.scaleNum { font-family: var(--mk-font-mono, ui-monospace, monospace); font-size: 0.625rem; letter-spacing: 0.06em; color: var(--mk-ink-muted, #5c5a52); }
+.scaleCap { max-width: 62ch; margin: 0; font-size: 0.875rem; line-height: 1.5; color: var(--mk-ink-muted, #5c5a52); }
+
+/* Sea state: split-line-reveal, set condensed and heavy */
+.state h2, .stateHold {
+  max-width: 15ch;
+  margin: 0;
+  font-family: var(--kt-axes);
+  font-size: clamp(2.5rem, 0.8rem + 7.2cqi, 7.75rem);
+  font-weight: 760;
+  font-stretch: 80%;
+  line-height: 0.94;
+  letter-spacing: -0.03em;
+  color: var(--mk-ink, #11110f);
+}
+.stateHold { opacity: 0; }
+
+/* Gale warnings: the marquee recipe (its header label is turned off with label: '' — this section's heading names it). */
+.gale .cueBody { gap: 4px; }
+.marquee { margin-inline: calc(-1 * var(--kt-pad)); }
+.marquee li { font-family: var(--kt-axes); font-weight: 780; font-stretch: 78%; }
+
+/* Sign-off: still. */
+.end { border-bottom: 0; }
+.endLine {
+  max-width: 11ch;
+  margin: 0;
+  font-family: var(--mk-font-serif, Georgia, serif);
+  font-size: clamp(3rem, 1rem + 9.5cqi, 10.5rem);
+  font-weight: 400;
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+}
+.next { margin: 0; font-family: var(--mk-font-mono, ui-monospace, monospace); font-size: 0.8125rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.fine { max-width: 60ch; margin: 0; padding-top: 14px; border-top: 1px solid var(--mk-line, #11110f24); font-size: 0.8125rem; line-height: 1.55; color: var(--mk-ink-muted, #5c5a52); }

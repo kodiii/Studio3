@@ -72,4 +72,4 @@ jobs:
       - name: Installer lifecycle tests (isolated HOME; host CLIs faked)
         run: node --test tests/plugin/install.test.mjs
       - name: Doctor
-        run: node plugins/studio3/tools/studio3.mjs doctor
+        run: node plugins/maquettekit/tools/maquettekit.mjs doctor

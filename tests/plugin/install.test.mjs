@@ -10,7 +10,7 @@ import { ROOT } from '../../scripts/validate-plugin.mjs';
 const INSTALL = path.join(ROOT, 'scripts', 'install.mjs');
 const VERSION = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')).version;
 // The installer must link every skill present in the repo (completeness of the 12 is asserted in packaging.test.mjs).
-const SKILLS = fs.readdirSync(path.join(ROOT, 'plugins', 'studio3', 'skills')).filter((d) => fs.existsSync(path.join(ROOT, 'plugins', 'studio3', 'skills', d, 'SKILL.md')));
+const SKILLS = fs.readdirSync(path.join(ROOT, 'plugins', 'maquettekit', 'skills')).filter((d) => fs.existsSync(path.join(ROOT, 'plugins', 'maquettekit', 'skills', d, 'SKILL.md')));
 
 function sandbox({ fakeClis = [] } = {}) {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 's3-home-'));
@@ -21,10 +21,10 @@ function sandbox({ fakeClis = [] } = {}) {
     fs.writeFileSync(path.join(bin, name), `#!/bin/sh\necho "${name} $*" >> "${log}"\nexit 0\n`, { mode: 0o755 });
   }
   // PATH: fake CLIs + node only — real host CLIs are deliberately invisible.
-  const env = { ...process.env, HOME: home, STUDIO3_HOME: path.join(home, '.studio3'), PATH: `${bin}:${path.dirname(process.execPath)}:/usr/bin:/bin`, CLAUDE_CONFIG_DIR: '' };
+  const env = { ...process.env, HOME: home, MAQUETTEKIT_HOME: path.join(home, '.maquettekit'), PATH: `${bin}:${path.dirname(process.execPath)}:/usr/bin:/bin`, CLAUDE_CONFIG_DIR: '' };
   delete env.CLAUDE_CONFIG_DIR;
   const run = (...args) => spawnSync(process.execPath, [INSTALL, ...args], { encoding: 'utf8', env });
-  return { home, log, run, s3: path.join(home, '.studio3'), cleanup: () => fs.rmSync(home, { recursive: true, force: true }) };
+  return { home, log, run, s3: path.join(home, '.maquettekit'), cleanup: () => fs.rmSync(home, { recursive: true, force: true }) };
 }
 
 test('skills mode: install links every skill, tools run from the payload, uninstall removes everything', () => {
@@ -40,12 +40,12 @@ test('skills mode: install links every skill, tools run from the payload, uninst
         assert.ok(fs.existsSync(path.join(dir, s, 'SKILL.md')), `${s} resolves`);
       }
     }
-    const payload = path.join(sb.s3, 'marketplace', 'plugins', 'studio3');
+    const payload = path.join(sb.s3, 'marketplace', 'plugins', 'maquettekit');
     assert.ok(fs.existsSync(path.join(payload, '.claude-plugin', 'plugin.json')));
     assert.ok(fs.existsSync(path.join(payload, '.codex-plugin', 'plugin.json')));
     assert.ok(fs.existsSync(path.join(sb.s3, 'marketplace', '.agents', 'plugins', 'marketplace.json')));
     assert.ok(!fs.existsSync(path.join(payload, 'node_modules')));
-    const v = spawnSync(process.execPath, [path.join(payload, 'tools', 'studio3.mjs'), '--version'], { encoding: 'utf8' });
+    const v = spawnSync(process.execPath, [path.join(payload, 'tools', 'maquettekit.mjs'), '--version'], { encoding: 'utf8' });
     assert.equal(v.stdout.trim(), VERSION);
     const state = JSON.parse(fs.readFileSync(path.join(sb.s3, 'install.json'), 'utf8'));
     assert.equal(state.version, VERSION);
@@ -76,7 +76,7 @@ test('upgrade backs up the previous payload; downgrade is refused without --forc
     assert.match(up.stdout, /Upgrading 3\.9\.0 → /);
     const backups = fs.readdirSync(path.join(sb.s3, 'backups'));
     assert.equal(backups.length, 1);
-    assert.match(backups[0], /^studio3-3\.9\.0-/);
+    assert.match(backups[0], /^maquettekit-3\.9\.0-/);
     assert.ok(fs.existsSync(path.join(sb.s3, 'backups', backups[0], 'MARKER')), 'old payload preserved in backup');
     assert.ok(!fs.existsSync(path.join(sb.s3, 'marketplace', 'MARKER')), 'new payload is clean');
     assert.equal(JSON.parse(fs.readFileSync(stateFile, 'utf8')).previousVersion, '3.9.0');
@@ -98,16 +98,16 @@ test('plugin mode drives each host CLI with its own command syntax', () => {
     const log = fs.readFileSync(sb.log, 'utf8');
     const target = path.join(sb.s3, 'marketplace');
     assert.ok(log.includes(`claude plugin marketplace add ${target}`));
-    assert.ok(log.includes('claude plugin install studio3@studio3-marketplace'));
+    assert.ok(log.includes('claude plugin install maquettekit@maquettekit-marketplace'));
     assert.ok(log.includes(`codex plugin marketplace add ${target}`));
-    assert.ok(log.includes('codex plugin add studio3@studio3-marketplace'), 'Codex uses "plugin add", not "plugin install"');
+    assert.ok(log.includes('codex plugin add maquettekit@maquettekit-marketplace'), 'Codex uses "plugin add", not "plugin install"');
     assert.ok(!log.includes('codex plugin install'));
     fs.writeFileSync(sb.log, '');
     assert.equal(sb.run('uninstall').status, 0);
     const out = fs.readFileSync(sb.log, 'utf8');
-    assert.ok(out.includes('claude plugin uninstall studio3@studio3-marketplace'));
-    assert.ok(out.includes('codex plugin remove studio3@studio3-marketplace'));
-    assert.ok(out.includes('plugin marketplace remove studio3-marketplace'));
+    assert.ok(out.includes('claude plugin uninstall maquettekit@maquettekit-marketplace'));
+    assert.ok(out.includes('codex plugin remove maquettekit@maquettekit-marketplace'));
+    assert.ok(out.includes('plugin marketplace remove maquettekit-marketplace'));
   } finally { sb.cleanup(); }
 });
 
@@ -133,7 +133,7 @@ test('--mode plugin without the host CLI fails clearly; unmanaged skill dirs are
     fs.writeFileSync(path.join(mine, 'SKILL.md'), 'user file');
     const s = sb.run('install', '--host', 'codex', '--mode', 'skills');
     assert.equal(s.status, 0);
-    assert.match(s.stdout, /not managed by Studio³ — skipped/);
+    assert.match(s.stdout, /not managed by Maquettekit — skipped/);
     assert.equal(fs.readFileSync(path.join(mine, 'SKILL.md'), 'utf8'), 'user file');
   } finally { sb.cleanup(); }
 });
@@ -141,19 +141,19 @@ test('--mode plugin without the host CLI fails clearly; unmanaged skill dirs are
 const hasClaude = spawnSync('which', ['claude']).status === 0;
 test('real Claude Code CLI: marketplace add → install → details → uninstall', { skip: hasClaude ? false : 'claude CLI not on PATH' }, () => {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 's3-claude-'));
-  const env = { ...process.env, HOME: home, STUDIO3_HOME: path.join(home, '.studio3') };
+  const env = { ...process.env, HOME: home, MAQUETTEKIT_HOME: path.join(home, '.maquettekit') };
   delete env.CLAUDE_CONFIG_DIR;
   try {
     const r = spawnSync(process.execPath, [INSTALL, 'install', '--host', 'claude', '--mode', 'plugin'], { encoding: 'utf8', env });
     assert.equal(r.status, 0, r.stdout + r.stderr);
     const list = spawnSync('claude', ['plugin', 'list'], { encoding: 'utf8', env });
-    assert.match(list.stdout + list.stderr, /studio3@studio3-marketplace/);
-    const details = spawnSync('claude', ['plugin', 'details', 'studio3'], { encoding: 'utf8', env });
+    assert.match(list.stdout + list.stderr, /maquettekit@maquettekit-marketplace/);
+    const details = spawnSync('claude', ['plugin', 'details', 'maquettekit'], { encoding: 'utf8', env });
     assert.match(details.stdout + details.stderr, new RegExp(`Skills \\(${SKILLS.length}\\)`));
     const u = spawnSync(process.execPath, [INSTALL, 'uninstall'], { encoding: 'utf8', env });
     assert.equal(u.status, 0, u.stdout + u.stderr);
     const after = spawnSync('claude', ['plugin', 'list'], { encoding: 'utf8', env });
-    assert.doesNotMatch(after.stdout + after.stderr, /studio3@studio3-marketplace/);
+    assert.doesNotMatch(after.stdout + after.stderr, /maquettekit@maquettekit-marketplace/);
   } finally { fs.rmSync(home, { recursive: true, force: true }); }
 });
 

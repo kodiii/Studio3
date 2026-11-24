@@ -1,0 +1,90 @@
+/* Blockwerk — a toy workshop: warm paper, wood, muted primaries. */
+.stage {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  max-height: 64svh;
+  border: 1px solid var(--mk-line-strong, #11110f);
+  border-radius: var(--mk-radius-m, 10px);
+  background: radial-gradient(110% 80% at 50% 30%, #fbf6ec 0%, #ece3d2 62%, #dccfb8 100%);
+  touch-action: none;
+  user-select: none;
+}
+:global([data-theme='dark']) .stage { background: radial-gradient(110% 80% at 50% 30%, #34302a 0%, #23211d 62%, #171613 100%); }
+@container (width >= 44rem) { .stage { aspect-ratio: 4 / 3; max-height: 78svh; } }
+.stage canvas { cursor: grab; }
+.stage canvas:active { cursor: grabbing; }
+
+.panel {
+  display: grid;
+  align-content: start;
+  gap: 16px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--mk-line-strong, #11110f);
+  border-radius: var(--mk-radius-m, 10px);
+  background: var(--mk-surface, #fbf9f4);
+}
+.choice, .seg {
+  display: grid;
+  place-items: center;
+  min-height: 38px;
+  padding: 0 8px;
+  border: 1px solid var(--mk-line, #11110f24);
+  border-radius: var(--mk-radius-s, 4px);
+  font-size: 13px;
+  background: var(--mk-bg, #f3f0e8);
+  cursor: pointer;
+}
+.seg { padding: 0 14px; border-radius: 0; margin-left: -1px; }
+.seg:first-of-type { border-radius: 999px 0 0 999px; margin-left: 0; }
+.seg:last-of-type { border-radius: 0 999px 999px 0; }
+.choice:hover, .seg:hover { border-color: var(--mk-line-strong, #11110f); }
+.choice:has(input:checked), .seg:has(input:checked) { background: var(--mk-ink, #11110f); color: var(--mk-bg, #f3f0e8); border-color: var(--mk-ink, #11110f); }
+.choice:has(input:focus-visible), .seg:has(input:focus-visible), .item:has(input:focus-visible) { outline: 2px solid var(--mk-focus, #1d4ed8); outline-offset: 2px; position: relative; z-index: 1; }
+fieldset:disabled .choice, fieldset:disabled .seg, fieldset:disabled .item { cursor: not-allowed; color: var(--mk-ink-muted, #5c5a52); }
+
+.btn, .btnStrong {
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid var(--mk-line-strong, #11110f);
+  border-radius: 999px;
+  background: var(--mk-surface, #fbf9f4);
+  color: var(--mk-ink, #11110f);
+  font-size: 13.5px;
+}
+.btnStrong { background: var(--mk-ink, #11110f); color: var(--mk-bg, #f3f0e8); }
+.btn:hover:not(:disabled) { background: var(--mk-surface-2, #e9e5da); }
+.btn:disabled, .btnStrong:disabled { background: transparent; color: var(--mk-ink-muted, #5c5a52); border-color: var(--mk-line, #11110f24); cursor: not-allowed; }
+.run {
+  padding: 14px 26px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--mk-ink, #11110f);
+  color: var(--mk-bg, #f3f0e8);
+  font: 600 16px/1.3 var(--mk-font-text, system-ui, sans-serif);
+  box-shadow: 0 10px 30px rgb(0 0 0 / 0.25);
+}
+.range { width: 100%; min-height: 24px; accent-color: var(--mk-ink, #11110f); }
+.progress { display: block; width: 100%; height: 3px; accent-color: var(--mk-ink, #11110f); }
+
+.list {
+  display: grid;
+  max-height: 15rem;
+  overflow-y: auto;
+  border-top: 1px solid var(--mk-line, #11110f24);
+}
+.item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 0 6px;
+  border-bottom: 1px solid var(--mk-line, #11110f24);
+  font-size: 13px;
+  cursor: pointer;
+}
+.item:has(input:checked) { background: var(--mk-ink, #11110f); color: var(--mk-bg, #f3f0e8); }
+.item:has(input:checked) :global(.text-muted) { color: inherit; }
+.chip { width: 12px; height: 12px; border-radius: 2px; flex: none; box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.2); }

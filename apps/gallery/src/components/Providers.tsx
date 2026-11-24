@@ -1,5 +1,5 @@
 'use client';
-import { StudioMotionProvider, type ExperienceProfile } from '@studio3/library/motion';
+import { StudioMotionProvider, type ExperienceProfile } from '@maquettekit/library/motion';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 
 export type Theme = 'light' | 'dark';
@@ -24,18 +24,18 @@ export function Providers({ children }: { children: ReactNode }) {
   const [profile, setProfileState] = useState<ExperienceProfile>('expressive');
 
   useEffect(() => {
-    const t = read('s3-theme');
+    const t = read('mk-theme');
     setThemeState(t === 'dark' || t === 'light' ? t : matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-    setReducedState(read('s3-reduced') === 'true');
-    const p = read('s3-profile');
+    setReducedState(read('mk-reduced') === 'true');
+    const p = read('mk-profile');
     if (p === 'essential' || p === 'expressive' || p === 'immersive') setProfileState(p);
   }, []);
   useEffect(() => { document.documentElement.dataset.theme = theme; }, [theme]);
   useEffect(() => { document.documentElement.dataset.reduced = String(reduced); }, [reduced]);
 
-  const setTheme = useCallback((t: Theme) => { setThemeState(t); write('s3-theme', t); }, []);
-  const setReduced = useCallback((r: boolean) => { setReducedState(r); write('s3-reduced', String(r)); }, []);
-  const setProfile = useCallback((p: ExperienceProfile) => { setProfileState(p); write('s3-profile', p); }, []);
+  const setTheme = useCallback((t: Theme) => { setThemeState(t); write('mk-theme', t); }, []);
+  const setReduced = useCallback((r: boolean) => { setReducedState(r); write('mk-reduced', String(r)); }, []);
+  const setProfile = useCallback((p: ExperienceProfile) => { setProfileState(p); write('mk-profile', p); }, []);
   const value = useMemo(() => ({ theme, setTheme, reduced, setReduced, profile, setProfile }), [theme, setTheme, reduced, setReduced, profile, setProfile]);
 
   return (

@@ -1,21 +1,21 @@
 #!/usr/bin/env node
 // @ts-check
 /**
- * Studio³ local installer / upgrader / uninstaller for Claude Code and Codex.
+ * Maquettekit local installer / upgrader / uninstaller for Claude Code and Codex.
  *
  *   node scripts/install.mjs install   [--host claude|codex|all] [--mode auto|plugin|skills] [--dry-run] [--force] [--verify]
  *   node scripts/install.mjs uninstall [--host claude|codex|all] [--purge] [--dry-run]
  *   node scripts/install.mjs status    [--json]
  *
  * What it does (nothing else; no network, no telemetry):
- *  1. Copies the marketplace payload (manifests + plugins/studio3) to $STUDIO3_HOME/marketplace
- *     (default ~/.studio3/marketplace) so the install survives deleting the checkout. An existing
- *     payload is first archived to $STUDIO3_HOME/backups/.
+ *  1. Copies the marketplace payload (manifests + plugins/maquettekit) to $MAQUETTEKIT_HOME/marketplace
+ *     (default ~/.maquettekit/marketplace) so the install survives deleting the checkout. An existing
+ *     payload is first archived to $MAQUETTEKIT_HOME/backups/.
  *  2. plugin mode: registers that directory as a local marketplace with the host CLI and installs
- *     studio3@studio3-marketplace  (claude plugin … / codex plugin …).
+ *     maquettekit@maquettekit-marketplace  (claude plugin … / codex plugin …).
  *  3. skills mode (hosts without a plugin CLI): links the 12 skills into the host's skills directory
- *     (~/.claude/skills or ~/.agents/skills). Skills locate tools through ~/.studio3/marketplace.
- *  4. Records what it did in $STUDIO3_HOME/install.json; uninstall removes exactly that.
+ *     (~/.claude/skills or ~/.agents/skills). Skills locate tools through ~/.maquettekit/marketplace.
+ *  4. Records what it did in $MAQUETTEKIT_HOME/install.json; uninstall removes exactly that.
  * Host CLIs are invoked with argument arrays (never through a shell).
  */
 import fs from 'node:fs';
@@ -25,10 +25,10 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const MARKETPLACE = 'studio3-marketplace';
-const PLUGIN = 'studio3';
+const MARKETPLACE = 'maquettekit-marketplace';
+const PLUGIN = 'maquettekit';
 const HOME = os.homedir();
-const S3_HOME = path.resolve(process.env.STUDIO3_HOME ?? path.join(HOME, '.studio3'));
+const S3_HOME = path.resolve(process.env.MAQUETTEKIT_HOME ?? path.join(HOME, '.maquettekit'));
 const TARGET = path.join(S3_HOME, 'marketplace');
 const STATE = path.join(S3_HOME, 'install.json');
 const PAYLOAD = ['.claude-plugin', '.agents', 'plugins', 'LICENSE', 'NOTICE.md', 'README.md', 'CHANGELOG.md'];
@@ -59,19 +59,19 @@ function run(bin, args, { allowFail = false } = {}) {
 function sourceVersion() {
   const a = readJson(path.join(REPO, 'plugins', PLUGIN, '.claude-plugin', 'plugin.json'));
   const b = readJson(path.join(REPO, 'plugins', PLUGIN, '.codex-plugin', 'plugin.json'));
-  if (!a?.version || !b?.version) throw new Error('Plugin manifests not found — run this from a Studio³ checkout or release archive.');
+  if (!a?.version || !b?.version) throw new Error('Plugin manifests not found — run this from a Maquettekit checkout or release archive.');
   if (a.version !== b.version) throw new Error(`Manifest versions differ (claude ${a.version}, codex ${b.version}).`);
   return a.version;
 }
 
 function copyDir(src, dst) {
-  fs.cpSync(src, dst, { recursive: true, filter: (s) => !/(^|[\\/])(node_modules|\.git|\.next|\.studio3|test-results)([\\/]|$)/.test(path.relative(REPO, s)) });
+  fs.cpSync(src, dst, { recursive: true, filter: (s) => !/(^|[\\/])(node_modules|\.git|\.next|\.maquettekit|test-results)([\\/]|$)/.test(path.relative(REPO, s)) });
 }
 
 function backupExisting(oldVersion) {
   if (!fs.existsSync(TARGET)) return null;
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const dest = path.join(S3_HOME, 'backups', `studio3-${oldVersion ?? 'unknown'}-${stamp}`);
+  const dest = path.join(S3_HOME, 'backups', `maquettekit-${oldVersion ?? 'unknown'}-${stamp}`);
   act(`backup ${TARGET} → ${dest}`);
   if (!DRY) { fs.mkdirSync(path.dirname(dest), { recursive: true }); fs.renameSync(TARGET, dest); }
   return dest;
@@ -101,7 +101,7 @@ function linkSkills(host, state) {
     const st = fs.lstatSync(link, { throwIfNoEntry: false });
     if (st) {
       const ours = st.isSymbolicLink() && path.resolve(dir, fs.readlinkSync(link)).startsWith(S3_HOME);
-      if (!ours && !flag('force')) { say(`  ! ${link} exists and is not managed by Studio³ — skipped (use --force to replace)`); continue; }
+      if (!ours && !flag('force')) { say(`  ! ${link} exists and is not managed by Maquettekit — skipped (use --force to replace)`); continue; }
       fs.rmSync(link, { recursive: true, force: true });
     }
     fs.symlinkSync(path.join(skillsSrc, name), link, 'dir');
@@ -144,7 +144,7 @@ function install() {
   const prev = readJson(STATE);
   const mode = opt('mode', 'auto');
   if (!['auto', 'plugin', 'skills'].includes(mode)) throw new Error('--mode must be auto, plugin or skills');
-  say(`Studio³ installer — v${version}  (source: ${REPO})`);
+  say(`Maquettekit installer — v${version}  (source: ${REPO})`);
   if (prev?.version) {
     const c = cmpVersion(version, prev.version);
     say(c > 0 ? `Upgrading ${prev.version} → ${version}` : c === 0 ? `Reinstalling ${version}` : `Installed version ${prev.version} is newer than ${version}`);
@@ -157,21 +157,21 @@ function install() {
   stagePayload();
   for (const host of hostsFrom(opt('host', 'auto'))) installHost(host, mode, state);
   if (!DRY) { fs.mkdirSync(S3_HOME, { recursive: true }); fs.writeFileSync(STATE, JSON.stringify(state, null, 2) + '\n'); }
-  say(`\n✔ Studio³ v${version} installed.`);
+  say(`\n✔ Maquettekit v${version} installed.`);
   for (const [h, i] of Object.entries(state.hosts)) {
-    say(`  ${h}: ${i.mode === 'plugin' ? `plugin ${PLUGIN}@${MARKETPLACE}` : `skills linked in ${i.dir}`}  →  invoke with ${h === 'claude' ? (i.mode === 'plugin' ? '/studio3:studio-product' : '/studio-product') : (i.mode === 'plugin' ? '$studio3:studio-product' : '$studio-product')}`);
+    say(`  ${h}: ${i.mode === 'plugin' ? `plugin ${PLUGIN}@${MARKETPLACE}` : `skills linked in ${i.dir}`}  →  invoke with ${h === 'claude' ? (i.mode === 'plugin' ? '/maquettekit:studio-product' : '/studio-product') : (i.mode === 'plugin' ? '$maquettekit:studio-product' : '$studio-product')}`);
   }
-  say(`  Tools: node "${path.join(TARGET, 'plugins', PLUGIN, 'tools', 'studio3.mjs')}" doctor`);
+  say(`  Tools: node "${path.join(TARGET, 'plugins', PLUGIN, 'tools', 'maquettekit.mjs')}" doctor`);
   say('  Optional tool dependencies (Playwright, glTF tooling): run the "setup" command of the same script.');
   if (flag('verify') && !DRY) {
-    const r = spawnSync(process.execPath, [path.join(TARGET, 'plugins', PLUGIN, 'tools', 'studio3.mjs'), 'doctor'], { stdio: 'inherit' });
+    const r = spawnSync(process.execPath, [path.join(TARGET, 'plugins', PLUGIN, 'tools', 'maquettekit.mjs'), 'doctor'], { stdio: 'inherit' });
     if (r.status !== 0) throw new Error('doctor reported failures');
   }
 }
 
 function uninstall() {
   const state = readJson(STATE);
-  if (!state) { say('Studio³ is not installed (no install record found).'); return; }
+  if (!state) { say('Maquettekit is not installed (no install record found).'); return; }
   for (const host of hostsFrom(opt('host', 'all'), { forUninstall: true, state })) {
     const info = state.hosts[host];
     if (!info) continue;
@@ -199,15 +199,15 @@ function uninstall() {
   if (!DRY) { fs.rmSync(TARGET, { recursive: true, force: true }); fs.rmSync(STATE, { force: true }); }
   if (flag('purge')) { act(`purge ${S3_HOME} (backups, deps)`); if (!DRY) fs.rmSync(S3_HOME, { recursive: true, force: true }); }
   else say(`  Backups and tool dependencies kept in ${S3_HOME} (remove with --purge).`);
-  say('✔ Studio³ uninstalled.');
+  say('✔ Maquettekit uninstalled.');
 }
 
 function status() {
   const state = readJson(STATE);
   const info = { installed: !!state, sourceVersion: (() => { try { return sourceVersion(); } catch { return null; } })(), ...(state ?? {}), home: S3_HOME };
   if (flag('json')) { say(JSON.stringify(info, null, 2)); return; }
-  if (!state) { say(`Studio³ is not installed. Source version: ${info.sourceVersion ?? 'unknown'}`); return; }
-  say(`Studio³ v${state.version} installed ${state.installedAt}\n  payload: ${state.target}`);
+  if (!state) { say(`Maquettekit is not installed. Source version: ${info.sourceVersion ?? 'unknown'}`); return; }
+  say(`Maquettekit v${state.version} installed ${state.installedAt}\n  payload: ${state.target}`);
   for (const [h, i] of Object.entries(state.hosts)) say(`  ${h}: ${i.mode}`);
   if (info.sourceVersion && cmpVersion(info.sourceVersion, state.version) > 0) say(`  Update available: ${state.version} → ${info.sourceVersion} (run install again)`);
 }

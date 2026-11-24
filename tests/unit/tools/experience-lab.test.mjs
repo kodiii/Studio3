@@ -6,25 +6,25 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
-import { main, help } from '../../../plugins/studio3/tools/experience-lab/index.mjs';
-import { scoreExperience } from '../../../plugins/studio3/tools/experience-lab/score.mjs';
-import { buildRubric, parseAnswers } from '../../../plugins/studio3/tools/experience-lab/rubric.mjs';
-import { SIGNALS, DIMENSIONS, PROFILES, PROFILE_IDS, GATES, normalise, resolveNormaliser } from '../../../plugins/studio3/tools/experience-lab/catalog.mjs';
-import { navSimilarity, tabOrder, loadingFeedback, blockingTime } from '../../../plugins/studio3/tools/experience-lab/derive.mjs';
-import { launchBrowser } from '../../../plugins/studio3/tools/lib/browser.mjs';
+import { main, help } from '../../../plugins/maquettekit/tools/experience-lab/index.mjs';
+import { scoreExperience } from '../../../plugins/maquettekit/tools/experience-lab/score.mjs';
+import { buildRubric, parseAnswers } from '../../../plugins/maquettekit/tools/experience-lab/rubric.mjs';
+import { SIGNALS, DIMENSIONS, PROFILES, PROFILE_IDS, GATES, normalise, resolveNormaliser } from '../../../plugins/maquettekit/tools/experience-lab/catalog.mjs';
+import { navSimilarity, tabOrder, loadingFeedback, blockingTime } from '../../../plugins/maquettekit/tools/experience-lab/derive.mjs';
+import { launchBrowser } from '../../../plugins/maquettekit/tools/lib/browser.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const FIXTURES = path.resolve(here, '../../fixtures');
 const GOOD = path.join(FIXTURES, 'xl-good');
 const POOR = path.join(FIXTURES, 'xl-poor');
-const CLI = path.resolve(here, '../../../plugins/studio3/tools/studio3.mjs');
+const CLI = path.resolve(here, '../../../plugins/maquettekit/tools/maquettekit.mjs');
 const LONG = 300_000;
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'studio3-xl-'));
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'maquettekit-xl-'));
 afterAll(() => { fs.rmSync(tmp, { recursive: true, force: true }); });
 
 // ---- browser availability: browser tests skip visibly, with the reason ----
 const browserProbe = await (async () => {
-  if (process.env.STUDIO3_DISABLE_PLAYWRIGHT === '1') return { ok: false, reason: 'STUDIO3_DISABLE_PLAYWRIGHT=1' };
+  if (process.env.MAQUETTEKIT_DISABLE_PLAYWRIGHT === '1') return { ok: false, reason: 'MAQUETTEKIT_DISABLE_PLAYWRIGHT=1' };
   try { const b = await launchBrowser(); await b.close(); return { ok: true, reason: '' }; }
   catch (err) { return { ok: false, reason: String(/** @type {any} */ (err).message).split('\n')[0] }; }
 })();
@@ -235,14 +235,14 @@ describe('experience-lab: CLI without a browser', () => {
     await expect(main(['assess', '--url', 'https://example.com/'])).rejects.toThrow(/local server/);
   });
 
-  it('STUDIO3_DISABLE_PLAYWRIGHT=1: assess exits 3 with a clear message; score still works', async () => {
-    process.env.STUDIO3_DISABLE_PLAYWRIGHT = '1';
+  it('MAQUETTEKIT_DISABLE_PLAYWRIGHT=1: assess exits 3 with a clear message; score still works', async () => {
+    process.env.MAQUETTEKIT_DISABLE_PLAYWRIGHT = '1';
     try { await expect(main(['assess', '--serve', GOOD, '--out', path.join(tmp, 'nopw')])).rejects.toMatchObject({ name: 'UserError', exitCode: 3 }); }
-    finally { delete process.env.STUDIO3_DISABLE_PLAYWRIGHT; }
-    const env = { ...process.env, STUDIO3_DISABLE_PLAYWRIGHT: '1' };
+    finally { delete process.env.MAQUETTEKIT_DISABLE_PLAYWRIGHT; }
+    const env = { ...process.env, MAQUETTEKIT_DISABLE_PLAYWRIGHT: '1' };
     const r = spawnSync(process.execPath, [CLI, 'experience', 'assess', '--serve', GOOD, '--out', path.join(tmp, 'nopw')], { env, encoding: 'utf8' });
     expect(r.status).toBe(3);
-    expect(r.stderr).toMatch(/Playwright is disabled \(STUDIO3_DISABLE_PLAYWRIGHT=1\)/);
+    expect(r.stderr).toMatch(/Playwright is disabled \(MAQUETTEKIT_DISABLE_PLAYWRIGHT=1\)/);
     expect(r.stderr).toMatch(/experience score/);
     const ans = path.join(tmp, 'answers-only.json'); fs.writeFileSync(ans, JSON.stringify(allAnswers()));
     const s = spawnSync(process.execPath, [CLI, 'experience', 'score', '--answers', ans, '--profile', 'expressive', '--json'], { env, encoding: 'utf8' });
@@ -260,7 +260,7 @@ describe('experience-lab: measured runs on the xl fixtures', () => {
   const goodOut = path.join(tmp, 'good'); const poorOut = path.join(tmp, 'poor');
   beforeAll(async () => {
     if (!browserProbe.ok) return;
-    const { runAssessment } = await import('../../../plugins/studio3/tools/experience-lab/assess.mjs');
+    const { runAssessment } = await import('../../../plugins/maquettekit/tools/experience-lab/assess.mjs');
     const [g, p] = await Promise.all([runAssessment({ serve: GOOD, out: goodOut, profile: 'expressive' }), runAssessment({ serve: POOR, out: poorOut, profile: 'expressive' })]);
     good = g.result; poor = p.result;
   }, LONG);

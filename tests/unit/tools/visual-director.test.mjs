@@ -5,19 +5,19 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { main, help } from '../../../plugins/studio3/tools/visual-director/index.mjs';
-import { runReview, Collector, discoverStaticRoutes } from '../../../plugins/studio3/tools/visual-director/run.mjs';
-import { runCompare, diffIssues } from '../../../plugins/studio3/tools/visual-director/compare.mjs';
-import { computeLoopStatus, loopStatus, writeSummary, buildFixList } from '../../../plugins/studio3/tools/visual-director/loop.mjs';
-import { inspectProject } from '../../../plugins/studio3/tools/visual-director/inspect.mjs';
-import { categorizeAsset } from '../../../plugins/studio3/tools/visual-director/checks/assets.mjs';
-import { routeSlug, fingerprint, loadPngTools, diffPngBuffers } from '../../../plugins/studio3/tools/visual-director/util.mjs';
-import { CHECKS, GUIDANCE } from '../../../plugins/studio3/tools/visual-director/guidance.mjs';
-import { installPageHelpers } from '../../../plugins/studio3/tools/visual-director/page/helpers.mjs';
-import { instrument3D, pageSnapshot3D } from '../../../plugins/studio3/tools/visual-director/three-d/instrument.mjs';
-import { classifyContextLoss, pageDetectFallback } from '../../../plugins/studio3/tools/visual-director/three-d/diagnostics.mjs';
-import { launchBrowser, newContext } from '../../../plugins/studio3/tools/lib/browser.mjs';
-import { serveStatic } from '../../../plugins/studio3/tools/lib/static-server.mjs';
+import { main, help } from '../../../plugins/maquettekit/tools/visual-director/index.mjs';
+import { runReview, Collector, discoverStaticRoutes } from '../../../plugins/maquettekit/tools/visual-director/run.mjs';
+import { runCompare, diffIssues } from '../../../plugins/maquettekit/tools/visual-director/compare.mjs';
+import { computeLoopStatus, loopStatus, writeSummary, buildFixList } from '../../../plugins/maquettekit/tools/visual-director/loop.mjs';
+import { inspectProject } from '../../../plugins/maquettekit/tools/visual-director/inspect.mjs';
+import { categorizeAsset } from '../../../plugins/maquettekit/tools/visual-director/checks/assets.mjs';
+import { routeSlug, fingerprint, loadPngTools, diffPngBuffers } from '../../../plugins/maquettekit/tools/visual-director/util.mjs';
+import { CHECKS, GUIDANCE } from '../../../plugins/maquettekit/tools/visual-director/guidance.mjs';
+import { installPageHelpers } from '../../../plugins/maquettekit/tools/visual-director/page/helpers.mjs';
+import { instrument3D, pageSnapshot3D } from '../../../plugins/maquettekit/tools/visual-director/three-d/instrument.mjs';
+import { classifyContextLoss, pageDetectFallback } from '../../../plugins/maquettekit/tools/visual-director/three-d/diagnostics.mjs';
+import { launchBrowser, newContext } from '../../../plugins/maquettekit/tools/lib/browser.mjs';
+import { serveStatic } from '../../../plugins/maquettekit/tools/lib/static-server.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const FIXTURES = path.resolve(here, '../../fixtures');
@@ -33,7 +33,7 @@ const browserProbe = await (async () => {
 const bit = browserProbe.ok ? it : (name, ..._rest) => it.skip(`${name} [SKIPPED: Chromium unavailable — ${browserProbe.reason}]`, () => {});
 if (!browserProbe.ok) console.warn(`visual-director browser tests skipped: ${browserProbe.reason}`);
 
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'studio3-vd-'));
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'maquettekit-vd-'));
 afterAll(() => { fs.rmSync(tmp, { recursive: true, force: true }); });
 
 const byCheck = (report, check, pred = () => true) => report.issues.filter((i) => i.check === check && pred(i));
@@ -152,7 +152,7 @@ describe('visual-director: pure logic (no browser)', () => {
     fs.mkdirSync(path.join(dir, 'app/blog/[slug]'), { recursive: true });
     fs.mkdirSync(path.join(dir, 'public/models'), { recursive: true });
     for (const p of ['app/page.tsx', 'app/pricing/page.tsx', 'app/(marketing)/about/page.tsx', 'app/blog/[slug]/page.tsx', 'app/card.module.css', 'public/models/hero.glb']) fs.writeFileSync(path.join(dir, p), '');
-    fs.writeFileSync(path.join(dir, 'studio3.design.json'), '{"name":"x"}');
+    fs.writeFileSync(path.join(dir, 'maquettekit.design.json'), '{"name":"x"}');
     fs.writeFileSync(path.join(dir, 'package.json'), JSON.stringify({
       name: 'fake-scene', scripts: { dev: 'next dev', build: 'next build', start: 'next start' },
       dependencies: { next: '15.1.0', react: '19.0.0', three: '^0.170.0', '@react-three/fiber': '^9.0.0', '@react-three/drei': '^10.0.0', '@react-three/rapier': '^2.0.0', motion: '^12.0.0', gsap: '^3.12.0', 'styled-components': '^6.0.0' },
@@ -178,7 +178,7 @@ describe('visual-director: pure logic (no browser)', () => {
     const { code, stdout } = await cli(['inspect', '--dir', dir, '--out', out]);
     expect(code).toBe(0);
     expect(JSON.parse(stdout).framework.name).toBe('next');
-    expect(JSON.parse(fs.readFileSync(path.join(out, 'inspect.json'), 'utf8')).tool).toBe('studio3-visual-director');
+    expect(JSON.parse(fs.readFileSync(path.join(out, 'inspect.json'), 'utf8')).tool).toBe('maquettekit-visual-director');
   });
 
   it('inspect: plain html site', () => {
@@ -210,7 +210,7 @@ describe('visual-director: browser runs', () => {
   }, LONG);
 
   bit('vd-good: no critical or major issues, report files written', () => {
-    expect(good.tool).toBe('studio3-visual-director');
+    expect(good.tool).toBe('maquettekit-visual-director');
     expect(good.summary.critical, JSON.stringify(good.issues.filter((i) => i.severity === 'critical'), null, 1)).toBe(0);
     expect(good.summary.major, JSON.stringify(good.issues.filter((i) => i.severity === 'major'), null, 1)).toBe(0);
     expect(good.coverage.routes).toEqual(['/', '/scene.html']);
@@ -302,7 +302,7 @@ describe('visual-director: browser runs', () => {
     expect(s.cleanup).toMatchObject({ reinitialisedAfterReturn: true, disposedAtPagehide: 1 });
     expect(s.interaction.desktop.newErrors).toEqual([]);
     expect(Object.keys(s.interaction)).toEqual(expect.arrayContaining(['desktop', 'tablet']));
-    expect(s.fallback.fallback).toMatchObject({ found: true, matchedBy: '[data-studio3-fallback]' });
+    expect(s.fallback.fallback).toMatchObject({ found: true, matchedBy: '[data-maquettekit-fallback]' });
     expect(s.fallback.contextsObtained).toBe(0);
     expect(fs.existsSync(path.join(goodDir, s.fallback.screenshot))).toBe(true);
     expect(good.threeD.budgetsSource).toBe('default');
@@ -437,10 +437,10 @@ describe('visual-director: browser runs', () => {
 
   bit('skipped checks are reported as skipped, never passed (axe disabled, --no-3d, --no-a11y); exit codes', async () => {
     const out = path.join(tmp, 'skips');
-    process.env.STUDIO3_DISABLE_AXE = '1';
+    process.env.MAQUETTEKIT_DISABLE_AXE = '1';
     let res;
     try { res = await cli(['run', '--serve', GOOD, '--routes', '/', '--viewports', 'desktop', '--no-3d', '--out', out, '--label', 'axe off', '--json']); }
-    finally { delete process.env.STUDIO3_DISABLE_AXE; }
+    finally { delete process.env.MAQUETTEKIT_DISABLE_AXE; }
     expect(res.code).toBe(0);
     const printed = JSON.parse(res.stdout);
     expect(printed.summary).toMatchObject({ critical: 0 });
@@ -448,7 +448,7 @@ describe('visual-director: browser runs', () => {
     expect(report.label).toBe('axe off');
     expect(report.pass).toBe(1);
     expect(checkOf(report, 'accessibility-axe')).toMatchObject({ status: 'skipped', ran: false });
-    expect(checkOf(report, 'accessibility-axe').reason).toMatch(/STUDIO3_DISABLE_AXE/);
+    expect(checkOf(report, 'accessibility-axe').reason).toMatch(/MAQUETTEKIT_DISABLE_AXE/);
     expect(report.coverage.checksRun).not.toContain('accessibility-axe');
     expect(report.coverage.checksSkipped.map((c) => c.id)).toEqual(expect.arrayContaining(['accessibility-axe', '3d-fallback', '3d-canvas-init']));
     expect(checkOf(report, '3d-fallback')).toMatchObject({ status: 'skipped', ran: false, reason: 'disabled by --no-3d' });
@@ -508,7 +508,7 @@ describe('visual-director: browser runs', () => {
       const g = await verdict('vd-good', true);
       expect(g.snap.contexts.length).toBeGreaterThan(0);
       expect(g.snap.contexts.every((c) => !c.ok && c.forced)).toBe(true);
-      expect(g.fb).toMatchObject({ found: true, matchedBy: '[data-studio3-fallback]' });
+      expect(g.fb).toMatchObject({ found: true, matchedBy: '[data-maquettekit-fallback]' });
       expect(g.fb.text).toMatch(/3D preview unavailable/);
       expect(g.errors).toEqual([]);
       const b = await verdict('vd-broken', true);

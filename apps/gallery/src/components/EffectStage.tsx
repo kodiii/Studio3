@@ -1,6 +1,6 @@
 'use client';
-import { effects } from '@studio3/library/registry';
-import { resolveParams, type EffectComponent, type ParamValues } from '@studio3/library/types';
+import { effects } from '@maquettekit/library/registry';
+import { resolveParams, type EffectComponent, type ParamValues } from '@maquettekit/library/types';
 import { Component, Suspense, lazy, useEffect, useMemo, useState, type ReactNode } from 'react';
 
 const cache = new Map<string, React.LazyExoticComponent<EffectComponent>>();
@@ -40,15 +40,15 @@ export function EffectStage({ id, overrides, replayKey = 0 }: { id: string; over
       data-effect-stage={id}
       data-stage={stage === 'ink' ? 'ink' : undefined}
       className="relative grid h-full w-full place-items-center overflow-hidden"
-      style={{ containerType: 'inline-size', minHeight: entry.meta.preview?.height ?? 360, background: stage === 'none' ? 'transparent' : 'var(--s3-surface)', color: 'var(--s3-ink)' }}
+      style={{ containerType: 'inline-size', minHeight: entry.meta.preview?.height ?? 360, background: stage === 'none' ? 'transparent' : 'var(--mk-surface)', color: 'var(--mk-ink)' }}
     >
       {mounted ? (
         <StageBoundary key={replayKey}>
-          <Suspense fallback={<span className="s3-label text-muted" aria-live="polite">Loading preview…</span>}>
+          <Suspense fallback={<span className="mk-label text-muted" aria-live="polite">Loading preview…</span>}>
             <Effect key={replayKey} params={params} />
           </Suspense>
         </StageBoundary>
-      ) : <span className="s3-label text-muted" aria-live="polite">Loading preview…</span>}
+      ) : <span className="mk-label text-muted" aria-live="polite">Loading preview…</span>}
     </div>
   );
 }

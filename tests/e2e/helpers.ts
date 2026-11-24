@@ -5,7 +5,7 @@ import type { Page } from '@playwright/test';
 
 export interface CatalogEffect { id: string; name: string; technology: string[]; category: string; interaction: string[]; preview?: { scroll?: boolean } }
 export interface CatalogDemo { id: string; specialty: string; name: string; has3d: boolean }
-export const catalog = JSON.parse(readFileSync(path.resolve('plugins/studio3/library/catalog.json'), 'utf8')) as { effects: CatalogEffect[]; demos: CatalogDemo[] };
+export const catalog = JSON.parse(readFileSync(path.resolve('plugins/maquettekit/library/catalog.json'), 'utf8')) as { effects: CatalogEffect[]; demos: CatalogDemo[] };
 export const isWebGL = (t: string[]) => t.some((x) => ['three', 'r3f', 'glsl', 'drei', 'rapier'].includes(x));
 
 /** Messages that are environment noise, not application errors. */
@@ -44,7 +44,7 @@ export async function axe(page: Page, include = 'body') {
 }
 
 /** Read the StudioCanvas diagnostics hook. */
-export const diagnostics = (page: Page) => page.evaluate(() => (window as unknown as { __STUDIO3_3D__?: Record<string, unknown> }).__STUDIO3_3D__ ?? null);
+export const diagnostics = (page: Page) => page.evaluate(() => (window as unknown as { __MAQUETTEKIT_3D__?: Record<string, unknown> }).__MAQUETTEKIT_3D__ ?? null);
 
 /** Init script that makes every WebGL/WebGPU context request fail (simulates an unsupported device). */
 export const NO_WEBGL = () => {

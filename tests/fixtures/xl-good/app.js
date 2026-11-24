@@ -40,7 +40,7 @@
   if (!canvas) return;
   var gl = null;
   try { gl = canvas.getContext('webgl'); } catch (err) { gl = null; }
-  if (!gl) { canvas.hidden = true; document.querySelector('[data-studio3-fallback]').hidden = false; return; }
+  if (!gl) { canvas.hidden = true; document.querySelector('[data-maquettekit-fallback]').hidden = false; return; }
   function sh(t, s) { var x = gl.createShader(t); gl.shaderSource(x, s); gl.compileShader(x); return x; }
   var pr = gl.createProgram();
   gl.attachShader(pr, sh(gl.VERTEX_SHADER, 'attribute vec2 p;attribute vec3 c;uniform float a;varying vec3 v;void main(){float s=sin(a),k=cos(a);gl_Position=vec4(p.x*k-p.y*s,p.x*s+p.y*k,0.,1.);v=c;}'));

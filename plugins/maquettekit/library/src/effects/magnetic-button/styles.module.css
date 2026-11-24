@@ -1,0 +1,172 @@
+.root {
+  box-sizing: border-box;
+  align-self: stretch;
+  justify-self: stretch;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  padding: clamp(1.75rem, 6cqi, 3.5rem) clamp(1rem, 5cqi, 3rem);
+  overflow: clip;
+  isolation: isolate;
+  color: var(--mk-ink, #11110f);
+  font-family: var(--mk-font-text, ui-sans-serif, system-ui, sans-serif);
+}
+.inner {
+  width: min(100%, 38rem);
+  display: grid;
+  gap: clamp(1rem, 3cqi, 1.5rem);
+}
+
+.kicker {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--mk-line, #11110f24);
+  font-family: var(--mk-font-mono, ui-monospace, monospace);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  color: var(--mk-ink-muted, #5c5a52);
+}
+.title {
+  margin: 0;
+  max-width: 13ch;
+  font-family: var(--mk-font-display, ui-sans-serif, system-ui, sans-serif);
+  font-size: clamp(2.125rem, 8cqi, 3.75rem);
+  font-weight: 700;
+  line-height: 0.95;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+/* ── Actions ──────────────────────────────────────────────────────────── */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.25rem 2rem;
+  margin-top: clamp(0.5rem, 2cqi, 1rem);
+}
+.contact { display: inline-flex; align-items: center; gap: 0.875rem; min-width: 0; }
+.email {
+  font-family: var(--mk-font-mono, ui-monospace, monospace);
+  font-size: 0.8125rem;
+  color: var(--mk-ink-muted, #5c5a52);
+  overflow-wrap: anywhere;
+}
+
+/* The anchor never moves: it is what the loop measures. */
+.anchor { position: relative; display: inline-grid; flex: none; }
+.field {
+  position: absolute;
+  inset: calc(var(--field, 72px) * -1);
+  border: 1px dashed var(--mk-line-strong, #11110f);
+  border-radius: 999px;
+  z-index: -1;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--mk-duration-base, 240ms) var(--mk-ease-standard, ease);
+}
+.root[data-field] .field { opacity: 0.22; }
+.root[data-field] .anchor[data-engaged] .field,
+.root[data-field] .anchor:has(:focus-visible) .field { opacity: 0.75; }
+
+.button {
+  position: relative;
+  display: inline-grid;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.button:focus-visible { outline: 2px solid var(--mk-focus, #1d4ed8); outline-offset: 4px; }
+.root[data-magnet='on'] .button,
+.root[data-magnet='on'] .label { will-change: transform; }
+
+.face {
+  display: inline-flex;
+  align-items: center;
+  min-height: 3.5rem;
+  padding: 0.5rem 0.5rem 0.5rem 1.5rem;
+  border-radius: inherit;
+  background: var(--mk-ink, #11110f);
+  color: var(--mk-surface, #fbf9f4);
+  transition:
+    transform var(--mk-duration-instant, 90ms) var(--mk-ease-standard, ease),
+    background-color var(--mk-duration-base, 240ms) var(--mk-ease-standard, ease),
+    color var(--mk-duration-base, 240ms) var(--mk-ease-standard, ease);
+}
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.875rem;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+.icon {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: var(--mk-signal, #bf2f09);
+  color: var(--mk-on-signal, #ffffff);
+}
+.face svg { display: block; transition: transform var(--mk-duration-moderate, 360ms) var(--mk-ease-emphasized, ease); }
+
+/* Round, outlined icon button */
+.button[data-kind='round'] .face {
+  justify-content: center;
+  width: 4rem;
+  height: 4rem;
+  min-height: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--mk-ink, #11110f);
+  box-shadow: inset 0 0 0 1px var(--mk-line-strong, #11110f);
+}
+
+/* Engaged state: hover for pointers, the same look for keyboard focus. */
+.button:focus-visible .icon svg { transform: rotate(45deg); }
+.button[data-kind='pill']:focus-visible .face { background: color-mix(in oklab, var(--mk-ink, #11110f) 84%, var(--mk-signal, #bf2f09)); }
+.button[data-kind='round']:focus-visible .face { background: var(--mk-ink, #11110f); color: var(--mk-surface, #fbf9f4); }
+.button[data-kind='round']:focus-visible svg { transform: translateY(-1px) scale(1.06); }
+@media (hover: hover) {
+  .button:hover .icon svg { transform: rotate(45deg); }
+  .button[data-kind='pill']:hover .face { background: color-mix(in oklab, var(--mk-ink, #11110f) 84%, var(--mk-signal, #bf2f09)); }
+  .button[data-kind='round']:hover .face { background: var(--mk-ink, #11110f); color: var(--mk-surface, #fbf9f4); }
+  .button[data-kind='round']:hover svg { transform: translateY(-1px) scale(1.06); }
+}
+.root:not([data-reduced]) .button:active .face { transform: scale(0.96); }
+.root[data-reduced] .face,
+.root[data-reduced] .face svg,
+.root[data-reduced] .field { transition: none; }
+
+.hint {
+  margin: 0;
+  max-width: 54ch;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--mk-ink-muted, #5c5a52);
+  text-wrap: pretty;
+}
+.status {
+  margin: 0;
+  min-height: 1.5em;
+  font-family: var(--mk-font-mono, ui-monospace, monospace);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--mk-ink, #11110f);
+}

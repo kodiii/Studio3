@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // @ts-check
 /**
- * Generates Studio³'s original sample models (no third-party assets):
+ * Generates Maquettekit's original sample models (no third-party assets):
  *
  *   assets/models/pulse-speaker.source.glb   "Pulse" — a fictional portable speaker,
  *                                            deliberately heavy to demonstrate the optimizer
@@ -383,8 +383,8 @@ const triCount = (g) => (g.indices ? g.indices.length : g.positions.length / 3) 
 async function buildPulseSpeaker() {
   const rnd = mulberry32(SEED);
   const doc = new Document();
-  doc.getRoot().getAsset().generator = 'Studio³ sample model generator (scripts/generate-sample-models.mjs)';
-  doc.getRoot().getAsset().copyright = 'Studio³ contributors — original procedural asset, MIT License';
+  doc.getRoot().getAsset().generator = 'Maquettekit sample model generator (scripts/generate-sample-models.mjs)';
+  doc.getRoot().getAsset().copyright = 'Maquettekit contributors — original procedural asset, MIT License';
   const buffer = doc.createBuffer();
   const TEX = 2048;
 
@@ -413,7 +413,7 @@ async function buildPulseSpeaker() {
   /** @type {Record<string, number>} */
   const stats = {};
   const scene = doc.createScene('PulseSpeaker');
-  const root = doc.createNode('PulseSpeaker').setExtras({ label: 'Pulse', description: 'Pulse — a fictional compact portable speaker (original Studio³ sample asset).', units: 'metres', up: '+Y', front: '+Z' });
+  const root = doc.createNode('PulseSpeaker').setExtras({ label: 'Pulse', description: 'Pulse — a fictional compact portable speaker (original Maquettekit sample asset).', units: 'metres', up: '+Y', front: '+Z' });
   scene.addChild(root);
   doc.getRoot().setDefaultScene(scene);
 
@@ -591,8 +591,8 @@ async function buildPulseSpeaker() {
 
 function buildOrbitToken() {
   const doc = new Document();
-  doc.getRoot().getAsset().generator = 'Studio³ sample model generator (scripts/generate-sample-models.mjs)';
-  doc.getRoot().getAsset().copyright = 'Studio³ contributors — original procedural asset, MIT License';
+  doc.getRoot().getAsset().generator = 'Maquettekit sample model generator (scripts/generate-sample-models.mjs)';
+  doc.getRoot().getAsset().copyright = 'Maquettekit contributors — original procedural asset, MIT License';
   const buffer = doc.createBuffer();
   const R = 0.028; const TUBE = 0.0035;
   /** @type {Geo[]} */

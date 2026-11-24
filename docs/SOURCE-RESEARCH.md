@@ -1,7 +1,7 @@
-# Source research — Studio³ v4.0
+# Source research — Maquettekit v4.0
 
-This document records what was actually inspected before Studio³ v4.0 was built: which projects and specifications,
-at which revision, under which licence, what they really contain, and what Studio³ does with them. Research was done
+This document records what was actually inspected before Maquettekit v4.0 was built: which projects and specifications,
+at which revision, under which licence, what they really contain, and what Maquettekit does with them. Research was done
 on 2026-11-23.
 
 ## Method and access
@@ -11,9 +11,9 @@ on 2026-11-23.
 | GitHub repositories (skills prior art, react-three-rapier, openai/codex) | Shallow `git clone` at the commit listed, files read; nothing executed | Treated as untrusted data. The GitHub web UI and API were not reachable from the build environment; git transport was. |
 | Claude Code documentation | Fetched as Markdown from `code.claude.com/docs/en/*.md` (plugins/create, plugins/manifest-reference, plugin-marketplaces, skills, plugins-reference, discover-plugins) | Manifests validated with the Claude Code CLI 2.1.330 (`claude plugin validate`) and a real install/uninstall in an isolated HOME (see `tests/plugin/install.test.mjs`). |
 | OpenAI / Codex plugin documentation | `developers.openai.com` was **blocked** by the environment's network policy | The Codex CLI source (`openai/codex` @ `a1604a8c`, 2026-11-23) was used as ground truth instead: plugin loader, manifest parser, marketplace parser, CLI and their tests. Findings below cite files. |
-| Library websites (threejs.org, r3f/drei docs, motion.dev, gsap.com, d3js.org, gltf-transform.dev, playwright.dev, MDN, W3C, khronos.org, spline.design, blender.org, lottiefiles.com) | **Unreachable** from the build environment | Verified instead against the published npm packages (version, licence field, shipped sources and typings) and by running them: every library listed as "used" below is exercised by Studio³ code and tests. Where a fact could only come from the website, this document says so. |
+| Library websites (threejs.org, r3f/drei docs, motion.dev, gsap.com, d3js.org, gltf-transform.dev, playwright.dev, MDN, W3C, khronos.org, spline.design, blender.org, lottiefiles.com) | **Unreachable** from the build environment | Verified instead against the published npm packages (version, licence field, shipped sources and typings) and by running them: every library listed as "used" below is exercised by Maquettekit code and tests. Where a fact could only come from the website, this document says so. |
 
-No source code or prose was copied from the prior-art projects. Ideas are re-expressed in Studio³'s own words and
+No source code or prose was copied from the prior-art projects. Ideas are re-expressed in Maquettekit's own words and
 implementations; where a project's approach influenced a design decision, it is named here.
 
 
@@ -36,7 +36,7 @@ Inspected 2026-11-23 from local clones (read only; nothing executed). All five c
   - Per-file byte budgets for everything the skill loads (`scripts/token-budget.json`), enforced in the build.
   - A craft-floor file read immediately before any UI edit, never during planning.
   - Deterministic detector with inline ignores, stale-waiver reporting and exit codes distinguishing "findings" from "could not scan".
-- **Applicable Studio³ modules:** Experience Lab (scoring model), Visual Director (hook + rendered-page checks), Product Studio, Motion Lab (`animate`/`overdrive`), Design Intelligence Engine (`document`/`extract`).
+- **Applicable Maquettekit modules:** Experience Lab (scoring model), Visual Director (hook + rendered-page checks), Product Studio, Motion Lab (`animate`/`overdrive`), Design Intelligence Engine (`document`/`extract`).
 - **Technical compatibility:** Real Claude Code plugin + marketplace (`.claude-plugin/`, `plugin/`), Codex hooks (`.codex/hooks.json`), plus ~20 other host folders generated from one source.
 - **Maintenance considerations:** Large (4,943 files, 104 MB tree), version 4.10.0 / engine 0.1.27. Depends on a downloaded native binary. README states live mode can launch `codex`/`claude` with approvals and sandboxing off, and that a design-direction catalog is fetched from impeccable.style with opt-out telemetry. A `cli-pro-release-keys.json` exists; any paid tier was not investigated.
 - **Decision:** **Reference / independently implement.** Apache-2.0 would permit reuse with NOTICE, but the value is in ideas, and the binary, network and sandbox-bypass behaviours are unsuitable to embed.
@@ -54,7 +54,7 @@ Inspected 2026-11-23 from local clones (read only; nothing executed). All five c
   - Style rows carry "Do Not Use For", performance, accessibility, and an `rtl_level` column filterable at search time.
   - `data-provenance.json`: per-record sources, verification date and review SLA, with notes where sources disagree.
   - CI data validation and relevance evaluation scripts (`validate-csv.py`, `evaluate-relevance.py`).
-- **Applicable Studio³ modules:** Design Intelligence Engine (closest analogue to `studio3.design.json`), Data Studio (chart table), Social Studio (banner sizes), Component & Effect Library.
+- **Applicable Maquettekit modules:** Design Intelligence Engine (closest analogue to `maquettekit.design.json`), Data Studio (chart table), Social Studio (banner sizes), Component & Effect Library.
 - **Technical compatibility:** Claude Code plugin + marketplace; plain SKILL.md; Codex and others via installer templates. Requires Python 3.
 - **Maintenance considerations:** v2.15.0, HEAD dated the inspection day; 745 files, 25 MB. Data is duplicated across `src/`, `cli/assets/` and `.claude/skills/` (a sync workflow guards it). Marketing counts differ from active rows ("80 searchable styles (51 active)"). Data quality of the CSVs was not audited.
 - **Decision:** **Independently implement** the search-and-generate architecture; **reference** as prior art. MIT permits reuse, but mixed sub-licenses and third-party-derived data make copying data unwise.
@@ -74,7 +74,7 @@ Inspected 2026-11-23 from local clones (read only; nothing executed). All five c
   - Typographic specifics: line length under 80 characters, more line-height for serif body.
   - A UX-writing section: name things as users understand them, consistent action names through a flow, errors that direct.
   - Screenshot self-critique when the environment supports it.
-- **Applicable Studio³ modules:** Product Studio, Cinematic Studio (hero/motion restraint), Design Intelligence Engine (plan-then-review step), Experience Lab (generic-default check).
+- **Applicable Maquettekit modules:** Product Studio, Cinematic Studio (hero/motion restraint), Design Intelligence Engine (plan-then-review step), Experience Lab (generic-default check).
 - **Technical compatibility:** Plain SKILL.md; installable through the repo's Claude Code marketplace manifest. Host-neutral prose, so usable anywhere a SKILL.md is read.
 - **Maintenance considerations:** Tiny and stable in shape; text content changes over time, so pin a commit when citing. No executable surface.
 - **Decision:** **Reference.** Apache-2.0 would allow integration with attribution, but it is short prose we should not copy; adopt the plan-review-build loop in our own words.
@@ -92,7 +92,7 @@ Inspected 2026-11-23 from local clones (read only; nothing executed). All five c
   - Copy lint with per-device budgets for model-writing tells, running without a browser.
   - "Dealing" palettes by trade while avoiding recently used ones, to stop sameness across builds.
   - Kit self-test: its own demo pages must pass its checker (`tests/kit-clean.mjs`).
-- **Applicable Studio³ modules:** Visual Director (closest analogue), Motion Lab and 3D Studio (effect gating, fallbacks), Cinematic Studio, Component & Effect Library, Experience Lab.
+- **Applicable Maquettekit modules:** Visual Director (closest analogue), Motion Lab and 3D Studio (effect gating, fallbacks), Cinematic Studio, Component & Effect Library, Experience Lab.
 - **Technical compatibility:** Claude Code plugin, Codex plugin (`.codex-plugin/plugin.json`), `.agents` marketplace, plain SKILL.md. Needs Node 22+ and a Chromium browser.
 - **Maintenance considerations:** v2.5.1; 2.5.0 was a full rewrite two days earlier, so churn is high. 41 MB tree, ~36 MB inside the skill. Strongly opinionated toward one site style; live network fetches (Commons, jsDelivr) in photo/icon scripts. README carries sponsor and product promotion.
 - **Decision:** **Independently implement** the gate and rendered-check concepts with Playwright; **reference** only. MIT code is reusable, but the bundled photos and brand icons are not ours to redistribute.
@@ -109,15 +109,15 @@ Inspected 2026-11-23 from local clones (read only; nothing executed). All five c
   - Supply-chain hygiene for guidance text: bundle the snapshot, record source commit and SHA-256, and instruct "do not fetch rules from the network".
   - Evidence-gated investigation in `vercel-optimize`: collect signals first, inspect source only where a deterministic gate points; citations and claims are checked by scripts.
   - Frontmatter `argument-hint` for file/pattern targets.
-- **Applicable Studio³ modules:** Experience Lab and Visual Director (rule format, findings format), Motion Lab (view transitions), Product Studio and Data Studio (React performance rules), Component & Effect Library (composition patterns).
+- **Applicable Maquettekit modules:** Experience Lab and Visual Director (rule format, findings format), Motion Lab (view transitions), Product Studio and Data Studio (React performance rules), Component & Effect Library (composition patterns).
 - **Technical compatibility:** Plain SKILL.md skills; no Claude Code plugin manifest and no Codex manifest in the repo. Installation is via the external `skills` CLI / skills.sh (not verified here).
 - **Maintenance considerations:** Small (445 files, 8.5 MB), CI for the rule build and a discovery index. Zip copies can drift from folders. Vercel-specific skills are irrelevant to us. Skill versions are mostly 1.0.0.
 - **Decision:** **Reference.** The MIT statement is informal (README line and some frontmatter, no license text or copyright holder), so treat it as prior art and write our own rules.
 
-## Cross-cutting notes for Studio³
+## Cross-cutting notes for Maquettekit
 
 - Every repo with a quality loop checks the **rendered page**, not the source: Impeccable (`shot`, URL detector), Taste Skill (multi-width browser checker), Anthropic (screenshots when available). Visual Director should be the default finish step, with a bounded number of rounds and recorded waivers.
-- Two repos persist design intent to disk (`PRODUCT.md`/`DESIGN.md`; `MASTER.md` + page overrides + DTCG tokens). `studio3.design.json` should carry both product context and tokens, with page-level overrides and no silent overwrite.
+- Two repos persist design intent to disk (`PRODUCT.md`/`DESIGN.md`; `MASTER.md` + page overrides + DTCG tokens). `maquettekit.design.json` should carry both product context and tokens, with page-level overrides and no silent overwrite.
 - Anti-pattern lists age quickly and all three opinionated skills state that an explicit brief overrides them. Keep ours as data with dates, not prose.
 - Progressive disclosure is universal: short SKILL.md, per-command or per-topic reference files, loaded only when needed; Impeccable additionally enforces byte budgets.
 - License summary: Apache-2.0 (Impeccable, Anthropic skill), MIT (UI UX Pro Max, Taste Skill), informal MIT without a license file (Vercel). None blocks referencing. Bundled third-party media, fonts, icon sets and datasets in UI UX Pro Max and Taste Skill carry their own terms and must not be copied.
@@ -141,10 +141,10 @@ Inspected 2026-11-23 from local shallow clones (each clone holds one commit, so 
   - Reduced motion: `gsap.matchMedia()` (3.11+) with a conditions object (`isDesktop`, `reduceMotion`); setups auto-revert when a query stops matching; do not nest `gsap.context()` inside it, use `mm.revert()`; `gsap.matchMediaRefresh()` to re-run after an in-app motion toggle.
   - ScrollTrigger: put the trigger on the timeline or a top-level tween, never on a child tween; `scrub` and `toggleActions` are mutually exclusive (scrub wins); do not animate the pinned element, animate children; `ease: "none"` is mandatory for `containerAnimation` horizontal scroll, and pin/snap are unavailable on such triggers; create triggers in page order or set `refreshPriority`; call `ScrollTrigger.refresh()` after fonts/images/dynamic content (resize is auto-handled, debounced 200ms); `scrollerProxy` plus `ScrollTrigger.update` for third-party scrollers; `ScrollTrigger.batch()` for reveal groups; `clamp()` on start/end (3.12+).
   - Performance: transform aliases and `autoAlpha`; `gsap.quickTo()` for pointer followers; `will-change` only on elements that really animate; no blanket `force3D`.
-- **Applicable Studio³ modules:** Motion Lab (GSAP+ScrollTrigger recipes, orchestration/cleanup, scroll sync, reduced motion).
-- **Technical compatibility:** Agent Skills format; Claude Code and Codex are named targets. Could be installed next to Studio³ without conflict.
+- **Applicable Maquettekit modules:** Motion Lab (GSAP+ScrollTrigger recipes, orchestration/cleanup, scroll sync, reduced motion).
+- **Technical compatibility:** Agent Skills format; Claude Code and Codex are named targets. Could be installed next to Maquettekit without conflict.
 - **Maintenance considerations:** Vendor-official. Minor errors in the text (a snippet uses `Max.max`, some repeated "Do Not" bullets), so verify snippets rather than trust them.
-- **Decision:** **Reference** (and recommend as an optional companion install). MIT permits reuse, but Studio³ writes its own rules; this is the authoritative source to validate our GSAP guidance against.
+- **Decision:** **Reference** (and recommend as an optional companion install). MIT permits reuse, but Maquettekit writes its own rules; this is the authoritative source to validate our GSAP guidance against.
 
 ## Web Animation Skills (iart-ai/web-animation-skills)
 
@@ -163,7 +163,7 @@ Inspected 2026-11-23 from local shallow clones (each clone holds one commit, so 
   - Page transitions: keyed `AnimatePresence` + frozen router context in `template.tsx`, or View Transitions API with `view-transition-name`.
   - Lottie: `.json` vs `.lottie`, segments/frames, scroll-driven `setFrame`, dotLottie themes.
   - Verification: single master timeline plus `?t=N` seek harness and `?reduce=1` flag, screenshot start/mid/end in both motion states.
-- **Applicable Studio³ modules:** Motion Lab (reduced motion, scroll sync, shared-element transitions, cleanup, SVG recipes); any visual-QA/verification module (seek harness idea).
+- **Applicable Maquettekit modules:** Motion Lab (reduced motion, scroll sync, shared-element transitions, cleanup, SVG recipes); any visual-QA/verification module (seek harness idea).
 - **Technical compatibility:** Agent Skills format, Claude Code plugin manifest; "Codex and 40+ agents" claimed via the skills CLI. Uses the `framer-motion` import name in places alongside `motion/react`.
 - **Maintenance considerations:** Version 0.1.0, vendor-marketing driven. The text says GSAP plugins are free "as of GSAP 3.12+"/"3.12"; the GreenSock repo gives no version number, so treat that figure as unverified. One accessible-animation sample drives Lenis from its own rAF loop, which contradicts the gsap-web guidance.
 - **Decision:** **Reference / independently implement.** MIT allows adoption, but the tiering model and seek harness are ideas we re-express in our own words and code.
@@ -175,10 +175,10 @@ Inspected 2026-11-23 from local shallow clones (each clone holds one commit, so 
 - **License:** MIT ("Copyright (c) 2026 iart.ai").
 - **Verified functionality:** **Contents differ from the name: this repo contains no skills.** 10 tracked files: README, LICENSE, two GIFs, `showcase.html`, `tools/showcase-to-gif.mjs`, and `tools/verify/` (the same three shell scripts and README as in web-animation-skills). The README is an index of "56 skills" across 19 separate pack repos (video, data animation, WebGL, Manim, kinetic typography, etc.) and an advert for the paid iart.ai agent and its remote MCP server (`app.iart.ai/api/mcp`, API key or OAuth, paid plans). The 56/19 counts and the README's cost/quality claims were not verified; only web-animation-skills among the packs was inspected.
 - **Useful techniques:** Only the "deliver-and-verify loop" concept: freeze a frame, tile a start/mid/end contact sheet, assert the encoded MP4's resolution/codec/fps/duration. No motion-engineering guidance of its own.
-- **Applicable Studio³ modules:** Marginal; verification/QA tooling only. Pointer to `webgl-animation-skills` and `data-animation-skills`, which may matter for Three.js/D3 work but were not cloned.
+- **Applicable Maquettekit modules:** Marginal; verification/QA tooling only. Pointer to `webgl-animation-skills` and `data-animation-skills`, which may matter for Three.js/D3 work but were not cloned.
 - **Technical compatibility:** Nothing installable as a skill from this repo. Scripts need Playwright Chromium and ffmpeg/ffprobe.
 - **Maintenance considerations:** Active marketing hub; content is likely to track the commercial product.
-- **Decision:** **Reference only** (as an index). Nothing to integrate. Do not wire the hosted MCP into Studio³.
+- **Decision:** **Reference only** (as an index). Nothing to integrate. Do not wire the hosted MCP into Maquettekit.
 
 ## Motion UI (Rkj0123/motion-ui-skill)
 
@@ -192,7 +192,7 @@ Inspected 2026-11-23 from local shallow clones (each clone holds one commit, so 
   - Layout animation rules: `layout`/`layoutId` instead of animating width/height, `layout="position"` or child `layout` to stop child distortion.
   - `AnimatePresence` mode selection (`sync`/`wait`/`popLayout`); `useAnimate` async sequencing; drag dismissal by velocity or offset thresholds.
   - Hooks that gate hover transforms to hover-capable pointers and fall back for reduced motion; skeleton-to-content swap with identical footprint to avoid layout shift.
-- **Applicable Studio³ modules:** Motion Lab (Motion recipes, spring tokens, shared-element/layout orchestration, interruption); UI component and design-system modules.
+- **Applicable Maquettekit modules:** Motion Lab (Motion recipes, spring tokens, shared-element/layout orchestration, interruption); UI component and design-system modules.
 - **Technical compatibility:** React + Tailwind + `@/` alias assumed; not framework-neutral. Loading an 849-line SKILL.md plus a 14,775-line catalogue is heavy on context.
 - **Maintenance considerations and red flags:**
   - SKILL.md step 0 tells the agent to run `node bin/updater.mjs --silent` on every activation; the updater fetches the upstream version and can `git pull --ff-only` or download and unpack a tarball from GitHub. That is unattended remote code/content replacement.
@@ -214,8 +214,8 @@ Inspected 2026-11-23 from local shallow clones (each clone holds one commit, so 
   - Easing direction rule (decelerate in, accelerate out, ease-in-out on-screen, sine for loops) and a table of Material 3 / Apple curves.
   - Stagger budgets (20-40ms micro, 50-100ms standard, total under 500ms); "1/3 rules" for travel distance and simultaneous movers; weight classes (heavy/medium/light) mapping to duration and overshoot.
   - Context scaling: platform duration multipliers, reduced-motion substitution table, vestibular trigger list, performance tiers by property, dark-mode intensity reduction.
-- **Applicable Studio³ modules:** Motion Lab (easing/duration/stagger token system, choreography defaults); design-direction modules (motion personality tied to brand).
-- **Technical compatibility:** Pure Markdown, loads anywhere; no conflict with Studio³.
+- **Applicable Maquettekit modules:** Motion Lab (easing/duration/stagger token system, choreography defaults); design-direction modules (motion personality tied to brand).
+- **Technical compatibility:** Pure Markdown, loads anywhere; no conflict with Maquettekit.
 - **Maintenance considerations:** Numbers are heuristics without cited sources. Some rules ("always three motion layers", "never opacity-only") conflict with restrained product UI and with reduced-motion practice, and its performance table groups `filter`/`box-shadow` loosely. The MCP upsell is a commercial hook.
 - **Decision:** **Reference.** Derive our own token tables; do not reproduce their tables or wording, and do not depend on Creator MCP.
 
@@ -230,7 +230,7 @@ Inspected 2026-11-23 from local shallow clones (each clone holds one commit, so 
   - Fixed output contract: problem solved in product language, copy-paste code, parameter table with "what changes if you alter it", reduced-motion fallback; at most 3 effects per recommendation.
   - Timing guardrail: ordinary interactions 200-500ms.
   - Data-viz motion ideas (stroke-dashoffset donuts/gauges, clip-path sparkline reveal with line and area in sync) relevant to SVG/D3 recipes.
-- **Applicable Studio³ modules:** Motion Lab (recipe catalogue structure, recipe selection/routing, per-recipe parameter tables); data-visualisation motion.
+- **Applicable Maquettekit modules:** Motion Lab (recipe catalogue structure, recipe selection/routing, per-recipe parameter tables); data-visualisation motion.
 - **Technical compatibility:** Format-compatible; language is a barrier for English-first use.
 - **Maintenance considerations:** Last commit five months before inspection. Entries are terse hints, not production code, and several animate layout properties (`height`, `left`/`width`, `padding`, `font-size`), which conflicts with compositor-only guidance. Reduced motion is required by the output format but absent from 12 of 13 ref files.
 - **Decision:** **Independently implement; reference the catalogue/routing structure.** Our 40+ recipes need full implementations, cleanup and reduced-motion variants that this repo does not provide.
@@ -239,71 +239,71 @@ Inspected 2026-11-23 from local shallow clones (each clone holds one commit, so 
 
 What the gsap-skills repo itself states (README, `skills/llms.txt`, `gsap-plugins/SKILL.md`): "GSAP is 100% free — including every plugin"; following Webflow's acquisition, formerly Club GSAP plugins (SplitText, MorphSVG, etc.) are "free for everyone, including commercial use"; Club GSAP "is no longer a paid tier"; no plugin needs "a membership, license key, or auth token"; everything installs from the public `gsap` npm package; do not generate `.npmrc` auth tokens or point at the private `npm.greensock.com` registry. It links to gsap.com/blog/webflow-GSAP.
 
-What it does not state: the repo never names or reproduces the GSAP library license, gives no date or version for the change, and does not mention "standard no-charge license". Its MIT license applies to the skills repo, not to GSAP. "Free" here means no charge; nothing in the repo says GSAP is MIT or otherwise open source. The actual licence terms (including any restrictions on use in particular kinds of products) could not be verified from these clones and should be read at gsap.com before Studio³ ships anything that bundles or redistributes GSAP. Emitting recipes that import `gsap` from npm in a user's project does not redistribute it, but the user's project is then subject to GSAP's terms, so Motion Lab should say so and keep CSS/WAAPI/Motion alternatives for each GSAP recipe.
+What it does not state: the repo never names or reproduces the GSAP library license, gives no date or version for the change, and does not mention "standard no-charge license". Its MIT license applies to the skills repo, not to GSAP. "Free" here means no charge; nothing in the repo says GSAP is MIT or otherwise open source. The actual licence terms (including any restrictions on use in particular kinds of products) could not be verified from these clones and should be read at gsap.com before Maquettekit ships anything that bundles or redistributes GSAP. Emitting recipes that import `gsap` from npm in a user's project does not redistribute it, but the user's project is then subject to GSAP's terms, so Motion Lab should say so and keep CSS/WAAPI/Motion alternatives for each GSAP recipe.
 
 # C. Core animation technologies
 
-| Project | URL | Version verified | Licence | Studio³ use | Decision |
+| Project | URL | Version verified | Licence | Maquettekit use | Decision |
 | - | - | - | - | - | - |
 | Motion (`motion`, `motion/react`) | https://motion.dev/ | 14.14.0 | MIT | React state, gesture and layout animation recipes (`morphing-nav-pill`, `expanding-card-detail`, `swipe-card-stack`, `drag-reorder-list`, `pull-to-reveal-sheet` …) | Integrate as an optional dependency per recipe |
 | GSAP (`gsap`, `@gsap/react`) | https://gsap.com/docs/v3/ | 3.15.1 / 2.1.2 | GreenSock **Standard "no charge" licence** (package field: `Standard 'no charge' license: https://gsap.com/standard-license`) — free, including formerly paid plugins, but not an OSI licence | ScrollTrigger choreography recipes (`scroll-pin-chapters`, `horizontal-scroll-gallery`), cinematic demos | Integrate per recipe; licence surfaced in docs and NOTICE; projects must accept GreenSock's terms |
-| Lottie | https://lottiefiles.com/ | `lottie-web` 5.13.0, `@lottiefiles/dotlottie-web` 0.83.2 (npm metadata only) | MIT | Not bundled: Studio³ recipes are code-native. Skills tell agents to use the dotLottie player when designers hand over Lottie files | Reference |
+| Lottie | https://lottiefiles.com/ | `lottie-web` 5.13.0, `@lottiefiles/dotlottie-web` 0.83.2 (npm metadata only) | MIT | Not bundled: Maquettekit recipes are code-native. Skills tell agents to use the dotLottie player when designers hand over Lottie files | Reference |
 | D3 | https://d3js.org/ | 7.9.2 | ISC | Scales, shapes, interpolators and brush maths for chart recipes and data demos; React owns the DOM | Integrate per recipe |
 | Web Animations API, View Transitions, CSS scroll-driven animations | MDN | browser APIs | — | `createSequence`, `flip`, `viewTransition` in `library/src/motion/orchestrator.ts`; `scroll-progress-rail` (with feature detection and JS fallback) | Implement natively |
 
 Technology ladder adopted for every recipe and skill: CSS → Web Animations API → Motion → GSAP → three.js/R3F
-(`plugins/studio3/shared/technology-selection.md`).
+(`plugins/maquettekit/shared/technology-selection.md`).
 
 # D. 3D, spatial and graphics technologies
 
-| Project | URL | Version verified | Licence | Verified functionality (by running it in Studio³) | Decision |
+| Project | URL | Version verified | Licence | Verified functionality (by running it in Maquettekit) | Decision |
 | - | - | - | - | - | - |
 | three.js | https://threejs.org/ | 0.187.0 | MIT | WebGLRenderer, BufferGeometry/InstancedMesh/Points, ShaderMaterial (GLSL), AnimationMixer, `GLTFLoader` + `MeshoptDecoder` (`three/examples/jsm`, also exported as `three/addons/*`), PMREM/RoomEnvironment. The package also ships `three/webgpu` and `three/tsl` builds | Integrate (kit + recipes) |
 | Three.js examples (`three/examples/jsm`) | https://threejs.org/examples/ | 0.187.0 | MIT | Loaders and decoders above; `libs/draco` and `libs/basis` transcoders present for projects that need them | Integrate (imports only) |
 | React Three Fiber | https://r3f.docs.pmnd.rs/ | 9.8.2 (peer: React ≥19 <19.4, three ≥0.156) | MIT | `<Canvas>` with `frameloop` demand/always/never, `invalidate`, `useFrame`, `addAfterEffect`, renderer `info` — wrapped by `StudioCanvas` | Integrate for React projects only |
-| Drei | https://drei.docs.pmnd.rs/ | 10.7.9 | MIT | Helpers used selectively (e.g. `Html`, controls). Note: `Environment` presets download HDRIs from a CDN — Studio³ generates environments locally instead | Integrate selectively |
+| Drei | https://drei.docs.pmnd.rs/ | 10.7.9 | MIT | Helpers used selectively (e.g. `Html`, controls). Note: `Environment` presets download HDRIs from a CDN — Maquettekit generates environments locally instead | Integrate selectively |
 | React Three Rapier | https://github.com/pmndrs/react-three-rapier | 2.2.0 (npm); upstream @ `ae5c3fe` (2025-11-03) | MIT (upstream `LICENSE`, © 2022 Poimandres; the published npm package omits the licence field and file). Core engine `@dimforge/rapier3d-compat` 0.19.2: Apache-2.0 | Physics playground demo: fixed timestep, sleeping, kinematic dragging, lazy-loaded WASM | Integrate only where physics is justified |
 | Spline | https://spline.design/ | `@splinetool/runtime` 2.0.213, `@splinetool/react-spline` 4.2.0 (npm metadata only) | **No licence declared** in npm metadata; proprietary hosted service | Not used. Skills treat Spline as an option only when a team already designs in Spline, and require checking its terms and never uploading project assets without permission | Reference |
-| Blender | https://www.blender.org/ | not installed in the build environment | GPL (application) | `studio3 assets import` invokes Blender's CLI as a separate program with an argv array; the converter script and the unavailable path are unit-tested; real conversion is **untested** here | Reference (external tool) |
+| Blender | https://www.blender.org/ | not installed in the build environment | GPL (application) | `maquettekit assets import` invokes Blender's CLI as a separate program with an argv array; the converter script and the unavailable path are unit-tested; real conversion is **untested** here | Reference (external tool) |
 | glTF 2.0 and ecosystem | https://www.khronos.org/gltf/ | — | Khronos specification | GLB is the delivery format; extensions used: `EXT_meshopt_compression`, `KHR_mesh_quantization`, `EXT_texture_webp` (plus `KHR_draco_mesh_compression`, `KHR_texture_basisu` as options) | Adopt |
-| Khronos glTF-Validator (`gltf-validator`) | https://github.com/KhronosGroup/glTF-Validator | 2.0.0-dev.3.10 | Apache-2.0 | `studio3 assets validate` | Integrate (optional dependency) |
+| Khronos glTF-Validator (`gltf-validator`) | https://github.com/KhronosGroup/glTF-Validator | 2.0.0-dev.3.10 | Apache-2.0 | `maquettekit assets validate` | Integrate (optional dependency) |
 | glTF Transform | https://gltf-transform.dev/ | 4.5.1 (`core`, `extensions`, `functions`) | MIT | dedup, prune, weld, simplify, reorder, quantize, textureCompress, meshopt/Draco writers in the asset pipeline. Version 4.5.1 has no KTX2 transform; KTX2 shells out to the `ktx` CLI when present | Integrate (optional dependency) |
 | meshoptimizer | https://github.com/zeux/meshoptimizer | 1.3.0 | MIT | Reorder, simplify, `EXT_meshopt_compression` encode; decoder shipped by three.js | Integrate |
 | Draco (`draco3dgltf`) | https://github.com/google/draco | 1.5.9 | Apache-2.0 | Optional `--compress draco` | Integrate (optional) |
 | KTX-Software / Basis Universal | https://github.com/KhronosGroup/KTX-Software | not installed | Apache-2.0 | `--texture-format ktx2` when the `ktx` CLI is on PATH; otherwise WebP with a recorded skip. **Untested** in the build environment | Reference (external tool) |
-| WebGPU | https://developer.mozilla.org/en-US/docs/Web/API/WebGPU_API | — | W3C specification | Headless Chromium 157 in the build environment exposes no WebGPU adapter. Studio³ detects WebGPU (`detectWebGPU()`: API present **and** adapter acquired), never assumes it, and keeps WebGL as the rendering path. Visual Director reports WebGPU as `unavailable`, not as a failure | Detect only; WebGL first |
+| WebGPU | https://developer.mozilla.org/en-US/docs/Web/API/WebGPU_API | — | W3C specification | Headless Chromium 157 in the build environment exposes no WebGPU adapter. Maquettekit detects WebGPU (`detectWebGPU()`: API present **and** adapter acquired), never assumes it, and keeps WebGL as the rendering path. Visual Director reports WebGPU as `unavailable`, not as a failure | Detect only; WebGL first |
 | sharp (libvips) | https://sharp.pixelplumbing.com/ | 0.35.5 | Apache-2.0 (libvips LGPL-3.0, dynamically linked) | Texture resize/re-encode | Integrate (optional dependency) |
 
 # E. Agent plugin specifications
 
 ## Claude Code (verified against the official docs and the CLI)
 
-| Fact | Source | Studio³ implementation |
+| Fact | Source | Maquettekit implementation |
 | - | - | - |
-| Manifest at `.claude-plugin/plugin.json`; only `name` required; unknown top-level keys stripped with a warning; components default to `skills/`, `commands/`, `agents/`, `hooks/hooks.json`, `.mcp.json`, `bin/` | plugins/manifest-reference | `plugins/studio3/.claude-plugin/plugin.json` (no Codex-only keys) |
-| Names starting `claude-`/`anthropic-` are reserved; kebab-case | manifest-reference §name | `studio3` |
-| Marketplace at `.claude-plugin/marketplace.json` with `name`, `owner`, `plugins[]`; relative `source` from the marketplace root, no `..` | plugin-marketplaces | root `.claude-plugin/marketplace.json` → `./plugins/studio3` |
+| Manifest at `.claude-plugin/plugin.json`; only `name` required; unknown top-level keys stripped with a warning; components default to `skills/`, `commands/`, `agents/`, `hooks/hooks.json`, `.mcp.json`, `bin/` | plugins/manifest-reference | `plugins/maquettekit/.claude-plugin/plugin.json` (no Codex-only keys) |
+| Names starting `claude-`/`anthropic-` are reserved; kebab-case | manifest-reference §name | `maquettekit` |
+| Marketplace at `.claude-plugin/marketplace.json` with `name`, `owner`, `plugins[]`; relative `source` from the marketplace root, no `..` | plugin-marketplaces | root `.claude-plugin/marketplace.json` → `./plugins/maquettekit` |
 | Install id `<plugin>@<marketplace>`; `claude plugin marketplace add`, `claude plugin install`, `claude plugin uninstall`, `claude plugin validate` | plugin-marketplaces, CLI `--help` | `scripts/install.mjs` uses exactly these; `tests/plugin/install.test.mjs` runs them for real |
 | Skills: `SKILL.md` frontmatter (`name`, `description`, `when_to_use`, `argument-hint`, `allowed-tools`, `license`, `compatibility`, `metadata` …); description + when_to_use truncated at 1,536 characters in listings; plugin skills invoked as `/<plugin>:<skill>` | skills | 12 skills with `name`, `description`, `argument-hint`, `license`, `metadata` |
-| `${CLAUDE_PLUGIN_ROOT}` and `${CLAUDE_PLUGIN_DATA}` substituted in plugin skill bodies; `PLUGIN_DATA` survives updates | skills §substitutions, manifest-reference §environment variables | skills reference tools as `${CLAUDE_PLUGIN_ROOT}/tools/studio3.mjs`; optional dependencies install into `$CLAUDE_PLUGIN_DATA/studio3-deps` |
+| `${CLAUDE_PLUGIN_ROOT}` and `${CLAUDE_PLUGIN_DATA}` substituted in plugin skill bodies; `PLUGIN_DATA` survives updates | skills §substitutions, manifest-reference §environment variables | skills reference tools as `${CLAUDE_PLUGIN_ROOT}/tools/maquettekit.mjs`; optional dependencies install into `$CLAUDE_PLUGIN_DATA/maquettekit-deps` |
 
-Validation result: `claude plugin validate plugins/studio3` and `claude plugin validate .` — "Validation passed"
+Validation result: `claude plugin validate plugins/maquettekit` and `claude plugin validate .` — "Validation passed"
 (see the test report in the README for the run that produced the release).
 
 ## OpenAI Codex (verified from source; official docs unreachable)
 
 Source: `openai/codex` @ `a1604a8c0554c09c1be45e5a121bb1889b4d9a50` (2026-11-23). Paths are relative to that tree.
 
-| Fact | Evidence | Studio³ implementation |
+| Fact | Evidence | Maquettekit implementation |
 | - | - | - |
-| Manifest lookup: `.codex-plugin/plugin.json`, then `.claude-plugin/plugin.json`, then `.cursor-plugin/plugin.json` | `codex-rs/utils/plugins/src/plugin_namespace.rs` (`find_plugin_manifest_path`), `codex-rs/exec-server-protocol/src/protocol.rs` | separate `plugins/studio3/.codex-plugin/plugin.json`, so each host reads its own manifest |
+| Manifest lookup: `.codex-plugin/plugin.json`, then `.claude-plugin/plugin.json`, then `.cursor-plugin/plugin.json` | `codex-rs/utils/plugins/src/plugin_namespace.rs` (`find_plugin_manifest_path`), `codex-rs/exec-server-protocol/src/protocol.rs` | separate `plugins/maquettekit/.codex-plugin/plugin.json`, so each host reads its own manifest |
 | Recognised fields: `name`, `version`, `description`, `keywords`, `skills`, `mcpServers`, `apps`, `hooks`, `interface`, `commands`; unknown keys ignored; component paths must start with `./`, no `..` | `codex-rs/core-plugins/src/manifest.rs` (`RawPluginManifest`, path checks) | only recognised fields used; `skills: "./skills"` |
 | `interface` block: `displayName`, `shortDescription`, `longDescription`, `developerName`, `category`, `capabilities`, URLs, `defaultPrompt` (≤ 3, ≤ 512 chars), `brandColor`, icons, screenshots | `manifest.rs` (`RawPluginManifestInterface`) | provided; `npm run validate` enforces the limits |
-| Plugin name `[A-Za-z0-9._-]`, marketplace name `[A-Za-z0-9_-]`; `$` mentions accept `[A-Za-z0-9_:-]` | `codex-rs/core-plugin-common/src/plugin_id.rs`, `codex-rs/skills/src/mentions.rs` | `studio3`, `studio3-marketplace` |
-| Marketplace lookup: `.agents/plugins/marketplace.json` (also `.claude-plugin/marketplace.json`); entries `{ name, source, policy: { installation, authentication }, category }`; local source `./path` or `{ "source": "local", "path": "./…" }` | `codex-rs/core-plugins/src/marketplace.rs` and its tests | `.agents/plugins/marketplace.json` → `./plugins/studio3` |
+| Plugin name `[A-Za-z0-9._-]`, marketplace name `[A-Za-z0-9_-]`; `$` mentions accept `[A-Za-z0-9_:-]` | `codex-rs/core-plugin-common/src/plugin_id.rs`, `codex-rs/skills/src/mentions.rs` | `maquettekit`, `maquettekit-marketplace` |
+| Marketplace lookup: `.agents/plugins/marketplace.json` (also `.claude-plugin/marketplace.json`); entries `{ name, source, policy: { installation, authentication }, category }`; local source `./path` or `{ "source": "local", "path": "./…" }` | `codex-rs/core-plugins/src/marketplace.rs` and its tests | `.agents/plugins/marketplace.json` → `./plugins/maquettekit` |
 | CLI: `codex plugin marketplace add|list|upgrade|remove`, `codex plugin add <plugin>@<marketplace>`, `codex plugin list|remove` (there is no `codex plugin install`); TUI `/plugins`, `/skills` | `codex-rs/cli/src/plugin_cmd.rs` | installer uses `plugin add` / `plugin remove`; covered by a fake-CLI test |
 | Cache `~/.codex/plugins/cache/<marketplace>/<plugin>/<version>/`, refreshed when the version string changes; config `[plugins."<plugin>@<marketplace>"] enabled = true` | `codex-rs/core-plugins/src/store.rs`, `codex-rs/core-plugin-common/src/installed.rs` | version kept in lock-step across manifests |
-| Skills: frontmatter `name` (≤ 64 chars) and `description` (required), `metadata.short-description`; roots include `.agents/skills`, `~/.agents/skills`; plugin skills namespaced `<plugin>:<skill>`, invoked `$studio3:<skill>`; relative paths resolve from the SKILL.md directory; **no plugin-root variable is substituted in skill bodies** | `codex-rs/skills/src/parser.rs` (frontmatter), `codex-rs/skills/src/mentions.rs` (`$` mentions), `codex-rs/ext/skills/src/host_roots.rs` (skill roots) | every skill gives the `../../tools/studio3.mjs` fallback path; skills-only install links into `~/.agents/skills` |
+| Skills: frontmatter `name` (≤ 64 chars) and `description` (required), `metadata.short-description`; roots include `.agents/skills`, `~/.agents/skills`; plugin skills namespaced `<plugin>:<skill>`, invoked `$maquettekit:<skill>`; relative paths resolve from the SKILL.md directory; **no plugin-root variable is substituted in skill bodies** | `codex-rs/skills/src/parser.rs` (frontmatter), `codex-rs/skills/src/mentions.rs` (`$` mentions), `codex-rs/ext/skills/src/host_roots.rs` (skill roots) | every skill gives the `../../tools/maquettekit.mjs` fallback path; skills-only install links into `~/.agents/skills` |
 
 Not verified (no Codex CLI available in the build environment): a live `codex plugin add` run. The installer's Codex
 path is exercised against a recording fake CLI.

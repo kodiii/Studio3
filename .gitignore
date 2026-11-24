@@ -5,7 +5,7 @@ dist
 *.tsbuildinfo
 test-results
 playwright-report
-.studio3
+.maquettekit
 .DS_Store
 *.log
 next-env.d.ts

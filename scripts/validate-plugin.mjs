@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // @ts-check
 /**
- * Validates the Studio³ plugin packaging for both hosts. Exit 1 on any error.
+ * Validates the Maquettekit plugin packaging for both hosts. Exit 1 on any error.
  *   node scripts/validate-plugin.mjs [--json] [--no-cli]
  * Checks: manifests (Claude + Codex), marketplaces, the 12 required skills (frontmatter, size, referenced files,
  * commands cited), shared docs, catalogue, and — when the `claude` CLI is on PATH — `claude plugin validate`.
@@ -14,7 +14,7 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-export const PLUGIN = path.join(ROOT, 'plugins', 'studio3');
+export const PLUGIN = path.join(ROOT, 'plugins', 'maquettekit');
 export const REQUIRED_SKILLS = ['studio-product', 'studio-cinematic', 'studio-data', 'studio-social', 'studio-3d', 'studio-motion',
   'studio-review', 'studio-experience', 'studio-design-system', 'studio-components', 'studio-setup', 'studio-asset-optimizer'];
 const COMMANDS = ['doctor', 'setup', 'design', 'review', 'experience', 'assets', 'catalog'];
@@ -52,14 +52,14 @@ export function validate({ cli = true } = {}) {
   try { codex = readJson(path.join(PLUGIN, '.codex-plugin', 'plugin.json')); } catch (e) { err(`Codex manifest: ${e.message}`); }
   const rootPkg = readJson(path.join(ROOT, 'package.json'));
   if (claude) {
-    if (claude.name !== 'studio3') err('Claude manifest: name must be "studio3"');
+    if (claude.name !== 'maquettekit') err('Claude manifest: name must be "maquettekit"');
     if (!/^[a-z0-9-]+$/.test(claude.name ?? '')) err('Claude manifest: name must be kebab-case');
     for (const k of ['version', 'description', 'author', 'license']) if (!claude[k]) err(`Claude manifest: missing ${k}`);
     if (claude.author && !claude.author.name) err('Claude manifest: author.name required');
     if (claude.version !== rootPkg.version) err(`Claude manifest version ${claude.version} != package.json ${rootPkg.version}`);
   }
   if (codex) {
-    if (codex.name !== 'studio3') err('Codex manifest: name must be "studio3"');
+    if (codex.name !== 'maquettekit') err('Codex manifest: name must be "maquettekit"');
     if (typeof codex.version !== 'string' || !codex.version.trim()) err('Codex manifest: version must be a non-blank string');
     if (!codex.description) err('Codex manifest: description missing');
     for (const k of Object.keys(codex)) if (!CODEX_MANIFEST_KEYS.has(k)) warn(`Codex manifest: key "${k}" is not read by the Codex loader`);
@@ -81,8 +81,8 @@ export function validate({ cli = true } = {}) {
   try {
     const m = readJson(path.join(ROOT, '.claude-plugin', 'marketplace.json'));
     if (!m.name || !m.owner?.name || !Array.isArray(m.plugins)) err('Claude marketplace: name, owner.name and plugins[] are required');
-    const e = m.plugins?.find((p) => p.name === 'studio3');
-    if (!e) err('Claude marketplace: no "studio3" entry');
+    const e = m.plugins?.find((p) => p.name === 'maquettekit');
+    if (!e) err('Claude marketplace: no "maquettekit" entry');
     else {
       if (typeof e.source !== 'string' || !e.source.startsWith('./') || e.source.includes('..')) err('Claude marketplace: source must be a ./relative path without ..');
       else if (!fs.existsSync(path.join(ROOT, e.source, '.claude-plugin', 'plugin.json'))) err(`Claude marketplace: ${e.source} has no .claude-plugin/plugin.json`);
@@ -92,8 +92,8 @@ export function validate({ cli = true } = {}) {
   try {
     const m = readJson(path.join(ROOT, '.agents', 'plugins', 'marketplace.json'));
     if (!/^[A-Za-z0-9_-]+$/.test(m.name ?? '')) err('Codex marketplace: name must match [A-Za-z0-9_-]+');
-    const e = m.plugins?.find((p) => p.name === 'studio3');
-    if (!e) err('Codex marketplace: no "studio3" entry');
+    const e = m.plugins?.find((p) => p.name === 'maquettekit');
+    if (!e) err('Codex marketplace: no "maquettekit" entry');
     else {
       const p = typeof e.source === 'string' ? e.source : e.source?.source === 'local' ? e.source.path : null;
       if (!p) err('Codex marketplace: source must be a "./path" string or { source: "local", path }');
@@ -143,8 +143,8 @@ export function validate({ cli = true } = {}) {
       const n = fs.readFileSync(path.join(refDir, f), 'utf8').split('\n').length;
       if (n > 420) warn(`skill ${s}: references/${f} is ${n} lines`);
     }
-    // commands cited as `studio3 <cmd>` must exist
-    for (const m of text.matchAll(/`studio3 ([a-z-]+)/g)) if (!COMMANDS.includes(m[1])) err(`skill ${s}: cites unknown command "studio3 ${m[1]}"`);
+    // commands cited as `maquettekit <cmd>` must exist
+    for (const m of text.matchAll(/`maquettekit ([a-z-]+)/g)) if (!COMMANDS.includes(m[1])) err(`skill ${s}: cites unknown command "maquettekit ${m[1]}"`);
   }
 
   // ---- tools, shared, library
@@ -161,7 +161,7 @@ export function validate({ cli = true } = {}) {
     if (cat.effects.length < 40) err(`catalogue has ${cat.effects.length} effects; at least 40 required`);
     for (const e of cat.effects) for (const f of e.files) if (!fs.existsSync(path.join(PLUGIN, e.path, f))) err(`catalogue: ${e.path}/${f} missing`);
   } catch (e) { err(`catalogue: ${e.message}`); }
-  if (fs.existsSync(path.join(PLUGIN, 'node_modules'))) err('plugins/studio3 must not contain node_modules (hoisted to the repo root)');
+  if (fs.existsSync(path.join(PLUGIN, 'node_modules'))) err('plugins/maquettekit must not contain node_modules (hoisted to the repo root)');
 
   // ---- host CLI validation
   const cliResults = {};

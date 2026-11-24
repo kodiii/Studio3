@@ -7,18 +7,18 @@ import crypto from 'node:crypto';
 import { Document, NodeIO } from '@gltf-transform/core';
 import sharp from 'sharp';
 
-import { main, help } from '../../../plugins/studio3/tools/asset-pipeline/index.mjs';
-import { inspectFile, trianglesForMode, gpuTextureBytesEstimate } from '../../../plugins/studio3/tools/asset-pipeline/inspect.mjs';
-import { validateFile } from '../../../plugins/studio3/tools/asset-pipeline/validate.mjs';
-import { optimizeFile, defaultName } from '../../../plugins/studio3/tools/asset-pipeline/optimize.mjs';
-import { resolveProfile, applyFlags, textureRuleFor, DEFAULT_PROFILES } from '../../../plugins/studio3/tools/asset-pipeline/profiles.mjs';
-import { buildVariants } from '../../../plugins/studio3/tools/asset-pipeline/variants.mjs';
-import { scanDirectory, parseVariantName } from '../../../plugins/studio3/tools/asset-pipeline/manifest.mjs';
-import { detectBlender, blenderArgs, importWithBlender, CONVERT_SCRIPT } from '../../../plugins/studio3/tools/asset-pipeline/import.mjs';
-import { detectKtx, ktxCreateArgs } from '../../../plugins/studio3/tools/asset-pipeline/ktx.mjs';
-import { renderThumbnail } from '../../../plugins/studio3/tools/asset-pipeline/thumbnail.mjs';
-import { readDocument } from '../../../plugins/studio3/tools/asset-pipeline/io.mjs';
-import { createOutputGuard } from '../../../plugins/studio3/tools/asset-pipeline/safe-output.mjs';
+import { main, help } from '../../../plugins/maquettekit/tools/asset-pipeline/index.mjs';
+import { inspectFile, trianglesForMode, gpuTextureBytesEstimate } from '../../../plugins/maquettekit/tools/asset-pipeline/inspect.mjs';
+import { validateFile } from '../../../plugins/maquettekit/tools/asset-pipeline/validate.mjs';
+import { optimizeFile, defaultName } from '../../../plugins/maquettekit/tools/asset-pipeline/optimize.mjs';
+import { resolveProfile, applyFlags, textureRuleFor, DEFAULT_PROFILES } from '../../../plugins/maquettekit/tools/asset-pipeline/profiles.mjs';
+import { buildVariants } from '../../../plugins/maquettekit/tools/asset-pipeline/variants.mjs';
+import { scanDirectory, parseVariantName } from '../../../plugins/maquettekit/tools/asset-pipeline/manifest.mjs';
+import { detectBlender, blenderArgs, importWithBlender, CONVERT_SCRIPT } from '../../../plugins/maquettekit/tools/asset-pipeline/import.mjs';
+import { detectKtx, ktxCreateArgs } from '../../../plugins/maquettekit/tools/asset-pipeline/ktx.mjs';
+import { renderThumbnail } from '../../../plugins/maquettekit/tools/asset-pipeline/thumbnail.mjs';
+import { readDocument } from '../../../plugins/maquettekit/tools/asset-pipeline/io.mjs';
+import { createOutputGuard } from '../../../plugins/maquettekit/tools/asset-pipeline/safe-output.mjs';
 
 const REPO = path.resolve(import.meta.dirname, '..', '..', '..');
 const ORBIT = path.join(REPO, 'assets', 'models', 'orbit-token.source.glb');
@@ -138,7 +138,7 @@ async function cli(argv) {
   finally { spy.mockRestore(); logSpy.mockRestore(); errSpy.mockRestore(); }
 }
 
-beforeAll(() => { tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'studio3-assets-test-')); });
+beforeAll(() => { tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'maquettekit-assets-test-')); });
 afterAll(() => { fs.rmSync(tmp, { recursive: true, force: true }); });
 
 describe('assets: module contract', () => {
@@ -227,7 +227,7 @@ describe('assets validate', () => {
     const r = await validateFile(file);
     expect(r.ok).toBe(false);
     expect(r.summary.errors).toBeGreaterThan(0);
-    expect(r.issues.some((i) => i.source === 'studio3' && i.code === 'MISSING_EXTERNAL_RESOURCE' && i.pointer === '/buffers/0/uri')).toBe(true);
+    expect(r.issues.some((i) => i.source === 'maquettekit' && i.code === 'MISSING_EXTERNAL_RESOURCE' && i.pointer === '/buffers/0/uri')).toBe(true);
     expect(r.issues.some((i) => i.source === 'gltf-validator' && i.severity === 'error')).toBe(true);
     const { code, stdout } = await cli(['validate', file, '--json']);
     expect(code).toBe(1);
@@ -456,7 +456,7 @@ describe('assets variants + manifest', () => {
     expect(res.variants[1].budgets).toEqual([expect.objectContaining({ budget: 'maxTriangles', limit: 10, ok: false })]);
 
     const manifest = JSON.parse(fs.readFileSync(path.join(out, 'widget.manifest.json'), 'utf8'));
-    expect(manifest.generator).toBe('Studio³ Asset Pipeline');
+    expect(manifest.generator).toBe('Maquettekit Asset Pipeline');
     expect(Number.isNaN(Date.parse(manifest.generatedAt))).toBe(false);
     expect(manifest.assets).toHaveLength(1);
     const asset = manifest.assets[0];

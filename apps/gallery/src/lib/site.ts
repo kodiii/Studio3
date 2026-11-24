@@ -1,4 +1,4 @@
-import { SPECIALTIES, type Specialty } from '@studio3/library/types';
+import { SPECIALTIES, type Specialty } from '@maquettekit/library/types';
 
 export { SPECIALTIES };
 
@@ -10,7 +10,7 @@ export const MODULES = [
   { id: 'motion-lab', name: 'Motion Lab', skill: 'studio-motion', line: 'Tokens, orchestration and the recipe catalogue every specialty animates with.' },
   { id: 'visual-director', name: 'Visual Director', skill: 'studio-review', line: 'Playwright captures, deterministic checks, 3D diagnostics, before/after reports.' },
   { id: 'experience-lab', name: 'Experience Lab', skill: 'studio-experience', line: 'Transparent heuristic scoring across fourteen interaction dimensions.' },
-  { id: 'design-intelligence', name: 'Design Intelligence', skill: 'studio-design-system', line: 'A brief in, a persisted design system out: studio3.design.json.' },
+  { id: 'design-intelligence', name: 'Design Intelligence', skill: 'studio-design-system', line: 'A brief in, a persisted design system out: maquettekit.design.json.' },
   { id: 'library', name: 'Component & Effect Library', skill: 'studio-components', line: 'The source behind this gallery, shipped inside the plugin.' },
 ] as const;
 

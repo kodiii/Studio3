@@ -17,7 +17,7 @@
     <p class="lede">A raw WebGL scene that settles, then renders only on demand. Drag over the canvas to rotate it.</p>
     <div class="stage" id="stage">
       <canvas id="scene" role="img" aria-label="A coloured triangle that rotates and then comes to rest"></canvas>
-      <div class="fallback" id="fallback" data-studio3-fallback hidden>
+      <div class="fallback" id="fallback" data-maquettekit-fallback hidden>
         <strong>3D preview unavailable</strong>
         <span>Your browser or device cannot display WebGL content. The triangle is shown as a static description instead.</span>
       </div>
@@ -29,7 +29,7 @@
     (function () {
       var canvas = document.getElementById('scene');
       var fallback = document.getElementById('fallback');
-      var hook = window.__STUDIO3_3D__ = { renderer: { calls: 0, triangles: 0, geometries: 0, textures: 0, programs: 0 }, frameloop: 'demand', quality: 'high', disposed: 0 };
+      var hook = window.__MAQUETTEKIT_3D__ = { renderer: { calls: 0, triangles: 0, geometries: 0, textures: 0, programs: 0 }, frameloop: 'demand', quality: 'high', disposed: 0 };
       var gl = null;
       try { gl = canvas.getContext('webgl2', { antialias: true }) || canvas.getContext('webgl', { antialias: true }); } catch (e) { gl = null; }
       if (!gl) { canvas.hidden = true; fallback.hidden = false; hook.frameloop = 'never'; hook.quality = 'fallback'; return; }
