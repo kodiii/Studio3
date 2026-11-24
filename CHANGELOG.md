@@ -13,6 +13,9 @@ semantic versioning. Plugin manifests (Claude Code and Codex) always carry the s
 
 ### Fixed
 - Long source-path headings in the gallery wrap instead of widening the page at 390 px.
+- WebGL previews in the effect catalogue never started: the card's full-size link covered the preview, so its hover
+  handler never fired. Hover and keyboard focus are now tracked on the card; on touch screens a WebGL preview runs
+  while its card is mostly on screen and stops when it scrolls away.
 
 ## [4.0.0] — 2026-11-23
 

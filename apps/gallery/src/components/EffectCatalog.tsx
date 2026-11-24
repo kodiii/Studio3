@@ -22,23 +22,42 @@ function matches(m: EffectMeta, f: Filters, q: string): boolean {
   return q.toLowerCase().split(/\s+/).filter(Boolean).every((t) => hay.includes(t));
 }
 
-function CardPreview({ meta }: { meta: EffectMeta }) {
+/** True on touch-first devices, which never fire hover. */
+function useNoHover() {
+  const [noHover, setNoHover] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(hover: none)');
+    const on = () => setNoHover(mq.matches);
+    on();
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, []);
+  return noHover;
+}
+
+/**
+ * `hot` comes from the whole card (pointer or keyboard focus): the card's stretched link covers the preview, so
+ * pointer events never reach this element. Browsers cap live GL contexts, so WebGL previews run only while the card
+ * is hot — or, on touch devices without hover, while the card is mostly on screen (one or two at a time).
+ */
+function CardPreview({ meta, hot }: { meta: EffectMeta; hot: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
-  const [hot, setHot] = useState(false);
+  const [centred, setCentred] = useState(false);
+  const noHover = useNoHover();
   const gl = isWebGL(meta.technology);
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
     const io = new IntersectionObserver(([e]) => setInView(e.isIntersecting), { rootMargin: '100px' });
+    const centre = new IntersectionObserver(([e]) => setCentred(e.intersectionRatio >= 0.6), { threshold: [0, 0.6, 1] });
     io.observe(el);
-    return () => io.disconnect();
+    centre.observe(el);
+    return () => { io.disconnect(); centre.disconnect(); };
   }, []);
-  // WebGL previews mount only on hover/focus of the card: browsers cap live GL contexts.
-  const live = gl ? hot && inView : inView;
+  const live = gl ? inView && (hot || (noHover && centred)) : inView;
   return (
-    <div ref={ref} className="relative aspect-[16/10] overflow-hidden border-b border-line bg-surface-2"
-      onPointerEnter={() => setHot(true)} onPointerLeave={() => setHot(false)}>
+    <div ref={ref} className="relative aspect-[16/10] overflow-hidden border-b border-line bg-surface-2" data-preview-live={live ? '' : undefined}>
       {live ? (
         <div inert aria-hidden="true" className="pointer-events-none absolute inset-0 [&>div]:!min-h-0 [&>div]:h-full"><EffectStage id={meta.id} /></div>
       ) : (
@@ -46,8 +65,33 @@ function CardPreview({ meta }: { meta: EffectMeta }) {
           <span className="mk-label rounded-full bg-surface px-2.5 py-1 text-muted">{meta.category}</span>
         </div>
       )}
-      {gl && !live ? <span className="mk-label absolute bottom-2 left-2 rounded-full bg-ink px-2 py-1 text-bg">WebGL · hover to run</span> : null}
+      {gl && !live ? <span aria-hidden="true" className="mk-label absolute bottom-2 left-2 rounded-full bg-ink px-2 py-1 text-bg">{noHover ? 'WebGL · scroll to run' : 'WebGL · hover to run'}</span> : null}
     </div>
+  );
+}
+
+function EffectCard({ meta: m }: { meta: EffectMeta }) {
+  const [hot, setHot] = useState(false);
+  return (
+    <li className="group relative bg-surface" data-effect-card={m.id}
+      onPointerEnter={(e) => { if (e.pointerType === 'mouse' || e.pointerType === 'pen') setHot(true); }}
+      onPointerLeave={() => setHot(false)} onFocus={() => setHot(true)} onBlur={() => setHot(false)}>
+      <CardPreview meta={m} hot={hot} />
+      <div className="grid gap-2 p-4">
+        <div className="flex items-baseline justify-between gap-3">
+          <h3 className="font-display text-xl font-semibold tracking-tight">
+            <Link href={`/effects/${m.id}`} className="after:absolute after:inset-0 group-hover:underline group-hover:decoration-signal group-hover:underline-offset-4">{m.name}</Link>
+          </h3>
+          <span className="mk-label shrink-0 text-muted">{m.category}</span>
+        </div>
+        <p className="line-clamp-2 text-sm text-muted">{m.description}</p>
+        <p className="mk-label flex flex-wrap gap-x-3 gap-y-1 pt-1 text-muted">
+          <span>{m.technology.map((t) => TECH_LABEL[t] ?? t).join(' + ')}</span>
+          <span>{COMPLEXITY[String(m.complexity) as '1']}</span>
+          <span>{m.intensity}</span>
+        </p>
+      </div>
+    </li>
   );
 }
 
@@ -164,25 +208,7 @@ export function EffectCatalog({ metas, initialSpecialty = null }: { metas: reado
 
       {results.length ? (
         <ul className="mt-6 grid gap-px border border-line bg-line sm:grid-cols-2 xl:grid-cols-3" data-effect-grid="">
-          {results.map((m) => (
-            <li key={m.id} className="group relative bg-surface" data-effect-card={m.id}>
-              <CardPreview meta={m} />
-              <div className="grid gap-2 p-4">
-                <div className="flex items-baseline justify-between gap-3">
-                  <h3 className="font-display text-xl font-semibold tracking-tight">
-                    <Link href={`/effects/${m.id}`} className="after:absolute after:inset-0 group-hover:underline group-hover:decoration-signal group-hover:underline-offset-4">{m.name}</Link>
-                  </h3>
-                  <span className="mk-label shrink-0 text-muted">{m.category}</span>
-                </div>
-                <p className="line-clamp-2 text-sm text-muted">{m.description}</p>
-                <p className="mk-label flex flex-wrap gap-x-3 gap-y-1 pt-1 text-muted">
-                  <span>{m.technology.map((t) => TECH_LABEL[t] ?? t).join(' + ')}</span>
-                  <span>{COMPLEXITY[String(m.complexity) as '1']}</span>
-                  <span>{m.intensity}</span>
-                </p>
-              </div>
-            </li>
-          ))}
+          {results.map((m) => <EffectCard key={m.id} meta={m} />)}
         </ul>
       ) : (
         <div className="mt-10 border border-dashed border-line p-10 text-center">

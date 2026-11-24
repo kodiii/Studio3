@@ -80,6 +80,41 @@ test.describe('effect catalogue', () => {
     await expect(page.getByText('No recipe matches.')).toBeVisible();
   });
 
+  // Regression: the card's stretched link covers the preview, so hover must be tracked on the card itself.
+  test('WebGL card previews start on hover and on keyboard focus, and stop when left', async ({ page }) => {
+    const errors = trackErrors(page);
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.goto('/effects');
+    const id = await page.locator('[data-effect-card]').filter({ has: page.getByText('WebGL · hover to run') }).first().getAttribute('data-effect-card');
+    const card = page.locator(`[data-effect-card="${id}"]`);
+    await card.scrollIntoViewIfNeeded();
+    const preview = card.locator('[data-preview-live]');
+    await expect(preview).toHaveCount(0);
+    await card.getByRole('link').hover();
+    await expect(card.locator('canvas')).toHaveCount(1, { timeout: 15_000 });
+    await page.mouse.move(0, 0);
+    await expect(preview).toHaveCount(0);
+    await card.getByRole('link').focus();
+    await expect(card.locator('canvas')).toHaveCount(1, { timeout: 15_000 });
+    expect(errors()).toEqual([]);
+  });
+
+  test('on touch devices WebGL card previews run while the card is on screen', async ({ browser }) => {
+    const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+    const page = await ctx.newPage();
+    const errors = trackErrors(page);
+    await page.goto('/effects');
+    const card = page.locator('[data-effect-card]').filter({ has: page.getByText('WebGL · scroll to run') }).first();
+    const id = await card.getAttribute('data-effect-card');
+    await card.evaluate((el) => el.scrollIntoView({ block: 'center' }));
+    const live = page.locator(`[data-effect-card="${id}"] canvas`);
+    await expect(live).toHaveCount(1, { timeout: 15_000 });
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await expect(live).toHaveCount(0);
+    expect(errors()).toEqual([]);
+    await ctx.close();
+  });
+
   test('a card opens its playground', async ({ page }) => {
     const first = catalog.effects[0];
     await page.goto('/effects');
