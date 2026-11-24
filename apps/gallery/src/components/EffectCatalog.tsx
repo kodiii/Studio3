@@ -73,7 +73,10 @@ function FacetRow({ label, facet, options, filters, set, render }: { label: stri
 export function EffectCatalog({ metas, initialSpecialty = null }: { metas: readonly EffectMeta[]; initialSpecialty?: string | null }) {
   const [q, setQ] = useState('');
   const [filters, setFilters] = useState<Filters>({ ...EMPTY, specialty: initialSpecialty });
-  const [showFilters, setShowFilters] = useState(true);
+  // Collapsed by default: the previews are the content; filters are a tool you open when you need them.
+  const [showFilters, setShowFilters] = useState(false);
+  const panel = useRef<HTMLDivElement>(null);
+  const toggle = useRef<HTMLButtonElement>(null);
   const set = (f: Facet, v: string | null) => setFilters((s) => ({ ...s, [f]: v }));
   const options = useMemo(() => ({
     category: [...new Set(metas.map((m) => m.category))],
@@ -82,27 +85,80 @@ export function EffectCatalog({ metas, initialSpecialty = null }: { metas: reado
   }), [metas]);
   const results = useMemo(() => metas.filter((m) => matches(m, filters, q)), [metas, filters, q]);
   const activeCount = Object.values(filters).filter(Boolean).length + (q ? 1 : 0);
+  // Facets that live in the panel (category has its own always-visible chip row).
+  const panelFacets = (['specialty', 'technology', 'interaction', 'complexity', 'intensity'] as const).filter((f) => filters[f]);
+  const chipLabel = (f: Facet, v: string) =>
+    f === 'specialty' ? SPECIALTIES.find((x) => x.id === v)?.name ?? v
+      : f === 'technology' ? TECH_LABEL[v] ?? v
+        : f === 'complexity' ? COMPLEXITY[v as '1']
+          : v;
+
+  useEffect(() => {
+    if (!showFilters) return;
+    const el = panel.current;
+    if (!el) return;
+    // Opened from the sticky bar while scrolled down: bring the panel into view.
+    const top = el.getBoundingClientRect().top;
+    if (top < 0 || top > window.innerHeight * 0.6) {
+      const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.dataset.reduced === 'true';
+      el.scrollIntoView({ block: 'start', behavior: reduce ? 'auto' : 'smooth' });
+    }
+  }, [showFilters]);
+
+  const close = () => { setShowFilters(false); toggle.current?.focus(); };
 
   return (
     <div>
-      <div className="sticky top-14 z-30 -mx-4 border-b border-line bg-bg/95 px-4 py-3 backdrop-blur-sm sm:-mx-6 sm:px-6">
-        <div className="flex flex-wrap items-center gap-3">
-          <label className="relative min-w-[220px] flex-1">
+      <div className="sticky top-14 z-30 -mx-4 border-b border-line bg-bg/95 px-4 py-2.5 backdrop-blur-sm sm:-mx-6 sm:px-6">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <label className="relative min-w-[200px] flex-1">
             <span className="s3-sr-only">Search effects</span>
             <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search recipes — “scroll”, “button”, “shader”…" data-effect-search=""
-              className="h-11 w-full rounded-full border border-line bg-surface px-4 text-sm placeholder:text-muted focus-visible:border-line-strong" />
+              className="h-10 w-full rounded-full border border-line bg-surface px-4 text-sm placeholder:text-muted focus-visible:border-line-strong" />
           </label>
-          <button type="button" aria-expanded={showFilters} aria-controls="effect-filters" onClick={() => setShowFilters((s) => !s)} className="s3-label h-11 rounded-full border border-line px-4 transition-colors duration-150 hover:border-line-strong">Filters{activeCount ? ` (${activeCount})` : ''}</button>
-          <p className="s3-label text-muted" role="status" aria-live="polite" data-result-count={results.length}>{results.length} of {metas.length} recipes</p>
-          {activeCount ? <button type="button" className="s3-label underline underline-offset-4" onClick={() => { setFilters(EMPTY); setQ(''); }}>Clear all</button> : null}
+          <button ref={toggle} type="button" aria-expanded={showFilters} aria-controls="effect-filters" onClick={() => setShowFilters((s) => !s)} data-filters-toggle=""
+            className="s3-label inline-flex h-10 items-center gap-2 rounded-full border border-line px-4 transition-colors duration-150 hover:border-line-strong aria-expanded:border-line-strong aria-expanded:bg-ink aria-expanded:text-bg">
+            Filters
+            {panelFacets.length ? <span className="grid h-5 min-w-5 place-items-center rounded-full bg-signal px-1 text-on-signal">{panelFacets.length}</span> : null}
+          </button>
+          <p className="s3-label text-muted" role="status" aria-live="polite" data-result-count={results.length}>{results.length} of {metas.length}</p>
+          {activeCount ? <button type="button" className="s3-label underline underline-offset-4 hover:text-signal" onClick={() => { setFilters(EMPTY); setQ(''); }}>Clear all</button> : null}
         </div>
-        <div id="effect-filters" hidden={!showFilters} className="mt-3 grid max-h-[46vh] gap-3 overflow-y-auto pb-1">
-          <FacetRow label="Specialty" facet="specialty" options={SPECIALTIES.map((s) => s.id)} filters={filters} set={set} render={(v) => SPECIALTIES.find((s) => s.id === v)?.name ?? v} />
-          <FacetRow label="Category" facet="category" options={options.category} filters={filters} set={set} />
+        {/* Category: the most-used facet stays one tap away, as a single horizontally scrolling row. */}
+        <div role="group" aria-label="Category" className="-mx-4 mt-2 flex gap-1.5 overflow-x-auto px-4 pb-0.5 [scrollbar-width:none] sm:-mx-6 sm:px-6">
+          <button type="button" aria-pressed={!filters.category} onClick={() => set('category', null)}
+            className="shrink-0 rounded-full border border-line px-3 py-1 text-xs transition-colors duration-150 hover:border-line-strong aria-pressed:border-line-strong aria-pressed:bg-ink aria-pressed:text-bg">All</button>
+          {options.category.map((c) => (
+            <button key={c} type="button" aria-pressed={filters.category === c} onClick={() => set('category', filters.category === c ? null : c)}
+              className="shrink-0 rounded-full border border-line px-3 py-1 text-xs transition-colors duration-150 hover:border-line-strong aria-pressed:border-line-strong aria-pressed:bg-ink aria-pressed:text-bg">{c}</button>
+          ))}
+        </div>
+        {panelFacets.length && !showFilters ? (
+          <ul aria-label="Active filters" className="mt-2 flex flex-wrap gap-1.5">
+            {panelFacets.map((f) => (
+              <li key={f}>
+                <button type="button" onClick={() => set(f, null)} className="inline-flex items-center gap-1.5 rounded-full bg-surface-2 px-3 py-1 text-xs hover:bg-line">
+                  <span className="text-muted">{f}:</span> {chipLabel(f, filters[f]!)} <span aria-hidden="true">×</span><span className="s3-sr-only">remove filter</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
+
+      {/* The panel is part of the page flow (not the sticky bar): it pushes the grid down and scrolls away, so it never covers the previews. */}
+      <div id="effect-filters" ref={panel} hidden={!showFilters} className="scroll-mt-40 border-b border-line py-4"
+        onKeyDown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); close(); } }}>
+        <div className="grid gap-3">
+          <FacetRow label="Specialty" facet="specialty" options={SPECIALTIES.map((x) => x.id)} filters={filters} set={set} render={(v) => SPECIALTIES.find((x) => x.id === v)?.name ?? v} />
           <FacetRow label="Technology" facet="technology" options={options.technology} filters={filters} set={set} render={(v) => TECH_LABEL[v] ?? v} />
           <FacetRow label="Interaction" facet="interaction" options={options.interaction} filters={filters} set={set} />
           <FacetRow label="Complexity" facet="complexity" options={['1', '2', '3']} filters={filters} set={set} render={(v) => COMPLEXITY[v as '1']} />
           <FacetRow label="Intensity" facet="intensity" options={['subtle', 'moderate', 'bold']} filters={filters} set={set} />
+        </div>
+        <div className="mt-4 flex items-center justify-between gap-3">
+          <p className="s3-label text-muted">{results.length} matching</p>
+          <button type="button" onClick={close} className="s3-label rounded-full bg-ink px-5 py-2 text-bg hover:bg-signal hover:text-on-signal">Done</button>
         </div>
       </div>
 

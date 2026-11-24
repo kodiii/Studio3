@@ -1,6 +1,9 @@
 import { SPECIALTIES, type Specialty } from '@studio3/library/types';
 
 export { SPECIALTIES };
+
+/** Public source repository (also used for the GitHub links in the header, footer and home page). */
+export const REPO_URL = 'https://github.com/kodiii/Studio3';
 export const specialtyIndex = (id: Specialty): string => String(SPECIALTIES.findIndex((s) => s.id === id) + 1).padStart(2, '0');
 
 export const MODULES = [

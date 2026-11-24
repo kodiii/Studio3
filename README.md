@@ -59,7 +59,7 @@ Requirements: **Node.js ≥ 20.11** and git. Optional for browser tools: a Chrom
 
 ```bash
 brew install node            # or use nvm / fnm
-git clone <repository-url> studio3 && cd studio3
+git clone https://github.com/kodiii/Studio3 studio3 && cd studio3
 ./install.sh                 # detects Claude Code / Codex and installs the plugin into each
 ```
 
@@ -67,7 +67,7 @@ git clone <repository-url> studio3 && cd studio3
 
 ```bash
 # Node 22 via your package manager, nvm or nodesource
-git clone <repository-url> studio3 && cd studio3
+git clone https://github.com/kodiii/Studio3 studio3 && cd studio3
 ./install.sh
 ```
 
@@ -76,15 +76,31 @@ The installer copies the plugin payload to `~/.studio3/marketplace` (archiving a
 CLI it finds. Options: `--host claude|codex|all`, `--mode plugin|skills`, `--dry-run`, `--force`, `--verify`.
 Uninstall with `./uninstall.sh` (`--purge` also removes backups and tool dependencies). Status: `node scripts/install.mjs status`.
 
+### With your agent (Claude Code or Codex)
+
+Paste this into a Claude Code or Codex session and the agent installs Studio³ itself:
+
+```text
+Install the Studio³ plugin: clone https://github.com/kodiii/Studio3 into ~/studio3-src,
+read install.sh and scripts/install.mjs before running anything, then run
+./install.sh --verify and show me the output. Afterwards tell me how to load the skills
+in this session.
+```
+
+`install.sh` detects which host CLIs are present, registers the plugin with each and runs `studio3 doctor`.
+Plugins load when a session starts: restart the session (or run `/reload-plugins` in Claude Code). The skills then appear
+as `/studio3:studio-product` (Claude Code) and `$studio3:studio-product` (Codex). If the repository is private, the
+machine needs GitHub credentials that can read it.
+
 ### Manually, with the host CLIs
 
 ```bash
 # Claude Code
-claude plugin marketplace add /path/to/studio3        # or a git URL / owner/repo
+claude plugin marketplace add kodiii/Studio3           # or a local path
 claude plugin install studio3@studio3-marketplace
 
 # Codex
-codex plugin marketplace add /path/to/studio3
+codex plugin marketplace add https://github.com/kodiii/Studio3   # or a local path
 codex plugin add studio3@studio3-marketplace
 ```
 
@@ -137,6 +153,14 @@ The gallery is a Next.js app that runs the library's real source: a searchable, 
 previews of all 47 recipes, parameters, device-width preview, reduced-motion and theme toggles, and a code viewer with
 copy; a page per studio with its demos (22 in total); and a dedicated 3D gallery (model viewer with camera presets, materials, lighting, animation
 playback, quality levels with the real variant sizes, renderer statistics and fallback preview).
+
+### Deploy the gallery (Vercel)
+
+Import the GitHub repository in Vercel with **Root Directory** `apps/gallery` (framework: Next.js; "Include files outside
+the root directory" left on — the build regenerates the catalogue from `plugins/studio3/library`). Install and build
+commands are the defaults: Vercel installs the npm workspaces from the repository root and runs `npm run build`, whose
+`prebuild` step rebuilds the catalogue. The gallery is fully static (81 prerendered pages) and makes no external
+requests at runtime.
 
 ## Repository layout
 

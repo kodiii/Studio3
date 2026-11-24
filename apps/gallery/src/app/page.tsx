@@ -2,7 +2,7 @@ import { demos, effects } from '@studio3/library/registry';
 import Link from 'next/link';
 import { EffectStage } from '@/components/EffectStage';
 import { Shell } from '@/components/SiteHeader';
-import { MODULES, SPECIALTIES } from '@/lib/site';
+import { MODULES, REPO_URL, SPECIALTIES } from '@/lib/site';
 
 const pick = (ids: string[]): string | null => ids.find((id) => effects.some((e) => e.meta.id === id)) ?? effects[0]?.meta.id ?? null;
 
@@ -33,6 +33,7 @@ export default function Home() {
             <div className="flex flex-wrap gap-2">
               <Link href="/effects" className="s3-label rounded-full bg-ink px-5 py-3 text-bg transition-transform duration-200 ease-emphasized hover:-translate-y-0.5">Browse {effects.length} recipes</Link>
               <Link href="/studios" className="s3-label rounded-full border border-line-strong px-5 py-3 transition-transform duration-200 ease-emphasized hover:-translate-y-0.5">Enter the studios</Link>
+              <a href={REPO_URL} target="_blank" rel="noreferrer" className="s3-label rounded-full px-5 py-3 underline decoration-line underline-offset-4 hover:decoration-signal">Install from GitHub →</a>
             </div>
           </div>
         </div>
