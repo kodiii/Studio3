@@ -3,6 +3,17 @@
 All notable changes to Maquettekit are documented here. The format follows Keep a Changelog and the project uses
 semantic versioning. Plugin manifests (Claude Code and Codex) always carry the same version.
 
+## [Unreleased]
+
+### Added
+- **OpenCode and Google Antigravity support.** `./install.sh --host opencode|antigravity` (also auto-detected, and part
+  of `--host all`) links the 12 skills into `~/.config/opencode/skills` and `~/.gemini/config/skills`. Skills are
+  rendered with `${CLAUDE_PLUGIN_ROOT}` replaced by the installed payload path, so tool commands resolve on hosts that
+  do not substitute it (also applied to Claude Code / Codex skills mode). `--host` accepts a comma list.
+
+### Fixed
+- Long source-path headings in the gallery wrap instead of widening the page at 390 px.
+
 ## [4.0.0] — 2026-11-23
 
 First public release of the v4 architecture. No earlier Maquettekit version existed in the workspace, so v4.0.0 was built

@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 // @ts-check
 /**
- * Maquettekit local installer / upgrader / uninstaller for Claude Code and Codex.
+ * Maquettekit local installer / upgrader / uninstaller for Claude Code, Codex, OpenCode and Google Antigravity.
  *
- *   node scripts/install.mjs install   [--host claude|codex|all] [--mode auto|plugin|skills] [--dry-run] [--force] [--verify]
- *   node scripts/install.mjs uninstall [--host claude|codex|all] [--purge] [--dry-run]
+ *   node scripts/install.mjs install   [--host claude|codex|opencode|antigravity|all] [--mode auto|plugin|skills] [--dry-run] [--force] [--verify]
+ *   node scripts/install.mjs uninstall [--host claude|codex|opencode|antigravity|all] [--purge] [--dry-run]
  *   node scripts/install.mjs status    [--json]
  *
  * What it does (nothing else; no network, no telemetry):
@@ -13,8 +13,11 @@
  *     payload is first archived to $MAQUETTEKIT_HOME/backups/.
  *  2. plugin mode: registers that directory as a local marketplace with the host CLI and installs
  *     maquettekit@maquettekit-marketplace  (claude plugin … / codex plugin …).
- *  3. skills mode (hosts without a plugin CLI): links the 12 skills into the host's skills directory
- *     (~/.claude/skills or ~/.agents/skills). Skills locate tools through ~/.maquettekit/marketplace.
+ *  3. skills mode (OpenCode and Antigravity always; Claude/Codex without their CLI): renders the 12 skills
+ *     with ${CLAUDE_PLUGIN_ROOT} replaced by the payload's absolute path, then links them into the host's
+ *     skills directory: ~/.claude/skills, ~/.agents/skills (Codex), $XDG_CONFIG_HOME/opencode/skills
+ *     (default ~/.config/opencode/skills) or ~/.gemini/config/skills (Antigravity IDE and agy CLI).
+ *     OpenCode also reads ~/.claude/skills and ~/.agents/skills, so it is not linked twice when those are.
  *  4. Records what it did in $MAQUETTEKIT_HOME/install.json; uninstall removes exactly that.
  * Host CLIs are invoked with argument arrays (never through a shell).
  */
@@ -32,7 +35,28 @@ const S3_HOME = path.resolve(process.env.MAQUETTEKIT_HOME ?? path.join(HOME, '.m
 const TARGET = path.join(S3_HOME, 'marketplace');
 const STATE = path.join(S3_HOME, 'install.json');
 const PAYLOAD = ['.claude-plugin', '.agents', 'plugins', 'LICENSE', 'NOTICE.md', 'README.md', 'CHANGELOG.md'];
-const SKILL_DIRS = { claude: path.join(process.env.CLAUDE_CONFIG_DIR ?? path.join(HOME, '.claude'), 'skills'), codex: path.join(HOME, '.agents', 'skills') };
+const CONFIG_HOME = process.env.XDG_CONFIG_HOME?.trim() || path.join(HOME, '.config');
+const SKILL_DIRS = {
+  claude: path.join(process.env.CLAUDE_CONFIG_DIR?.trim() || path.join(HOME, '.claude'), 'skills'),
+  codex: path.join(HOME, '.agents', 'skills'),
+  opencode: path.join(CONFIG_HOME, 'opencode', 'skills'),
+  antigravity: path.join(HOME, '.gemini', 'config', 'skills'),
+};
+const HOSTS = Object.keys(SKILL_DIRS);
+/** Hosts with a plugin CLI. OpenCode and Antigravity load plain Agent Skills folders. */
+const PLUGIN_HOSTS = ['claude', 'codex'];
+const detect = {
+  claude: () => !!which('claude'),
+  codex: () => !!which('codex'),
+  opencode: () => !!which('opencode') || fs.existsSync(path.join(CONFIG_HOME, 'opencode')),
+  antigravity: () => !!which('agy') || !!which('antigravity') || ['antigravity', 'antigravity-cli'].some((d) => fs.existsSync(path.join(HOME, '.gemini', d))),
+};
+const INVOKE = {
+  claude: (plugin) => (plugin ? '/maquettekit:studio-product' : '/studio-product'),
+  codex: (plugin) => (plugin ? '$maquettekit:studio-product' : '$studio-product'),
+  opencode: () => 'ask for the task, or "use the studio-product skill" (OpenCode loads skills on demand)',
+  antigravity: () => '/studio-product, or describe the task and the agent picks the skill',
+};
 
 const argv = process.argv.slice(2);
 const cmd = argv[0] && !argv[0].startsWith('-') ? argv[0] : 'install';
@@ -89,9 +113,30 @@ function stagePayload() {
   }
 }
 
+const RENDERED = path.join(TARGET, 'rendered-skills');
+
+/** Copy the skills with ${CLAUDE_PLUGIN_ROOT} made absolute, so hosts that do not substitute it still find the tools. */
+function renderSkills() {
+  if (DRY || fs.existsSync(RENDERED)) return;
+  const root = path.join(TARGET, 'plugins', PLUGIN);
+  fs.cpSync(path.join(root, 'skills'), RENDERED, { recursive: true });
+  const walk = (d) => {
+    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+      const f = path.join(d, e.name);
+      if (e.isDirectory()) walk(f);
+      else if (/\.(md|txt)$/.test(e.name)) {
+        const t = fs.readFileSync(f, 'utf8');
+        if (t.includes('${CLAUDE_PLUGIN_ROOT}')) fs.writeFileSync(f, t.replaceAll('${CLAUDE_PLUGIN_ROOT}', root.split(path.sep).join('/')));
+      }
+    }
+  };
+  walk(RENDERED);
+}
+
 function linkSkills(host, state) {
   const dir = SKILL_DIRS[host];
-  const skillsSrc = path.join(TARGET, 'plugins', PLUGIN, 'skills');
+  renderSkills();
+  const skillsSrc = RENDERED;
   const names = DRY ? fs.readdirSync(path.join(REPO, 'plugins', PLUGIN, 'skills')) : fs.readdirSync(skillsSrc);
   act(`link ${names.length} skills → ${dir}`);
   for (const name of names) {
@@ -110,6 +155,15 @@ function linkSkills(host, state) {
 }
 
 function installHost(host, mode, state) {
+  if (!PLUGIN_HOSTS.includes(host)) {
+    if (mode === 'plugin') throw new Error(`${host} has no plugin CLI — install it with --mode skills (or auto).`);
+    // OpenCode also scans ~/.claude/skills and ~/.agents/skills: linking a third copy would list every skill twice.
+    const via = host === 'opencode' && ['claude', 'codex'].find((h) => state.hosts[h]?.mode === 'skills');
+    if (via) { say(`  opencode: already sees the skills in ${SKILL_DIRS[via]} — not linked again`); state.hosts[host] = { mode: 'shared', dir: SKILL_DIRS[via] }; return; }
+    linkSkills(host, state);
+    state.hosts[host] = { mode: 'skills', dir: SKILL_DIRS[host] };
+    return;
+  }
   const bin = which(host);
   const usePlugin = mode === 'plugin' || (mode === 'auto' && !!bin);
   if (mode === 'plugin' && !bin) throw new Error(`--mode plugin needs the "${host}" CLI on PATH.`);
@@ -129,12 +183,13 @@ function installHost(host, mode, state) {
 }
 
 function hostsFrom(arg, { forUninstall = false, state = null } = {}) {
-  if (arg === 'claude' || arg === 'codex') return [arg];
-  if (arg !== 'all' && arg !== 'auto') throw new Error('--host must be claude, codex or all');
+  const picked = String(arg).split(',').map((h) => h.trim()).filter(Boolean);
+  if (picked.length && picked.every((h) => HOSTS.includes(h))) return HOSTS.filter((h) => picked.includes(h));
+  if (arg !== 'all' && arg !== 'auto') throw new Error(`--host must be ${HOSTS.join(', ')}, a comma-separated list of them, or all`);
   if (forUninstall) return Object.keys(state?.hosts ?? {});
-  if (arg === 'all') return ['claude', 'codex'];
-  const found = ['claude', 'codex'].filter((h) => which(h));
-  return found.length ? found : ['claude', 'codex'];
+  if (arg === 'all') return HOSTS;
+  const found = HOSTS.filter((h) => detect[h]());
+  return found.length ? found : PLUGIN_HOSTS;
 }
 
 function install() {
@@ -159,8 +214,10 @@ function install() {
   if (!DRY) { fs.mkdirSync(S3_HOME, { recursive: true }); fs.writeFileSync(STATE, JSON.stringify(state, null, 2) + '\n'); }
   say(`\n✔ Maquettekit v${version} installed.`);
   for (const [h, i] of Object.entries(state.hosts)) {
-    say(`  ${h}: ${i.mode === 'plugin' ? `plugin ${PLUGIN}@${MARKETPLACE}` : `skills linked in ${i.dir}`}  →  invoke with ${h === 'claude' ? (i.mode === 'plugin' ? '/maquettekit:studio-product' : '/studio-product') : (i.mode === 'plugin' ? '$maquettekit:studio-product' : '$studio-product')}`);
+    const where = i.mode === 'plugin' ? `plugin ${PLUGIN}@${MARKETPLACE}` : i.mode === 'shared' ? `skills read from ${i.dir}` : `skills linked in ${i.dir}`;
+    say(`  ${h}: ${where}  →  invoke with ${INVOKE[h](i.mode === 'plugin')}`);
   }
+  if (state.hosts.opencode || state.hosts.antigravity) say('  Restart OpenCode / Antigravity (or start a new chat) so they pick up the new skills.');
   say(`  Tools: node "${path.join(TARGET, 'plugins', PLUGIN, 'tools', 'maquettekit.mjs')}" doctor`);
   say('  Optional tool dependencies (Playwright, glTF tooling): run the "setup" command of the same script.');
   if (flag('verify') && !DRY) {
@@ -182,9 +239,14 @@ function uninstall() {
     }
     delete state.hosts[host];
   }
+  const oc = state.hosts.opencode;
+  if (oc?.mode === 'shared' && !Object.values(state.hosts).some((i) => i.mode === 'skills' && i.dir === oc.dir)) {
+    say('  opencode was reading the skills removed above — run install --host opencode to give it its own copy.');
+    delete state.hosts.opencode;
+  }
   const keep = [];
   for (const l of state.links ?? []) {
-    const host = Object.entries(SKILL_DIRS).find(([, d]) => l.startsWith(d))?.[0];
+    const host = Object.entries(SKILL_DIRS).find(([, d]) => l.startsWith(d + path.sep))?.[0];
     if (host && state.hosts[host]) { keep.push(l); continue; }
     act(`remove link ${l}`);
     if (!DRY && fs.lstatSync(l, { throwIfNoEntry: false })?.isSymbolicLink()) fs.rmSync(l);

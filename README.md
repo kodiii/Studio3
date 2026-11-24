@@ -4,7 +4,8 @@
 
 **Design Intelligence. Motion Engineering. Digital Experiences.**
 
-A design, motion, interaction and 3D engineering plugin for **Claude Code** and **OpenAI Codex** —
+A design, motion, interaction and 3D engineering plugin for **Claude Code** and **OpenAI Codex**, also installable
+as Agent Skills in **OpenCode** and **Google Antigravity** —
 five design specialties on one shared engine, with tools that run real browsers and real asset pipelines.
 
 `v4.0.0` · MIT · no telemetry
@@ -60,7 +61,7 @@ Requirements: **Node.js ≥ 20.11** and git. Optional for browser tools: a Chrom
 ```bash
 brew install node            # or use nvm / fnm
 git clone https://github.com/kodiii/Studio3 maquettekit && cd maquettekit
-./install.sh                 # detects Claude Code / Codex and installs the plugin into each
+./install.sh                 # detects Claude Code / Codex / OpenCode / Antigravity and installs into each
 ```
 
 ### Linux
@@ -73,24 +74,44 @@ git clone https://github.com/kodiii/Studio3 maquettekit && cd maquettekit
 
 The installer copies the plugin payload to `~/.maquettekit/marketplace` (archiving any previous version to
 `~/.maquettekit/backups/`), registers it as a local marketplace and installs `maquettekit@maquettekit-marketplace` with each host
-CLI it finds. Options: `--host claude|codex|all`, `--mode plugin|skills`, `--dry-run`, `--force`, `--verify`.
+CLI it finds. OpenCode and Antigravity have no plugin CLI, so they get the 12 skills linked into their skills directory
+instead (see below). Options: `--host claude|codex|opencode|antigravity|all` (or a comma list such as
+`--host opencode,antigravity`), `--mode plugin|skills`, `--dry-run`, `--force`, `--verify`.
 Uninstall with `./uninstall.sh` (`--purge` also removes backups and tool dependencies). Status: `node scripts/install.mjs status`.
 
-### With your agent (Claude Code or Codex)
+### With your agent (Claude Code, Codex, OpenCode or Antigravity)
 
-Paste this into a Claude Code or Codex session and the agent installs Maquettekit itself:
+Paste this into a Claude Code, Codex, OpenCode or Antigravity session and the agent installs Maquettekit itself:
 
 ```text
 Install the Maquettekit plugin: clone https://github.com/kodiii/Studio3 into ~/maquettekit-src,
 read install.sh and scripts/install.mjs before running anything, then run
-./install.sh --verify and show me the output. Afterwards tell me how to load the skills
-in this session.
+./install.sh --verify and show me the output (add --host opencode or --host antigravity if
+you are one of those). Afterwards tell me how to load the skills in this session.
 ```
 
 `install.sh` detects which host CLIs are present, registers the plugin with each and runs `maquettekit doctor`.
 Plugins load when a session starts: restart the session (or run `/reload-plugins` in Claude Code). The skills then appear
-as `/maquettekit:studio-product` (Claude Code) and `$maquettekit:studio-product` (Codex). If the repository is private, the
-machine needs GitHub credentials that can read it.
+as `/maquettekit:studio-product` (Claude Code) and `$maquettekit:studio-product` (Codex). In OpenCode and Antigravity start a
+new session; the skills are plain `studio-product`, `studio-3d`, … (Antigravity: `/studio-product`). If the repository
+is private, the machine needs GitHub credentials that can read it.
+
+### OpenCode and Google Antigravity
+
+Both load [Agent Skills](https://agentskills.io) folders (`SKILL.md` + references) rather than plugins:
+
+| | OpenCode | Antigravity (IDE and `agy` CLI) |
+| - | - | - |
+| Install | `./install.sh --host opencode` | `./install.sh --host antigravity` |
+| Global skills dir | `~/.config/opencode/skills/` (`$XDG_CONFIG_HOME`) | `~/.gemini/config/skills/` |
+| Detected by | `opencode` on PATH or `~/.config/opencode/` | `agy`/`antigravity` on PATH or `~/.gemini/antigravity*/` |
+| Invoke | ask for the task, or "use the studio-product skill" | `/studio-product`, or describe the task |
+
+The installer links rendered copies of the skills in which `${CLAUDE_PLUGIN_ROOT}` is replaced by the absolute path of
+the installed payload, so every tool command and reference resolves without plugin-root substitution. OpenCode also
+reads `~/.claude/skills` and `~/.agents/skills`; when Claude Code or Codex were installed in skills mode the installer
+does not add a second copy for OpenCode. Per project, either host also reads `<project>/.agents/skills/`: copy
+`~/.maquettekit/marketplace/rendered-skills/*` there if you want the skills checked into one repository.
 
 ### Manually, with the host CLIs
 
@@ -206,7 +227,7 @@ is reported as unavailable rather than tested. Tests that cannot run in an envir
 | Packaging, both hosts | `npm run validate` | passed, 0 warnings — including `claude plugin validate` (Claude Code 2.1.330) for the plugin and the marketplace; Codex checked structurally (Codex ships no manifest validator) |
 | Types | `npm run typecheck` | library, tools and gallery clean |
 | Unit (Vitest) | `npm run test:unit` | **504 passed** in 11 files — tools (Design Intelligence, Visual Director, Experience Lab, asset pipeline, catalogue) and library (catalogue contract for every recipe and demo, motion engine, three-kit, StrictMode render + leak check for every non-WebGL recipe) |
-| Plugin (node:test) | `npm run test:plugin` | **15 passed, 1 skipped** — the skip is a live Codex install (no Codex CLI available); Codex command syntax is covered by a recording fake CLI. Includes a real Claude Code `plugin install`/`uninstall` and installing from the built release archive |
+| Plugin (node:test) | `npm run test:plugin` | **17 passed, 1 skipped** — the skip is a live Codex install (no Codex CLI available); Codex command syntax is covered by a recording fake CLI. Includes a real Claude Code `plugin install`/`uninstall`, OpenCode/Antigravity skill installs in an isolated HOME, and installing from the built release archive |
 | Production build | `npm run build` | 81 static pages |
 | Browser (Playwright) | `npm run test:e2e` | **311 passed, 0 flaky** — every recipe (mount, 3× remount cleanup, axe in light and dark, reduced motion, 390 px), every demo (axe light/dark, keyboard focus, reduced motion + 390 px, no-WebGL fallback for 3D), gallery behaviour, 3D initialisation/loading/missing-asset/controls/GPU disposal, shader animation, visual regression |
 
@@ -227,7 +248,8 @@ Dogfooding the tools on the production gallery (5 routes × desktop/tablet/mobil
   size, zoom; flashing needs an agent answer). Recommendations it raised that were acted on: a real 404 page, hover
   states on header and catalogue controls, a 24 px+ brand link.
 
-Not run here: Firefox and WebKit (the suite targets Chromium), real-GPU performance, a live Codex install, and the
+Not run here: Firefox and WebKit (the suite targets Chromium), real-GPU performance, a live Codex, OpenCode or
+Antigravity session, and the
 macOS CI job (defined in `.github/workflows/ci.yml`).
 
 ## Security and privacy
@@ -244,6 +266,9 @@ macOS CI job (defined in `.github/workflows/ci.yml`).
 
 - Codex support was implemented from the Codex CLI source because the official OpenAI plugin documentation was not
   reachable while building; the Codex install path is tested against a recording fake CLI, not a live Codex.
+- OpenCode and Antigravity skill directories come from the `vercel-labs/skills` agent table (November 2026), because
+  opencode.ai and antigravity.google were unreachable from the build environment. The installer is tested in an isolated
+  HOME (files land where each host looks); loading them in a live OpenCode or Antigravity session was not tested.
 - Frame-time figures from headless software rendering describe the CI machine, not user devices.
 - KTX2 encoding and Blender import depend on external CLIs and were not exercised in the build environment.
 - Experience Lab scores are transparent heuristics, not user research.

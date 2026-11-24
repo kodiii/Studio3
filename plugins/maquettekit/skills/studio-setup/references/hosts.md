@@ -1,4 +1,4 @@
-# Hosts: Claude Code and Codex
+# Hosts: Claude Code, Codex, OpenCode and Antigravity
 
 Maquettekit ships one plugin directory (`plugins/maquettekit/`) with a manifest per host and a marketplace file per host
 at the repository root. The two hosts do not share manifest formats or command syntax.
@@ -21,13 +21,32 @@ The Codex column was derived from the Codex source (plugin loader, marketplace p
 official documentation site was unreachable when this was written; see `docs/SOURCE-RESEARCH.md`. If a Codex
 command differs in the installed version, trust `codex plugin --help`.
 
+## OpenCode and Google Antigravity (Agent Skills hosts)
+
+Neither has a plugin CLI; both load Agent Skills folders. The installer renders the skills (replacing
+`${CLAUDE_PLUGIN_ROOT}` with the absolute payload path, since neither substitutes it) into
+`~/.maquettekit/marketplace/rendered-skills/` and symlinks each one into the host's directory.
+
+| | OpenCode | Antigravity (IDE, Antigravity 2.0, `agy` CLI) |
+| - | - | - |
+| Install | `./install.sh --host opencode` | `./install.sh --host antigravity` |
+| Global skills | `$XDG_CONFIG_HOME/opencode/skills/` (default `~/.config/opencode/skills/`) | `~/.gemini/config/skills/` |
+| Also reads | `~/.claude/skills/`, `~/.agents/skills/` | — (legacy `~/.gemini/antigravity/skills/` in older builds) |
+| Workspace skills | `.opencode/skills/`, `.agents/skills/`, `.claude/skills/` | `.agents/skills/` (legacy `.agent/skills/`) |
+| Invoke | the agent loads a skill on demand; ask for the task or name the skill | `/studio-product`, or describe the task |
+| Pick-up | start a new session | start a new conversation / reload the window |
+
+When Claude Code or Codex are installed in skills mode, OpenCode already sees those links, so the installer records
+OpenCode as `shared` instead of adding a duplicate. Paths follow the `vercel-labs/skills` agent table (Nov 2026); if a
+host reports no skills, check its docs for the current directory and pass the skills there by hand.
+
 ## Local installer
 
 From a checkout or release archive:
 
 ```bash
 ./install.sh                 # detects installed host CLIs, plugin mode
-./install.sh --host codex    # one host
+./install.sh --host codex    # one host (claude, codex, opencode, antigravity, or a comma list)
 ./install.sh --mode skills   # link the 12 skills into the host skills directory (no plugin CLI needed)
 ./install.sh --dry-run       # print every action without doing it
 ./uninstall.sh               # remove what the installer recorded; add --purge to drop backups and deps
@@ -40,7 +59,8 @@ then records the result in `~/.maquettekit/install.json`. Running it again with 
 it refuses to downgrade without `--force`.
 
 In **skills mode** the skills are invoked without the plugin prefix (`/studio-product`, `$studio-product`) and
-tools are reached through `~/.maquettekit/marketplace/plugins/maquettekit/tools/maquettekit.mjs`.
+tools are reached through `~/.maquettekit/marketplace/plugins/maquettekit/tools/maquettekit.mjs` (already written into the
+rendered skills).
 
 ## Versions and updates
 

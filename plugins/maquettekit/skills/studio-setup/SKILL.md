@@ -1,6 +1,6 @@
 ---
 name: studio-setup
-description: Install, verify, upgrade or troubleshoot Maquettekit itself — run the doctor, install optional tool dependencies (Playwright, glTF tooling), check the Claude Code or Codex plugin install, explain invocation syntax, or diagnose "command not found / missing dependency / browser will not launch / WebGL unavailable" errors from any Maquettekit tool. Use when the user asks to set up Maquettekit, when another studio skill reports a missing dependency, or before the first review or asset run in a new environment. Not for designing or building anything — use the specialty skills for that.
+description: Install, verify, upgrade or troubleshoot Maquettekit itself — run the doctor, install optional tool dependencies (Playwright, glTF tooling), check the Claude Code, Codex, OpenCode or Antigravity install, explain invocation syntax, or diagnose "command not found / missing dependency / browser will not launch / WebGL unavailable" errors from any Maquettekit tool. Use when the user asks to set up Maquettekit, when another studio skill reports a missing dependency, or before the first review or asset run in a new environment. Not for designing or building anything — use the specialty skills for that.
 argument-hint: "[doctor | deps | upgrade | uninstall]"
 license: MIT
 metadata:
@@ -16,7 +16,7 @@ Get the toolchain into a verified state and report exactly what works, what is m
 
 - First use of Maquettekit in an environment, or after an upgrade.
 - A Maquettekit command exits with code `3` (missing dependency/browser) or `4` (component unavailable).
-- The user asks how to install, upgrade, uninstall or invoke Maquettekit on Claude Code or Codex.
+- The user asks how to install, upgrade, uninstall or invoke Maquettekit on Claude Code, Codex, OpenCode or Antigravity.
 
 Do not use it to "fix" a project's own build — that belongs to the specialty skill doing the work.
 
@@ -47,7 +47,8 @@ it at `~/.maquettekit/marketplace/plugins/maquettekit/tools/maquettekit.mjs`. Be
    WebGL through a software renderer is enough for 3D diagnostics but its timings are not device timings;
    WebGPU is commonly unavailable in headless Chromium and is reported as such, not as a failure.
 5. **Check the host install** when asked (see `references/hosts.md`): Claude Code `claude plugin list` /
-   `claude plugin details maquettekit`; Codex `codex plugin list`. Report the invocation syntax for the host.
+   `claude plugin details maquettekit`; Codex `codex plugin list`; OpenCode / Antigravity `node scripts/install.mjs status`
+   (skills in `~/.config/opencode/skills` / `~/.gemini/config/skills`). Report the invocation syntax for the host.
 6. **Report**: version, what is ready, what is unavailable and the consequence (which checks will be skipped),
    the exact commands run. Never state that a module works unless its doctor checks are `ok`.
 
@@ -63,7 +64,7 @@ it at `~/.maquettekit/marketplace/plugins/maquettekit/tools/maquettekit.mjs`. Be
 
 | File | Load when |
 | - | - |
-| `references/hosts.md` | Installing, upgrading, uninstalling or invoking on Claude Code / Codex; layout of each host's plugin format |
+| `references/hosts.md` | Installing, upgrading, uninstalling or invoking on Claude Code / Codex / OpenCode / Antigravity; layout of each host's plugin format |
 | `references/troubleshooting.md` | Any doctor `fail`/`warn`, exit code 3/4, browser or WebGL problems, macOS/Linux specifics |
 | `${CLAUDE_PLUGIN_ROOT}/shared/tooling.md` | Command map, dependency resolution order, exit codes |
 

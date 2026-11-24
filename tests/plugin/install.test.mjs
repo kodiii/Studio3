@@ -23,6 +23,7 @@ function sandbox({ fakeClis = [] } = {}) {
   // PATH: fake CLIs + node only — real host CLIs are deliberately invisible.
   const env = { ...process.env, HOME: home, MAQUETTEKIT_HOME: path.join(home, '.maquettekit'), PATH: `${bin}:${path.dirname(process.execPath)}:/usr/bin:/bin`, CLAUDE_CONFIG_DIR: '' };
   delete env.CLAUDE_CONFIG_DIR;
+  delete env.XDG_CONFIG_HOME;
   const run = (...args) => spawnSync(process.execPath, [INSTALL, ...args], { encoding: 'utf8', env });
   return { home, log, run, s3: path.join(home, '.maquettekit'), cleanup: () => fs.rmSync(home, { recursive: true, force: true }) };
 }
@@ -32,7 +33,7 @@ test('skills mode: install links every skill, tools run from the payload, uninst
   try {
     const r = sb.run('install', '--host', 'all', '--mode', 'skills');
     assert.equal(r.status, 0, r.stdout + r.stderr);
-    for (const dir of [path.join(sb.home, '.claude', 'skills'), path.join(sb.home, '.agents', 'skills')]) {
+    for (const dir of [path.join(sb.home, '.claude', 'skills'), path.join(sb.home, '.agents', 'skills'), path.join(sb.home, '.gemini', 'config', 'skills')]) {
       const skills = fs.readdirSync(dir);
       assert.equal(skills.length, SKILLS.length, `${dir} has ${SKILLS.length} skills`);
       for (const s of skills) {
@@ -50,7 +51,12 @@ test('skills mode: install links every skill, tools run from the payload, uninst
     const state = JSON.parse(fs.readFileSync(path.join(sb.s3, 'install.json'), 'utf8'));
     assert.equal(state.version, VERSION);
     assert.equal(state.hosts.claude.mode, 'skills');
-    assert.equal(state.links.length, SKILLS.length * 2);
+    assert.equal(state.links.length, SKILLS.length * 3, 'claude, codex and antigravity linked; opencode reuses them');
+    assert.equal(state.hosts.opencode.mode, 'shared');
+    assert.equal(state.hosts.antigravity.mode, 'skills');
+    const agSkill = fs.readFileSync(path.join(sb.home, '.gemini', 'config', 'skills', 'studio-setup', 'SKILL.md'), 'utf8');
+    assert.ok(!agSkill.includes('${CLAUDE_PLUGIN_ROOT}'), 'plugin-root variable rendered for hosts that do not substitute it');
+    assert.ok(agSkill.includes(`${payload}/tools/maquettekit.mjs`), 'skills point at the installed tools');
 
     const st = sb.run('status', '--json');
     assert.equal(JSON.parse(st.stdout).installed, true);
@@ -60,6 +66,54 @@ test('skills mode: install links every skill, tools run from the payload, uninst
     assert.equal(fs.readdirSync(path.join(sb.home, '.claude', 'skills')).length, 0);
     assert.ok(!fs.existsSync(path.join(sb.s3, 'marketplace')));
     assert.ok(!fs.existsSync(path.join(sb.s3, 'install.json')));
+  } finally { sb.cleanup(); }
+});
+
+test('OpenCode and Antigravity: skills-only hosts, own directories, auto-detected, cleanly removed', () => {
+  const sb = sandbox();
+  try {
+    const plugin = sb.run('install', '--host', 'opencode', '--mode', 'plugin');
+    assert.equal(plugin.status, 1);
+    assert.match(plugin.stderr, /opencode has no plugin CLI/);
+
+    const oc = path.join(sb.home, '.config', 'opencode', 'skills');
+    const ag = path.join(sb.home, '.gemini', 'config', 'skills');
+    const r = sb.run('install', '--host', 'opencode,antigravity');
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    for (const dir of [oc, ag]) {
+      assert.deepEqual(fs.readdirSync(dir).sort(), [...SKILLS].sort(), dir);
+      const md = fs.readFileSync(path.join(dir, 'studio-product', 'SKILL.md'), 'utf8');
+      assert.match(md, /^---\nname: studio-product\n/, 'Agent Skills frontmatter intact');
+    }
+    assert.ok(!fs.existsSync(path.join(sb.home, '.claude')) && !fs.existsSync(path.join(sb.home, '.agents')), 'other hosts untouched');
+    assert.match(r.stdout, /antigravity: skills linked in .*→  invoke with \/studio-product/);
+
+    assert.equal(sb.run('uninstall', '--host', 'antigravity').status, 0);
+    assert.equal(fs.readdirSync(ag).length, 0);
+    assert.equal(fs.readdirSync(oc).length, SKILLS.length, 'opencode kept');
+    assert.equal(sb.run('uninstall').status, 0);
+    assert.equal(fs.readdirSync(oc).length, 0);
+    assert.ok(!fs.existsSync(path.join(sb.s3, 'marketplace')));
+
+    // auto mode picks up hosts from their config directories
+    fs.mkdirSync(path.join(sb.home, '.gemini', 'antigravity'), { recursive: true });
+    fs.mkdirSync(path.join(sb.home, '.config', 'opencode'), { recursive: true });
+    const auto = sb.run('install');
+    assert.equal(auto.status, 0, auto.stdout + auto.stderr);
+    const st = JSON.parse(fs.readFileSync(path.join(sb.s3, 'install.json'), 'utf8'));
+    // (a real claude/codex CLI next to node on PATH may be detected too — only the two new hosts are asserted)
+    assert.ok(st.hosts.antigravity && st.hosts.opencode, JSON.stringify(st.hosts));
+  } finally { sb.cleanup(); }
+});
+
+test('uninstalling the host OpenCode shares with leaves no dangling record', () => {
+  const sb = sandbox();
+  try {
+    assert.equal(sb.run('install', '--host', 'codex,opencode', '--mode', 'skills').status, 0);
+    const u = sb.run('uninstall', '--host', 'codex');
+    assert.equal(u.status, 0, u.stdout + u.stderr);
+    assert.match(u.stdout, /install --host opencode/);
+    assert.ok(!fs.existsSync(path.join(sb.s3, 'install.json')), 'nothing left installed');
   } finally { sb.cleanup(); }
 });
 
