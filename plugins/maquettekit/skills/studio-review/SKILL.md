@@ -49,6 +49,9 @@ and Chromium: if it exits with code 3, hand over to `studio-setup`.
 5. **Assess visually (subjective, labelled).** Fill Part B of `report.md` (composition, typography, hierarchy,
    spacing, originality, motion purpose — 1–5 with evidence screenshots) using the rubric in
    `${CLAUDE_PLUGIN_ROOT}/shared/design-principles.md`. How to look: `references/visual-assessment.md`.
+   In Claude Code, also hand the pass folder to the `maquettekit:design-critic` agent (read-only) with one sentence
+   on the product: it scores the screenshots without the code or your reasoning, so its critique is not anchored on
+   what you meant to build. Put its scores next to yours, labelled, and act on its top three changes.
 6. **Improve.** `maquettekit review loop-status --out .maquettekit/review` gives the prioritised fix list (critical first,
    then major). Apply localised fixes only — no unrelated refactors, no redesigns hiding inside a fix. Record each
    change in `.maquettekit/review/changes.json` (`[{ "pass": 1, "file": "...", "change": "...", "issueIds": ["..."] }]`).

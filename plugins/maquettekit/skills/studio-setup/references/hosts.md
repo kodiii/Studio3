@@ -56,6 +56,16 @@ loading one (see `evals/README.md`). Two mechanisms make the choice explicit:
   `~/.claude/CLAUDE.md` when installed in skills mode. The block sits between `maquettekit:routing-rules` markers; the
   rest of the file is never changed, and uninstall removes the block (and the file, if the installer created it).
 
+## Claude Code extras: design critic and review gate
+
+- `agents/design-critic.md` — a read-only subagent (`Read`, `Glob`, `Grep`) that scores review screenshots against the
+  rubric without the builder's context and returns the three highest-impact changes and a verdict. `studio-review`
+  uses it after the measured pass.
+- `hooks/review-gate.mjs` — an opt-in `Stop` hook. With `MAQUETTEKIT_REVIEW_GATE=1` (critical) or `=major`, the agent
+  cannot end its turn while the latest `.maquettekit/check/check.json` still lists such items; it is told to fix them
+  and re-run `maquettekit check`, or to explain to the user what remains. It never blocks twice in a row, after the
+  three-pass review budget, or on results older than `MAQUETTEKIT_REVIEW_GATE_MAX_AGE_HOURS` (default 12).
+
 ## MCP server
 
 `maquettekit mcp` serves the same tools over MCP (stdio). Claude Code (plugin mode) starts it from the plugin's

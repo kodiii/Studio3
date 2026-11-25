@@ -1,10 +1,25 @@
 {
-  "description": "Maquettekit routing hints: when a prompt looks like front-end design work, name the skill to load (once per skill per session; off with MAQUETTEKIT_ROUTING_HINTS=0).",
+  "description": "Maquettekit hooks: routing hints when a prompt is front-end design work (off with MAQUETTEKIT_ROUTING_HINTS=0), and an opt-in review gate that keeps the agent working while the latest check lists critical items (on with MAQUETTEKIT_REVIEW_GATE=1 or major).",
   "hooks": {
     "UserPromptSubmit": [
       {
         "hooks": [
-          { "type": "command", "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/route-hint.mjs\"", "timeout": 5 }
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/route-hint.mjs\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/review-gate.mjs\"",
+            "timeout": 5
+          }
         ]
       }
     ]
