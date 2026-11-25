@@ -3,6 +3,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { EFFECT_CATEGORIES, SPECIALTIES } from '../../../plugins/maquettekit/library/src/types';
+import { demoMetas, effectMetas } from '../../../plugins/maquettekit/library/src/meta';
+import { demos, effects } from '../../../plugins/maquettekit/library/src/registry';
+import { effectLoaders } from '../../../plugins/maquettekit/library/src/effect-loaders';
+import { demoLoaders } from '../../../plugins/maquettekit/library/src/demo-loaders';
 
 const LIB = path.resolve('plugins/maquettekit/library');
 const catalog = JSON.parse(fs.readFileSync(path.join(LIB, 'catalog.json'), 'utf8')) as {
@@ -51,6 +55,33 @@ describe('catalogue', () => {
   it('is up to date with the source folders', () => {
     const folders = fs.readdirSync(path.join(LIB, 'src/effects')).filter((d) => fs.statSync(path.join(LIB, 'src/effects', d)).isDirectory());
     expect(folders.sort()).toEqual(catalog.effects.map((e) => e.id).sort());
+  });
+  it('meta, loaders and registry list the same items in the same order', () => {
+    expect(effectMetas.map((m) => m.id)).toEqual(catalog.effects.map((e) => e.id));
+    effectMetas.forEach((m, i) => expect(m).toBe(effects[i].meta));
+    demoMetas.forEach((m, i) => expect(m).toBe(demos[i].meta));
+    expect(demoMetas).toHaveLength(demos.length);
+    expect(Object.keys(effectLoaders)).toEqual(effectMetas.map((m) => m.id));
+    expect(Object.keys(demoLoaders)).toEqual(demoMetas.map((m) => `${m.specialty}/${m.id}`));
+  });
+  it('the metadata module imports no components, so React Server Components can use it', () => {
+    // On the server every import() of a 'use client' recipe becomes a client reference: a page importing a module
+    // with those imports ships every recipe and demo in its first load (3 MB on the gallery before this guard).
+    for (const f of ['meta.ts', 'meta.generated.ts']) {
+      const src = fs.readFileSync(path.join(LIB, 'src', f), 'utf8');
+      expect(src, f).not.toMatch(/\bimport\(/);
+      for (const m of src.matchAll(/from\s+['"]([^'"]+)['"]/g)) expect(m[1], `${f} imports ${m[1]}`).toMatch(/^\.\/(types|meta\.generated|effects\/[\w-]+\/meta|demos\/[\w-]+\/[\w-]+\/meta)$/);
+    }
+  });
+  it('gallery server code reads ./meta, never the registry or the loaders', () => {
+    const files: string[] = [];
+    const walk = (d: string) => { for (const e of fs.readdirSync(d, { withFileTypes: true })) { const p = path.join(d, e.name); if (e.isDirectory()) walk(p); else if (/\.tsx?$/.test(e.name)) files.push(p); } };
+    walk(path.resolve('apps/gallery/src'));
+    const offenders = files.filter((f) => {
+      const src = fs.readFileSync(f, 'utf8');
+      return !/^['"]use client['"]/.test(src.trimStart()) && /@maquettekit\/library\/(registry|effect-loaders|demo-loaders)['"]/.test(src);
+    });
+    expect(offenders.map((f) => path.relative(process.cwd(), f))).toEqual([]);
   });
 });
 

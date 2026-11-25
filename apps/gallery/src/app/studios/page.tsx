@@ -1,4 +1,4 @@
-import { demos, effects } from '@maquettekit/library/registry';
+import { demoMetasFor, effectMetasFor } from '@maquettekit/library/meta';
 import Link from 'next/link';
 import { Shell } from '@/components/SiteHeader';
 import { SPECIALTIES, pageMeta } from '@/lib/site';
@@ -15,8 +15,8 @@ export default function StudiosPage() {
         </header>
         <ol>
           {SPECIALTIES.map((s, i) => {
-            const d = demos.filter((x) => x.meta.specialty === s.id).length;
-            const e = effects.filter((x) => x.meta.specialties.includes(s.id)).length;
+            const d = demoMetasFor(s.id).length;
+            const e = effectMetasFor(s.id).length;
             return (
               <li key={s.id} data-specialty={s.id} className="group relative grid gap-4 border-b border-line py-10 md:grid-cols-[96px_1fr_auto] md:items-end">
                 <span className="font-mono text-sm text-accent">{String(i + 1).padStart(2, '0')}</span>

@@ -1,4 +1,4 @@
-import { SPECIALTIES, type Specialty } from '@maquettekit/library/types';
+import { SPECIALTIES, type EffectMeta, type Specialty } from '@maquettekit/library/types';
 
 export { SPECIALTIES };
 
@@ -26,6 +26,13 @@ export function pageMeta({ title, description, path }: { title?: string; descrip
 
 /** Public source repository (also used for the GitHub links in the header, footer and home page). */
 export const REPO_URL = 'https://github.com/kodiii/Studio3';
+/** The part of a recipe's metadata an <EffectStage> reads. */
+export type StageMeta = Pick<EffectMeta, 'id' | 'params' | 'preview'>;
+/** From a server component, pass only this to <EffectStage>, so the page's RSC payload stays small. */
+export const stageMeta = ({ id, params, preview }: EffectMeta): StageMeta => ({ id, params, preview });
+
+/** Skills shipped in plugins/maquettekit/skills (kept in step by tests/plugin/packaging.test.mjs). */
+export const SKILL_COUNT = 14;
 export const specialtyIndex = (id: Specialty): string => String(SPECIALTIES.findIndex((s) => s.id === id) + 1).padStart(2, '0');
 
 export const MODULES = [

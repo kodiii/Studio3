@@ -15,7 +15,13 @@
 | `favicon` | missing | Tabs, bookmarks, history; `apple-touch-icon` (minor) for home screens |
 | `robots-txt` | `Disallow: /` for everyone | Blocks all crawling; a missing robots.txt and sitemap are minor |
 | `not-found` | a missing URL answers 200 | "Soft 404s" get indexed and users cannot tell a broken link from a page |
-| `page-weight` | — (minor) | Uncompressed bytes the first view references (HTML, CSS, scripts, eager images) over `--budget-kb` |
+| `page-weight` | — (minor) | Uncompressed bytes the first view references (HTML, CSS, scripts, eager images) over `--budget-kb`, and more than 500 KB of JavaScript; `nomodule` polyfills are not counted (current browsers skip them) |
+
+When every route carries the same large script set, look for code that no first view needs: in Next.js App Router, a
+server component importing a module whose `import()` calls point at client components ships all of them on every page
+(see `shared/performance.md` §4). Know the framework's own share before splitting further: on Next.js 16 with React 19
+it was about 450 KB of every route's first load in this plugin's gallery (measured, uncompressed), so a route close to
+that figure has little left to split.
 
 It fetches only the target's own origin. An `og:image` on the production domain is listed as "not checked here" —
 check it once after deploying. Link previews are fetched by crawlers that **do not run JavaScript**: metadata must be

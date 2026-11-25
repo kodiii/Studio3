@@ -51,6 +51,10 @@ semantic versioning. Plugin manifests (Claude Code and Codex) always carry the s
 - Quick cards at the top of the 31 reference files over 1,500 words, so small-context models can stop at the essentials.
 - Gallery: per-page canonical URLs and link-preview text, favicon, apple icon, a generated share image, `robots.txt` and
   a sitemap (found with the new launch check).
+- Library entry points `@maquettekit/library/meta` (catalogue metadata without components — the one to use in React
+  Server Components), `effect-loaders` and `demo-loaders` (lazy component imports by id, without metadata), generated
+  with the registry. `docs/LIBRARY-CONTRACT.md` says which to import where; the contract test enforces it for the
+  gallery and a browser test holds first-load JavaScript under 600 KB on nine routes, one of each kind of page.
 
 ### Changed
 - Eval LLM graders check one criterion each and read the file the agent wrote rather than the transcript; multi-part
@@ -60,6 +64,18 @@ semantic versioning. Plugin manifests (Claude Code and Codex) always carry the s
   routing went from 39/45 to 45/45 and skill loads on build/judgement cases from 0/14 to 12/14 (default model).
 
 ### Fixed
+- **Gallery page weight: every page shipped every recipe and demo.** Server pages imported the registry for metadata;
+  on the server each of its `import()` calls to a `'use client'` recipe became a client reference, so the first load
+  of every page carried all 69 recipes and demos with three.js, GSAP and D3 — 2.7–2.9 MB of JavaScript on every route
+  that read the registry (1.7 MB on /3d, which imported three.js directly). Server pages now read
+  `@maquettekit/library/meta`, recipe stages load one recipe from the loader maps, the 3D gallery is a server
+  component whose viewer loads after hydration, and the demo frame no longer pulls in the site header for its
+  wordmark. First-load JavaScript is now 467–503 KB per route (140–151 KB gzip), about 450 KB of it the framework;
+  whole first views are 544–759 KB, against 1.8–3.6 MB before. (All figures uncompressed unless marked, measured with
+  `maquettekit launch` on the production build, without the nomodule polyfills below.)
+- `maquettekit launch` counted `nomodule` scripts as page weight. Browsers with ES-module support (all current ones)
+  neither download nor run them; on Next.js that inflated every route by its 110 KB polyfill bundle.
+- The gallery home page said 12 agent skills; there are 14 (now a constant a packaging test keeps in step).
 - `review run` no longer leaks its static server when Chromium cannot launch.
 - Long source-path headings in the gallery wrap instead of widening the page at 390 px.
 - WebGL previews in the effect catalogue never started: the card's full-size link covered the preview, so its hover

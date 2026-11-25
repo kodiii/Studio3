@@ -22,8 +22,8 @@ Checks each route over HTTP (no browser): <title> and meta description (present,
 between routes), <html lang>, viewport, canonical, one <h1>, Open Graph (og:title, og:description, og:image reachable
 and at least 1200×630) and twitter:card, favicon and apple-touch icon, robots meta (noindex), robots.txt (blocks
 everything?) and sitemap, a missing page answering 404 (not a "soft 404"), and page weight against --budget-kb (HTML +
-same-origin CSS, JS and images it references). Use the production build. Exit codes: 0 no major findings, 1 major
-findings, 2 usage error.`;
+same-origin CSS, JS and images it references; nomodule polyfills, which current browsers skip, are not counted). Use
+the production build. Exit codes: 0 no major findings, 1 major findings, 2 usage error.`;
 
 const SEV = { major: 0, minor: 1, info: 2 };
 
@@ -61,7 +61,8 @@ export function parseHtml(html) {
   return {
     title, lang: attr(htmlTag, 'lang'), meta, links,
     h1: (html.match(/<h1\b/gi) ?? []).length,
-    scripts: tags('script').map((t) => attr(t, 'src')).filter(Boolean),
+    // `nomodule` scripts are legacy polyfills that browsers with ES-module support neither download nor run
+    scripts: tags('script').filter((t) => !/\snomodule(?=[\s=>/])/i.test(t)).map((t) => attr(t, 'src')).filter(Boolean),
     stylesheets: links.filter((l) => l.rel.split(/\s+/).includes('stylesheet')).map((l) => l.href).filter(Boolean),
     images: tags('img').filter((t) => !/\bloading\s*=\s*["']?lazy/i.test(t)).map((t) => attr(t, 'src')).filter((s) => s && !s.startsWith('data:')),
   };

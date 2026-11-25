@@ -1,4 +1,4 @@
-import { demos, effects } from '@maquettekit/library/registry';
+import { demoMetasFor, effectMetasFor } from '@maquettekit/library/meta';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { DemoList } from '@/components/DemoList';
@@ -18,8 +18,8 @@ export default async function StudioPage({ params }: { params: Promise<{ special
   const { specialty } = await params;
   const s = SPECIALTIES.find((x) => x.id === specialty);
   if (!s) notFound();
-  const list = demos.filter((d) => d.meta.specialty === s.id).map((d) => d.meta);
-  const metas = effects.map((e) => e.meta).filter((m) => m.specialties.includes(s.id));
+  const list = demoMetasFor(s.id);
+  const metas = effectMetasFor(s.id);
   return (
     <Shell>
       <div data-specialty={s.id} className="mx-auto max-w-[1400px] px-4 sm:px-6">

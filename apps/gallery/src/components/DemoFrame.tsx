@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { CodeViewer } from './CodeViewer';
 import { DemoStage } from './DemoStage';
 import { useSettings } from './Providers';
-import { Wordmark } from './SiteHeader';
+import { Wordmark } from './Wordmark';
 
 const WIDTHS = [{ id: 'full', label: 'Full', w: null }, { id: 'tablet', label: '820', w: 820 }, { id: 'mobile', label: '390', w: 390 }] as const;
 

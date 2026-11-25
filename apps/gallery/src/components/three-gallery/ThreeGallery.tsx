@@ -1,11 +1,11 @@
-'use client';
-import { demosFor } from '@maquettekit/library/registry';
+import { demoMetasFor } from '@maquettekit/library/meta';
 import Link from 'next/link';
-import { ModelViewer } from './ModelViewer';
+import { LazyModelViewer } from './LazyModelViewer';
 import './three-gallery.css';
 
+// A server component: only the viewer is client code, and it loads after hydration (see LazyModelViewer).
 export function ThreeGallery() {
-  const demos = demosFor('3d');
+  const demos = demoMetasFor('3d');
   return (
     <div data-specialty="3d" className="min-h-dvh bg-bg text-ink">
       <div className="mx-auto max-w-[1320px] px-4 pb-24 sm:px-8">
@@ -25,7 +25,7 @@ export function ThreeGallery() {
             <h2 id="viewer-heading" className="font-display text-2xl font-bold tracking-[-0.02em]">Model viewer</h2>
             <span className="mk-label text-muted">GLB · meshopt · render on demand</span>
           </div>
-          <ModelViewer />
+          <LazyModelViewer />
         </section>
 
         <section aria-labelledby="demos-heading" className="mt-20 border-t border-line-strong pt-6">
@@ -35,11 +35,11 @@ export function ThreeGallery() {
           </div>
           <ol className="m-0 grid list-none gap-px border border-line bg-line p-0 sm:grid-cols-2 lg:grid-cols-3">
             {demos.map((d, i) => (
-              <li key={d.meta.id} className="bg-bg">
-                <Link href={`/demos/3d/${d.meta.id}`} className="group flex h-full min-h-48 flex-col gap-3 p-5 transition-colors duration-150 hover:bg-surface">
-                  <span className="mk-label flex justify-between text-muted"><span>{String(i + 1).padStart(2, '0')}</span><span>{d.meta.technology.slice(0, 3).join(' · ')}</span></span>
-                  <span className="font-display text-[1.6rem] font-bold leading-[1.02] tracking-[-0.03em]">{d.meta.name}</span>
-                  <span className="text-[14px] leading-snug text-muted">{d.meta.summary}</span>
+              <li key={d.id} className="bg-bg">
+                <Link href={`/demos/3d/${d.id}`} className="group flex h-full min-h-48 flex-col gap-3 p-5 transition-colors duration-150 hover:bg-surface">
+                  <span className="mk-label flex justify-between text-muted"><span>{String(i + 1).padStart(2, '0')}</span><span>{d.technology.slice(0, 3).join(' · ')}</span></span>
+                  <span className="font-display text-[1.6rem] font-bold leading-[1.02] tracking-[-0.03em]">{d.name}</span>
+                  <span className="text-[14px] leading-snug text-muted">{d.summary}</span>
                   <span className="mk-label mt-auto text-accent">Open demo <span aria-hidden="true" className="inline-block transition-transform duration-150 group-hover:translate-x-1">→</span></span>
                 </Link>
               </li>

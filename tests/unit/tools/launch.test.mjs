@@ -49,6 +49,9 @@ describe('helpers', () => {
     expect(p.meta('og:image')).toBe('/og.png');
     expect(p.h1).toBe(1);
     expect(p.scripts).toEqual(['/app.js']);
+    // legacy polyfills that modern browsers skip are not page weight; a file merely named "nomodule" still counts
+    const legacy = parseHtml('<script src="/polyfills.js" noModule=""></script><script nomodule src="/p2.js"></script><script src="/nomodule.js"></script><script type="module" src="/m.js"></script>');
+    expect(legacy.scripts).toEqual(['/nomodule.js', '/m.js']);
     expect(p.stylesheets).toEqual(['/app.css']);
   });
 });

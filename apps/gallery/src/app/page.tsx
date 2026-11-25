@@ -1,23 +1,23 @@
-import { demos, effects } from '@maquettekit/library/registry';
+import { demoMetas, effectMetas, getEffectMeta } from '@maquettekit/library/meta';
 import Link from 'next/link';
 import { EffectStage } from '@/components/EffectStage';
 import { Shell } from '@/components/SiteHeader';
-import { MODULES, REPO_URL, SPECIALTIES, pageMeta } from '@/lib/site';
+import { MODULES, REPO_URL, SKILL_COUNT, SPECIALTIES, pageMeta, stageMeta } from '@/lib/site';
 
 export const metadata = pageMeta({ path: '/' });
 
-const pick = (ids: string[]): string | null => ids.find((id) => effects.some((e) => e.meta.id === id)) ?? effects[0]?.meta.id ?? null;
+const pick = (ids: string[]): string | null => ids.find((id) => effectMetas.some((m) => m.id === id)) ?? effectMetas[0]?.id ?? null;
 
 export default function Home() {
   const featured = pick(['variable-weight-wave', 'split-line-reveal']);
   const trio = ['line-chart-morph', 'tilt-parallax-card', 'reaction-burst', 'svg-path-draw', 'magnetic-button', 'flip-grid-reorder']
-    .filter((id) => effects.some((e) => e.meta.id === id)).slice(0, 3);
-  const categories = new Set(effects.map((e) => e.meta.category)).size;
+    .filter((id) => effectMetas.some((m) => m.id === id)).slice(0, 3);
+  const categories = new Set(effectMetas.map((m) => m.category)).size;
   const stats: [string, string][] = [
     [String(SPECIALTIES.length).padStart(2, '0'), 'design specialties'],
-    [String(effects.length), 'effect recipes'],
-    [String(demos.length), 'working demos'],
-    ['12', 'agent skills'],
+    [String(effectMetas.length), 'effect recipes'],
+    [String(demoMetas.length), 'working demos'],
+    [String(SKILL_COUNT), 'agent skills'],
   ];
   return (
     <Shell>
@@ -33,7 +33,7 @@ export default function Home() {
             <p className="font-serif text-[clamp(1.6rem,2.6vw,2.4rem)] italic leading-[1.1]">Design intelligence. Motion engineering. Digital experiences.</p>
             <p className="max-w-md text-sm leading-relaxed text-muted">Five specialties share one motion engine, one browser-based reviewer and one component library. This gallery runs that library’s actual source: change a parameter, shrink the viewport, turn motion off, read the code.</p>
             <div className="flex flex-wrap gap-2">
-              <Link href="/effects" className="mk-label rounded-full bg-ink px-5 py-3 text-bg transition-transform duration-200 ease-emphasized hover:-translate-y-0.5">Browse {effects.length} recipes</Link>
+              <Link href="/effects" className="mk-label rounded-full bg-ink px-5 py-3 text-bg transition-transform duration-200 ease-emphasized hover:-translate-y-0.5">Browse {effectMetas.length} recipes</Link>
               <Link href="/studios" className="mk-label rounded-full border border-line-strong px-5 py-3 transition-transform duration-200 ease-emphasized hover:-translate-y-0.5">Enter the studios</Link>
               <a href={REPO_URL} target="_blank" rel="noreferrer" className="mk-label rounded-full px-5 py-3 underline decoration-line underline-offset-4 hover:decoration-signal">Install from GitHub →</a>
             </div>
@@ -55,7 +55,7 @@ export default function Home() {
             <h2 id="live-h" className="mk-label text-muted">Running now — <code className="font-mono normal-case tracking-normal">{featured}</code></h2>
             <Link href={`/effects/${featured}`} className="mk-label underline underline-offset-4">Open in playground →</Link>
           </div>
-          <div className="overflow-hidden border border-line"><EffectStage id={featured} /></div>
+          <div className="overflow-hidden border border-line"><EffectStage meta={stageMeta(getEffectMeta(featured)!)} /></div>
         </section>
       ) : null}
 
@@ -70,7 +70,7 @@ export default function Home() {
               <span className="font-mono text-xs text-accent">{String(i + 1).padStart(2, '0')}</span>
               <h3 className="font-display text-[clamp(1.75rem,4vw,3rem)] font-bold leading-none tracking-tight"><Link href={`/studios/${s.id}`} className="after:absolute after:inset-0">{s.name}</Link></h3>
               <p className="font-serif text-xl italic text-muted">{s.philosophy}</p>
-              <p className="mk-label text-muted">{demos.filter((d) => d.meta.specialty === s.id).length} demos <span aria-hidden="true" className="ml-2 inline-block transition-transform duration-300 ease-emphasized group-hover:translate-x-1">→</span></p>
+              <p className="mk-label text-muted">{demoMetas.filter((d) => d.specialty === s.id).length} demos <span aria-hidden="true" className="ml-2 inline-block transition-transform duration-300 ease-emphasized group-hover:translate-x-1">→</span></p>
             </li>
           ))}
         </ol>
@@ -80,14 +80,14 @@ export default function Home() {
         <section aria-labelledby="sample-h" className="mx-auto max-w-[1400px] px-4 pt-20 sm:px-6">
           <div className="flex items-end justify-between gap-6 border-b border-line-strong pb-4">
             <h2 id="sample-h" className="mk-display text-[clamp(2rem,5vw,3.75rem)]">From the Motion Lab</h2>
-            <Link href="/effects" className="mk-label underline underline-offset-4">{effects.length} recipes in {categories} categories →</Link>
+            <Link href="/effects" className="mk-label underline underline-offset-4">{effectMetas.length} recipes in {categories} categories →</Link>
           </div>
           <ul className="grid gap-px border-x border-b border-line bg-line md:grid-cols-3">
             {trio.map((id) => {
-              const m = effects.find((e) => e.meta.id === id)!.meta;
+              const m = effectMetas.find((e) => e.id === id)!;
               return (
                 <li key={id} className="bg-surface">
-                  <div className="border-b border-line [&>div]:!min-h-[280px]"><EffectStage id={id} /></div>
+                  <div className="border-b border-line [&>div]:!min-h-[280px]"><EffectStage meta={stageMeta(m)} /></div>
                   <div className="flex items-baseline justify-between gap-3 p-4">
                     <Link href={`/effects/${id}`} className="font-display text-lg font-semibold tracking-tight underline-offset-4 hover:underline">{m.name}</Link>
                     <span className="mk-label text-muted">{m.category}</span>

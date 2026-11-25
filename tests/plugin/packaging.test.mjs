@@ -27,6 +27,13 @@ test('all 14 required skills exist with valid frontmatter', () => {
   }
 });
 
+test('the gallery states the number of skills that ship', () => {
+  const site = fs.readFileSync(path.join(ROOT, 'apps/gallery/src/lib/site.ts'), 'utf8');
+  const stated = Number(/export const SKILL_COUNT = (\d+);/.exec(site)?.[1]);
+  const shipped = fs.readdirSync(path.join(PLUGIN, 'skills')).filter((d) => fs.existsSync(path.join(PLUGIN, 'skills', d, 'SKILL.md'))).length;
+  assert.equal(stated, shipped, 'update SKILL_COUNT in apps/gallery/src/lib/site.ts');
+});
+
 test('skill descriptions are unique and name their trigger', () => {
   const seen = new Set();
   for (const s of REQUIRED_SKILLS) {

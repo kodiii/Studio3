@@ -1,3 +1,8 @@
+/**
+ * Metadata plus a lazy `load()` for each recipe and demo — for client components that mount them.
+ * In React Server Components import `./meta` instead: there every `load()` target becomes a client reference, so a
+ * server page that imports this module ships all recipes and demos in its first load.
+ */
 import { demos, effects } from './registry.generated';
 import type { DemoEntry, EffectEntry, Specialty } from './types';
 

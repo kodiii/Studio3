@@ -196,3 +196,24 @@ test.describe('visual regression', () => {
     await expect(page.locator('[data-effect-stage="split-line-reveal"]')).toHaveScreenshot('split-line-reveal.png');
   });
 });
+
+test.describe('page weight (production build)', () => {
+  // Recipes, demos and three.js load on demand. When server pages imported the registry, every page shipped all 69
+  // recipes and demos in its first load (about 3 MB of JavaScript); the framework itself is about 460 KB.
+  test.skip(process.env.MAQUETTEKIT_E2E_DEV === '1', 'the dev server ships unminified development bundles');
+  const BUDGET_KB = 600;
+  const ROUTES = ['/', '/effects', '/effects/magnetic-button', '/studios', '/studios/product', '/3d', '/system', '/demos/product/saas-landing', '/demos/3d/product-configurator'];
+  test(`first-load JavaScript stays under ${BUDGET_KB} KB on every kind of page`, async ({ request }) => {
+    const sizes: Record<string, number> = {};
+    for (const route of ROUTES) {
+      const html = await (await request.get(route)).text();
+      const srcs = new Set([...html.matchAll(/<script\b[^>]*>/gi)].map((m) => m[0])
+        .filter((tag) => !/\snomodule(?=[\s=>/])/i.test(tag)) // legacy polyfills, skipped by current browsers
+        .map((tag) => /\bsrc="([^"]+)"/.exec(tag)?.[1]).filter((s): s is string => !!s));
+      let bytes = 0;
+      for (const s of srcs) bytes += (await (await request.get(s)).body()).length;
+      sizes[route] = Math.round(bytes / 1024);
+    }
+    expect(Object.entries(sizes).filter(([, kb]) => kb >= BUDGET_KB), JSON.stringify(sizes)).toEqual([]);
+  });
+});

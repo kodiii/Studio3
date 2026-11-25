@@ -1,4 +1,4 @@
-import { effects } from '@maquettekit/library/registry';
+import { effectMetas, getEffectMeta } from '@maquettekit/library/meta';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { EffectPlayground } from '@/components/EffectPlayground';
@@ -6,20 +6,20 @@ import { Shell } from '@/components/SiteHeader';
 import { SPECIALTIES, pageMeta } from '@/lib/site';
 
 export const dynamicParams = false;
-export function generateStaticParams() { return effects.map((e) => ({ id: e.meta.id })); }
+export function generateStaticParams() { return effectMetas.map((m) => ({ id: m.id })); }
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const m = effects.find((e) => e.meta.id === id)?.meta;
+  const m = getEffectMeta(id);
   return pageMeta({ title: m?.name ?? 'Effect', description: m?.description, path: `/effects/${id}` });
 }
 
 export default async function EffectPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const idx = effects.findIndex((e) => e.meta.id === id);
+  const idx = effectMetas.findIndex((m) => m.id === id);
   if (idx === -1) notFound();
-  const meta = effects[idx].meta;
-  const prev = effects[(idx + effects.length - 1) % effects.length].meta;
-  const next = effects[(idx + 1) % effects.length].meta;
+  const meta = effectMetas[idx];
+  const prev = effectMetas[(idx + effectMetas.length - 1) % effectMetas.length];
+  const next = effectMetas[(idx + 1) % effectMetas.length];
   return (
     <Shell>
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6">

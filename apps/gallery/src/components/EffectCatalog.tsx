@@ -59,7 +59,7 @@ function CardPreview({ meta, hot }: { meta: EffectMeta; hot: boolean }) {
   return (
     <div ref={ref} className="relative aspect-[16/10] overflow-hidden border-b border-line bg-surface-2" data-preview-live={live ? '' : undefined}>
       {live ? (
-        <div inert aria-hidden="true" className="pointer-events-none absolute inset-0 [&>div]:!min-h-0 [&>div]:h-full"><EffectStage id={meta.id} /></div>
+        <div inert aria-hidden="true" className="pointer-events-none absolute inset-0 [&>div]:!min-h-0 [&>div]:h-full"><EffectStage meta={meta} /></div>
       ) : (
         <div aria-hidden="true" className="absolute inset-0 grid place-items-center" style={{ backgroundImage: 'radial-gradient(var(--mk-line) 1px, transparent 1px)', backgroundSize: '14px 14px' }}>
           <span className="mk-label rounded-full bg-surface px-2.5 py-1 text-muted">{meta.category}</span>

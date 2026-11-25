@@ -97,7 +97,7 @@ export function EffectPlayground({ meta }: { meta: EffectMeta }) {
           </div>
           <div className="border border-line bg-surface-2 p-0" data-preview-frame={device}>
             <div className="mx-auto transition-[max-width] duration-300 ease-emphasized" style={{ maxWidth: width ?? '100%' }}>
-              <EffectStage id={meta.id} overrides={overrides} replayKey={replay} />
+              <EffectStage meta={meta} overrides={overrides} replayKey={replay} />
             </div>
           </div>
           <p className="mk-label mt-2 text-muted">{width ? `Container ${width}px — recipes respond with container queries` : 'Fluid container'}{reduced ? ' · reduced motion on' : ''}</p>

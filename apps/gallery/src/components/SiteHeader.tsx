@@ -12,6 +12,7 @@ function GitHubMark({ size = 16 }: { size?: number }) {
   );
 }
 import { useSettings } from './Providers';
+import { Wordmark } from './Wordmark';
 
 const NAV = [
   { href: '/effects', label: 'Effects' },
@@ -19,14 +20,6 @@ const NAV = [
   { href: '/3d', label: '3D Gallery' },
   { href: '/system', label: 'System' },
 ];
-
-export function Wordmark({ className = '' }: { className?: string }) {
-  return (
-    <span className={`font-display font-bold tracking-[-0.04em] ${className}`}>
-      Maquette<span className="font-serif font-normal italic tracking-normal text-signal">kit</span>
-    </span>
-  );
-}
 
 /** Toggle button whose visible text is its accessible name (WCAG 2.5.3); state is exposed with aria-pressed. */
 function Toggle({ pressed, onChange, children }: { pressed: boolean; onChange: (v: boolean) => void; children: React.ReactNode }) {

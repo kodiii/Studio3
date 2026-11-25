@@ -15,8 +15,18 @@ plugins/maquettekit/library/src/
     index.tsx               'use client'; export default function X({ params }: EffectProps<Params>)
     *.module.css | *.ts     optional co-located files (styles, shaders, helpers)
   demos/<specialty>/<id>/   one folder per demo: meta.ts (DemoMeta) + index.tsx (default export, no props) + local files
-  registry.generated.ts     generated — never edit
+  registry.generated.ts     generated — never edit: metadata + a lazy load() per item      (import via ./registry)
+  meta.generated.ts         generated — the metadata alone                                 (import via ./meta)
+  effect-loaders.generated.ts, demo-loaders.generated.ts
+                            generated — the lazy imports alone, by id   (import via ./effect-loaders, ./demo-loaders)
 ```
+
+Which entry point to import: **server code** (React Server Components — Next.js pages, layouts, `generateMetadata`,
+sitemaps) reads `@maquettekit/library/meta`, never the registry: there every `import()` of a `'use client'` recipe
+becomes a client reference, and the page ships all 69 recipes and demos in its first load. **Client code** that
+mounts a recipe takes its metadata as props and loads the component from `effect-loaders` / `demo-loaders`;
+`registry` (metadata + loaders together) is for client code that needs both and accepts the whole catalogue's
+metadata in its bundle. `tests/unit/library/contract.test.ts` enforces this for the gallery.
 
 After adding/renaming a recipe or demo run `node scripts/build-catalog.mjs` (also runs before `dev`/`build`). It skips
 incomplete folders (no `meta.ts`/`index.tsx`, a meta that fails to load, an unresolved relative import, an unknown

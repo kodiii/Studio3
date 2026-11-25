@@ -102,6 +102,12 @@ items.forEach((el, i) => { el.style.height = `${heights[i]}px`; });
 - **Code.** Split by route, and by interaction for heavy features: charts below the fold, editors, 3D,
   confetti. In React use `lazy()`/dynamic import behind a visibility or intent trigger. In Next.js, components
   that touch `window` or WebGL are client components loaded dynamically with server rendering disabled.
+- **Lazy imports in server code (Next.js App Router).** When a server component (a page, layout, sitemap or
+  `generateStaticParams`) imports a module that contains `import()` calls to `'use client'` modules, each of
+  those becomes a client reference of the page, and the page ships all of them in its first load: the lazy
+  registry turns into one eager bundle. Give server code a metadata-only module and mount components from client
+  code (this plugin's library does it with `library/src/meta.ts` beside `registry.ts`). After the build, check
+  each route's first-load JavaScript (`maquettekit launch` reports it).
 - **Fonts.** Self-host WOFF2, subset to the scripts you need, prefer one variable file over many static
   weights when you use three or more. `font-display: swap` for text faces, `optional` when layout shift
   matters more than the brand face. Preload only the one or two files used above the fold. Add `size-adjust` /

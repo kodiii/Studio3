@@ -1,5 +1,5 @@
 'use client';
-import { demos } from '@maquettekit/library/registry';
+import { demoLoaders } from '@maquettekit/library/demo-loaders';
 import type { DemoComponent } from '@maquettekit/library/types';
 import { Component, Suspense, lazy, useEffect, useState, type ReactNode } from 'react';
 
@@ -19,10 +19,10 @@ export function DemoStage({ specialty, id }: { specialty: string; id: string }) 
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
   const key = `${specialty}/${id}`;
-  const entry = demos.find((d) => d.meta.specialty === specialty && d.meta.id === id);
-  if (!entry) return <p role="alert">Unknown demo “{key}”.</p>;
+  const load = demoLoaders[key];
+  if (!load) return <p role="alert">Unknown demo “{key}”.</p>;
   let Demo = cache.get(key);
-  if (!Demo) { Demo = lazy(entry.load); cache.set(key, Demo); }
+  if (!Demo) { Demo = lazy(load); cache.set(key, Demo); }
   return (
     <div data-demo-stage={key} data-specialty={specialty} className="relative min-h-[100dvh] w-full" style={{ containerType: 'inline-size' }}>
       {mounted ? (

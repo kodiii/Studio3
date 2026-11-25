@@ -1,15 +1,17 @@
 'use client';
-import { effects } from '@maquettekit/library/registry';
+import { effectLoaders } from '@maquettekit/library/effect-loaders';
 import { resolveParams, type EffectComponent, type ParamValues } from '@maquettekit/library/types';
 import { Component, Suspense, lazy, useEffect, useMemo, useState, type ReactNode } from 'react';
+import type { StageMeta } from '@/lib/site';
 
+// Loaders only — the metadata comes in as a prop, so this bundle never carries the whole catalogue's metadata.
 const cache = new Map<string, React.LazyExoticComponent<EffectComponent>>();
 function lazyEffect(id: string) {
   let c = cache.get(id);
   if (!c) {
-    const entry = effects.find((e) => e.meta.id === id);
-    if (!entry) return null;
-    c = lazy(entry.load);
+    const load = effectLoaders[id];
+    if (!load) return null;
+    c = lazy(load);
     cache.set(id, c);
   }
   return c;
@@ -24,23 +26,22 @@ class StageBoundary extends Component<{ children: ReactNode }, { error: Error | 
   }
 }
 
-/** Mounts one effect recipe by id with resolved params. `replayKey` remounts it (exercising cleanup). */
-export function EffectStage({ id, overrides, replayKey = 0 }: { id: string; overrides?: ParamValues; replayKey?: number }) {
+/** Mounts one effect recipe with resolved params. `replayKey` remounts it (exercising cleanup). */
+export function EffectStage({ meta, overrides, replayKey = 0 }: { meta: StageMeta; overrides?: ParamValues; replayKey?: number }) {
   // Recipes mount in the browser only: previews are interactive, and server HTML cached by the dev server can
   // otherwise go stale when a recipe changes (hydration mismatch). The server renders the stable stage shell.
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
-  const entry = effects.find((e) => e.meta.id === id);
-  const Effect = lazyEffect(id);
-  const params = useMemo(() => (entry ? resolveParams(entry.meta.params, overrides) : {}), [entry, overrides]);
-  if (!entry || !Effect) return <p role="alert">Unknown effect “{id}”.</p>;
-  const stage = entry.meta.preview?.stage ?? 'surface';
+  const Effect = lazyEffect(meta.id);
+  const params = useMemo(() => resolveParams(meta.params, overrides), [meta.params, overrides]);
+  if (!Effect) return <p role="alert">Unknown effect “{meta.id}”.</p>;
+  const stage = meta.preview?.stage ?? 'surface';
   return (
     <div
-      data-effect-stage={id}
+      data-effect-stage={meta.id}
       data-stage={stage === 'ink' ? 'ink' : undefined}
       className="relative grid h-full w-full place-items-center overflow-hidden"
-      style={{ containerType: 'inline-size', minHeight: entry.meta.preview?.height ?? 360, background: stage === 'none' ? 'transparent' : 'var(--mk-surface)', color: 'var(--mk-ink)' }}
+      style={{ containerType: 'inline-size', minHeight: meta.preview?.height ?? 360, background: stage === 'none' ? 'transparent' : 'var(--mk-surface)', color: 'var(--mk-ink)' }}
     >
       {mounted ? (
         <StageBoundary key={replayKey}>
