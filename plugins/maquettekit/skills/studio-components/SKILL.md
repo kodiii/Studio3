@@ -43,11 +43,13 @@ dependencies.
    Present two or three candidates with their trade-offs when the choice is not obvious.
 4. **Read before copying**: `maquettekit catalog show <id> --source` prints metadata and every file. Read
    `meta.ts` in full — `accessibility`, `reducedMotion` and `performance` are requirements, not commentary.
-5. **Adapt** following `references/adapting.md`:
-   copy `library/src/effects/<id>/` and the shared `library/src/motion/` (plus `library/src/three/` for 3D
-   recipes) into the project once; fix import paths; map the `--mk-*` custom properties to the project's tokens;
-   install exactly the packages in `meta.dependencies`; turn the `params` you need into props and delete the rest.
-   For non-React projects port the logic, keeping the same reduced-motion and cleanup behaviour.
+5. **Install, then adapt** following `references/adapting.md`. `maquettekit catalog install <id…> --dry-run` shows
+   the plan; without `--dry-run` it copies the recipe (or demo) and everything it imports — motion engine,
+   three-kit, types, other recipes — into `src/maquettekit/`, keeping the library layout so imports resolve as they
+   are. It never overwrites a changed file without `--force`, and it prints the npm packages still missing as one
+   command (it installs nothing itself): run that command only with the user's agreement. Then map the `--mk-*`
+   custom properties to the project's tokens, turn the `params` you need into props and delete the rest. For
+   non-React projects port the logic, keeping the same reduced-motion and cleanup behaviour.
 6. **Verify**: typecheck/build, then run the page through `studio-review` (normal and reduced motion, three
    viewports). For 3D recipes confirm the fallback renders with WebGL disabled.
 7. **Report** which recipe(s) were used, what was changed, dependencies added, and anything not verified.

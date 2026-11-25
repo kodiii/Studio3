@@ -11,8 +11,13 @@ export const help = `maquettekit catalog — search the Component & Effect Libra
   catalog search <query…> [--category <c>] [--tech <t>] [--specialty <s>] [--interaction <i>]
                           [--intensity subtle|moderate|bold] [--max-complexity 1|2|3] [--no-deps] [--limit 10] [--json]
   catalog show <id> [--source] [--json]     print metadata, file paths and (with --source) the recipe source
+  catalog install <id…> [--into src/maquettekit] [--project .] [--dry-run] [--force] [--json]
+      copy recipes or demos into a project with everything they import (motion engine, three-kit, types,
+      other recipes), mirroring the library layout so relative imports keep working. Prints the npm packages
+      still missing (with tested versions) as one command — nothing is installed from npm. Existing files are
+      never overwritten unless --force; identical files are skipped. Records maquettekit.install.json.
 
-Recipes live in <plugin>/library/src/effects/<id>/ — copy the folder plus library/src/motion (and src/three for 3D).`;
+Recipes live in <plugin>/library/src/effects/<id>/ and demos in <plugin>/library/src/demos/<specialty>/<id>/.`;
 
 export function loadCatalog() {
   const file = path.join(PLUGIN_ROOT, 'library', 'catalog.json');
@@ -49,7 +54,7 @@ export function searchEffects(effects, query, f = {}) {
 const row = (e) => `${e.id.padEnd(30)} ${e.category.padEnd(14)} ${e.technology.join('+').padEnd(22)} c${e.complexity} ${e.intensity.padEnd(8)} ${e.name}`;
 
 export async function main(argv) {
-  const args = parseArgs(argv, { boolean: ['json', 'source', 'deps'] });
+  const args = parseArgs(argv, { boolean: ['json', 'source', 'deps', 'force', 'dry-run'] });
   const [sub = 'list', ...rest] = args._;
   const cat = loadCatalog();
   if (sub === 'list') {
@@ -82,6 +87,21 @@ export async function main(argv) {
     if (item.reducedMotion) console.log(`Reduced motion: ${item.reducedMotion}`);
     for (const k of ['accessibility', 'performance']) if (item[k]) console.log(`${k[0].toUpperCase() + k.slice(1)}:\n${item[k].map((s) => `  - ${s}`).join('\n')}`);
     if (sources) for (const [f, code] of Object.entries(sources)) console.log(`\n───── ${f} ─────\n${code}`);
+    return 0;
+  }
+  if (sub === 'install') {
+    const { installItems } = await import('./install.mjs');
+    const r = installItems(cat, rest, { into: typeof args.into === 'string' ? args.into : undefined, project: typeof args.project === 'string' ? args.project : undefined, force: !!args.force, apply: !args['dry-run'] });
+    if (args.json) { console.log(JSON.stringify(r, null, 2)); return 0; }
+    const verb = r.applied ? 'Installed' : 'Would install';
+    console.log(`${verb} ${r.items.map((i) => i.id).join(', ')} into ${r.into}`);
+    console.log(`  files: ${r.counts.create} new, ${r.counts.overwrite} overwritten, ${r.counts.identical} unchanged${r.counts.conflict ? `, ${r.counts.conflict} CONFLICT (use --force)` : ''}`);
+    for (const f of r.files.filter((x) => x.action !== 'identical')) console.log(`    ${f.action.padEnd(9)} ${f.path}`);
+    if (r.installCommand) console.log(`  npm packages to add:\n    ${r.installCommand}`);
+    else console.log('  npm packages: all present');
+    for (const u of r.usage) console.log(`  use: ${u.snippet}`);
+    for (const n of r.notes) console.log(`  note: ${n}`);
+    if (r.unresolved.length) console.log(`  unresolved imports: ${r.unresolved.map((u) => `${u.spec} (${u.from})`).join(', ')}`);
     return 0;
   }
   throw new UserError(`Unknown catalog subcommand "${sub}".\n\n${help}`);

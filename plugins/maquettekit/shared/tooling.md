@@ -21,6 +21,7 @@ Resolve the path once per session, confirm it exists, and reuse it. Below, `maqu
 | `maquettekit doctor [--browser] [--json]` | setup | — | Verify runtime, manifests, skills, catalogue, optional deps, host installs |
 | `maquettekit setup [--only review\|assets] [--browsers] [--dry-run]` | setup | npm | Install optional dependencies into the Maquettekit deps directory |
 | `maquettekit catalog list\|search\|show` | Component & Effect Library | — | Find recipes and demos; print source |
+| `maquettekit catalog install <id…>` | Component & Effect Library | — | Copy recipes/demos and everything they import into the project (`src/maquettekit/`); lists missing npm packages |
 | `maquettekit design init\|generate\|validate\|explain\|tokens\|directions` | Design Intelligence Engine | — | Create and maintain `maquettekit.design.json` |
 | `maquettekit design lint` | Design-token lint | — | Values in the code that are not from the design system, with the token to use |
 | `maquettekit check` | All of the verify step | Playwright (review, experience; reported unavailable without it) | Design file, token lint, browser review and experience assessment merged into one ranked fix list (`.maquettekit/check/check.md`) |
