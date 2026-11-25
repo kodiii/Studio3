@@ -49,7 +49,10 @@ dependencies.
    are. It never overwrites a changed file without `--force`, and it prints the npm packages still missing as one
    command (it installs nothing itself): run that command only with the user's agreement. Then map the `--mk-*`
    custom properties to the project's tokens, turn the `params` you need into props and delete the rest. For
-   non-React projects port the logic, keeping the same reduced-motion and cleanup behaviour.
+   non-React projects (Vue, Svelte, Astro, plain HTML) either port the logic, keeping the same reduced-motion and
+   cleanup behaviour, or — for a prototype or a generic effect — `maquettekit catalog export <id> --format
+   web-component` builds `<mk-<id>>` custom elements (the real component bundled with React, attributes = params,
+   about 300 KB each before compression). There is no static HTML/CSS export: every recipe needs its script.
 6. **Verify**: typecheck/build, then run the page through `studio-review` (normal and reduced motion, three
    viewports). For 3D recipes confirm the fallback renders with WebGL disabled.
 7. **Report** which recipe(s) were used, what was changed, dependencies added, and anything not verified.

@@ -46,7 +46,7 @@ test('tool catalogue: unique snake_case names, object schemas, descriptions, req
     for (const k of t.inputSchema.required ?? []) assert.ok(k in t.inputSchema.properties, `${t.name}: required ${k} is a property`);
     assert.equal(typeof t.annotations?.readOnlyHint, 'boolean', `${t.name}: annotations`);
   }
-  assert.deepEqual(names.sort(), ['assets_inspect', 'catalog_install', 'catalog_search', 'catalog_show', 'check', 'design_generate', 'design_lint', 'design_tokens', 'design_validate', 'doctor', 'launch_check', 'review_loop_status', 'review_match']);
+  assert.deepEqual(names.sort(), ['assets_inspect', 'catalog_export', 'catalog_install', 'catalog_search', 'catalog_show', 'check', 'design_generate', 'design_lint', 'design_tokens', 'design_validate', 'doctor', 'launch_check', 'review_loop_status', 'review_match']);
 });
 
 test('stdio session: initialize, list, call, errors — and nothing but JSON-RPC on stdout', async () => {

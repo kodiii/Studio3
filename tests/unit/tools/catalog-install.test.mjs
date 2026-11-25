@@ -57,7 +57,9 @@ describe('catalog install', () => {
     expect(Object.keys(manifest.items).sort()).toEqual(['magnetic-button', 'saas-landing']);
     expect(Object.keys(manifest.files)).toEqual(expect.arrayContaining(files));
     expect(r.installCommand).toBeNull(); // react is already in package.json
-    expect(r.usage[0]).toMatchObject({ component: 'MagneticButton', snippet: "import { MagneticButton } from './src/maquettekit/effects/magnetic-button';" });
+    expect(r.usage[0].component).toBe('MagneticButton');
+    expect(r.usage[0].snippet).toContain("import MagneticButton from './src/maquettekit/effects/magnetic-button';"); // recipes are default exports
+    expect(r.usage[0].snippet).toContain('resolveParams(meta.params');
   });
 
   it('is idempotent, refuses to overwrite changed files without --force, and dry-run writes nothing', () => {

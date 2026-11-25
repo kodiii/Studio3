@@ -71,11 +71,14 @@ function nearestPackageJson(dir) {
   }
 }
 
-/** Name of the component a recipe's index exports (for the usage hint). */
+/** The component a recipe's index exports, and whether it is the default export (for the usage hint). */
 function exportedComponent(file) {
   try {
     const src = fs.readFileSync(file, 'utf8');
-    return /export\s+default\s+function\s+([A-Z]\w*)/.exec(src)?.[1] ?? /export\s+function\s+([A-Z]\w*)/.exec(src)?.[1] ?? /export\s+const\s+([A-Z]\w*)\s*=/.exec(src)?.[1] ?? null;
+    const def = /export\s+default\s+function\s+([A-Z]\w*)/.exec(src)?.[1];
+    if (def) return { name: def, isDefault: true };
+    const named = /export\s+function\s+([A-Z]\w*)/.exec(src)?.[1] ?? /export\s+const\s+([A-Z]\w*)\s*=/.exec(src)?.[1];
+    return named ? { name: named, isDefault: false } : null;
   } catch { return null; }
 }
 
@@ -149,7 +152,12 @@ export function installItems(cat, ids, opts = {}) {
   const usage = items.map((it) => {
     const comp = exportedComponent(path.join(it.dir, 'index.tsx'));
     const modPath = path.relative(projectDir, path.join(into, path.relative(libSrc, it.dir))).split(path.sep).join('/');
-    return { id: it.id, kind: it.kind, component: comp, importPath: `./${modPath}`, snippet: comp ? `import { ${comp} } from './${modPath}';` : `import * as ${it.id.replace(/-(\w)/g, (_, c) => c.toUpperCase())} from './${modPath}';` };
+    const typesPath = path.relative(projectDir, path.join(into, 'types')).split(path.sep).join('/');
+    const imp = comp ? (comp.isDefault ? `import ${comp.name} from './${modPath}';` : `import { ${comp.name} } from './${modPath}';`) : `import * as ${it.id.replace(/-(\w)/g, (_, c) => c.toUpperCase())} from './${modPath}';`;
+    const snippet = comp && it.kind === 'effect'
+      ? `${imp}\nimport { meta } from './${modPath}/meta';\nimport { resolveParams } from './${typesPath}';\n// <${comp.name} params={resolveParams(meta.params, { /* overrides */ })} />`
+      : imp;
+    return { id: it.id, kind: it.kind, component: comp?.name ?? null, importPath: `./${modPath}`, snippet };
   });
   const result = {
     tool: 'maquettekit-catalog-install', version: opts.version ?? libPkg.version, into, project: projectDir, applied: false,

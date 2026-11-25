@@ -50,7 +50,7 @@ and every studio hands verification to Visual Director.
 | Launch | `studio-launch` | `maquettekit launch` | Before going live: titles and descriptions, share image, icons, robots/sitemap, a real 404, page weight (production build, over HTTP) |
 | Experience Lab | `studio-experience` | `maquettekit experience` | Transparent heuristic scoring across 14 interaction dimensions with Essential / Expressive / Immersive profiles and accessibility gates |
 | Design Intelligence | `studio-design-system` | `maquettekit design` | Brief → `maquettekit.design.json` (art direction, type, OKLCH colour with enforced contrast, motion, 3D direction, libraries) → CSS / Tailwind v4 / TS / DTCG tokens; `design lint` finds values in the code that are not from the system |
-| Component & Effect Library | `studio-components` | `maquettekit catalog` | Search tested recipes and demos; `catalog install` copies them with everything they import into a project |
+| Component & Effect Library | `studio-components` | `maquettekit catalog` | Search tested recipes and demos; `catalog install` copies them with everything they import into a project; `catalog export --format web-component` builds `<mk-…>` custom elements for Vue, Svelte, Astro or plain HTML |
 | 3D Asset Pipeline | `studio-asset-optimizer` | `maquettekit assets` | Inspect, validate, optimise (meshopt/Draco, quantisation, WebP/KTX2), variants per device, manifests, thumbnails — sources never modified |
 | Setup | `studio-setup` | `maquettekit doctor`, `maquettekit setup` | Diagnostics, optional dependencies, host install checks |
 

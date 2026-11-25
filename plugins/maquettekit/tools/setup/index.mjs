@@ -14,12 +14,14 @@ Installs the pinned dependencies from tools/package.json into the Maquettekit de
 ($MAQUETTEKIT_DEPS, else $CLAUDE_PLUGIN_DATA/maquettekit-deps, else ~/.maquettekit/deps) with
 "npm install --ignore-scripts=false --no-audit --no-fund". Nothing else is downloaded.
   --only review   playwright, axe-core, pixelmatch, pngjs      (Visual Director, Experience Lab)
+  --only export   vite, react, react-dom                       (catalog export --format web-component)
   --only assets   @gltf-transform/*, meshoptimizer, draco3dgltf, sharp, gltf-validator, playwright (thumbnails)
   --browsers      also run "npx playwright install chromium" (downloads a browser build)
   --dry-run       print what would run`;
 
 const GROUPS = {
   review: ['playwright', 'axe-core', 'pixelmatch', 'pngjs'],
+  export: ['vite', 'react', 'react-dom'],
   assets: ['@gltf-transform/core', '@gltf-transform/extensions', '@gltf-transform/functions', 'meshoptimizer', 'draco3dgltf', 'sharp', 'gltf-validator', 'playwright'],
 };
 

@@ -17,6 +17,11 @@ export const help = `maquettekit catalog — search the Component & Effect Libra
       still missing (with tested versions) as one command — nothing is installed from npm. Existing files are
       never overwritten unless --force; identical files are skipped. Records maquettekit.install.json.
 
+  catalog export <id…> --format web-component [--out maquettekit-elements] [--json]
+      for projects without React (Vue, Svelte, Astro, plain HTML): bundle effect recipes with React into one ES
+      module each that registers <mk-<id>> (attributes = params), plus its CSS and a demo page. Every recipe has
+      client behaviour, so there is no static HTML/CSS export. Needs vite, react, react-dom (setup --only export).
+
 Recipes live in <plugin>/library/src/effects/<id>/ and demos in <plugin>/library/src/demos/<specialty>/<id>/.`;
 
 export function loadCatalog() {
@@ -102,6 +107,16 @@ export async function main(argv) {
     for (const u of r.usage) console.log(`  use: ${u.snippet}`);
     for (const n of r.notes) console.log(`  note: ${n}`);
     if (r.unresolved.length) console.log(`  unresolved imports: ${r.unresolved.map((u) => `${u.spec} (${u.from})`).join(', ')}`);
+    return 0;
+  }
+  if (sub === 'export') {
+    if ((args.format ?? 'web-component') !== 'web-component') throw new UserError('--format must be web-component (recipes need their behaviour; there is no static export)');
+    const { exportWebComponents } = await import('./export.mjs');
+    const r = await exportWebComponents(cat, rest, { out: typeof args.out === 'string' ? args.out : undefined });
+    if (args.json) { console.log(JSON.stringify(r, null, 2)); return 0; }
+    console.log(`Exported ${r.elements.length} element(s) to ${r.out}`);
+    for (const e of r.elements) console.log(`  <${e.element}${e.attributes.map((a) => ` ${a.name}="${a.default}"`).join('')}>  ${e.jsKb} KB js${e.css ? ' + css' : ''} · demo: ${e.demo}`);
+    for (const n of r.notes) console.log(`  note: ${n}`);
     return 0;
   }
   throw new UserError(`Unknown catalog subcommand "${sub}".\n\n${help}`);

@@ -18,7 +18,7 @@ export const help = `maquettekit mcp — run the Maquettekit MCP server on stdio
 
 Usage: maquettekit mcp            (started by the MCP client, not by hand)
 
-Tools: catalog_search, catalog_show, catalog_install, design_generate, design_validate, design_tokens, design_lint,
+Tools: catalog_search, catalog_show, catalog_install, catalog_export, design_generate, design_validate, design_tokens, design_lint,
 check, review_match, launch_check, review_loop_status, assets_inspect, doctor.
 
 Client configuration (the Claude Code plugin registers it automatically through its .mcp.json):
@@ -70,6 +70,17 @@ export const TOOLS = [
       const { loadCatalog } = await import('../catalog/index.mjs');
       const { installItems } = await import('../catalog/install.mjs');
       return installItems(loadCatalog(), a.ids, { project: abs(a.project_dir), into: a.into, force: !!a.force, apply: a.dry_run === false });
+    },
+  },
+  {
+    name: 'catalog_export', title: 'Export recipes as Web Components',
+    description: 'For projects without React (Vue, Svelte, Astro, plain HTML): bundle effect recipes with React into one ES module each that registers <mk-<id>> (attributes = params), plus CSS and a demo page. Needs vite, react and react-dom (maquettekit setup --only export).',
+    inputSchema: { type: 'object', properties: { ids: { ...strList, minItems: 1 }, out_dir: { ...str, description: 'Output folder (default maquettekit-elements)' } }, required: ['ids'], additionalProperties: false },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    async run(a) {
+      const { loadCatalog } = await import('../catalog/index.mjs');
+      const { exportWebComponents } = await import('../catalog/export.mjs');
+      return exportWebComponents(loadCatalog(), a.ids, { out: abs(a.out_dir, 'maquettekit-elements') });
     },
   },
   {
