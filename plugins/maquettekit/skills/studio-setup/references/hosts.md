@@ -56,6 +56,15 @@ loading one (see `evals/README.md`). Two mechanisms make the choice explicit:
   `~/.claude/CLAUDE.md` when installed in skills mode. The block sits between `maquettekit:routing-rules` markers; the
   rest of the file is never changed, and uninstall removes the block (and the file, if the installer created it).
 
+## MCP server
+
+`maquettekit mcp` serves the same tools over MCP (stdio). Claude Code (plugin mode) starts it from the plugin's
+`.mcp.json` as `plugin:maquettekit:maquettekit`; its tools appear as `mcp__plugin_maquettekit_maquettekit__<tool>`.
+Codex (`[mcp_servers.maquettekit]` in `~/.codex/config.toml`), OpenCode (`"mcp"` in `opencode.json`, `type: "local"`)
+and Antigravity (MCP server settings, raw config) need it added by hand with `command: node` and
+`args: ["<payload>/plugins/maquettekit/tools/maquettekit.mjs", "mcp"]`; the installer prints the payload path. If a
+client lists no Maquettekit tools, run `maquettekit doctor` and check the client's MCP log for the server's stderr.
+
 ## Local installer
 
 From a checkout or release archive:

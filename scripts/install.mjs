@@ -288,6 +288,7 @@ function install() {
   for (const r of state.rules) say(`  routing rules for ${r.host}: ${r.file}`);
   if (!flag('routing-rules') && Object.entries(state.hosts).some(([h, i]) => !(h === 'claude' && i.mode === 'plugin'))) say('  Tip: --routing-rules adds a short "which skill for which UI work" rule to each host\'s global rules file, which helps smaller models load the skills.');
   say(`  Tools: node "${path.join(TARGET, 'plugins', PLUGIN, 'tools', 'maquettekit.mjs')}" doctor`);
+  say(`  MCP server (typed tool calls): node "${path.join(TARGET, 'plugins', PLUGIN, 'tools', 'maquettekit.mjs')}" mcp — the Claude Code plugin registers it itself; for Codex, OpenCode and Antigravity add it to their MCP settings (README → "MCP server").`);
   say('  Optional tool dependencies (Playwright, glTF tooling): run the "setup" command of the same script.');
   if (flag('verify') && !DRY) {
     const r = spawnSync(process.execPath, [path.join(TARGET, 'plugins', PLUGIN, 'tools', 'maquettekit.mjs'), 'doctor'], { stdio: 'inherit' });

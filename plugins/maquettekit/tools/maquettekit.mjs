@@ -21,6 +21,7 @@ export const COMMANDS = {
   assets: { file: 'asset-pipeline/index.mjs', summary: '3D Asset Pipeline — inspect, validate, optimize, variants, manifest' },
   catalog: { file: 'catalog/index.mjs', summary: 'Search the Component & Effect Library catalog' },
   check: { file: 'check/index.mjs', summary: 'Verify in one run: design file, token lint, browser review, experience → one ranked fix list' },
+  mcp: { file: 'mcp/index.mjs', summary: 'Run the Maquettekit MCP server on stdio (typed tool calls for any MCP client)' },
 };
 
 export function version() {

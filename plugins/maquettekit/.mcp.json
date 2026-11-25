@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "maquettekit": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/tools/maquettekit.mjs", "mcp"]
+    }
+  }
+}

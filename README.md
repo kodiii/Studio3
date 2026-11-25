@@ -120,6 +120,29 @@ a short, marked "which skill for which UI work" block to each host's global rule
 block. In Claude Code the plugin does the same with a prompt hook that names the skill when a request is UI work (off
 with `MAQUETTEKIT_ROUTING_HINTS=0`).
 
+### MCP server
+
+The tools are also an MCP server (`maquettekit mcp`, stdio): agents call `catalog_search`, `catalog_install`,
+`design_generate`, `design_lint`, `check`, `assets_inspect` and the rest with typed JSON arguments instead of composing
+shell commands, which smaller models get right more often. The Claude Code plugin registers it automatically (its
+`.mcp.json`). For other hosts, point them at the installed copy (the installer prints the exact path):
+
+```toml
+# Codex — ~/.codex/config.toml
+[mcp_servers.maquettekit]
+command = "node"
+args = ["/home/you/.maquettekit/marketplace/plugins/maquettekit/tools/maquettekit.mjs", "mcp"]
+```
+
+```json
+// OpenCode — ~/.config/opencode/opencode.json
+{ "mcp": { "maquettekit": { "type": "local", "command": ["node", "/home/you/.maquettekit/marketplace/plugins/maquettekit/tools/maquettekit.mjs", "mcp"], "enabled": true } } }
+```
+
+Antigravity: add the same `command` and `args` as a server named `maquettekit` in its MCP server settings (raw config,
+`mcpServers` object). The server writes files only when a tool is asked to (`catalog_install` defaults to a dry run,
+`design_generate` only with `out_file`), runs browsers only for `check`, and sends nothing over the network.
+
 ### Manually, with the host CLIs
 
 ```bash
