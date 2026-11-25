@@ -40,13 +40,15 @@ procedures. Skills never duplicate each other: they delegate by name. Tool paths
 hosts that resolve paths relative to the skill (Codex). In skills mode the installer links rendered copies with the
 variable replaced by the installed payload's absolute path, so the same text works on OpenCode and Antigravity.
 
-## Routing and evals (`plugins/maquettekit/hooks/`, `plugins/maquettekit/evals/`)
+## Routing, hooks, agents and evals (`hooks/`, `agents/`, `evals/`)
 
 A skill only helps if the agent loads it, and agents decide that from the frontmatter `description`. The eval suite
 (`evals/`, run with `claude plugin eval`) measures routing per skill and the difference the plugin makes to judgement,
 single-file builds, multi-file projects and tool use, with and without the plugin. Two mechanisms back the
 descriptions up: a Claude Code `UserPromptSubmit` hook (`hooks/route-hint.mjs`) that names the skill when a prompt is
-concrete UI work, and an opt-in installer block (`--routing-rules`) in each host's global rules file. Change a
+concrete UI work, and an opt-in installer block (`--routing-rules`) in each host's global rules file. Claude Code also
+gets `agents/design-critic.md` (an unanchored, read-only screenshot critic) and an opt-in `Stop` hook
+(`hooks/review-gate.mjs`, `MAQUETTEKIT_REVIEW_GATE`) that keeps the agent working while `check` lists critical items. Change a
 description, a route or a rule, then re-run `npm run eval:triggers` and compare against the baseline in
 `evals/README.md`.
 
@@ -64,11 +66,14 @@ One dispatcher (`maquettekit.mjs`) and one directory per command. Rules shared b
 
 | Tool | Inputs | Outputs |
 | - | - | - |
-| `design` (Design Intelligence) | brief JSON or flags | `maquettekit.design.json`, token files, Markdown rationale |
-| `review` (Visual Director) | URL or static dir, routes, states, budgets | `pass-<n>/` screenshots, frames, states, `report.json`, `report.md`; comparisons; loop status; `SUMMARY.md` |
+| `design` (Design Intelligence) | brief JSON or flags; a project to lint | `maquettekit.design.json`, token files, Markdown rationale; `design lint` findings with the nearest token |
+| `review` (Visual Director) | URL or static dir, routes, states, budgets; a reference image for `match` | `pass-<n>/` screenshots, frames, states, `report.json`, `report.md`; comparisons; loop status; `SUMMARY.md`; `match` similarity, region diff and palette |
 | `experience` (Experience Lab) | URL or static dir, profile, rubric answers | `experience.json`, `experience.md` |
 | `assets` (3D pipeline) | glTF/GLB (or DCC formats via Blender) | optimised variants, manifest, thumbnails, reports — sources untouched |
-| `catalog` | query and facets | ranked recipes, sources |
+| `catalog` | query and facets; ids to install or export | ranked recipes, sources; `install` copies a recipe's import closure into a project; `export` builds `<mk-…>` Web Components |
+| `check` | URL or static dir, project dir | design validation + token lint + review + experience as one ranked fix list (`check.md`, `check.json`) |
+| `launch` | production URL or static export | metadata, share image, icons, crawler rules, 404 and page-weight findings (`launch.md`) — HTTP only |
+| `mcp` | MCP client on stdio | the same tools as typed MCP tool calls |
 | `doctor`, `setup` | — | diagnostics; optional dependency install |
 
 ## Library (`plugins/maquettekit/library/`)
