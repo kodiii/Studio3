@@ -2,7 +2,9 @@ import { demos, effects } from '@maquettekit/library/registry';
 import Link from 'next/link';
 import { EffectStage } from '@/components/EffectStage';
 import { Shell } from '@/components/SiteHeader';
-import { MODULES, REPO_URL, SPECIALTIES } from '@/lib/site';
+import { MODULES, REPO_URL, SPECIALTIES, pageMeta } from '@/lib/site';
+
+export const metadata = pageMeta({ path: '/' });
 
 const pick = (ids: string[]): string | null => ids.find((id) => effects.some((e) => e.meta.id === id)) ?? effects[0]?.meta.id ?? null;
 

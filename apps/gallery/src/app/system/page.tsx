@@ -2,8 +2,9 @@ import { duration, easing, cssEase, spring, stagger, springToLinear, profileScal
 import { defaultBudgets, defaultQualityProfiles } from '@maquettekit/library/three/quality';
 import { Shell } from '@/components/SiteHeader';
 import { EasingDemo } from '@/components/EasingDemo';
+import { pageMeta } from '@/lib/site';
 
-export const metadata = { title: 'System' };
+export const metadata = pageMeta({ title: 'System', description: 'The motion tokens, easings, springs and type that every Maquettekit recipe is built on.', path: '/system' });
 
 const COLORS = ['bg', 'surface', 'surface-2', 'ink', 'ink-muted', 'line-strong', 'signal', 'accent-product', 'accent-cinematic', 'accent-data', 'accent-social', 'accent-3d', 'focus', 'success', 'danger'];
 const H = ({ children }: { children: React.ReactNode }) => <h2 className="mk-display border-b border-line-strong pb-3 text-[clamp(1.75rem,4vw,3rem)]">{children}</h2>;

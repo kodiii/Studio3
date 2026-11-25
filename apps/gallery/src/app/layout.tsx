@@ -1,11 +1,15 @@
 import type { Metadata, Viewport } from 'next';
+import { SITE_URL } from '@/lib/site';
 import type { ReactNode } from 'react';
 import { Providers } from '@/components/Providers';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: { default: 'Maquettekit — Design Intelligence. Motion Engineering. Digital Experiences.', template: '%s · Maquettekit' },
-  description: 'The Maquettekit component, effect and 3D gallery: live, runnable recipes and demos from five design specialties.',
+  metadataBase: new URL(SITE_URL),
+  title: { default: 'Maquettekit — design, motion and 3D skills for coding agents', template: '%s · Maquettekit' },
+  description: 'Live, runnable recipes and demos from Maquettekit, the design, motion, interaction and 3D engineering plugin for Claude Code, Codex, OpenCode and Antigravity.',
+  openGraph: { siteName: 'Maquettekit', type: 'website' },
+  twitter: { card: 'summary_large_image' },
 };
 export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: [{ media: '(prefers-color-scheme: light)', color: '#f3f0e8' }, { media: '(prefers-color-scheme: dark)', color: '#0e0e0c' }] };
 

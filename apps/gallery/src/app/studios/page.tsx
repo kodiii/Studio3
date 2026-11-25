@@ -1,9 +1,9 @@
 import { demos, effects } from '@maquettekit/library/registry';
 import Link from 'next/link';
 import { Shell } from '@/components/SiteHeader';
-import { SPECIALTIES } from '@/lib/site';
+import { SPECIALTIES, pageMeta } from '@/lib/site';
 
-export const metadata = { title: 'Studios' };
+export const metadata = pageMeta({ title: 'Studios', description: 'Product, Cinematic, Data, Social and 3D: five design specialties, each with its own skill, playbook and reference demos.', path: '/studios' });
 
 export default function StudiosPage() {
   return (

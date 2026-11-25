@@ -1,6 +1,7 @@
 import { demos } from '@maquettekit/library/registry';
 import { notFound } from 'next/navigation';
 import { DemoFrame } from '@/components/DemoFrame';
+import { pageMeta } from '@/lib/site';
 
 export const dynamicParams = false;
 export function generateStaticParams() {
@@ -11,7 +12,7 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ specialty: string; id: string }> }) {
   const { specialty, id } = await params;
   const m = demos.find((d) => d.meta.specialty === specialty && d.meta.id === id)?.meta;
-  return { title: m?.name ?? 'Demo', description: m?.summary };
+  return pageMeta({ title: m?.name ?? 'Demo', description: m?.summary, path: `/demos/${specialty}/${id}` });
 }
 
 export default async function DemoPage({ params }: { params: Promise<{ specialty: string; id: string }> }) {

@@ -4,13 +4,14 @@ import { notFound } from 'next/navigation';
 import { DemoList } from '@/components/DemoList';
 import { EffectCatalog } from '@/components/EffectCatalog';
 import { Shell } from '@/components/SiteHeader';
-import { SPECIALTIES, specialtyIndex } from '@/lib/site';
+import { SPECIALTIES, specialtyIndex, pageMeta } from '@/lib/site';
 
 export const dynamicParams = false;
 export function generateStaticParams() { return SPECIALTIES.map((s) => ({ specialty: s.id })); }
 export async function generateMetadata({ params }: { params: Promise<{ specialty: string }> }) {
   const { specialty } = await params;
-  return { title: SPECIALTIES.find((s) => s.id === specialty)?.name ?? 'Studio' };
+  const s = SPECIALTIES.find((x) => x.id === specialty);
+  return pageMeta({ title: s?.name ?? 'Studio', description: s ? `${s.name}: ${s.philosophy} The skill, playbook and reference demos for this Maquettekit specialty.` : undefined, path: `/studios/${specialty}` });
 }
 
 export default async function StudioPage({ params }: { params: Promise<{ specialty: string }> }) {

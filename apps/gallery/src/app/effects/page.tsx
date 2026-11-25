@@ -1,8 +1,9 @@
 import { effects } from '@maquettekit/library/registry';
 import { EffectCatalog } from '@/components/EffectCatalog';
 import { Shell } from '@/components/SiteHeader';
+import { pageMeta } from '@/lib/site';
 
-export const metadata = { title: 'Effects' };
+export const metadata = pageMeta({ title: 'Effects', description: 'Forty-seven tested UI effects and 3D components — search, filter, tune the parameters and read the source.', path: '/effects' });
 
 export default function EffectsPage() {
   const metas = effects.map((e) => e.meta);

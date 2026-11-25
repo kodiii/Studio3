@@ -2,6 +2,28 @@ import { SPECIALTIES, type Specialty } from '@maquettekit/library/types';
 
 export { SPECIALTIES };
 
+/** Public URL of this gallery: canonical links, share images and the sitemap are absolute against it. */
+export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://maquettekit.vercel.app').replace(/\/$/, '');
+
+/** Shorten to a search-snippet length at a word boundary. */
+const clip = (text: string, max = 160): string => (text.length <= max ? text : `${text.slice(0, text.lastIndexOf(' ', max - 1)).replace(/[,;:.\s—-]+$/, '')}…`);
+const SHARE_IMAGE = { url: '/opengraph-image', width: 1200, height: 630, alt: 'Maquettekit — design, motion and 3D skills for coding agents' };
+
+/**
+ * Per-page metadata with its own canonical URL and link-preview text. Next replaces (does not merge) a parent's
+ * openGraph, so the site share image is named again here.
+ */
+export function pageMeta({ title, description, path }: { title?: string; description?: string; path: string }) {
+  const desc = description ? clip(description) : undefined;
+  return {
+    ...(title ? { title } : {}),
+    ...(desc ? { description: desc } : {}),
+    alternates: { canonical: path },
+    openGraph: { siteName: 'Maquettekit', type: 'website' as const, url: path, images: [SHARE_IMAGE], ...(title ? { title: `${title} · Maquettekit` } : {}), ...(desc ? { description: desc } : {}) },
+    twitter: { card: 'summary_large_image' as const, images: [SHARE_IMAGE.url], ...(title ? { title: `${title} · Maquettekit` } : {}), ...(desc ? { description: desc } : {}) },
+  };
+}
+
 /** Public source repository (also used for the GitHub links in the header, footer and home page). */
 export const REPO_URL = 'https://github.com/kodiii/Studio3';
 export const specialtyIndex = (id: Specialty): string => String(SPECIALTIES.findIndex((s) => s.id === id) + 1).padStart(2, '0');

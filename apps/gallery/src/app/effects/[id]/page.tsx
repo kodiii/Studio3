@@ -3,14 +3,14 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { EffectPlayground } from '@/components/EffectPlayground';
 import { Shell } from '@/components/SiteHeader';
-import { SPECIALTIES } from '@/lib/site';
+import { SPECIALTIES, pageMeta } from '@/lib/site';
 
 export const dynamicParams = false;
 export function generateStaticParams() { return effects.map((e) => ({ id: e.meta.id })); }
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const m = effects.find((e) => e.meta.id === id)?.meta;
-  return { title: m?.name ?? 'Effect', description: m?.description };
+  return pageMeta({ title: m?.name ?? 'Effect', description: m?.description, path: `/effects/${id}` });
 }
 
 export default async function EffectPage({ params }: { params: Promise<{ id: string }> }) {
