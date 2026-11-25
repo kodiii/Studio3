@@ -143,8 +143,8 @@ export function ModelViewer() {
           ) : null}
 
           <div className="pointer-events-none absolute left-3 top-3 flex flex-col items-start gap-1">
-            <span className="mk-label rounded-[3px] bg-surface/85 px-2 py-1 backdrop-blur-sm">{cfg.name}</span>
-            {variant && live ? <span className="mk-label rounded-[3px] bg-surface/85 px-2 py-1 text-muted backdrop-blur-sm" data-variant={variant.profile}>{variant.profile} · {formatBytes(variant.bytes)}</span> : null}
+            <span className="mk-label rounded-[var(--mk-radius-s)] bg-surface/85 px-2 py-1 backdrop-blur-sm">{cfg.name}</span>
+            {variant && live ? <span className="mk-label rounded-[var(--mk-radius-s)] bg-surface/85 px-2 py-1 text-muted backdrop-blur-sm" data-variant={variant.profile}>{variant.profile} · {formatBytes(variant.bytes)}</span> : null}
           </div>
 
           {loading ? (
@@ -158,7 +158,7 @@ export function ModelViewer() {
           ) : null}
 
           {live ? (
-            <div role="toolbar" aria-label="Camera controls" className="absolute inset-x-0 bottom-3 mx-auto flex w-max max-w-[calc(100%-1.5rem)] flex-wrap justify-center gap-1 rounded-[6px] border border-line bg-surface/85 p-1 backdrop-blur-sm">
+            <div role="toolbar" aria-label="Camera controls" className="absolute inset-x-0 bottom-3 mx-auto flex w-max max-w-[calc(100%-1.5rem)] flex-wrap justify-center gap-1 rounded-[var(--mk-radius-s)] border border-line bg-surface/85 p-1 backdrop-blur-sm">
               <ToolButton label="Rotate left" onClick={() => orbit.current?.rotate(STEP)}>←</ToolButton>
               <ToolButton label="Rotate right" onClick={() => orbit.current?.rotate(-STEP)}>→</ToolButton>
               <ToolButton label="Tilt up" onClick={() => orbit.current?.rotate(0, STEP / 2)}>↑</ToolButton>

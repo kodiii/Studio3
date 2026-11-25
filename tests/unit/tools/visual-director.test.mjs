@@ -238,6 +238,8 @@ describe('visual-director: browser runs', () => {
     expect(st.map((s) => [s.viewport, s.ran, s.reachedBottom])).toEqual([['desktop', true, true], ['tablet', true, true], ['mobile', true, true]]);
     expect(byCheck(good, 'accessibility-axe')).toEqual([]);
     expect(fs.readFileSync(path.join(goodDir, 'report.md'), 'utf8')).toMatch(/Scroll-through before DOM\/axe checks: `\/` \(desktop, tablet, mobile\)/);
+    // overlap heuristic: a control in an inert thumbnail and a button overlaid on a larger linked surface are not collisions
+    expect(byCheck(good, 'broken-layout', (i) => String(i.key).startsWith('overlap:'))).toEqual([]);
   });
 
   bit('vd-good: expected checks ran and passed; unavailable ones are labelled honestly', () => {
@@ -383,6 +385,9 @@ describe('visual-director: browser runs', () => {
     expect(byCheck(broken, 'dialog-focus', (i) => i.key === 'escape' && i.viewport === 'desktop').length).toBe(1);
     // small text heuristic
     expect(byCheck(broken, 'broken-layout', (i) => i.key === 'small-text' && i.evidence.fontSizePx === 9).length).toBe(3);
+    // two static controls pushed onto each other: one overlap per viewport
+    const pair = byCheck(broken, 'broken-layout', (i) => String(i.key).startsWith('overlap:') && /pair-[ab]/.test(`${i.selector} ${i.key}`));
+    expect(pair.map((i) => i.viewport).sort()).toEqual(['desktop', 'mobile', 'tablet']);
     // 3D: stretched canvas, continuous loop (info), no fallback + throws without WebGL
     expect(byCheck(broken, '3d-resize', (i) => i.key === 'stretched')).toHaveLength(1);
     expect(byCheck(broken, '3d-render-loop', (i) => i.key === 'continuous' && i.severity === 'info')).toHaveLength(1);

@@ -1,8 +1,9 @@
 'use client';
 import { effectLoaders } from '@maquettekit/library/effect-loaders';
 import { resolveParams, type EffectComponent, type ParamValues } from '@maquettekit/library/types';
-import { Component, Suspense, lazy, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { Component, Suspense, lazy, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { StageMeta } from '@/lib/site';
+import { Revealed } from './Revealed';
 
 // Loaders only — the metadata comes in as a prop, so this bundle never carries the whole catalogue's metadata.
 const cache = new Map<string, React.LazyExoticComponent<EffectComponent>>();
@@ -17,9 +18,10 @@ function lazyEffect(id: string) {
   return c;
 }
 
-class StageBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
+class StageBoundary extends Component<{ children: ReactNode; onError?: () => void }, { error: Error | null }> {
   state = { error: null as Error | null };
   static getDerivedStateFromError(error: Error) { return { error }; }
+  componentDidCatch() { this.props.onError?.(); }
   render() {
     if (this.state.error) return <p role="alert" data-effect-error="" className="p-6 font-mono text-sm text-danger">Preview failed: {this.state.error.message}</p>;
     return this.props.children;
@@ -32,6 +34,9 @@ export function EffectStage({ meta, overrides, replayKey = 0 }: { meta: StageMet
   // otherwise go stale when a recipe changes (hydration mismatch). The server renders the stable stage shell.
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
+  // aria-busy until the recipe is on screen (or has failed), for assistive tech and loading-state checks alike
+  const [shown, setShown] = useState<string | null>(null);
+  const reveal = useCallback(() => setShown(meta.id), [meta.id]);
   const Effect = lazyEffect(meta.id);
   const params = useMemo(() => resolveParams(meta.params, overrides), [meta.params, overrides]);
   if (!Effect) return <p role="alert">Unknown effect “{meta.id}”.</p>;
@@ -40,13 +45,15 @@ export function EffectStage({ meta, overrides, replayKey = 0 }: { meta: StageMet
     <div
       data-effect-stage={meta.id}
       data-stage={stage === 'ink' ? 'ink' : undefined}
+      aria-busy={shown === meta.id ? undefined : true}
       className="relative grid h-full w-full place-items-center overflow-hidden"
       style={{ containerType: 'inline-size', minHeight: meta.preview?.height ?? 360, background: stage === 'none' ? 'transparent' : 'var(--mk-surface)', color: 'var(--mk-ink)' }}
     >
       {mounted ? (
-        <StageBoundary key={replayKey}>
+        <StageBoundary key={replayKey} onError={reveal}>
           <Suspense fallback={<span className="mk-label text-muted" aria-live="polite">Loading preview…</span>}>
             <Effect key={replayKey} params={params} />
+            <Revealed onReveal={reveal} />
           </Suspense>
         </StageBoundary>
       ) : <span className="mk-label text-muted" aria-live="polite">Loading preview…</span>}

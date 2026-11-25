@@ -78,6 +78,12 @@
     </ul>
     <div class="glass-wrap"><div class="glass-tile">Tile under a see-through layer</div><div class="glass" aria-hidden="true"></div></div>
     <div inert class="inert-thumb"><div id="inert-preview">Inert thumbnail</div></div>
+    <!-- Regression cases for the overlap heuristic: a control inside an inert thumbnail that lies over the card's link
+         takes no input; a button placed over a larger linked surface, in a positioned layer, is a deliberate overlay. -->
+    <div class="thumb-card"><div inert aria-hidden="true" class="thumb-preview"><button type="button">Inert control</button></div><a class="thumb-title" href="#thumb">Thumbnail card</a></div>
+    <div class="surface-wrap"><a class="surface" href="#surface">Large linked surface</a><div class="surface-tools"><button type="button" class="btn">Zoom</button></div></div>
+    <!-- a strip of file buttons that scrolls sideways beside a Copy button: the strip clips the buttons it scrolls past -->
+    <div class="file-row"><div class="file-strip"><button type="button">index.tsx</button><button type="button">styles.module.css</button><button type="button">meta.ts</button><button type="button">helpers.ts</button></div><button type="button" class="btn file-copy">Copy code</button></div>
 
     <div class="spacer" aria-hidden="true"></div>
     <p class="late" id="late-note">Revealed on scroll, with readable contrast once it is in view.</p>

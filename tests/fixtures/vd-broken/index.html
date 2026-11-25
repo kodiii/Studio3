@@ -34,6 +34,9 @@
     .tile { height: 80px; background: #eeeeee; }
     .tile:hover { background: #dddddd; }
     .tile-glass { position: absolute; inset: 0; }
+    /* defect: two controls pushed onto each other (static layout, no overlay layer) */
+    .pair button { width: 140px; min-height: 44px; }
+    .pair-b { margin-left: -60px; }
   </style>
 </head>
 <body>
@@ -77,6 +80,7 @@
       </li>
     </ul>
     <div class="tile-wrap"><div class="tile">Hover tile</div><div class="tile-glass" aria-hidden="true"></div></div>
+    <p class="pair"><button type="button" class="pair-a">First action</button><button type="button" class="pair-b">Second action</button></p>
 
     <div class="spacer" aria-hidden="true"></div>
     <p class="late" id="late-note">This note is revealed on scroll and is far too faint to read.</p>

@@ -78,7 +78,8 @@ export default function SystemPage() {
         <section aria-labelledby="quality-h" className="grid gap-6">
           <H><span id="quality-h">3D quality profiles</span></H>
           <p className="max-w-2xl text-sm text-muted">Starting points, not universal thresholds. Budgets are configurable per project and must be verified on the devices you ship to.</p>
-          <div className="overflow-x-auto">
+          {/* scrolls sideways on phones: focusable and named, so keyboard users can scroll it too (WCAG 2.1.1) */}
+          <div className="overflow-x-auto" role="region" aria-labelledby="quality-h" tabIndex={0}>
             <table className="w-full min-w-[640px] text-sm">
               <thead><tr className="mk-label border-b border-line-strong text-left text-muted">{['Level', 'DPR', 'AA', 'Shadows', 'Post', 'Texture max', 'Variant', 'Density', 'Draw-call budget', 'Triangle budget'].map((h) => <th key={h} scope="col" className="py-2 pr-4 font-normal">{h}</th>)}</tr></thead>
               <tbody>{Object.values(defaultQualityProfiles).map((p) => (

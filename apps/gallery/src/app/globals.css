@@ -71,17 +71,22 @@
   --mk-accent-3d: #f2b632;
   color-scheme: dark;
 }
-[data-specialty='product'] { --mk-accent: var(--mk-accent-product); }
-[data-specialty='cinematic'] { --mk-accent: var(--mk-accent-cinematic); }
-[data-specialty='data'] { --mk-accent: var(--mk-accent-data); }
-[data-specialty='social'] { --mk-accent: var(--mk-accent-social); }
-[data-specialty='3d'] { --mk-accent: var(--mk-accent-3d); }
-/* Always-dark stage (WebGL previews, cinematic demos) */
+/* Always-dark stage (WebGL previews, cinematic demos, the code viewer): the dark theme's values, status and accent
+   colours included, so text in them keeps its contrast in the light theme too. --mk-accent is re-declared here
+   because a custom property is computed where it is declared: inherited from :root it would keep the light value. */
 [data-stage='ink'] {
   --mk-bg: #0e0e0c; --mk-surface: #171714; --mk-surface-2: #22221e; --mk-ink: #f3f0e8; --mk-ink-muted: #a8a59a;
   --mk-line: #f3f0e826; --mk-line-strong: #f3f0e8; --mk-signal: #ff5a2b; --mk-on-signal: #11110f; --mk-focus: #8ab4ff;
+  --mk-success: #3ecf9a; --mk-danger: #ff7b6b;
+  --mk-accent-product: #7d97ff; --mk-accent-cinematic: #ff5a2b; --mk-accent-data: #3ecf9a; --mk-accent-social: #ff6fb8; --mk-accent-3d: #f2b632;
+  --mk-accent: var(--mk-signal);
   color-scheme: dark;
 }
+[data-specialty='product'], [data-specialty='product'] [data-stage='ink'] { --mk-accent: var(--mk-accent-product); }
+[data-specialty='cinematic'], [data-specialty='cinematic'] [data-stage='ink'] { --mk-accent: var(--mk-accent-cinematic); }
+[data-specialty='data'], [data-specialty='data'] [data-stage='ink'] { --mk-accent: var(--mk-accent-data); }
+[data-specialty='social'], [data-specialty='social'] [data-stage='ink'] { --mk-accent: var(--mk-accent-social); }
+[data-specialty='3d'], [data-specialty='3d'] [data-stage='ink'] { --mk-accent: var(--mk-accent-3d); }
 
 @theme inline {
   --font-display: var(--mk-font-display);
@@ -108,7 +113,7 @@
 @layer base {
   html { background: var(--mk-bg); color: var(--mk-ink); font-family: var(--mk-font-text); -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
   body { min-height: 100dvh; background: var(--mk-bg); }
-  :focus-visible { outline: 2px solid var(--mk-focus); outline-offset: 2px; border-radius: 2px; }
+  :focus-visible { outline: 2px solid var(--mk-focus); outline-offset: 2px; border-radius: var(--mk-radius-s); }
   ::selection { background: var(--mk-signal); color: var(--mk-on-signal); }
   button, [role='button'], summary, a { -webkit-tap-highlight-color: transparent; }
   button:not(:disabled), [role='button'], summary { cursor: pointer; }

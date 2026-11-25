@@ -28,6 +28,8 @@ const ROOTISH = /^(?::root|html|:host|\[data-theme[^\]]*\]|\[data-mode[^\]]*\]|\
 // value parsing
 // ---------------------------------------------------------------------------------------------------------------
 const NAMED_OK = new Set(['transparent', 'currentcolor', 'inherit', 'initial', 'unset', 'revert', 'none']);
+/** Next.js metadata image routes written as code (rendered to PNG by ImageResponse). */
+const IMAGE_ROUTE = /(^|\/)(opengraph-image|twitter-image|icon|apple-icon)\d*\.[cm]?[jt]sx?$/;
 const COLOUR_RE = /#[0-9a-fA-F]{3,8}\b|\b(?:rgba?|hsla?)\(\s*[^()]*\)|\b(?:oklch|oklab|lab|lch)\(\s*[^()]*\)/g;
 
 /** @param {string} lit @returns {string|null} 6-digit lowercase hex (alpha ignored) */
@@ -336,7 +338,13 @@ export function lintProject(opts = {}) {
   const nearestNum = (map, v) => { let best = null; for (const [k, names] of map) { const d = Math.abs(k - v); if (!best || d < best.d) best = { v: k, d, name: names[0] }; } return best; };
   const fmtVar = (name) => (name ? (name.startsWith('--') ? `var(${name})` : name) : 'a token');
 
+  const imageRoutes = [];
   for (const { file, decls, ignored } of linted) {
+    // Next.js metadata image routes (opengraph-image, twitter-image, icon, apple-icon as code) render to PNG with
+    // ImageResponse: CSS variables do not resolve there and sizes are image pixels, not the page's scales. Judge only
+    // whether their colours are on the palette, and point at the token's value rather than var().
+    const imageRoute = IMAGE_ROUTE.test(file);
+    if (imageRoute) imageRoutes.push(file);
     for (const d of decls) {
       if (d.token || ignored.has(d.line)) continue;
       const prop = d.prop;
@@ -350,18 +358,20 @@ export function lintProject(opts = {}) {
         if (!has.colours) continue;
         const hex = colourToHex(lit);
         if (hex && sets.colours.has(hex)) {
-          findings.push({ ...base, rule: 'literal-token-colour', severity: 'minor', value: lit, message: `${lit} equals a token; write ${fmtVar(sets.colours.get(hex)[0])} so theme changes reach it.` });
+          if (!imageRoute) findings.push({ ...base, rule: 'literal-token-colour', severity: 'minor', value: lit, message: `${lit} equals a token; write ${fmtVar(sets.colours.get(hex)[0])} so theme changes reach it.` });
           continue;
         }
         const near = hex ? nearestColour(hex) : null;
         const shadow = /shadow|filter/.test(prop);
+        const nearText = near ? (imageRoute ? `; nearest token ${near.name} — use its value ${near.hex} (image routes cannot read CSS variables)` : `; nearest token ${fmtVar(near.name)} (${near.hex}, ΔE ${near.d.toFixed(3)})`) : '';
         findings.push({ ...base, rule: 'off-token-colour', severity: shadow ? 'minor' : 'major', value: lit,
-          message: `${lit} is not in the palette${near ? `; nearest token ${fmtVar(near.name)} (${near.hex}, ΔE ${near.d.toFixed(3)})` : ''}.`, ...(near ? { suggestion: near.name, distance: Number(near.d.toFixed(4)) } : {}) });
+          message: `${lit} is not in the palette${nearText}.`, ...(near ? { suggestion: imageRoute ? near.hex : near.name, distance: Number(near.d.toFixed(4)) } : {}) });
       }
       for (const named of valueNoUrl.match(/(?<![\w-])(?:white|black|red|blue|green|gray|grey|orange|purple|yellow|pink|silver|navy|teal)(?![\w-])/gi) ?? []) {
         if (!/color|background|border|fill|stroke|outline|shadow/.test(prop) || NAMED_OK.has(named.toLowerCase()) || !has.colours) continue;
         findings.push({ ...base, rule: 'off-token-colour', severity: 'major', value: named, message: `Named colour "${named}" is not from the palette.` });
       }
+      if (imageRoute) continue; // scales are the page's, not the image's
       // spacing
       if (/^(margin|padding|gap|row-gap|column-gap)(-|$)|^(margin|padding)-(top|right|bottom|left|inline|block)/.test(prop)) {
         for (const l of lengthsOf(d.value)) {
@@ -424,7 +434,7 @@ export function lintProject(opts = {}) {
   for (const f of findings) byRule[f.rule] = (byRule[f.rule] ?? 0) + 1;
   return {
     tool: 'maquettekit-design-lint', root, tokenSources: sources, tokensFound: Object.fromEntries(Object.entries(sets).filter(([k]) => k !== 'fontSizeText').map(([k, v]) => [k, v.size])),
-    notJudged, filesScanned: linted.length, metrics, ...(designError ? { designError } : {}), summary: { ...bySeverity, total: findings.length, byRule },
+    notJudged, filesScanned: linted.length, imageRoutes, metrics, ...(designError ? { designError } : {}), summary: { ...bySeverity, total: findings.length, byRule },
     findings: findings.slice(0, max), truncated: findings.length > max,
   };
 }
@@ -433,6 +443,7 @@ export function lintProject(opts = {}) {
 export function lintMarkdown(r) {
   const lines = ['# Design-token lint', '', `Scanned ${r.filesScanned} files in \`${r.root}\`. Token sources: ${r.tokenSources.length ? r.tokenSources.map((s) => `\`${s}\``).join(', ') : '**none found**'}.`, ''];
   if (r.notJudged.length) lines.push(`Not judged (no tokens defined): ${r.notJudged.join(', ')}.`, '');
+  if (r.imageRoutes?.length) lines.push(`Image routes (rendered to PNG; only palette colours judged): ${r.imageRoutes.map((f) => `\`${f}\``).join(', ')}.`, '');
   lines.push(`**${r.summary.major} major, ${r.summary.minor} minor, ${r.summary.info} info.**`, '');
   if (r.findings.length) {
     lines.push('| Severity | Where | Property | Value | Finding |', '| - | - | - | - | - |');

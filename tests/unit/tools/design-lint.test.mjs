@@ -133,6 +133,23 @@ describe('lint across file types', () => {
     expect(r.metrics).toMatchObject({ distinctColourLiterals: 2, distinctFontSizes: 1, distinctSpacingValues: 1 });
   });
 
+  it('Next.js image routes (rendered to PNG) are judged on palette colours only, with the token value as the fix', () => {
+    const og = "export default function Image() { return new ImageResponse(<div style={{ background: '#ffffff', color: '#123456', padding: 13, borderRadius: 7 }} />); }";
+    const dir = project('image-routes', {
+      'tokens.css': ':root { --c-bg: #ffffff; --c-ink: #111111; --c-a: #2255aa; --c-b: #aa5522; --space-1: 4px; --space-2: 8px; --space-4: 16px; --space-6: 24px; --radius-s: 4px; --radius-m: 8px; }',
+      'app/opengraph-image.tsx': og, 'app/blog/twitter-image.tsx': og, 'app/apple-icon.tsx': og, 'app/icon2.jsx': og,
+      'app/page.tsx': og, // an ordinary page with the same values is fully judged
+    });
+    const r = lintProject({ dir });
+    for (const f of ['app/opengraph-image.tsx', 'app/blog/twitter-image.tsx', 'app/apple-icon.tsx', 'app/icon2.jsx']) {
+      expect(rules(r, f), f).toEqual(['off-token-colour:#123456']); // #ffffff (a token) and the 13px / 7px sizes are not judged
+      expect(r.findings.find((x) => x.file === f).message).toMatch(/use its value #111111 \(image routes cannot read CSS variables\)/);
+    }
+    expect(rules(r, 'app/page.tsx')).toEqual(['literal-token-colour:#ffffff', 'off-scale-radius:7px', 'off-scale-spacing:13px', 'off-token-colour:#123456']);
+    expect(r.imageRoutes.sort()).toEqual(['app/apple-icon.tsx', 'app/blog/twitter-image.tsx', 'app/icon2.jsx', 'app/opengraph-image.tsx']);
+    expect(lintMarkdown(r)).toMatch(/Image routes \(rendered to PNG; only palette colours judged\)/);
+  });
+
   it('skips build output and dependencies, and honours --ignore', () => {
     const dir = project('skip', {
       'tokens.css': ':root { --c-bg: #ffffff; --c-ink: #111111; --c-a: #2255aa; --c-b: #aa5522; }',

@@ -1,9 +1,11 @@
+/* A soft studio vignette from the palette: lighter centre, darker rim. Dark theme mixes toward its (light) ink for
+   the centre instead, so the vignette keeps its direction. */
 .mk-viewer-stage {
   background:
-    radial-gradient(120% 90% at 50% 38%, color-mix(in srgb, var(--mk-surface) 92%, #fff) 0%, var(--mk-surface-2) 62%, color-mix(in srgb, var(--mk-surface-2) 86%, #000) 100%);
+    radial-gradient(120% 90% at 50% 38%, var(--mk-surface) 0%, var(--mk-surface-2) 62%, color-mix(in srgb, var(--mk-surface-2) 86%, var(--mk-ink)) 100%);
 }
 [data-theme='dark'] .mk-viewer-stage {
-  background: radial-gradient(120% 90% at 50% 38%, #3a3933 0%, #24241f 58%, #151512 100%);
+  background: radial-gradient(120% 90% at 50% 38%, color-mix(in srgb, var(--mk-surface-2) 90%, var(--mk-ink)) 0%, var(--mk-surface-2) 58%, var(--mk-surface) 100%);
 }
 .mk-viewer-stage:fullscreen { width: 100vw; height: 100vh; aspect-ratio: auto; }
 .mk-viewer-stage canvas:focus-visible { outline: 2px solid var(--mk-focus); outline-offset: -4px; }

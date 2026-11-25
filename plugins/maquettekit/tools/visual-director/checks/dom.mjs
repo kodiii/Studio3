@@ -148,14 +148,44 @@ export function pageDomMeasure(opts) {
     if (r.width === 0 || r.height === 0) zeroMedia.push({ selector: H.sel(el), tag: el.localName, width: r.width, height: r.height, src: (el.getAttribute('src') || '').slice(0, 120) });
   }
 
-  const interactive = Array.from(document.querySelectorAll(H.INTERACTIVE)).filter((el) => H.visible(el) && !el.disabled).slice(0, 200);
-  const irects = interactive.map((el) => el.getBoundingClientRect());
+  // inert subtrees (live thumbnails, offscreen panels) take no pointer or keyboard input: nothing in them can collide
+  const interactive = Array.from(document.querySelectorAll(H.INTERACTIVE)).filter((el) => H.visible(el) && !el.disabled && !el.closest('[inert]')).slice(0, 200);
+  /**
+   * The part of an element's box its clipping ancestors leave on screen (overflow other than visible: a tab strip
+   * scrolled sideways, a preview stage with overflow hidden). An absolutely positioned box escapes static ancestors
+   * up to its containing block.
+   */
+  const clipRect = (el) => {
+    const r = el.getBoundingClientRect();
+    let left = r.left; let right = r.right; let top = r.top; let bottom = r.bottom;
+    let abs = getComputedStyle(el).position === 'absolute';
+    for (let p = el.parentElement; p && p !== document.documentElement; p = p.parentElement) {
+      const cs = getComputedStyle(p);
+      if (abs && cs.position === 'static') continue; // not in the containing-block chain: does not clip it
+      if (cs.overflowX !== 'visible' || cs.overflowY !== 'visible') {
+        const pr = p.getBoundingClientRect();
+        if (cs.overflowX !== 'visible') { left = Math.max(left, pr.left); right = Math.min(right, pr.right); }
+        if (cs.overflowY !== 'visible') { top = Math.max(top, pr.top); bottom = Math.min(bottom, pr.bottom); }
+      }
+      abs = cs.position === 'absolute';
+    }
+    return { left, right, top, bottom, width: Math.max(0, right - left), height: Math.max(0, bottom - top) };
+  };
+  const irects = interactive.map((el) => el.getBoundingClientRect()); // element sizes (tap targets)
+  const vrects = interactive.map(clipRect); // what is on screen (overlaps)
+  const inside = (r, outer) => r.left >= outer.left - 1 && r.right <= outer.right + 1 && r.top >= outer.top - 1 && r.bottom <= outer.bottom + 1;
+  /** Is `el` in a positioned layer of its own, below the nearest ancestor it shares with `other`? */
+  const positionedLayer = (el, other) => {
+    for (let p = el; p && !p.contains(other); p = p.parentElement) if (/^(absolute|fixed|sticky)$/.test(getComputedStyle(p).position)) return true;
+    return false;
+  };
   const overlaps = [];
   for (let i = 0; i < interactive.length && overlaps.length < 10; i++) {
     for (let j = i + 1; j < interactive.length && overlaps.length < 10; j++) {
       const a = interactive[i]; const b = interactive[j];
       if (a.contains(b) || b.contains(a)) continue;
-      const ra = irects[i]; const rb = irects[j];
+      const ra = vrects[i]; const rb = vrects[j];
+      if (!ra.width || !ra.height || !rb.width || !rb.height) continue; // clipped out of view entirely
       const ix = Math.min(ra.right, rb.right) - Math.max(ra.left, rb.left);
       const iy = Math.min(ra.bottom, rb.bottom) - Math.max(ra.top, rb.top);
       if (ix <= 1 || iy <= 1) continue;
@@ -164,6 +194,11 @@ export function pageDomMeasure(opts) {
       if (isFixed(a) || isFixed(b)) continue;
       const la = a.closest('label'); const lb = b.closest('label');
       if ((la && la.contains(b)) || (lb && lb.contains(a))) continue;
+      // a control placed on a larger interactive surface — a toolbar over a 3D canvas, a play button over a video, a
+      // save button on a linked card — is a deliberate overlay when it lies wholly inside the surface in a positioned
+      // layer. Whether something covers a control is the interaction-reachability check's job (it hit-tests).
+      const [small, rs, large, rl] = ra.width * ra.height <= rb.width * rb.height ? [a, ra, b, rb] : [b, rb, a, ra];
+      if (inside(rs, rl) && positionedLayer(small, large)) continue;
       overlaps.push({ selector: H.sel(a), other: H.sel(b), overlapRatio: Math.round(ratio * 100) / 100, overlapPx: { width: Math.round(ix), height: Math.round(iy) } });
     }
   }

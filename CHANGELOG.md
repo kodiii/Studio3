@@ -57,6 +57,14 @@ semantic versioning. Plugin manifests (Claude Code and Codex) always carry the s
   gallery and a browser test holds first-load JavaScript under 600 KB on nine routes, one of each kind of page.
 
 ### Changed
+- Visual Director's overlap heuristic ignores controls inside `inert` subtrees, deliberate overlays (a control wholly
+  inside a larger interactive surface, in a positioned layer — a toolbar on a 3D canvas, a play button on a video;
+  whether something covers a control is still hit-tested by `interaction-reachability`), and measures what scrolling
+  and overflow containers leave on screen. Found by running `maquettekit check` on the gallery; regression fixtures
+  for each case.
+- `design lint` judges Next.js metadata image routes (`opengraph-image`, `twitter-image`, `icon`, `apple-icon` written
+  as code) on palette colours only, and suggests the token's value: they render to PNG, where CSS variables do not
+  resolve and the page's scales do not apply.
 - Eval LLM graders check one criterion each and read the file the agent wrote rather than the transcript; multi-part
   judges over long transcripts caused the failures that appeared with and without the plugin.
 - The Product, Data and Motion skill descriptions now say to load the skill before planning or advising and for
@@ -73,6 +81,11 @@ semantic versioning. Plugin manifests (Claude Code and Codex) always carry the s
   wordmark. First-load JavaScript is now 467–503 KB per route (140–151 KB gzip), about 450 KB of it the framework;
   whole first views are 544–759 KB, against 1.8–3.6 MB before. (All figures uncompressed unless marked, measured with
   `maquettekit launch` on the production build, without the nomodule polyfills below.)
+- Gallery accessibility, found with `maquettekit check`: the code viewer's syntax colours (and any status or accent
+  colour inside an always-dark stage) used light-theme values on the dark panel, 3.1:1 — the ink stage now carries
+  the dark theme's status and accent colours and specialty accents apply inside it; the sideways-scrolling table on
+  `/system` is a named, focusable region (keyboard users could not scroll it); recipe and demo stages set `aria-busy`
+  until their content is on screen. The 3D gallery's stage gradient and labels use palette tokens.
 - `maquettekit launch` counted `nomodule` scripts as page weight. Browsers with ES-module support (all current ones)
   neither download nor run them; on Next.js that inflated every route by its 110 KB polyfill bundle.
 - The gallery home page said 12 agent skills; there are 14 (now a constant a packaging test keeps in step).

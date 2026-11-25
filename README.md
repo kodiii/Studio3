@@ -268,9 +268,22 @@ is reported as unavailable rather than tested. Tests that cannot run in an envir
 | Production build | `npm run build` | 86 static routes — 81 pages plus the icons, share image, `robots.txt` and sitemap |
 | Browser (Playwright) | `npm run test:e2e` | **314 passed, 0 flaky** — every recipe (mount, 3× remount cleanup, axe in light and dark, reduced motion, 390 px), every demo (axe light/dark, keyboard focus, reduced motion + 390 px, no-WebGL fallback for 3D), gallery behaviour, 3D initialisation/loading/missing-asset/controls/GPU disposal, shader animation, visual regression, first-load JavaScript under 600 KB on nine kinds of page |
 
-Dogfooding the tools on the production gallery (5 routes × desktop/tablet/mobile × normal/reduced motion):
+Dogfooding the tools on the production gallery:
 
-- **Visual Director**, three passes of its own improve → retest loop:
+- **`maquettekit check`** (lint, Visual Director and Experience Lab in one run; 7 routes — home, catalogue, an effect,
+  a studio, a demo, 3D, system — at 1440, 820 and 390 px), three rounds. Round 1: 0 critical, 24 major, 59 minor.
+  Real defects, fixed: the code viewer's syntax colours used light-theme values on its dark panel (3.1:1) — every
+  always-dark stage now carries the dark theme's status and accent colours; the sideways-scrolling table on `/system`
+  could not be reached by keyboard; recipe and demo stages did not say they were loading (now `aria-busy` until the
+  content is on screen); four literal colours and three off-scale radii in the 3D gallery. Checker false positives,
+  fixed in the tools with regression fixtures: the overlap heuristic counted controls inside inert thumbnails,
+  deliberate overlays (a toolbar on a 3D canvas) and buttons a scrolling strip had clipped; the lint asked image
+  routes (`opengraph-image`, `apple-icon`), which render to PNG, to use CSS variables. **Round 3: 0 critical,
+  0 major**, 26 minor — 25 small-text hints (chart axis labels and 3D stat labels at 10–11 px) and about 1.2 s of
+  main-thread work on `/3d` while three.js starts the viewer (lab, throttled mobile). Experience Lab **81.3 / 100
+  (B)**, all evaluated gates passed; lowest dimensions: spatial-interaction clarity 40, cognitive load 51, perceived
+  performance 58.
+- At v4.0.0 (5 routes × desktop/tablet/mobile × normal/reduced motion): **Visual Director**, three passes of its own improve → retest loop:
   pass 1 reported 0 critical / 129 major; triage found one real latent defect (two chart recipes put the
   screen-reader-only class on a `<table>`, which ignores the 1 px box and left an invisible 412 × 792 px element), fixed
   in the recipes; the rest were checker false positives (text in inert, aria-hidden catalogue thumbnails; the hidden copy
@@ -280,7 +293,7 @@ Dogfooding the tools on the production gallery (5 routes × desktop/tablet/mobil
   labels, overlap hints on brush handles and the 3D toolbar), 30 info. All 3D checks that can run here passed;
   `3d-frame-time` and `3d-cleanup` are reported *limited* and `3d-webgpu` *unavailable* (no adapter in headless
   Chromium) — never as passed.
-- **Experience Lab** (`assess`, Expressive profile, 3 routes, before the final hover-state changes): **84.9 / 100 (B)**,
+- At v4.0.0, **Experience Lab** (`assess`, Expressive profile, 3 routes, before the final hover-state changes): **84.9 / 100 (B)**,
   confidence 0.68; all automated gates pass (reduced motion, user control, keyboard, focus visible, contrast, target
   size, zoom; flashing needs an agent answer). Recommendations it raised that were acted on: a real 404 page, hover
   states on header and catalogue controls, a 24 px+ brand link.
