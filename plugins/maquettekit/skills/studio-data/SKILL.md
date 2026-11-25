@@ -100,7 +100,8 @@ there is no meaningful in-between state.
 must ship alongside it. Load `references/spatial-data.md` and hand the scene to `studio-3d` with the contract
 there; otherwise build the 2D alternative it names.
 
-**7. Verify.** Start the project's dev server or build. Via `studio-review`:
+**7. Verify.** Fastest path: `maquettekit check --url <url>` runs the design-file check, token lint, review and experience assessment in one go and writes one ranked fix list to `.maquettekit/check/check.md`; fix in order and re-run (at most three rounds). The steps below are the same checks one by one.
+Start the project's dev server or build. Via `studio-review`:
 `maquettekit review run --url <url> --out .maquettekit/review --pass 1`; fix by severity; re-test; at most three
 improve→retest passes; `maquettekit review summary`. Via `studio-experience`:
 `maquettekit experience assess --profile essential` (or the profile you chose). Then run the data checks in
@@ -168,7 +169,8 @@ Each is a checkable statement. A build that fails one is not finished.
 Before claiming done, all of the following are true, or the exception is stated in the report:
 
 1. The project's own checks ran and passed: typecheck, lint, tests, build.
-2. `maquettekit design validate` accepts `maquettekit.design.json`.
+2. `maquettekit design validate` accepts `maquettekit.design.json`, and `maquettekit design lint --dir . --fail-on major`
+   exits 0 — no colour in the code that is not from the palette.
 3. `maquettekit review run …` ran at least once; no open findings of the highest severity; passes used ≤ 3
    (`maquettekit review loop-status`).
 4. `maquettekit experience assess --profile <profile>` ran, and its result is quoted with the profile.

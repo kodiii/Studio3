@@ -22,6 +22,8 @@ Resolve the path once per session, confirm it exists, and reuse it. Below, `maqu
 | `maquettekit setup [--only review\|assets] [--browsers] [--dry-run]` | setup | npm | Install optional dependencies into the Maquettekit deps directory |
 | `maquettekit catalog list\|search\|show` | Component & Effect Library | — | Find recipes and demos; print source |
 | `maquettekit design init\|generate\|validate\|explain\|tokens\|directions` | Design Intelligence Engine | — | Create and maintain `maquettekit.design.json` |
+| `maquettekit design lint` | Design-token lint | — | Values in the code that are not from the design system, with the token to use |
+| `maquettekit check` | All of the verify step | Playwright (review, experience; reported unavailable without it) | Design file, token lint, browser review and experience assessment merged into one ranked fix list (`.maquettekit/check/check.md`) |
 | `maquettekit review inspect\|run\|compare\|loop-status\|summary` | Visual Director | Playwright (not for `inspect`) | Browser capture, deterministic checks, 3D diagnostics, reports |
 | `maquettekit experience assess\|rubric\|score` | Experience Lab | Playwright for `assess` | Heuristic interaction-quality assessment |
 | `maquettekit assets inspect\|validate\|optimize\|variants\|manifest\|thumbnail\|import` | 3D Asset Pipeline | glTF Transform etc. | Inspect and optimise glTF/GLB without touching sources |

@@ -141,7 +141,8 @@ export async function runReview(opts) {
   const firstTouchVp = viewports.find((v) => VIEWPORTS[v].hasTouch) ?? null;
   const frameVp = viewports.includes('desktop') ? 'desktop' : primaryVp;
 
-  const browser = await launchBrowser();
+  let browser;
+  try { browser = await launchBrowser(); } catch (err) { if (server) await server.close(); throw err; } // do not leak the static server
   try {
     for (const route of routes) {
       const url = urlFor(route);

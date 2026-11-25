@@ -16,6 +16,8 @@ maquettekit design validate <maquettekit.design.json> [--json]
 maquettekit design explain  <maquettekit.design.json> [--section direction|color|type|layout|components|motion|3d|performance|libraries|accessibility|specialty] [--out <file.md>]
 maquettekit design tokens   <maquettekit.design.json> --format css|tailwind|ts|json-dtcg [--out <file>] [--color-format hex|oklch]
 maquettekit design directions [--json]
+maquettekit design lint [--dir .] [--design maquettekit.design.json] [--tokens a.css,b.css] [--ignore dir,*.min.css]
+                        [--fail-on major|minor|none] [--out report.md] [--json]
 ```
 
 - `init` writes an annotated brief template (keys starting with `_` are comments and are ignored).
@@ -28,7 +30,17 @@ maquettekit design directions [--json]
   `--json` prints `{ written, direction, score, runnerUp, briefHash, valid, errors, assumptions }`.
 - `validate` exits `0` valid / `1` invalid; `explain` prints Markdown rationale (stdout unless `--out`); `tokens`
   prints to stdout unless `--out`; `directions` lists the 14 built-in art directions.
-- Exit codes follow the Maquettekit convention: `0` success, `1` invalid result, `2` usage error.
+- `lint` checks the project's styles against the design system: colour literals not in the palette (major; a
+  literal that equals a token is minor and names the variable), and spacing, font sizes, radii and durations off their
+  scales (minor), each with the nearest token. Tokens come from the design file (through its CSS export) and from the
+  project's own `:root`/`html`/`@theme` custom properties and SCSS/LESS variables; a block of variables that redefines
+  root tokens (e.g. `[data-stage='ink'] { --mk-bg: … }`) counts as a theme. A category with fewer tokens than a scale
+  needs is reported under `notJudged` instead of flagging every value. Scans CSS, `<style>` and `style=""` in
+  HTML/Vue/Svelte/Astro, JSX `style={{…}}`, styled-components/emotion templates and Tailwind arbitrary values; skips
+  dependencies, build output and generated token files. `var(--x, fallback)` fallbacks and the `0.01ms`
+  reduced-motion override are not findings. `maquettekit-lint-ignore` in a comment skips a line.
+- Exit codes follow the Maquettekit convention: `0` success, `1` invalid result (for `lint`: findings at or above
+  `--fail-on`, default `minor`), `2` usage error.
 
 ## The brief
 

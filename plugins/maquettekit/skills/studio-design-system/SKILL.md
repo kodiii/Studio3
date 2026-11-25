@@ -50,7 +50,9 @@ do not substitute that variable (Codex), the same file is `../../tools/maquettek
    you can paste into a design brief for the user.
 6. **Apply** following `references/applying.md`: import the token file once, install the font packages it names,
    map existing variables, wire dark mode. The CSS export includes the library alias layer (`--mk-bg`, `--mk-ink`,
-   `--mk-signal`, …) so Maquettekit recipes pick up the system with no further mapping.
+   `--mk-signal`, …) so Maquettekit recipes pick up the system with no further mapping. Then run
+   `maquettekit design lint --dir .`: it lists every colour, spacing, type size, radius and duration in the code that
+   is not from the system, with the token to use instead. Fix majors (off-palette colours) before handing over.
 7. **Persist decisions.** Commit `maquettekit.design.json`. Any deliberate deviation goes into its `overrides` object —
    never hand-edit generated sections or the exported token files. Re-export after every change.
 8. **Hand over** to the specialty skill (`studio-product`, `studio-cinematic`, `studio-data`, `studio-social`,
@@ -86,5 +88,7 @@ direction and why (with runner-up), type pairing and licences, colour strategy a
 ## Validation
 
 - `maquettekit design validate maquettekit.design.json` exits 0.
+- `maquettekit design lint --dir . --fail-on major` exits 0 (no off-palette colours left), and the remaining minor
+  findings are either fixed or listed in the report.
 - The exported token file is imported by the app and the page renders with it (check with `studio-review`).
 - `meta.selection` and every printed assumption were reported to the user.

@@ -20,6 +20,7 @@ export const COMMANDS = {
   experience: { file: 'experience-lab/index.mjs', summary: 'Experience Lab — heuristic interaction-quality assessment' },
   assets: { file: 'asset-pipeline/index.mjs', summary: '3D Asset Pipeline — inspect, validate, optimize, variants, manifest' },
   catalog: { file: 'catalog/index.mjs', summary: 'Search the Component & Effect Library catalog' },
+  check: { file: 'check/index.mjs', summary: 'Verify in one run: design file, token lint, browser review, experience → one ranked fix list' },
 };
 
 export function version() {

@@ -15,12 +15,14 @@ import { exportTokens, FORMATS } from './exports.mjs';
 import { DIRECTIONS } from './directions.mjs';
 import { resolveFont } from './fonts.mjs';
 import { deepMerge } from './util.mjs';
+import { lintProject, lintMarkdown } from './lint.mjs';
 
 export { generateDesign, regenerateDesign, applyOverrides } from './generate.mjs';
 export { validateDesign } from './validate.mjs';
 export { explainDesign } from './explain.mjs';
 export { exportTokens, toCss, toTailwind, toTs, toDtcg } from './exports.mjs';
 export { DIRECTIONS } from './directions.mjs';
+export { lintProject, lintMarkdown } from './lint.mjs';
 
 export const help = `Maquettekit Design Intelligence Engine — deterministic, context-aware design-system generator.
 
@@ -58,6 +60,16 @@ Commands:
 
   directions [--json]
       List the built-in art directions.
+
+  lint [--dir .] [--design maquettekit.design.json] [--tokens a.css,b.css] [--ignore dir,*.min.css]
+       [--fail-on major|minor|none] [--out report.md] [--json]
+      Find values in the project's styles that are not from its design system: colour literals off the palette
+      (major), spacing, font sizes, radii and durations off their scales (minor), each with the nearest token.
+      Tokens come from the design file and from the project's own :root / theme / @theme custom properties and
+      SCSS/LESS variables; a category with no tokens is reported as not judged. Scans CSS, <style> blocks and
+      style="" in HTML/Vue/Svelte/Astro, JSX style={{…}}, styled/emotion templates and Tailwind arbitrary values.
+      A "maquettekit-lint-ignore" comment skips its line; on a line of its own it skips the next line.
+      Exit code 0 = nothing at or above --fail-on (default minor), 1 = findings.
 
 Overrides: add a top-level "overrides" object mirroring any section (e.g. {"color":{"light":{"roles":
 {"primary":{"hex":"#0b5fff"}}}}}); it is deep-merged over generated values, reflected in every export,
@@ -178,6 +190,27 @@ function cmdTokens(a) {
   return 0;
 }
 
+function cmdLint(a) {
+  const list = (v) => (typeof v === 'string' ? v.split(',').map((x) => x.trim()).filter(Boolean) : []);
+  const failOn = typeof a['fail-on'] === 'string' ? a['fail-on'] : 'minor';
+  if (!['major', 'minor', 'none'].includes(failOn)) throw new UserError('--fail-on must be major, minor or none');
+  const dir = typeof a.dir === 'string' ? a.dir : '.';
+  if (!fs.existsSync(dir)) throw new UserError(`Directory not found: ${path.resolve(dir)}`);
+  const r = lintProject({ dir, design: typeof a.design === 'string' ? a.design : undefined, tokens: list(a.tokens), ignore: list(a.ignore) });
+  if (typeof a.out === 'string') { const p = write(a.out, lintMarkdown(r)); log.ok(`Lint report written to ${p}`); }
+  if (a.json) console.log(JSON.stringify(r, null, 2));
+  else {
+    log.info(`Scanned ${r.filesScanned} files; token sources: ${r.tokenSources.join(', ') || 'none found'}`);
+    if (r.designError) log.warn(r.designError);
+    if (r.notJudged.length) log.warn(`Not judged (no tokens defined): ${r.notJudged.join(', ')}`);
+    for (const f of r.findings.slice(0, 40)) log.info(`  ${f.severity.padEnd(5)} ${f.file ? `${f.file}:${f.line}` : ''}  ${f.message}`);
+    if (r.findings.length > 40) log.info(`  … ${r.findings.length - 40} more (use --json or --out)`);
+    log[r.summary.major || r.summary.minor ? 'warn' : 'ok'](`${r.summary.major} major, ${r.summary.minor} minor, ${r.summary.info} info`);
+  }
+  const failing = failOn === 'none' ? 0 : failOn === 'major' ? r.summary.major : r.summary.major + r.summary.minor;
+  return failing ? 1 : 0;
+}
+
 function cmdDirections(a) {
   if (a.json) {
     console.log(JSON.stringify(DIRECTIONS.map((d) => ({
@@ -207,6 +240,7 @@ export async function main(argv) {
     case 'explain': return cmdExplain(a);
     case 'tokens': return cmdTokens(a);
     case 'directions': return cmdDirections(a);
+    case 'lint': return cmdLint(a);
     case undefined: console.log(help); return 0;
     default: throw new UserError(`Unknown design command "${cmd}".\n\n${help}`);
   }

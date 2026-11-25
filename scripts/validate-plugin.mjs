@@ -17,7 +17,7 @@ export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '
 export const PLUGIN = path.join(ROOT, 'plugins', 'maquettekit');
 export const REQUIRED_SKILLS = ['studio-product', 'studio-cinematic', 'studio-data', 'studio-social', 'studio-3d', 'studio-motion',
   'studio-review', 'studio-experience', 'studio-design-system', 'studio-components', 'studio-setup', 'studio-asset-optimizer'];
-const COMMANDS = ['doctor', 'setup', 'design', 'review', 'experience', 'assets', 'catalog'];
+const COMMANDS = ['doctor', 'setup', 'design', 'review', 'experience', 'assets', 'catalog', 'check'];
 const CODEX_MANIFEST_KEYS = new Set(['name', 'version', 'description', 'keywords', 'skills', 'mcpServers', 'apps', 'hooks', 'interface', 'commands']);
 const CODEX_INTERFACE_KEYS = new Set(['displayName', 'shortDescription', 'longDescription', 'developerName', 'category', 'capabilities', 'websiteUrl', 'privacyPolicyUrl', 'termsOfServiceUrl', 'defaultPrompt', 'brandColor', 'composerIcon', 'logo', 'logoDark', 'screenshots']);
 

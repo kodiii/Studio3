@@ -93,7 +93,8 @@ plus budget are in place. Then load `references/cinematic-3d.md` and hand the sc
 use the lightweight alternative: layered parallax, CSS 3D, an image sequence or video, a 2D canvas or CSS
 gradient background. A decorative particle field is not a reason.
 
-**7. Verify.** Start the dev server or a build. Via `studio-review`:
+**7. Verify.** Fastest path: `maquettekit check --url <url>` runs the design-file check, token lint, review and experience assessment in one go and writes one ranked fix list to `.maquettekit/check/check.md`; fix in order and re-run (at most three rounds). The steps below are the same checks one by one.
+Start the dev server or a build. Via `studio-review`:
 `maquettekit review run --url <url> --out .maquettekit/review --pass 1`; fix by severity; re-test; at most three
 improve→retest passes; `maquettekit review summary`. Via `studio-experience`:
 `maquettekit experience assess --profile immersive` (or the profile you chose). Then do the manual scroll tests in
@@ -149,7 +150,8 @@ Validation; automated capture cannot judge pacing.
 Before claiming done, all are true or the exception is stated:
 
 1. The project's own checks ran and passed: typecheck, lint, tests, build.
-2. `maquettekit design validate` accepts `maquettekit.design.json`.
+2. `maquettekit design validate` accepts `maquettekit.design.json`, and `maquettekit design lint --dir . --fail-on major`
+   exits 0 — no colour in the code that is not from the palette.
 3. `maquettekit review run …` ran against the page, including a reduced-motion capture if your build offers one
    (see `--help`); no open highest-severity findings; passes used ≤ 3 (`maquettekit review loop-status`).
 4. `maquettekit experience assess --profile <profile>` ran and is quoted with its profile.

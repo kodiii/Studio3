@@ -89,7 +89,8 @@ controls, information outside the canvas, a static fallback with the same facts 
 **9. Performance pass.** Budgets are project values (`threeD.budget`, `qualityProfiles`), not universal numbers:
 adaptive DPR, conditional effects, texture and triangle budgets, LOD, lazy loading (`references/performance.md`).
 
-**10. Verify.** Start the project's dev or preview server. Run
+**10. Verify.** Fastest path: `maquettekit check --url <url>` runs the design-file check, token lint, review and experience assessment in one go and writes one ranked fix list to `.maquettekit/check/check.md`; fix in order and re-run (at most three rounds). The steps below are the same checks one by one.
+Start the project's dev or preview server. Run
 `maquettekit review run --url <url> --out .maquettekit/review --pass 1` (with `--budgets` from the project): read every
 `3d-*` check, including `3d-fallback` (a second browser with WebGL disabled). Fix by severity; at most three passes;
 `maquettekit review summary`. Then `maquettekit experience assess --profile <profile>` via `studio-experience`.
