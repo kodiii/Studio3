@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Driftwood lamp — Fernhollow Home</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="top"><a class="logo" href="/">Fernhollow Home</a></header>
+  <main class="page">
+    <div class="promo">Free delivery on orders over €80 this week — no code needed.</div>
+    <section class="product">
+      <img src="lamp.svg" width="480" height="360">
+      <div class="details">
+        <h1>Driftwood table lamp</h1>
+        <p class="muted">Hand-finished oak base, linen shade, 2700 K warm bulb included.</p>
+        <p class="price">€129</p>
+        <form class="notify" action="/notify" method="post">
+          <input type="email" name="email" placeholder="Email for restock alerts">
+          <button class="btn" type="submit">Notify me</button>
+        </form>
+      </div>
+    </section>
+    <section class="related" aria-labelledby="related-title">
+      <h2 id="related-title">You might also like</h2>
+      <ul class="cards">
+        <li class="card">
+          <img src="shade.svg" width="240" height="160" alt="Pleated linen lampshade in sand">
+          <h3><a class="card-link" href="/products/pleated-shade">Pleated linen shade</a></h3>
+          <p class="muted">€39</p>
+          <button class="btn card-save" type="button" data-product="pleated-shade">Save</button>
+        </li>
+      </ul>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>

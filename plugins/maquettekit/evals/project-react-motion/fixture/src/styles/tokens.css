@@ -1,0 +1,12 @@
+/* Motion and spacing tokens. Durations and easings are the only timing values components may use. */
+:root {
+  --duration-fast: 120ms;
+  --duration-base: 220ms;
+  --duration-slow: 420ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --stagger-step: 60ms;
+  --space-4: 16px;
+  --space-6: 24px;
+  --radius-3: 12px;
+}

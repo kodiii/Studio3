@@ -37,7 +37,18 @@ Each skill is a short `SKILL.md` (frontmatter + workflow + validation) with deta
 (progressive disclosure). Specialties own *what good looks like* for their domain; shared skills own the cross-cutting
 procedures. Skills never duplicate each other: they delegate by name. Tool paths are written as
 `${CLAUDE_PLUGIN_ROOT}/tools/maquettekit.mjs` (substituted by Claude Code) with the `../../tools/maquettekit.mjs` fallback for
-hosts that resolve paths relative to the skill (Codex).
+hosts that resolve paths relative to the skill (Codex). In skills mode the installer links rendered copies with the
+variable replaced by the installed payload's absolute path, so the same text works on OpenCode and Antigravity.
+
+## Routing and evals (`plugins/maquettekit/hooks/`, `plugins/maquettekit/evals/`)
+
+A skill only helps if the agent loads it, and agents decide that from the frontmatter `description`. The eval suite
+(`evals/`, run with `claude plugin eval`) measures routing per skill and the difference the plugin makes to judgement,
+single-file builds, multi-file projects and tool use, with and without the plugin. Two mechanisms back the
+descriptions up: a Claude Code `UserPromptSubmit` hook (`hooks/route-hint.mjs`) that names the skill when a prompt is
+concrete UI work, and an opt-in installer block (`--routing-rules`) in each host's global rules file. Change a
+description, a route or a rule, then re-run `npm run eval:triggers` and compare against the baseline in
+`evals/README.md`.
 
 ## Tools (`plugins/maquettekit/tools/`)
 
@@ -99,6 +110,8 @@ No rewrite is needed; specialties are data plus a skill.
 2. Create `plugins/maquettekit/skills/studio-<name>/` with `SKILL.md` and `references/` (playbook, patterns, demos), and add
    it to `REQUIRED_SKILLS` in `scripts/validate-plugin.mjs` and `tools/doctor/index.mjs`.
 3. Add `library/src/demos/<name>/<demo-id>/` folders; tag reusable recipes with the new specialty in their `meta.ts`.
+   Add a route for the skill to `ROUTES` in `hooks/route-hint.mjs`, a line to `RULES_BODY` in `scripts/install.mjs`, and a
+   `trigger-<name>` case to `evals/` (`tests/plugin/evals.test.mjs` fails until every skill has one).
 4. Add an accent token (`--mk-accent-<name>`) and a `[data-specialty='<name>']` rule in the gallery's `globals.css`.
 5. Optionally teach the Design Intelligence Engine the new specialty (category mapping and `specialtyNotes`).
 6. `node scripts/build-catalog.mjs`, `npm run validate`, `npm test`, `npm run test:e2e` — the gallery, catalogue and

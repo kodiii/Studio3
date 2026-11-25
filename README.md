@@ -76,7 +76,7 @@ The installer copies the plugin payload to `~/.maquettekit/marketplace` (archivi
 `~/.maquettekit/backups/`), registers it as a local marketplace and installs `maquettekit@maquettekit-marketplace` with each host
 CLI it finds. OpenCode and Antigravity have no plugin CLI, so they get the 12 skills linked into their skills directory
 instead (see below). Options: `--host claude|codex|opencode|antigravity|all` (or a comma list such as
-`--host opencode,antigravity`), `--mode plugin|skills`, `--dry-run`, `--force`, `--verify`.
+`--host opencode,antigravity`), `--mode plugin|skills`, `--routing-rules`, `--dry-run`, `--force`, `--verify`.
 Uninstall with `./uninstall.sh` (`--purge` also removes backups and tool dependencies). Status: `node scripts/install.mjs status`.
 
 ### With your agent (Claude Code, Codex, OpenCode or Antigravity)
@@ -112,6 +112,13 @@ the installed payload, so every tool command and reference resolves without plug
 reads `~/.claude/skills` and `~/.agents/skills`; when Claude Code or Codex were installed in skills mode the installer
 does not add a second copy for OpenCode. Per project, either host also reads `<project>/.agents/skills/`: copy
 `~/.maquettekit/marketplace/rendered-skills/*` there if you want the skills checked into one repository.
+
+**Smaller and open models often skip skills** they should load (measured in
+[`plugins/maquettekit/evals/README.md`](plugins/maquettekit/evals/README.md)). With `--routing-rules` the installer adds
+a short, marked "which skill for which UI work" block to each host's global rules file (`~/.config/opencode/AGENTS.md`,
+`~/.gemini/GEMINI.md`, `~/.codex/AGENTS.md`, or `~/.claude/CLAUDE.md` in skills mode); uninstall removes exactly that
+block. In Claude Code the plugin does the same with a prompt hook that names the skill when a request is UI work (off
+with `MAQUETTEKIT_ROUTING_HINTS=0`).
 
 ### Manually, with the host CLIs
 
@@ -192,6 +199,8 @@ plugins/maquettekit/                     the plugin (self-contained payload)
   .claude-plugin/plugin.json         Claude Code manifest
   .codex-plugin/plugin.json          Codex manifest
   skills/<12 skills>/                SKILL.md + references/
+  hooks/                             Claude Code prompt hook that names the skill to load for UI work
+  evals/                             skill eval suite for `claude plugin eval` (routing, judgement, builds, projects, tools)
   shared/                            cross-skill docs: workflow, tooling, design principles, accessibility, performance,
                                      experience profiles, technology selection; JSON schemas
   tools/                             the maquettekit CLI: design-intelligence, visual-director, experience-lab,
@@ -221,17 +230,18 @@ npm run eval -- --runs 1   # quality with vs without the plugin — see plugins/
 Graphics-dependent tests run on software WebGL (SwiftShader) in headless Chromium; WebGPU is not available there and
 is reported as unavailable rather than tested. Tests that cannot run in an environment skip with an explicit reason.
 
-### Test report — v4.0.0 (2026-11-23, Linux x64, Node 22.23, Chromium 157 headless)
+### Test report — main after v4.0.0 (2026-11-25, Linux x64, Node 22.23, Chromium 157 headless)
 
 | Suite | Command | Result |
 | - | - | - |
 | Catalogue (strict) | `node scripts/build-catalog.mjs --check` | up to date — 47 recipes, 22 demos |
 | Packaging, both hosts | `npm run validate` | passed, 0 warnings — including `claude plugin validate` (Claude Code 2.1.330) for the plugin and the marketplace; Codex checked structurally (Codex ships no manifest validator) |
 | Types | `npm run typecheck` | library, tools and gallery clean |
-| Unit (Vitest) | `npm run test:unit` | **504 passed** in 11 files — tools (Design Intelligence, Visual Director, Experience Lab, asset pipeline, catalogue) and library (catalogue contract for every recipe and demo, motion engine, three-kit, StrictMode render + leak check for every non-WebGL recipe) |
-| Plugin (node:test) | `npm run test:plugin` | **17 passed, 1 skipped** — the skip is a live Codex install (no Codex CLI available); Codex command syntax is covered by a recording fake CLI. Includes a real Claude Code `plugin install`/`uninstall`, OpenCode/Antigravity skill installs in an isolated HOME, and installing from the built release archive |
+| Unit (Vitest) | `npm run test:unit` | **506 passed** in 11 files — tools (Design Intelligence, Visual Director, Experience Lab, asset pipeline, catalogue) and library (catalogue contract for every recipe and demo, motion engine, three-kit, StrictMode render + leak check for every non-WebGL recipe) |
+| Plugin (node:test) | `npm run test:plugin` | **28 passed, 1 skipped** — the skip is a live Codex install (no Codex CLI available); Codex command syntax is covered by a recording fake CLI. Includes a real Claude Code `plugin install`/`uninstall`, OpenCode/Antigravity skill installs and `--routing-rules` in an isolated HOME, the routing hook, eval-suite structure, and installing from the built release archive |
+| Skill evals (`claude plugin eval`) | `npm run eval` | routing 45/45 (default model) and 30/30 (Haiku); a skill loads in 20/20 and 18/20 quality runs; every quality case scores 1.00 with the plugin on both models — see [`plugins/maquettekit/evals/README.md`](plugins/maquettekit/evals/README.md) for the with/without differences |
 | Production build | `npm run build` | 81 static pages |
-| Browser (Playwright) | `npm run test:e2e` | **311 passed, 0 flaky** — every recipe (mount, 3× remount cleanup, axe in light and dark, reduced motion, 390 px), every demo (axe light/dark, keyboard focus, reduced motion + 390 px, no-WebGL fallback for 3D), gallery behaviour, 3D initialisation/loading/missing-asset/controls/GPU disposal, shader animation, visual regression |
+| Browser (Playwright) | `npm run test:e2e` | **313 passed, 0 flaky** — every recipe (mount, 3× remount cleanup, axe in light and dark, reduced motion, 390 px), every demo (axe light/dark, keyboard focus, reduced motion + 390 px, no-WebGL fallback for 3D), gallery behaviour, 3D initialisation/loading/missing-asset/controls/GPU disposal, shader animation, visual regression |
 
 Dogfooding the tools on the production gallery (5 routes × desktop/tablet/mobile × normal/reduced motion):
 

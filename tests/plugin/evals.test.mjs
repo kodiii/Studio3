@@ -37,6 +37,27 @@ test('eval suite: every case and grader is well-formed', () => {
   }
 });
 
+test('eval suite: scaffolded project cases ship an executable scaffold and a fixture project', () => {
+  const scaffolded = cases.filter((c) => fs.existsSync(path.join(EVALS, c, 'case.yaml')));
+  assert.ok(scaffolded.length >= 3, `found ${scaffolded.length} scaffolded cases`);
+  for (const c of scaffolded) {
+    const yaml = fs.readFileSync(path.join(EVALS, c, 'case.yaml'), 'utf8');
+    assert.match(yaml, /schema_version:\s*"1\.1"/, `${c}: case.yaml schema version`);
+    assert.match(yaml, new RegExp(`name:\\s*${c}\\b`), `${c}: case.yaml name matches directory`);
+    const script = yaml.match(/scaffold_script:\s*(\S+)/)?.[1];
+    assert.ok(script, `${c}: declares a scaffold_script`);
+    const file = path.join(EVALS, c, script);
+    assert.ok(fs.existsSync(file) && (fs.statSync(file).mode & 0o111), `${c}: ${script} exists and is executable`);
+    const fixture = path.join(EVALS, c, 'fixture');
+    assert.ok(fs.existsSync(fixture) && fs.readdirSync(fixture).length > 1, `${c}: has a multi-file fixture`);
+    // every file a grader reads must exist in the fixture (the agent edits it, it does not create it)
+    for (const g of fs.readdirSync(path.join(EVALS, c, 'graders'))) {
+      const m = fs.readFileSync(path.join(EVALS, c, 'graders', g), 'utf8').match(/(?:target|focus):\s*\{source:\s*file,\s*path:\s*([^}\s]+)\s*\}/);
+      if (m) assert.ok(fs.existsSync(path.join(fixture, m[1])), `${c}/${g}: ${m[1]} is in the fixture`);
+    }
+  }
+});
+
 test('eval suite: every skill has a routing case and every routed skill exists', () => {
   const routed = new Set();
   for (const c of cases.filter((x) => x.startsWith('trigger-'))) {

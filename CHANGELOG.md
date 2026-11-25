@@ -10,14 +10,29 @@ semantic versioning. Plugin manifests (Claude Code and Codex) always carry the s
   of `--host all`) links the 12 skills into `~/.config/opencode/skills` and `~/.gemini/config/skills`. Skills are
   rendered with `${CLAUDE_PLUGIN_ROOT}` replaced by the installed payload path, so tool commands resolve on hosts that
   do not substitute it (also applied to Claude Code / Codex skills mode). `--host` accepts a comma list.
-- **Skill eval suite** (`plugins/maquettekit/evals/`, run with `claude plugin eval`): 24 cases — routing for every skill
+- **Skill eval suite** (`plugins/maquettekit/evals/`, run with `claude plugin eval`): 27 cases — routing for every skill
   plus boundary and negative cases, judgement calls, single-file builds checked against the rules the skills teach,
-  and the plugin's own tooling. `npm run eval` compares with and without the plugin; `npm run eval:triggers` scores
+  multi-file project cases (fixture projects copied in by a scaffold script), and the plugin's own tooling. `npm run eval` compares with and without the plugin; `npm run eval:triggers` scores
   routing. `tests/plugin/evals.test.mjs` keeps the suite well-formed.
 - `maquettekit design generate --out -` and `design init --out -` print to stdout, and `design validate -` reads stdin, so
   the engine works where the shell cannot write files (sandboxes, CI). A failed write now says so and suggests `--out -`.
 
+- **Visual Director `interaction-reachability` check.** Elements with pointer or click handlers — native listeners,
+  inline handlers, React props, Solid delegated handlers — or their own `:hover` styles are scrolled to mid-viewport
+  and hit-tested; it reports those covered by another element, such as a stretched card link's `::after`, naming the
+  cover. On the gallery build from before the WebGL-preview fix it reports the covered card previews (15, its
+  per-page cap) and nothing else; on the fixed gallery (6 pages, 2 viewports, about 700 elements tested) it reports
+  nothing.
+- **Routing for smaller models.** A Claude Code `UserPromptSubmit` hook names the skill to load when a prompt is UI
+  work (once per skill per session, never blocks, off with `MAQUETTEKIT_ROUTING_HINTS=0`), and
+  `./install.sh --routing-rules` adds an equivalent marked block to the global rules file of Codex, OpenCode,
+  Antigravity (and Claude Code in skills mode); uninstall removes exactly that block. With the hook, a skill loads in
+  20/20 judgement, build and project runs on the default model and 18/20 on Haiku (was 12/14 and 5/14), and every
+  quality case scores 1.00 with the plugin on both models.
+
 ### Changed
+- Eval LLM graders check one criterion each and read the file the agent wrote rather than the transcript; multi-part
+  judges over long transcripts caused the failures that appeared with and without the plugin.
 - The Product, Data and Motion skill descriptions now say to load the skill before planning or advising and for
   single-file work. The eval suite showed no skill loaded on planning questions or "create `x.html`" requests;
   routing went from 39/45 to 45/45 and skill loads on build/judgement cases from 0/14 to 12/14 (default model).
