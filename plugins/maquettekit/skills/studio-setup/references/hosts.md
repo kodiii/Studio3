@@ -82,7 +82,7 @@ From a checkout or release archive:
 ```bash
 ./install.sh                 # detects installed host CLIs, plugin mode
 ./install.sh --host codex    # one host (claude, codex, opencode, antigravity, or a comma list)
-./install.sh --mode skills   # link the 12 skills into the host skills directory (no plugin CLI needed)
+./install.sh --mode skills   # link the skills into the host skills directory (no plugin CLI needed)
 ./install.sh --routing-rules # also add the skill-routing block to each host's global rules file (opt-in)
 ./install.sh --dry-run       # print every action without doing it
 ./uninstall.sh               # remove what the installer recorded; add --purge to drop backups and deps

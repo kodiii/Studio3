@@ -9,7 +9,7 @@ import { ROOT } from '../../scripts/validate-plugin.mjs';
 
 const INSTALL = path.join(ROOT, 'scripts', 'install.mjs');
 const VERSION = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')).version;
-// The installer must link every skill present in the repo (completeness of the 12 is asserted in packaging.test.mjs).
+// The installer must link every skill present in the repo (completeness of the required skills is asserted in packaging.test.mjs).
 const SKILLS = fs.readdirSync(path.join(ROOT, 'plugins', 'maquettekit', 'skills')).filter((d) => fs.existsSync(path.join(ROOT, 'plugins', 'maquettekit', 'skills', d, 'SKILL.md')));
 
 function sandbox({ fakeClis = [] } = {}) {

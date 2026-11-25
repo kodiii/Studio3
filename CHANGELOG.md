@@ -7,7 +7,7 @@ semantic versioning. Plugin manifests (Claude Code and Codex) always carry the s
 
 ### Added
 - **OpenCode and Google Antigravity support.** `./install.sh --host opencode|antigravity` (also auto-detected, and part
-  of `--host all`) links the 12 skills into `~/.config/opencode/skills` and `~/.gemini/config/skills`. Skills are
+  of `--host all`) links the skills into `~/.config/opencode/skills` and `~/.gemini/config/skills`. Skills are
   rendered with `${CLAUDE_PLUGIN_ROOT}` replaced by the installed payload path, so tool commands resolve on hosts that
   do not substitute it (also applied to Claude Code / Codex skills mode). `--host` accepts a comma list.
 - **Skill eval suite** (`plugins/maquettekit/evals/`, run with `claude plugin eval`): 27 cases — routing for every skill

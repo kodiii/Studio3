@@ -13,7 +13,7 @@
  *     payload is first archived to $MAQUETTEKIT_HOME/backups/.
  *  2. plugin mode: registers that directory as a local marketplace with the host CLI and installs
  *     maquettekit@maquettekit-marketplace  (claude plugin … / codex plugin …).
- *  3. skills mode (OpenCode and Antigravity always; Claude/Codex without their CLI): renders the 12 skills
+ *  3. skills mode (OpenCode and Antigravity always; Claude/Codex without their CLI): renders the skills
  *     with ${CLAUDE_PLUGIN_ROOT} replaced by the payload's absolute path, then links them into the host's
  *     skills directory: ~/.claude/skills, ~/.agents/skills (Codex), $XDG_CONFIG_HOME/opencode/skills
  *     (default ~/.config/opencode/skills) or ~/.gemini/config/skills (Antigravity IDE and agy CLI).
@@ -77,6 +77,8 @@ even for a single file or a quick question:
 - 3D, three.js / React Three Fiber, WebGL, shaders, model viewers → studio-3d (model optimisation → studio-asset-optimizer)
 - design tokens, palette, type scale → studio-design-system
 - reviewing a page in a browser → studio-review; interaction quality → studio-experience
+- going live: titles and descriptions, share images, favicons, robots.txt, sitemap, 404 → studio-launch
+- building to a mockup, design export or screenshot → studio-match
 - an effect or component from the Maquettekit library → studio-components; installing or fixing Maquettekit → studio-setup`;
 
 /** Remove the marked block, leaving the rest of the text as it was. @param {string} text */

@@ -12,8 +12,8 @@ test('structural validation reports no errors', () => {
   assert.deepEqual(res.errors, []);
 });
 
-test('all 12 required skills exist with valid frontmatter', () => {
-  assert.equal(REQUIRED_SKILLS.length, 12);
+test('all 14 required skills exist with valid frontmatter', () => {
+  assert.equal(REQUIRED_SKILLS.length, 14);
   for (const s of REQUIRED_SKILLS) {
     const file = path.join(PLUGIN, 'skills', s, 'SKILL.md');
     assert.ok(fs.existsSync(file), `${s}/SKILL.md exists`);

@@ -19,7 +19,7 @@ export const help = `maquettekit mcp — run the Maquettekit MCP server on stdio
 Usage: maquettekit mcp            (started by the MCP client, not by hand)
 
 Tools: catalog_search, catalog_show, catalog_install, design_generate, design_validate, design_tokens, design_lint,
-check, review_loop_status, assets_inspect, doctor.
+check, review_match, launch_check, review_loop_status, assets_inspect, doctor.
 
 Client configuration (the Claude Code plugin registers it automatically through its .mcp.json):
   command: node   args: ["<plugin>/tools/maquettekit.mjs", "mcp"]`;
@@ -145,6 +145,27 @@ export const TOOLS = [
       const { result, files } = await runCheck({ url: a.url, serve: a.serve_dir ? abs(a.serve_dir) : undefined, routes: a.routes, dir: abs(a.project_dir), profile: a.profile, viewports: a.viewports, review: a.skip_review ? false : undefined, experience: a.skip_experience ? false : undefined, lint: a.skip_lint ? false : undefined });
       const max = a.max_items ?? 40;
       return { summary: result.summary, steps: result.steps, items: result.items.slice(0, max), truncated: result.items.length > max, notRun: result.notRun, files };
+    },
+  },
+  {
+    name: 'review_match', title: 'Compare a page with a reference image',
+    description: 'Capture a page at the size of a reference image (mockup, design export, screenshot) and pixel-compare them: similarity, the 3×3 regions that differ most, reference colours missing from the page and the trend over earlier runs. Writes reference.png, page.png and diff.png to .maquettekit/match.',
+    inputSchema: { type: 'object', properties: { reference: { ...str, description: 'PNG, JPEG, WebP or GIF' }, url: str, serve_dir: str, route: str, scale: { type: 'number', minimum: 0.25, maximum: 4, description: '2 for @2x exports' }, viewport: { ...str, description: 'e.g. 1440x900; default: image size / scale' } }, required: ['reference'], additionalProperties: false },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+    async run(a) {
+      const { runMatch } = await import('../visual-director/match.mjs');
+      return runMatch({ reference: abs(a.reference), url: a.url, serve: a.serve_dir ? abs(a.serve_dir) : undefined, route: a.route, scale: a.scale, viewport: a.viewport });
+    },
+  },
+  {
+    name: 'launch_check', title: 'Launch readiness',
+    description: 'Check a production build over HTTP for launch: title and description, lang, viewport, canonical, one h1, Open Graph and Twitter tags with a reachable 1200×630 share image, favicon and apple-touch icon, noindex, robots.txt and sitemap, a real 404 for missing pages, and page weight. No browser needed.',
+    inputSchema: { type: 'object', properties: { url: str, serve_dir: str, routes: strList, budget_kb: { type: 'number', minimum: 1 }, allow_noindex: { type: 'boolean', description: 'For staging checks' } }, additionalProperties: false },
+    annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    async run(a) {
+      const { runLaunch } = await import('../launch/index.mjs');
+      const { result, files } = await runLaunch({ url: a.url, serve: a.serve_dir ? abs(a.serve_dir) : undefined, routes: a.routes, budgetKb: a.budget_kb, allowNoindex: a.allow_noindex });
+      return { ...result, files };
     },
   },
   {

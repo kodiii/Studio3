@@ -11,13 +11,13 @@ export const help = `maquettekit doctor — setup verification and dependency di
 
   doctor [--json] [--browser] [--strict]
 
-Checks the runtime, plugin integrity (manifests, 12 skills, catalog), optional tool dependencies,
+Checks the runtime, plugin integrity (manifests, skills, catalog), optional tool dependencies,
 optional CLIs (ktx, blender) and host installs (Claude Code, Codex).
   --browser  also launch headless Chromium and probe WebGL / WebGPU
   --strict   exit 1 when any check is "fail" or "warn" (default: only on "fail")`;
 
 export const REQUIRED_SKILLS = ['studio-product', 'studio-cinematic', 'studio-data', 'studio-social', 'studio-3d', 'studio-motion',
-  'studio-review', 'studio-experience', 'studio-design-system', 'studio-components', 'studio-setup', 'studio-asset-optimizer'];
+  'studio-review', 'studio-experience', 'studio-design-system', 'studio-components', 'studio-setup', 'studio-asset-optimizer', 'studio-launch', 'studio-match'];
 
 const which = (cmd) => {
   const r = spawnSync(process.platform === 'win32' ? 'where' : 'which', [cmd], { encoding: 'utf8' });

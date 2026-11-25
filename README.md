@@ -16,7 +16,7 @@ five design specialties on one shared engine, with tools that run real browsers 
 
 Maquettekit is not a prompt collection. It gives your coding agent working infrastructure:
 
-- **12 skills** that tell the agent *how* a professional studio works — briefs, art direction, motion, 3D, review.
+- **14 skills** that tell the agent *how* a professional studio works — briefs, art direction, motion, 3D, review, launch, matching a mockup.
 - **A CLI** (`maquettekit`) that the skills drive: a design-system generator, a Playwright-based visual reviewer with 3D
   diagnostics, an interaction-quality assessor, and a glTF optimisation pipeline.
 - **A component & effect library** of tested recipes (WAAPI/CSS, Motion, GSAP, D3, three.js/R3F) and full demos —
@@ -45,10 +45,12 @@ and every studio hands verification to Visual Director.
 | Module | Skill | Tool | What it does |
 | - | - | - | - |
 | Motion Lab | `studio-motion` | library `motion/` | Motion tokens, `createSequence`/`flip`/`viewTransition` orchestration, reduced-motion policy, recipe catalogue |
-| Visual Director | `studio-review` | `maquettekit review` | Captures desktop/tablet/mobile × normal/reduced motion, states and frames; deterministic checks (overflow, clipping, assets, console, axe-core, keyboard, focus, tap targets, reduced motion); 3D diagnostics incl. a no-WebGL run; improve → retest loop with comparisons |
+| Visual Director | `studio-review` | `maquettekit review` | Captures desktop/tablet/mobile × normal/reduced motion, states and frames; deterministic checks (overflow, clipping, assets, console, axe-core, keyboard, focus, interaction reachability, tap targets, reduced motion); 3D diagnostics incl. a no-WebGL run; improve → retest loop with comparisons; `maquettekit check` runs it with the design lint and Experience Lab as one ranked fix list |
+| Match | `studio-match` | `maquettekit review match` | Build to a mockup, design export or screenshot: pixel similarity, the regions that differ most, missing colours, run history |
+| Launch | `studio-launch` | `maquettekit launch` | Before going live: titles and descriptions, share image, icons, robots/sitemap, a real 404, page weight (production build, over HTTP) |
 | Experience Lab | `studio-experience` | `maquettekit experience` | Transparent heuristic scoring across 14 interaction dimensions with Essential / Expressive / Immersive profiles and accessibility gates |
-| Design Intelligence | `studio-design-system` | `maquettekit design` | Brief → `maquettekit.design.json` (art direction, type, OKLCH colour with enforced contrast, motion, 3D direction, libraries) → CSS / Tailwind v4 / TS / DTCG tokens |
-| Component & Effect Library | `studio-components` | `maquettekit catalog` | Search and adapt tested recipes and demos |
+| Design Intelligence | `studio-design-system` | `maquettekit design` | Brief → `maquettekit.design.json` (art direction, type, OKLCH colour with enforced contrast, motion, 3D direction, libraries) → CSS / Tailwind v4 / TS / DTCG tokens; `design lint` finds values in the code that are not from the system |
+| Component & Effect Library | `studio-components` | `maquettekit catalog` | Search tested recipes and demos; `catalog install` copies them with everything they import into a project |
 | 3D Asset Pipeline | `studio-asset-optimizer` | `maquettekit assets` | Inspect, validate, optimise (meshopt/Draco, quantisation, WebP/KTX2), variants per device, manifests, thumbnails — sources never modified |
 | Setup | `studio-setup` | `maquettekit doctor`, `maquettekit setup` | Diagnostics, optional dependencies, host install checks |
 
@@ -74,7 +76,7 @@ git clone https://github.com/kodiii/Studio3 maquettekit && cd maquettekit
 
 The installer copies the plugin payload to `~/.maquettekit/marketplace` (archiving any previous version to
 `~/.maquettekit/backups/`), registers it as a local marketplace and installs `maquettekit@maquettekit-marketplace` with each host
-CLI it finds. OpenCode and Antigravity have no plugin CLI, so they get the 12 skills linked into their skills directory
+CLI it finds. OpenCode and Antigravity have no plugin CLI, so they get the 14 skills linked into their skills directory
 instead (see below). Options: `--host claude|codex|opencode|antigravity|all` (or a comma list such as
 `--host opencode,antigravity`), `--mode plugin|skills`, `--routing-rules`, `--dry-run`, `--force`, `--verify`.
 Uninstall with `./uninstall.sh` (`--purge` also removes backups and tool dependencies). Status: `node scripts/install.mjs status`.
@@ -221,7 +223,7 @@ requests at runtime.
 plugins/maquettekit/                     the plugin (self-contained payload)
   .claude-plugin/plugin.json         Claude Code manifest
   .codex-plugin/plugin.json          Codex manifest
-  skills/<12 skills>/                SKILL.md + references/
+  skills/<14 skills>/                SKILL.md + references/
   hooks/                             Claude Code prompt hook that names the skill to load for UI work
   evals/                             skill eval suite for `claude plugin eval` (routing, judgement, builds, projects, tools)
   shared/                            cross-skill docs: workflow, tooling, design principles, accessibility, performance,

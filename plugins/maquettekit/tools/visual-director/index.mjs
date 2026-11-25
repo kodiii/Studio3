@@ -27,6 +27,14 @@ Usage: maquettekit review <subcommand> [options]
       --json                        print {report, summary} JSON to stdout
       exit code: 0 no critical issues · 1 critical issues · >=2 tool error
 
+  match        Compare a page with a reference image (mockup, screenshot, design export)
+      --url <url> | --serve <dir> [--route /]   page to capture
+      --reference <image>           PNG, JPEG, WebP or GIF; the page is captured at its size
+      --scale 2                     for @2x exports (viewport = image size / scale)   --viewport 1440x900 to override
+      --threshold 0.1 --out .maquettekit/match --min-similarity 0.9 (exit 1 below) --json
+      Reports pixel similarity, the 3×3 regions that differ most, reference colours missing from the page, and the
+      history of earlier runs; writes reference.png, page.png, diff.png, match.json and match.md.
+
   compare      Pixel-diff two passes and diff their issues
       --before <dir> --after <dir> [--out <dir>] [--threshold 0.1] [--json]
       --baseline <dir> --current <dir> --max-diff-ratio 0.01    visual-regression mode (exit 1 when exceeded)
@@ -66,6 +74,16 @@ export async function main(argv) {
       if (args.json) console.log(JSON.stringify({ report: res.reportPath, reportMd: res.reportMdPath, pass: res.report.pass, summary: s, checksSkipped: res.report.coverage.checksSkipped }, null, 2));
       else console.log(res.reportPath);
       return s.critical > 0 ? 1 : 0;
+    }
+    case 'match': {
+      const { runMatch } = await import('./match.mjs');
+      const scale = args.scale != null ? Number(args.scale) : undefined;
+      const minSim = args['min-similarity'] != null ? Number(args['min-similarity']) : null;
+      if (minSim != null && !(minSim >= 0 && minSim <= 1)) throw new UserError('--min-similarity must be between 0 and 1');
+      const r = await runMatch({ url: str(args.url, 'url'), serve: str(args.serve, 'serve'), route: str(args.route, 'route'), reference: /** @type {string} */ (str(args.reference, 'reference')), viewport: str(args.viewport, 'viewport'), scale, threshold: args.threshold != null ? Number(args.threshold) : undefined, out: str(args.out, 'out') });
+      log.ok(`similarity ${(r.similarity * 100).toFixed(1)} %; most different: ${r.grid.slice(0, 2).map((g) => `${g.region} ${(g.ratio * 100).toFixed(0)} %`).join(', ')}`);
+      if (args.json) console.log(JSON.stringify(r, null, 2)); else console.log(r.files.md);
+      return minSim != null && r.similarity < minSim ? 1 : 0;
     }
     case 'compare': {
       const { runCompare } = await import('./compare.mjs');

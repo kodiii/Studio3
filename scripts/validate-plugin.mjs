@@ -3,7 +3,7 @@
 /**
  * Validates the Maquettekit plugin packaging for both hosts. Exit 1 on any error.
  *   node scripts/validate-plugin.mjs [--json] [--no-cli]
- * Checks: manifests (Claude + Codex), marketplaces, the 12 required skills (frontmatter, size, referenced files,
+ * Checks: manifests (Claude + Codex), marketplaces, the required skills (frontmatter, size, referenced files,
  * commands cited), shared docs, catalogue, and — when the `claude` CLI is on PATH — `claude plugin validate`.
  * Codex has no validator CLI; its manifest/marketplace are checked against the fields the Codex loader reads
  * (see docs/SOURCE-RESEARCH.md §Codex).
@@ -16,8 +16,8 @@ import { fileURLToPath } from 'node:url';
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const PLUGIN = path.join(ROOT, 'plugins', 'maquettekit');
 export const REQUIRED_SKILLS = ['studio-product', 'studio-cinematic', 'studio-data', 'studio-social', 'studio-3d', 'studio-motion',
-  'studio-review', 'studio-experience', 'studio-design-system', 'studio-components', 'studio-setup', 'studio-asset-optimizer'];
-const COMMANDS = ['doctor', 'setup', 'design', 'review', 'experience', 'assets', 'catalog', 'check', 'mcp'];
+  'studio-review', 'studio-experience', 'studio-design-system', 'studio-components', 'studio-setup', 'studio-asset-optimizer', 'studio-launch', 'studio-match'];
+const COMMANDS = ['doctor', 'setup', 'design', 'review', 'experience', 'assets', 'catalog', 'check', 'mcp', 'launch'];
 const CODEX_MANIFEST_KEYS = new Set(['name', 'version', 'description', 'keywords', 'skills', 'mcpServers', 'apps', 'hooks', 'interface', 'commands']);
 const CODEX_INTERFACE_KEYS = new Set(['displayName', 'shortDescription', 'longDescription', 'developerName', 'category', 'capabilities', 'websiteUrl', 'privacyPolicyUrl', 'termsOfServiceUrl', 'defaultPrompt', 'brandColor', 'composerIcon', 'logo', 'logoDark', 'screenshots']);
 
