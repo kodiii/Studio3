@@ -82,6 +82,17 @@ describe('launch checks against a served site', () => {
     expect(allowed.result.issues.some((i) => i.check === 'noindex' || i.check === 'robots-txt' && i.severity === 'major')).toBe(false);
   });
 
+  it('flags a title or description shared between routes, once, naming the routes', async () => {
+    const assets = { 'og.png': pngHeader(1200, 630), 'favicon.svg': '<svg xmlns="http://www.w3.org/2000/svg"/>', 'apple-touch-icon.png': pngHeader(180, 180), 'app.css': '', 'app.js': '' };
+    const pricing = GOOD_HEAD.replace('<title>Ebbline — tide tables your crew can trust</title>', '<title>Pricing — Ebbline plans for every crew</title>');
+    const dir = site('shared', { ...assets, 'index.html': GOOD_HEAD, 'pricing.html': pricing, 'about.html': pricing.replace('Pricing — Ebbline plans', 'About — Ebbline people') });
+    const { result } = await runLaunch({ serve: dir, routes: ['/', '/pricing.html', '/about.html'], out: path.join(dir, '.out') });
+    const shared = result.issues.filter((i) => i.route === null && (i.check === 'meta-description' || i.check === 'title'));
+    expect(shared).toHaveLength(1); // three distinct titles, one description on all three routes
+    expect(shared[0]).toMatchObject({ severity: 'minor', check: 'meta-description', evidence: { routes: ['/', '/pricing.html', '/about.html'] } });
+    expect(shared[0].message).toMatch(/3 routes share one meta description/);
+  });
+
   it('reports a soft 404 and never fetches other hosts', async () => {
     const requested = [];
     const fetchImpl = /** @type {any} */ (async (u) => {

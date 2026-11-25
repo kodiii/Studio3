@@ -170,7 +170,7 @@ export const TOOLS = [
   },
   {
     name: 'launch_check', title: 'Launch readiness',
-    description: 'Check a production build over HTTP for launch: title and description, lang, viewport, canonical, one h1, Open Graph and Twitter tags with a reachable 1200×630 share image, favicon and apple-touch icon, noindex, robots.txt and sitemap, a real 404 for missing pages, and page weight. No browser needed.',
+    description: 'Check a production build over HTTP for launch: title and description (not shared between routes), lang, viewport, canonical, one h1, Open Graph and Twitter tags with a reachable 1200×630 share image, favicon and apple-touch icon, noindex, robots.txt and sitemap, a real 404 for missing pages, and page weight. No browser needed.',
     inputSchema: { type: 'object', properties: { url: str, serve_dir: str, routes: strList, budget_kb: { type: 'number', minimum: 1 }, allow_noindex: { type: 'boolean', description: 'For staging checks' } }, additionalProperties: false },
     annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     async run(a) {

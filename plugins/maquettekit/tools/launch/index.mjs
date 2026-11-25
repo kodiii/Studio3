@@ -18,11 +18,12 @@ export const help = `maquettekit launch — launch-readiness checks (metadata, s
 Usage: maquettekit launch (--url <url> | --serve <dir>) [--routes /,/pricing] [--budget-kb 1500] [--allow-noindex]
                           [--out .maquettekit/launch] [--json]
 
-Checks each route over HTTP (no browser): <title> and meta description (present, sensible length), <html lang>,
-viewport, canonical, one <h1>, Open Graph (og:title, og:description, og:image reachable and at least 1200×630) and
-twitter:card, favicon and apple-touch icon, robots meta (noindex), robots.txt (blocks everything?) and sitemap,
-a missing page answering 404 (not a "soft 404"), and page weight against --budget-kb (HTML + same-origin CSS, JS and
-images it references). Use the production build. Exit codes: 0 no major findings, 1 major findings, 2 usage error.`;
+Checks each route over HTTP (no browser): <title> and meta description (present, sensible length, not shared
+between routes), <html lang>, viewport, canonical, one <h1>, Open Graph (og:title, og:description, og:image reachable
+and at least 1200×630) and twitter:card, favicon and apple-touch icon, robots meta (noindex), robots.txt (blocks
+everything?) and sitemap, a missing page answering 404 (not a "soft 404"), and page weight against --budget-kb (HTML +
+same-origin CSS, JS and images it references). Use the production build. Exit codes: 0 no major findings, 1 major
+findings, 2 usage error.`;
 
 const SEV = { major: 0, minor: 1, info: 2 };
 
@@ -155,6 +156,14 @@ export async function runLaunch(opts) {
       if (page.weightKb > budgetKb) add('minor', 'page-weight', route, `Initial page weight ${page.weightKb} KB (uncompressed: HTML, CSS, scripts, eager images) is over the ${budgetKb} KB budget.`, { weightKb: page.weightKb, jsKb: page.jsKb });
       if (page.jsKb > 500) add('minor', 'page-weight', route, `${page.jsKb} KB of JavaScript loads with the page (uncompressed); split or defer what the first view does not need.`, { jsKb: page.jsKb });
       pages.push(page);
+    }
+    // the same title or description on several routes is one site-wide string, not one written for each page
+    for (const [key, check, label] of /** @type {const} */ ([['title', 'title', '<title>'], ['description', 'meta-description', 'meta description']])) {
+      /** @type {Map<string, string[]>} */ const byText = new Map();
+      for (const pg of pages) if (pg[key]) byText.set(pg[key], [...(byText.get(pg[key]) ?? []), pg.route]);
+      for (const [text, shared] of byText) {
+        if (shared.length > 1) add('minor', check, null, `${shared.length} routes share one ${label} (${shared.join(', ')}): "${text.slice(0, 80)}". Write one for each page; search results and link previews show it.`, { routes: shared });
+      }
     }
     // site-wide
     const robotsTxt = await get('/robots.txt');
