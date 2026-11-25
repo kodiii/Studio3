@@ -24,6 +24,7 @@ function sandbox({ fakeClis = [] } = {}) {
   const env = { ...process.env, HOME: home, MAQUETTEKIT_HOME: path.join(home, '.maquettekit'), PATH: `${bin}:${path.dirname(process.execPath)}:/usr/bin:/bin`, CLAUDE_CONFIG_DIR: '' };
   delete env.CLAUDE_CONFIG_DIR;
   delete env.XDG_CONFIG_HOME;
+  delete env.CODEX_HOME;
   const run = (...args) => spawnSync(process.execPath, [INSTALL, ...args], { encoding: 'utf8', env });
   return { home, log, run, s3: path.join(home, '.maquettekit'), cleanup: () => fs.rmSync(home, { recursive: true, force: true }) };
 }
@@ -114,6 +115,53 @@ test('uninstalling the host OpenCode shares with leaves no dangling record', () 
     assert.equal(u.status, 0, u.stdout + u.stderr);
     assert.match(u.stdout, /install --host opencode/);
     assert.ok(!fs.existsSync(path.join(sb.s3, 'install.json')), 'nothing left installed');
+  } finally { sb.cleanup(); }
+});
+
+test('--routing-rules: marked block in each host rules file, user content kept, removed exactly on uninstall', () => {
+  const sb = sandbox();
+  try {
+    const oc = path.join(sb.home, '.config', 'opencode', 'AGENTS.md');
+    const ag = path.join(sb.home, '.gemini', 'GEMINI.md');
+    const cx = path.join(sb.home, '.codex', 'AGENTS.md');
+    fs.mkdirSync(path.dirname(oc), { recursive: true });
+    const mine = '# My OpenCode rules\n\nAlways answer in British English.\n';
+    fs.writeFileSync(oc, mine);
+    const block = /<!-- maquettekit:routing-rules:start[^>]*-->\n## Maquettekit skills[\s\S]*studio-motion[\s\S]*<!-- maquettekit:routing-rules:end -->/;
+
+    // without the flag nothing is written
+    assert.equal(sb.run('install', '--host', 'antigravity').status, 0);
+    assert.ok(!fs.existsSync(ag));
+
+    const r = sb.run('install', '--host', 'codex,opencode,antigravity', '--mode', 'skills', '--routing-rules');
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    for (const f of [oc, ag, cx]) assert.match(fs.readFileSync(f, 'utf8'), block, f);
+    assert.ok(fs.readFileSync(oc, 'utf8').startsWith(mine.trimEnd()), 'user rules kept above the block');
+    // reinstall: still exactly one block
+    assert.equal(sb.run('install', '--host', 'codex,opencode,antigravity', '--mode', 'skills', '--routing-rules', '--force').status, 0);
+    assert.equal(fs.readFileSync(oc, 'utf8').split('maquettekit:routing-rules:start').length, 2);
+
+    // removing one host removes its block only; a file the installer created is deleted
+    assert.equal(sb.run('uninstall', '--host', 'antigravity').status, 0);
+    assert.ok(!fs.existsSync(ag), 'GEMINI.md was created by the installer and is now empty');
+    assert.match(fs.readFileSync(oc, 'utf8'), block);
+    assert.equal(sb.run('uninstall').status, 0);
+    assert.equal(fs.readFileSync(oc, 'utf8'), mine, 'user file restored exactly');
+    assert.ok(!fs.existsSync(cx));
+  } finally { sb.cleanup(); }
+});
+
+test('--routing-rules skips Claude Code in plugin mode (the plugin hook covers it)', () => {
+  const sb = sandbox({ fakeClis: ['claude'] });
+  try {
+    const r = sb.run('install', '--host', 'claude', '--routing-rules');
+    assert.equal(r.status, 0, r.stdout + r.stderr);
+    assert.ok(!fs.existsSync(path.join(sb.home, '.claude', 'CLAUDE.md')));
+    const skills = sb.run('install', '--host', 'claude', '--mode', 'skills', '--routing-rules', '--force');
+    assert.equal(skills.status, 0, skills.stdout + skills.stderr);
+    assert.match(fs.readFileSync(path.join(sb.home, '.claude', 'CLAUDE.md'), 'utf8'), /maquettekit:routing-rules:start/);
+    assert.equal(sb.run('uninstall').status, 0);
+    assert.ok(!fs.existsSync(path.join(sb.home, '.claude', 'CLAUDE.md')));
   } finally { sb.cleanup(); }
 });
 

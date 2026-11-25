@@ -3,7 +3,7 @@
 /**
  * Maquettekit local installer / upgrader / uninstaller for Claude Code, Codex, OpenCode and Google Antigravity.
  *
- *   node scripts/install.mjs install   [--host claude|codex|opencode|antigravity|all] [--mode auto|plugin|skills] [--dry-run] [--force] [--verify]
+ *   node scripts/install.mjs install   [--host claude|codex|opencode|antigravity|all] [--mode auto|plugin|skills] [--routing-rules] [--dry-run] [--force] [--verify]
  *   node scripts/install.mjs uninstall [--host claude|codex|opencode|antigravity|all] [--purge] [--dry-run]
  *   node scripts/install.mjs status    [--json]
  *
@@ -18,7 +18,11 @@
  *     skills directory: ~/.claude/skills, ~/.agents/skills (Codex), $XDG_CONFIG_HOME/opencode/skills
  *     (default ~/.config/opencode/skills) or ~/.gemini/config/skills (Antigravity IDE and agy CLI).
  *     OpenCode also reads ~/.claude/skills and ~/.agents/skills, so it is not linked twice when those are.
- *  4. Records what it did in $MAQUETTEKIT_HOME/install.json; uninstall removes exactly that.
+ *  4. Opt-in --routing-rules: adds a marked block to each host's global rules file (Codex and OpenCode AGENTS.md,
+ *     Antigravity ~/.gemini/GEMINI.md, Claude Code CLAUDE.md in skills mode) telling the agent which skill to load
+ *     for which kind of UI work. Claude Code in plugin mode gets the same nudge from the plugin's prompt hook instead.
+ *     Only the marked block is ever written or removed; the rest of the file is left as it was.
+ *  5. Records what it did in $MAQUETTEKIT_HOME/install.json; uninstall removes exactly that.
  * Host CLIs are invoked with argument arrays (never through a shell).
  */
 import fs from 'node:fs';
@@ -51,6 +55,62 @@ const detect = {
   opencode: () => !!which('opencode') || fs.existsSync(path.join(CONFIG_HOME, 'opencode')),
   antigravity: () => !!which('agy') || !!which('antigravity') || ['antigravity', 'antigravity-cli'].some((d) => fs.existsSync(path.join(HOME, '.gemini', d))),
 };
+/** Global rules files read by each host (only touched with --routing-rules). */
+const RULES_FILES = {
+  claude: path.join(process.env.CLAUDE_CONFIG_DIR?.trim() || path.join(HOME, '.claude'), 'CLAUDE.md'),
+  codex: path.join(process.env.CODEX_HOME?.trim() || path.join(HOME, '.codex'), 'AGENTS.md'),
+  opencode: path.join(CONFIG_HOME, 'opencode', 'AGENTS.md'),
+  antigravity: path.join(HOME, '.gemini', 'GEMINI.md'),
+};
+const RULES_START = '<!-- maquettekit:routing-rules:start (added by the Maquettekit installer; removed by uninstall) -->';
+const RULES_END = '<!-- maquettekit:routing-rules:end -->';
+const RULES_BODY = `## Maquettekit skills
+
+For front-end design and UI work, load the matching Maquettekit skill before planning, advising or writing code —
+even for a single file or a quick question:
+
+- product UI: landing, pricing, sign-up, onboarding and checkout pages, forms, settings, app shells → studio-product
+- dashboards, charts, KPIs, data tables → studio-data
+- animation, transitions, stagger, hover and press feedback, easing → studio-motion
+- scroll-driven storytelling, launch pages, kinetic type → studio-cinematic
+- feeds, reactions, polls, stories → studio-social
+- 3D, three.js / React Three Fiber, WebGL, shaders, model viewers → studio-3d (model optimisation → studio-asset-optimizer)
+- design tokens, palette, type scale → studio-design-system
+- reviewing a page in a browser → studio-review; interaction quality → studio-experience
+- an effect or component from the Maquettekit library → studio-components; installing or fixing Maquettekit → studio-setup`;
+
+/** Remove the marked block, leaving the rest of the text as it was. @param {string} text */
+function stripRules(text) {
+  const s = text.indexOf(RULES_START);
+  const e = s === -1 ? -1 : text.indexOf(RULES_END, s);
+  if (s === -1 || e === -1) return text;
+  const before = text.slice(0, s).replace(/\n*$/, '');
+  const after = text.slice(e + RULES_END.length).replace(/^\n*/, '');
+  if (before && after) return `${before}\n\n${after}`;
+  return before ? `${before}\n` : after;
+}
+
+function writeRules(host, state) {
+  const file = RULES_FILES[host];
+  const existing = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : null;
+  const base = existing === null ? '' : stripRules(existing).replace(/\s*$/, '');
+  act(`${existing === null ? 'create' : 'add'} Maquettekit routing rules in ${file}`);
+  if (!DRY) { fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, `${base ? `${base}\n\n` : ''}${RULES_START}\n${RULES_BODY}\n${RULES_END}\n`); }
+  state.rules.push({ host, file, created: existing === null });
+}
+
+/** @param {{ file: string, created: boolean }} entry */
+function removeRules(entry) {
+  if (!fs.existsSync(entry.file)) return;
+  const text = fs.readFileSync(entry.file, 'utf8');
+  if (!text.includes(RULES_START)) return;
+  const left = stripRules(text);
+  act(`remove Maquettekit routing rules from ${entry.file}`);
+  if (DRY) return;
+  if (entry.created && !left.trim()) fs.rmSync(entry.file);
+  else fs.writeFileSync(entry.file, left);
+}
+
 const INVOKE = {
   claude: (plugin) => (plugin ? '/maquettekit:studio-product' : '/studio-product'),
   codex: (plugin) => (plugin ? '$maquettekit:studio-product' : '$studio-product'),
@@ -205,12 +265,19 @@ function install() {
     say(c > 0 ? `Upgrading ${prev.version} → ${version}` : c === 0 ? `Reinstalling ${version}` : `Installed version ${prev.version} is newer than ${version}`);
     if (c < 0 && !flag('force')) throw new Error('Refusing to downgrade. Re-run with --force to proceed.');
   }
-  const state = { version, installedAt: new Date().toISOString(), source: REPO, target: TARGET, hosts: {}, links: [], backup: null, previousVersion: prev?.version ?? null };
-  // remove links from the previous install before the payload moves
+  const state = { version, installedAt: new Date().toISOString(), source: REPO, target: TARGET, hosts: {}, links: [], rules: [], backup: null, previousVersion: prev?.version ?? null };
+  // remove links and routing rules from the previous install before the payload moves
   for (const l of prev?.links ?? []) { if (!DRY && fs.lstatSync(l, { throwIfNoEntry: false })?.isSymbolicLink()) fs.rmSync(l); }
+  for (const r of prev?.rules ?? []) removeRules(r);
   state.backup = backupExisting(prev?.version);
   stagePayload();
   for (const host of hostsFrom(opt('host', 'auto'))) installHost(host, mode, state);
+  if (flag('routing-rules')) {
+    for (const [host, info] of Object.entries(state.hosts)) {
+      if (host === 'claude' && info.mode === 'plugin') continue; // the plugin's UserPromptSubmit hook gives the same nudge
+      writeRules(host, state);
+    }
+  }
   if (!DRY) { fs.mkdirSync(S3_HOME, { recursive: true }); fs.writeFileSync(STATE, JSON.stringify(state, null, 2) + '\n'); }
   say(`\n✔ Maquettekit v${version} installed.`);
   for (const [h, i] of Object.entries(state.hosts)) {
@@ -218,6 +285,8 @@ function install() {
     say(`  ${h}: ${where}  →  invoke with ${INVOKE[h](i.mode === 'plugin')}`);
   }
   if (state.hosts.opencode || state.hosts.antigravity) say('  Restart OpenCode / Antigravity (or start a new chat) so they pick up the new skills.');
+  for (const r of state.rules) say(`  routing rules for ${r.host}: ${r.file}`);
+  if (!flag('routing-rules') && Object.entries(state.hosts).some(([h, i]) => !(h === 'claude' && i.mode === 'plugin'))) say('  Tip: --routing-rules adds a short "which skill for which UI work" rule to each host\'s global rules file, which helps smaller models load the skills.');
   say(`  Tools: node "${path.join(TARGET, 'plugins', PLUGIN, 'tools', 'maquettekit.mjs')}" doctor`);
   say('  Optional tool dependencies (Playwright, glTF tooling): run the "setup" command of the same script.');
   if (flag('verify') && !DRY) {
@@ -239,6 +308,9 @@ function uninstall() {
     }
     delete state.hosts[host];
   }
+  const keptRules = [];
+  for (const r of state.rules ?? []) { if (state.hosts[r.host]) keptRules.push(r); else removeRules(r); }
+  state.rules = keptRules;
   const oc = state.hosts.opencode;
   if (oc?.mode === 'shared' && !Object.values(state.hosts).some((i) => i.mode === 'skills' && i.dir === oc.dir)) {
     say('  opencode was reading the skills removed above — run install --host opencode to give it its own copy.');

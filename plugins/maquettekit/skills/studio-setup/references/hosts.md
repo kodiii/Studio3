@@ -40,6 +40,22 @@ When Claude Code or Codex are installed in skills mode, OpenCode already sees th
 OpenCode as `shared` instead of adding a duplicate. Paths follow the `vercel-labs/skills` agent table (Nov 2026); if a
 host reports no skills, check its docs for the current directory and pass the skills there by hand.
 
+## Making sure the skills load (routing)
+
+Agents decide for themselves whether to open a skill, and smaller models often answer UI requests directly without
+loading one (see `evals/README.md`). Two mechanisms make the choice explicit:
+
+- **Claude Code (plugin mode):** the plugin ships a `UserPromptSubmit` hook (`hooks/hooks.json`, `hooks/route-hint.mjs`).
+  When a prompt names a concrete UI surface or technique — a pricing page, a dashboard, a staggered entrance, a GLB
+  viewer — it adds one line of context naming the skill to load. It suggests each skill at most once per session,
+  never blocks or stores the prompt (only the names of skills already suggested, per session id, in the plugin data
+  folder) and is switched off with `MAQUETTEKIT_ROUTING_HINTS=0`.
+- **Other hosts and skills mode:** `./install.sh --routing-rules` adds a short "which skill for which UI work" block to
+  each installed host's global rules file — Codex `~/.codex/AGENTS.md` (`$CODEX_HOME`), OpenCode
+  `~/.config/opencode/AGENTS.md`, Antigravity `~/.gemini/GEMINI.md` (shared with Gemini CLI), Claude Code
+  `~/.claude/CLAUDE.md` when installed in skills mode. The block sits between `maquettekit:routing-rules` markers; the
+  rest of the file is never changed, and uninstall removes the block (and the file, if the installer created it).
+
 ## Local installer
 
 From a checkout or release archive:
@@ -48,6 +64,7 @@ From a checkout or release archive:
 ./install.sh                 # detects installed host CLIs, plugin mode
 ./install.sh --host codex    # one host (claude, codex, opencode, antigravity, or a comma list)
 ./install.sh --mode skills   # link the 12 skills into the host skills directory (no plugin CLI needed)
+./install.sh --routing-rules # also add the skill-routing block to each host's global rules file (opt-in)
 ./install.sh --dry-run       # print every action without doing it
 ./uninstall.sh               # remove what the installer recorded; add --purge to drop backups and deps
 node scripts/install.mjs status
