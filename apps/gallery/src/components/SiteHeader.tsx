@@ -69,7 +69,7 @@ export function SiteHeader() {
       <div className="mx-auto flex h-14 max-w-[1400px] items-center justify-between gap-4 px-4 sm:px-6">
         <Link href="/" className="flex items-baseline gap-3 py-3 decoration-signal decoration-2 underline-offset-[6px] hover:underline">
           <Wordmark className="text-[1.35rem] leading-none" />
-          <span className="mk-label hidden text-muted md:inline">v4.0 Gallery</span>
+          <span className="mk-label hidden text-muted md:inline">v4.1 Gallery</span>
         </Link>
         <nav aria-label="Primary" className="hidden items-center gap-1 lg:flex">
           {NAV.map((n) => {

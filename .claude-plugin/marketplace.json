@@ -7,7 +7,7 @@
       "name": "maquettekit",
       "source": "./plugins/maquettekit",
       "description": "Five design specialties with shared motion, review, experience, design-system and 3D asset tooling.",
-      "version": "4.0.0",
+      "version": "4.1.0",
       "category": "design",
       "license": "MIT",
       "keywords": ["design", "motion", "3d", "frontend", "accessibility"]

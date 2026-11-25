@@ -8,7 +8,7 @@ A design, motion, interaction and 3D engineering plugin for **Claude Code** and 
 as Agent Skills in **OpenCode** and **Google Antigravity** —
 five design specialties on one shared engine, with tools that run real browsers and real asset pipelines.
 
-`v4.0.0` · MIT · no telemetry
+`v4.1.0` · MIT · no telemetry
 
 </div>
 
@@ -255,14 +255,14 @@ npm run eval -- --runs 1   # quality with vs without the plugin — see plugins/
 Graphics-dependent tests run on software WebGL (SwiftShader) in headless Chromium; WebGPU is not available there and
 is reported as unavailable rather than tested. Tests that cannot run in an environment skip with an explicit reason.
 
-### Test report — main after v4.0.0 (2026-11-25, Linux x64, Node 22.23, Chromium 157 headless)
+### Test report — v4.1.0 (2026-11-25, Linux x64, Node 22.23, Chromium 157 headless)
 
 | Suite | Command | Result |
 | - | - | - |
 | Catalogue (strict) | `node scripts/build-catalog.mjs --check` | up to date — 47 recipes, 22 demos |
 | Packaging, both hosts | `npm run validate` | passed, 0 warnings — including `claude plugin validate` (Claude Code 2.1.332) for the plugin and the marketplace; Codex checked structurally (Codex ships no manifest validator) |
 | Types | `npm run typecheck` | library, tools and gallery clean |
-| Unit (Vitest) | `npm run test:unit` | **544 passed** in 17 files — tools (Design Intelligence and design lint, Visual Director and review match, Experience Lab, check, launch, asset pipeline, catalogue search, install and Web Component export — the export test builds two elements and drives them in Chromium; installed copies type-check outside the monorepo) and library (catalogue contract for every recipe and demo, including that metadata, loaders and registry agree and that no gallery server code imports the registry; motion engine, three-kit, StrictMode render + leak check for every non-WebGL recipe) |
+| Unit (Vitest) | `npm run test:unit` | **545 passed** in 17 files — tools (Design Intelligence and design lint, Visual Director and review match, Experience Lab, check, launch, asset pipeline, catalogue search, install and Web Component export — the export test builds two elements and drives them in Chromium; installed copies type-check outside the monorepo) and library (catalogue contract for every recipe and demo, including that metadata, loaders and registry agree and that no gallery server code imports the registry; motion engine, three-kit, StrictMode render + leak check for every non-WebGL recipe) |
 | Plugin (node:test) | `npm run test:plugin` | **38 passed, 1 skipped** — the skip is a live Codex install (no Codex CLI available); Codex command syntax is covered by a recording fake CLI. Includes a real Claude Code `plugin install`/`uninstall`, OpenCode/Antigravity skill installs and `--routing-rules` in an isolated HOME, the routing hook, the review gate, the MCP server over stdio, eval-suite structure, quick cards on long references, the skill count the gallery states, and installing from the built release archive |
 | Skill evals (`claude plugin eval`) | `npm run eval` | routing 51/51 (default model) and 34/34 (Haiku) over 17 cases; a skill loads in 20/20 and 18/20 quality runs; every quality case scores 1.00 with the plugin on both models — see [`plugins/maquettekit/evals/README.md`](plugins/maquettekit/evals/README.md) for the with/without differences |
 | Production build | `npm run build` | 86 static routes — 81 pages plus the icons, share image, `robots.txt` and sitemap |

@@ -5,6 +5,13 @@ semantic versioning. Plugin manifests (Claude Code and Codex) always carry the s
 
 ## [Unreleased]
 
+## [4.1.0] — 2026-11-25
+
+Two new skills (14 in all: `studio-launch`, `studio-match`), one-command verification (`maquettekit check`), a
+design-token lint, an MCP server, recipe install and Web Component export, OpenCode and Antigravity support, a skill
+eval suite, and a gallery that loads about a sixth of what it did. Additive: nothing in 4.0.0 changes behaviour except
+where listed under Changed.
+
 ### Added
 - **OpenCode and Google Antigravity support.** `./install.sh --host opencode|antigravity` (also auto-detected, and part
   of `--host all`) links the skills into `~/.config/opencode/skills` and `~/.gemini/config/skills`. Skills are

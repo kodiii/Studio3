@@ -1,6 +1,6 @@
 {
   "name": "maquettekit",
-  "version": "4.0.0",
+  "version": "4.1.0",
   "description": "Design Intelligence. Motion Engineering. Digital Experiences. Five design specialties (Product, Cinematic, Data, Social, 3D) with shared motion, browser review, experience assessment, design-system and 3D asset tooling.",
   "keywords": ["design", "frontend", "motion", "animation", "3d", "threejs", "accessibility", "playwright", "design-system"],
   "skills": "./skills",

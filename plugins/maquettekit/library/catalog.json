@@ -1,6 +1,6 @@
 {
   "generator": "maquettekit build-catalog",
-  "version": "4.0.0",
+  "version": "4.1.0",
   "effects": [
     {
       "id": "accordion-height-auto",

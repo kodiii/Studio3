@@ -24,7 +24,7 @@ export default function Home() {
       <section className="mx-auto max-w-[1400px] px-4 sm:px-6">
         <div className="grid gap-8 border-b border-line-strong pb-10 pt-10 lg:grid-cols-12 lg:pt-16">
           <div className="lg:col-span-8">
-            <p className="mk-label text-muted">A design engineering plugin for Claude Code, Codex, OpenCode &amp; Antigravity — v4.0</p>
+            <p className="mk-label text-muted">A design engineering plugin for Claude Code, Codex, OpenCode &amp; Antigravity — v4.1</p>
             <h1 className="mk-display mt-5 text-[clamp(3.25rem,10.5vw,10rem)] leading-[0.86]">
               Maquette<span className="font-serif font-normal italic tracking-[-0.02em] text-signal">kit</span>
             </h1>
