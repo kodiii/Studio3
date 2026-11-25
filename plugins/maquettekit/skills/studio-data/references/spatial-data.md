@@ -1,5 +1,15 @@
 # Spatial data — when depth informs, and when it distorts
 
+> **Quick card** — the must-dos from this file; read on for the reasons and the detail.
+>
+> - Default to 2D; use real-time 3D only when every "must" in §1 holds and at least one "value" row does.
+> - Ship every scene with 2D projections, a generated summary and a synchronised table of the same records, all working without WebGL.
+> - Use an orthographic camera for measurement; never compare sizes under perspective.
+> - Seed force layouts with `simulation.randomSource(randomLcg(42))`, update with `simulation.alpha(0.3).restart()`, and never keep reheating the simulation.
+> - Start continuous rotation only on request, with a pause control, and switch it off under reduced motion.
+> - Use an equal-area projection such as `geoEqualEarth` for area comparisons, not Web Mercator; show rates, not raw counts, in choropleths.
+> - Keep to one canvas, loaded lazily with a poster first, and scale point counts with `useQuality().density`.
+
 Load for networks, 3D scatter, volumes, terrain or any request for "3D data". You decide whether depth adds
 information and what the view must do; `studio-3d` builds the scene. The default answer is 2D: it is more
 accurate for almost every comparison task.

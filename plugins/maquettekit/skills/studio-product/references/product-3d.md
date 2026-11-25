@@ -1,5 +1,16 @@
 # Product 3D — when a product page deserves real-time 3D
 
+> **Quick card** — the must-dos from this file; read on for the reasons and the detail.
+>
+> - Meet every §1 "must" row; without a "value" row, use real-time 3D only if explicitly asked.
+> - Never fabricate a stand-in model; use the user's prices or label figures `Sample pricing`.
+> - Pick the lightest technique in §2 that works; under about 30 combinations, render images.
+> - Keep options, price and controls in DOM, never in the canvas; put the configuration in the URL.
+> - Show the poster first at reserved aspect ratio; lazy-load one canvas per page view.
+> - Never trap scroll in the canvas; add named rotate, zoom and reset buttons, at least 44 px on touch.
+> - Drop autorotate under reduced motion; on error or context loss, restore the poster and keep option controls working.
+> - Report diagnostics as lab values; never claim a headless browser's frame rate.
+
 You decide **whether** 3D belongs on the page and define **what it must do**. `studio-3d` builds the scene;
 `studio-asset-optimizer` prepares the model. This file is the decision and the handoff, not the implementation.
 

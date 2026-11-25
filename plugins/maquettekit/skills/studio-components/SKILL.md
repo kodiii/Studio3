@@ -67,6 +67,8 @@ dependencies.
 
 ## Reference files
 
+Long references open with a quick card: read it first, and the rest only when the task needs the detail.
+
 | File | Load when |
 | - | - |
 | `references/selection.md` | Choosing between recipes; category map; technology and complexity guidance |

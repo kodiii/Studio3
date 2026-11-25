@@ -106,6 +106,8 @@ animating (`references/performance.md`).
 
 ## Reference files
 
+Long references open with a quick card: read it first, and the rest only when the task needs the detail.
+
 | File | Load when |
 |---|---|
 | `references/tokens.md` | Step 4, always: token values, CSS custom properties, springs, profile scaling, design-file mapping |

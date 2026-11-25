@@ -7,7 +7,7 @@ scaffold copies into the agent's empty workspace.
 
 | Tag | Cases | What is checked | Tools the agent gets |
 | - | - | - | - |
-| `trigger` | 15 | The right skill loads for 12 typical requests (one per skill), two boundary cases between neighbouring studios, and one backend bug where no studio should load | read-only |
+| `trigger` | 17 | The right skill loads for 14 typical requests (one per skill), two boundary cases between neighbouring studios, and one backend bug where no studio should load | read-only |
 | `judgement` | 3 | Advice changes where the skills have a position: 3D not earned on a SaaS pricing page, refusing fake urgency and invented testimonials, no pie charts for a time series (LLM-graded) | read-only |
 | `build` | 4 | Single-file builds (sign-up form, card entrance, pricing section, KPI dashboard) checked for rules the skills teach: labels, `autocomplete`, `aria-describedby`/`aria-invalid`, `:focus-visible`, `prefers-reduced-motion`, no `transition: all`, no layout animation, no invented user counts or ratings, `tabular-nums`, labelled sample data, a table alternative — plus single-criterion LLM graders, each reading the written file, for behaviour a pattern cannot see | read, write, edit |
 | `project` | 3 | Multi-file work in an existing project: add pricing to a marketing site without new colours, fonts or inline styles (its `tokens.css` must still hold exactly its 8 colours); fix a product page with six planted defects across HTML and CSS — no label, no alt text, `outline: none`, 2.1:1 text, a 720 px banner, and a Save button covered by a stretched card link; add a staggered entrance to a React component using the project's motion tokens, without new dependencies and with observer cleanup | read, write, edit |
@@ -55,12 +55,12 @@ npm run eval -- --case build-pricing-section --keep-temp   # debug one case; kee
 
 ## Baseline — 2026-11-25 (Claude Code 2.1, default model and Haiku, Linux container, routing hook on)
 
-27 cases; 2 runs per quality case and 3 (default model) or 2 (Haiku) per routing case, so a one-run difference on a
+29 cases; 2 runs per quality case and 3 (default model) or 2 (Haiku) per routing case, so a one-run difference on a
 single case is noise. Each "with" arm includes the plugin's routing hook; each "without" arm has no plugin at all.
 
 | What | Default model | Haiku |
 | - | - | - |
-| Routing (15 cases) | **45 / 45** | **30 / 30** |
+| Routing (17 cases, with `studio-launch` and `studio-match`; re-run after adding them) | **51 / 51** | **34 / 34** |
 | A skill loads on judgement, build and project cases | **20 / 20** runs | **18 / 20** runs |
 | Score with the plugin (12 quality cases) | **1.00 on every case** | **1.00 on every case** |
 | Score without the plugin, where it differs | card entrance 0.83 (cards stay hidden without JavaScript ×2), pricing 0.94 (two competing CTAs ×1), recipe parameters 0.00, design engine 0.00 | chart advice 0.50 (endorsed pie charts ×1), recipe parameters 0.00, design engine 0.13 |

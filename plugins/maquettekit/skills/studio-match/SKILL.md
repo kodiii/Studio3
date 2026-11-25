@@ -63,6 +63,8 @@ Chromium (`studio-setup` if it exits with code 3).
 
 ## Reference files
 
+Long references open with a quick card: read it first, and the rest only when the task needs the detail.
+
 | File | Load when |
 |---|---|
 | `references/reading-a-reference.md` | Step 2 and 6: measuring a mockup, @2x exports, what similarity numbers mean, common sources of difference |

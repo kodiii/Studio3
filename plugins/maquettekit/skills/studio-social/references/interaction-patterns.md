@@ -1,5 +1,16 @@
 # Social interaction patterns — reactions, polls, comments, gestures, stories, transitions
 
+> **Quick card** — the must-dos from this file; read on for the reasons and the detail.
+>
+> - Give every gesture a button and a keyboard twin; treat long-press and double-tap as shortcuts only.
+> - Give toggles `aria-pressed` and a stable name ("Like"); show counts as text, reconciled with the server, never inflated.
+> - Paint the pressed state in the next frame; celebrate only the person's own action, never under reduced motion.
+> - Make poll percentages sum to 100 (largest-remainder method); never seed a real poll with fake votes.
+> - Escape user text and add `rel="ugc noopener"` to user links.
+> - Put `touch-action: pan-y` on horizontally swipeable elements so page scrolling stays native.
+> - Pause stories by button, hold, `Space`, hidden tab or reply focus; never auto-advance under reduced motion.
+> - Move focus into viewers and modal sheets, make the background `inert`, and return focus on close.
+
 Load when building any participation control or gesture. Every gesture here has a button and a keyboard
 twin; build them together.
 

@@ -260,12 +260,12 @@ is reported as unavailable rather than tested. Tests that cannot run in an envir
 | Suite | Command | Result |
 | - | - | - |
 | Catalogue (strict) | `node scripts/build-catalog.mjs --check` | up to date — 47 recipes, 22 demos |
-| Packaging, both hosts | `npm run validate` | passed, 0 warnings — including `claude plugin validate` (Claude Code 2.1.330) for the plugin and the marketplace; Codex checked structurally (Codex ships no manifest validator) |
+| Packaging, both hosts | `npm run validate` | passed, 0 warnings — including `claude plugin validate` (Claude Code 2.1.332) for the plugin and the marketplace; Codex checked structurally (Codex ships no manifest validator) |
 | Types | `npm run typecheck` | library, tools and gallery clean |
-| Unit (Vitest) | `npm run test:unit` | **506 passed** in 11 files — tools (Design Intelligence, Visual Director, Experience Lab, asset pipeline, catalogue) and library (catalogue contract for every recipe and demo, motion engine, three-kit, StrictMode render + leak check for every non-WebGL recipe) |
-| Plugin (node:test) | `npm run test:plugin` | **28 passed, 1 skipped** — the skip is a live Codex install (no Codex CLI available); Codex command syntax is covered by a recording fake CLI. Includes a real Claude Code `plugin install`/`uninstall`, OpenCode/Antigravity skill installs and `--routing-rules` in an isolated HOME, the routing hook, eval-suite structure, and installing from the built release archive |
-| Skill evals (`claude plugin eval`) | `npm run eval` | routing 45/45 (default model) and 30/30 (Haiku); a skill loads in 20/20 and 18/20 quality runs; every quality case scores 1.00 with the plugin on both models — see [`plugins/maquettekit/evals/README.md`](plugins/maquettekit/evals/README.md) for the with/without differences |
-| Production build | `npm run build` | 81 static pages |
+| Unit (Vitest) | `npm run test:unit` | **541 passed** in 17 files — tools (Design Intelligence and design lint, Visual Director and review match, Experience Lab, check, launch, asset pipeline, catalogue search, install and Web Component export — the export test builds two elements and drives them in Chromium; installed copies type-check outside the monorepo) and library (catalogue contract for every recipe and demo, motion engine, three-kit, StrictMode render + leak check for every non-WebGL recipe) |
+| Plugin (node:test) | `npm run test:plugin` | **37 passed, 1 skipped** — the skip is a live Codex install (no Codex CLI available); Codex command syntax is covered by a recording fake CLI. Includes a real Claude Code `plugin install`/`uninstall`, OpenCode/Antigravity skill installs and `--routing-rules` in an isolated HOME, the routing hook, the review gate, the MCP server over stdio, eval-suite structure, quick cards on long references, and installing from the built release archive |
+| Skill evals (`claude plugin eval`) | `npm run eval` | routing 51/51 (default model) and 34/34 (Haiku) over 17 cases; a skill loads in 20/20 and 18/20 quality runs; every quality case scores 1.00 with the plugin on both models — see [`plugins/maquettekit/evals/README.md`](plugins/maquettekit/evals/README.md) for the with/without differences |
+| Production build | `npm run build` | 86 static routes — 81 pages plus the icons, share image, `robots.txt` and sitemap |
 | Browser (Playwright) | `npm run test:e2e` | **313 passed, 0 flaky** — every recipe (mount, 3× remount cleanup, axe in light and dark, reduced motion, 390 px), every demo (axe light/dark, keyboard focus, reduced motion + 390 px, no-WebGL fallback for 3D), gallery behaviour, 3D initialisation/loading/missing-asset/controls/GPU disposal, shader animation, visual regression |
 
 Dogfooding the tools on the production gallery (5 routes × desktop/tablet/mobile × normal/reduced motion):
@@ -284,6 +284,12 @@ Dogfooding the tools on the production gallery (5 routes × desktop/tablet/mobil
   confidence 0.68; all automated gates pass (reduced motion, user control, keyboard, focus visible, contrast, target
   size, zoom; flashing needs an agent answer). Recommendations it raised that were acted on: a real 404 page, hover
   states on header and catalogue controls, a 24 px+ brand link.
+- **Launch** (`maquettekit launch`, 9 routes of the production build): its first run found no canonical URLs,
+  descriptions over 170 characters, and no share image, icons, `robots.txt` or sitemap. Three index pages also fell
+  back to the site-wide description; the check missed that, so it now flags a title or description shared between
+  routes. After the fixes, **0 major**. 17 minor findings remain, all page weight and not fixed yet: 1.9–3.7 MB
+  uncompressed on eight routes (1.8–3.0 MB of it JavaScript) against a 1.5 MB budget, and 594 KB of JavaScript on
+  `/system`. The share image is served from the production host, so it is checked there after deploying.
 
 Not run here: Firefox and WebKit (the suite targets Chromium), real-GPU performance, a live Codex, OpenCode or
 Antigravity session, and the

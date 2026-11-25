@@ -1,5 +1,16 @@
 # Social Studio playbook
 
+> **Quick card** — the must-dos from this file; read on for the reasons and the detail.
+>
+> - Use `role="feed"` with `article` items; never insert new posts above the reader, and end with "You're up to date".
+> - Autosave drafts locally, show the audience before posting, prompt for alt text, and never double-post.
+> - Do not autoplay carousels; give them visible Previous and Next buttons, not just swiping.
+> - Call `navigator.share` from a user gesture with a "Copy link" fallback; never gate content behind sharing.
+> - Never make reports public to the reported person; make blocking immediate, quiet and reversible.
+> - Make primary touch targets at least 44 px and all others at least 24 px.
+> - Play inline video `muted` and `playsinline` with a poster; never autoplay with sound.
+> - Send optimistic actions as the final state with an idempotency key, and never fake a count.
+
 How to design surfaces people join, contribute to and return to by choice. Taste rules are in the shared
 `design-principles.md`; gesture and component mechanics are in `interaction-patterns.md`; the limits on
 persuasion are in `ethics.md`.

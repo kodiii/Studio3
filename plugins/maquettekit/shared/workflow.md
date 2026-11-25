@@ -1,5 +1,16 @@
 # Maquettekit operating procedure
 
+> **Quick card** — the must-dos from this file; read on for the reasons and the detail.
+>
+> - Run `maquettekit review inspect --dir .` first; check flags with `maquettekit <command> --help`, never guess.
+> - Unless asked for a redesign, extend what is there; reuse any `maquettekit.design.json` and never build without tokens.
+> - Ask only what changes the build and the repository cannot answer: at most three questions, in one message.
+> - Scale the procedure to the task: a tweak needs only inspect, build, verify, report.
+> - Run at most three review passes; after pass 3, stop and report what remains.
+> - Never say a test, check or build passed unless you ran it in this session and saw the result.
+> - Keep measured and subjective statements in separate lists.
+> - Never write outside the project; never delete or overwrite a user's design file without saying so first.
+
 One procedure for every specialty. Each specialty skill restates it briefly with its own defaults; this file is
 the full version and the tie-breaker when skills disagree.
 

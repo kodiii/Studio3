@@ -1,5 +1,15 @@
 # Data performance — renderers, virtualisation, streams, workers
 
+> **Quick card** — the must-dos from this file; read on for the reasons and the detail.
+>
+> - Choose the renderer by measured mark count: SVG to low thousands, Canvas 2D to tens of thousands, WebGL beyond.
+> - Reduce data to pixel resolution; keep spikes on monitoring views with min/max per pixel column, not LTTB.
+> - Cap canvas DPR at 2, split static from dynamic layers, and use one `beginPath()` per colour.
+> - Virtualise tables of several hundred rows or more: visible rows plus an overscan of 5–10.
+> - Coalesce streams to one render per frame; never `setState` per message, and throttle text to about 4–10 Hz.
+> - Bound every buffer and release every interval, timeout, observer, socket listener and animation frame on unmount.
+> - Parse large payloads in a worker and transfer buffers with `worker.postMessage(msg, [msg.buffer])` instead of copying.
+
 Load when a view draws more than about a thousand marks, holds more than a few hundred rows, receives
 streaming data, or an interaction feels slow. Cross-specialty budgets and measurement honesty are in the
 shared `performance.md`; renderer basics are in shared `technology-selection.md` §3.

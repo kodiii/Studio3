@@ -1,5 +1,16 @@
 # Technology selection
 
+> **Quick card** — the must-dos from this file; read on for the reasons and the detail.
+>
+> - Run `maquettekit review inspect --dir .` and read `package.json` first; use what is installed.
+> - Never add React Three Fiber, Drei, `@react-three/rapier` or `motion/react` outside React; use `createVanillaScene`, CSS/WAAPI, Motion's `animate()` or vanilla GSAP.
+> - Never let two libraries, or a library and a CSS transition, write the same element property.
+> - Climb the ladder (CSS, WAAPI, Motion, GSAP, three.js) only when the rung below cannot do the job.
+> - Render 3D on demand, without physics or postprocessing, unless each is separately justified.
+> - Use WebGPU only behind `detectWebGPU()`, with a WebGL path that ships and is tested.
+> - Never upload assets to hosted tools without permission; ship decoders, fonts and environment maps from your own origin.
+> - Read licences from the installed `package.json`, not from memory.
+
 One decision document for every specialty. Pick the lightest technology that fully delivers the effect, state the
 reason, and record what you rejected. "Lightest" means: fewest shipped bytes, fewest concepts for the next
 maintainer, least main-thread and GPU work, and no new dependency when an installed one already does the job.

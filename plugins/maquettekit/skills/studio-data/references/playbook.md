@@ -1,5 +1,16 @@
 # Data Studio playbook
 
+> **Quick card** — the must-dos from this file; read on for the reasons and the detail.
+>
+> - Write the question inventory before any chart; delete any panel that answers no question.
+> - Give every KPI a comparison (previous period, target or expected band) and its period.
+> - Never go below 12 px text or 24 px interactive rows; remove chrome rather than shrink text.
+> - Right-align numbers in `tabular-nums`, one precision per column, via cached `Intl.NumberFormat`; show "—", never zero, for no data.
+> - Never use colour alone; reserve status colours; use at most 8 categorical hues, in order; make up/down colours configurable.
+> - Never let alerts steal focus, play sound by default or flash; announce critical ones once with `role="alert"`.
+> - Never show old data as current: mark it stale after 2–3 missed intervals, using server timestamps.
+> - Never invent data; label simulated data on screen.
+
 How to design a data-dense interface that answers its questions at a glance and survives eight hours of
 use. General taste rules are in the shared `design-principles.md`; chart choice is in `chart-selection.md`;
 this file covers structure, density, numbers, colour and the operational surfaces around the charts.

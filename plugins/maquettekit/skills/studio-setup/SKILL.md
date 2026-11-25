@@ -62,6 +62,8 @@ it at `~/.maquettekit/marketplace/plugins/maquettekit/tools/maquettekit.mjs`. Be
 
 ## Reference files
 
+Long references open with a quick card: read it first, and the rest only when the task needs the detail.
+
 | File | Load when |
 | - | - |
 | `references/hosts.md` | Installing, upgrading, uninstalling or invoking on Claude Code / Codex / OpenCode / Antigravity; layout of each host's plugin format |

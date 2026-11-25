@@ -64,6 +64,8 @@ do not substitute that variable (Codex), the same file is `../../tools/maquettek
 
 ## Reference files
 
+Long references open with a quick card: read it first, and the rest only when the task needs the detail.
+
 | File | Load when |
 | - | - |
 | `references/budgets-and-quality.md` | Choosing profiles/budgets, compression and texture formats; reading validation warnings |

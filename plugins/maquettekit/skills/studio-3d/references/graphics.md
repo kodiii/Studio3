@@ -1,5 +1,16 @@
 # Graphics — shaders, colour, geometry, particles, environments, effects
 
+> **Quick card** — the must-dos from this file; read on for the reasons and the detail.
+>
+> - Use built-in materials first; write custom shaders only for what materials cannot do.
+> - End every custom fragment shader with `#include <colorspace_fragment>`; never gamma-correct by hand.
+> - Keep uniforms in one memoised object and mutate `.value`; call `invalidate()` after changes in demand mode.
+> - Tag colour textures `SRGBColorSpace`, leave data textures linear, and check brand colours after tone mapping.
+> - Take particle and instance counts from `useQuality().density`, and dispose prop-passed materials and geometries yourself.
+> - Fetch no remote HDRI, decoder or font at runtime: use `LightingRig`, never Drei `<Environment preset="…">`.
+> - Gate postprocessing, transmission and shadow maps by quality profile, and justify each in the report.
+> - Stop decorative motion under reduced motion, and never flash more than three times a second.
+
 Good materials and light make most scenes; custom shaders are for what materials cannot do. Every snippet here was
 written against three 0.187 and `@react-three/fiber` 9.8; re-check chunk and class names after an upgrade.
 

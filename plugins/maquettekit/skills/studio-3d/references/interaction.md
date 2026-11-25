@@ -1,5 +1,16 @@
 # Interaction and camera — viewers, configurators, showrooms
 
+> **Quick card** — the must-dos from this file; read on for the reasons and the detail.
+>
+> - Clamp orbit, zoom and pan (off for single objects); give reset a DOM button and the `0`/`Home` key.
+> - Give every scene interaction a DOM control: rotate, zoom, presets, parts, hotspots, explode, play/pause.
+> - Announce selection in DOM text (`role="status"`) and mark list buttons `aria-pressed`; never rely on colour alone.
+> - Let the page scroll past the canvas with wheel and touch; zoom only with focus or Ctrl/⌘.
+> - Ignore clicks with `e.delta > 4` so an orbit never selects; filter hidden parts out of raycast hits.
+> - Pass `role="group"` to an interactive `StudioCanvas` and show instructions near the viewer.
+> - Keep auto-rotate off; if wanted, make it pausable and off under reduced motion.
+> - Clone a material before swapping textures; never touch the cached original.
+
 The user must always know three things: what they can do, what they are looking at, and how to get back.
 Every interaction in the canvas has a DOM equivalent; the canvas is the fast path, never the only one.
 

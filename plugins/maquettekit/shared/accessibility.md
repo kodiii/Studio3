@@ -1,5 +1,16 @@
 # Accessibility — engineering checklist (WCAG 2.2, level AA oriented)
 
+> **Quick card** — the must-dos from this file; read on for the reasons and the detail.
+>
+> - Use `<button>` for actions and `<a href>` for navigation, never a clickable `div`.
+> - Keep everything keyboard-operable without traps; never set `outline: none` without a `:focus-visible` replacement.
+> - Meet 4.5:1 text contrast (3:1 for large text and UI boundaries); never signal by colour alone.
+> - Make targets at least 24 × 24 CSS px; give every drag or gesture a single-pointer alternative.
+> - Under reduced motion, remove decorative motion, cross-fade state changes in 200 ms or less, and never autoplay content motion.
+> - Never flash more than three times a second; add a pause control to auto-starting motion over five seconds.
+> - Put canvas information and controls in the DOM; give the canvas a name and fallback.
+> - Never write "WCAG compliant"; state what was checked and how.
+
 Accessibility is a gate in every Maquettekit workflow: no experience profile, visual direction or deadline
 overrides it. This is an engineering checklist, not a conformance statement. Success-criterion numbers refer
 to WCAG 2.2; levels are given because two cited criteria are not AA (2.3.3 is AAA; several are A). You cannot

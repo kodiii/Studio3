@@ -1,5 +1,16 @@
 # Animation in 3D — clips, procedural motion, camera choreography, timelines
 
+> **Quick card** — the must-dos from this file; read on for the reasons and the detail.
+>
+> - Clamp `dt`, damp with `MathUtils.damp`, allocate vectors once (never inside `useFrame`), and once settled snap to the target and stop invalidating.
+> - Tween plain data, not scene objects React also sets; give every property one owner; interrupt, never queue.
+> - In demand mode call `invalidate()` from each timeline's `onUpdate`, and revert or cancel every timeline on unmount.
+> - Never disable controls during a transition; user input always wins.
+> - Read reduced motion from `useStudioMotion().reduced`, never a one-off media query.
+> - Under reduced motion, remove auto-rotate and ambient effects, cut camera moves in one frame, never autoplay clips, and replace scroll-scrubbed travel with step buttons.
+> - Build clip controls in DOM: Play/Pause with `aria-pressed`, a scrub range with `aria-valuetext` in seconds.
+> - Clone skinned models with `SkeletonUtils.clone`; a plain `clone()` shares bones.
+
 Motion in a scene has the same jobs as motion in a page: explain a change, show how something works, or set a
 mood. Each must be interruptible, cheap when idle, and correct under reduced motion. DOM choreography and tokens
 belong to `studio-motion`; this file covers what happens inside the canvas.

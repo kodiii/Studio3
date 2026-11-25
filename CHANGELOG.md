@@ -10,7 +10,7 @@ semantic versioning. Plugin manifests (Claude Code and Codex) always carry the s
   of `--host all`) links the skills into `~/.config/opencode/skills` and `~/.gemini/config/skills`. Skills are
   rendered with `${CLAUDE_PLUGIN_ROOT}` replaced by the installed payload path, so tool commands resolve on hosts that
   do not substitute it (also applied to Claude Code / Codex skills mode). `--host` accepts a comma list.
-- **Skill eval suite** (`plugins/maquettekit/evals/`, run with `claude plugin eval`): 27 cases — routing for every skill
+- **Skill eval suite** (`plugins/maquettekit/evals/`, run with `claude plugin eval`): 29 cases — routing for every skill
   plus boundary and negative cases, judgement calls, single-file builds checked against the rules the skills teach,
   multi-file project cases (fixture projects copied in by a scaffold script), and the plugin's own tooling. `npm run eval` compares with and without the plugin; `npm run eval:triggers` scores
   routing. `tests/plugin/evals.test.mjs` keeps the suite well-formed.
@@ -30,6 +30,28 @@ semantic versioning. Plugin manifests (Claude Code and Codex) always carry the s
   20/20 judgement, build and project runs on the default model and 18/20 on Haiku (was 12/14 and 5/14), and every
   quality case scores 1.00 with the plugin on both models.
 
+- **`maquettekit design lint`** — values in a project's styles that are not from its design system (off-palette
+  colours as major; spacing, font sizes, radii and durations off their scales as minor), each with the nearest token.
+  Reads tokens from `maquettekit.design.json` and the project's own `:root`/theme variables and SCSS/LESS variables;
+  scans CSS, markup, JSX style objects, styled templates and Tailwind arbitrary values.
+- **`maquettekit check`** — design-file validation, token lint, browser review and Experience Lab in one run, merged
+  into one ranked fix list (`.maquettekit/check/check.md`); steps that cannot run are reported as unavailable. The
+  specialty skills' verify steps start with it.
+- **`maquettekit catalog install`** — copies recipes or demos with everything they import into `src/maquettekit/`,
+  keeping the library layout; lists missing npm packages with tested versions; never overwrites changed files.
+- **`maquettekit catalog export --format web-component`** — `<mk-<id>>` custom elements (recipe + React, attributes =
+  params) for Vue, Svelte, Astro and plain HTML projects.
+- **MCP server** (`maquettekit mcp`) — 14 typed tools (catalogue, design, lint, check, review match, launch, assets,
+  doctor) over stdio; registered by the Claude Code plugin, documented for Codex, OpenCode and Antigravity.
+- **`maquettekit:design-critic`** agent (Claude Code) — read-only screenshot critique against the rubric without the
+  builder's context; and an opt-in `Stop` hook review gate (`MAQUETTEKIT_REVIEW_GATE`).
+- **Two skills (14 in total):** `studio-launch` with `maquettekit launch` (metadata, titles or descriptions shared between routes, share image, icons, robots and
+  sitemap, real 404, page weight — over HTTP, production build) and `studio-match` with `maquettekit review match`
+  (pixel similarity to a reference image, the regions that differ most, missing colours, run history).
+- Quick cards at the top of the 31 reference files over 1,500 words, so small-context models can stop at the essentials.
+- Gallery: per-page canonical URLs and link-preview text, favicon, apple icon, a generated share image, `robots.txt` and
+  a sitemap (found with the new launch check).
+
 ### Changed
 - Eval LLM graders check one criterion each and read the file the agent wrote rather than the transcript; multi-part
   judges over long transcripts caused the failures that appeared with and without the plugin.
@@ -38,6 +60,7 @@ semantic versioning. Plugin manifests (Claude Code and Codex) always carry the s
   routing went from 39/45 to 45/45 and skill loads on build/judgement cases from 0/14 to 12/14 (default model).
 
 ### Fixed
+- `review run` no longer leaks its static server when Chromium cannot launch.
 - Long source-path headings in the gallery wrap instead of widening the page at 390 px.
 - WebGL previews in the effect catalogue never started: the card's full-size link covered the preview, so its hover
   handler never fired. Hover and keyboard focus are now tracked on the card; on touch screens a WebGL preview runs

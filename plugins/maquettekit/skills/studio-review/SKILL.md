@@ -76,6 +76,8 @@ and Chromium: if it exits with code 3, hand over to `studio-setup`.
 
 ## Reference files
 
+Long references open with a quick card: read it first, and the rest only when the task needs the detail.
+
 | File | Load when |
 | - | - |
 | `references/checks.md` | Reading `report.json`/`report.md`; deciding severity and the right fix for each check |

@@ -1,5 +1,16 @@
 # Product Studio playbook
 
+> **Quick card** — the must-dos from this file; read on for the reasons and the detail.
+>
+> - Show the hero product view as DOM or vector in a filled state, with a text alternative.
+> - Implement every applicable states-matrix row; loading buttons keep width, stay focusable, set `aria-busy` and prevent double submission.
+> - Never make hover the only way to discover an action.
+> - State the price and billing period next to the button, leave marketing consent unticked, and never fake counters, reviews or scarcity.
+> - Always provide a skip link, a visible current location, a working back button and focus moved to the new view's heading.
+> - Use one-column forms with labels above; validate when a field is finished; never lose the user's work.
+> - Never stretch forms or text to full width or set captions below 12 px.
+> - Use one primary action style, once per view.
+
 How to design a product surface that is specific to its brand and effortless to use. General taste rules are
 in the shared `design-principles.md`; this file covers what is particular to product work.
 

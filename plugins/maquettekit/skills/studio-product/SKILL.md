@@ -126,6 +126,8 @@ Each is a checkable statement. A build that fails one is not finished.
 
 ## Reference files
 
+Long references open with a quick card: read it first, and the rest only when the task needs the detail.
+
 | File | Load when |
 |---|---|
 | `references/playbook.md` | Always, at step 3: art direction, IA, layout, type and spacing, states matrix, navigation |

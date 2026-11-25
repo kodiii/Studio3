@@ -1,5 +1,16 @@
 # Ethics — participation people choose
 
+> **Quick card** — the must-dos from this file; read on for the reasons and the detail.
+>
+> - Never build deception, even on request: fake counts, activity, reviews, urgency or scarcity, or disguised ads.
+> - Never gate content behind liking, sharing, following or inviting.
+> - Make leaving, cancelling and deleting as easy as joining, and declining neutral, with equal weight and steps.
+> - Autoplay muted only, with a visible pause control, off under reduced motion and data saver.
+> - End feeds with "You're up to date"; mark and separate any suggested content after it.
+> - Make location, contact upload and discoverability opt-in, and strip photo location metadata on upload.
+> - Never ask for notification permission on first launch; ask in context and respect "Not now".
+> - If children or teenagers may use the product, assume they do; default to high privacy and recommend a legal review.
+
 Load at step 3 of every social build and again before the report. This file sets hard limits. The brief
 wins on style; it does not win on deception. When a request conflicts with these rules, follow §8.
 

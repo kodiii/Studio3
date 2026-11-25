@@ -1,5 +1,16 @@
 # Asset pipeline — from source model to the right variant on each device
 
+> **Quick card** — the must-dos from this file; read on for the reasons and the detail.
+>
+> - Never ship or edit a source file; regenerate from the source rather than editing an output.
+> - Never let the browser guess the build: pick the variant from the manifest by quality profile (`<Model manifest>` or `resolveModelVariant`).
+> - Serve decoders and transcoders from the project's origin, never a public CDN; with Drei, set local paths via `useGLTF.setDecoderPath(...)` and `useKTX2`.
+> - Register exactly the decoders each variant declares, and register KTX2 from inside the canvas before models load.
+> - Run `maquettekit assets validate` on the source and on each shipped variant.
+> - Select parts by name, then traverse: optimisation moves each mesh into an unnamed child.
+> - Use the manifest's `fallbackImage` as the poster and the no-WebGL image.
+> - Record model provenance and licence, and never present a stand-in as the product.
+
 Models arrive heavy: the sample `pulse-speaker.source.glb` is 19.3 MB with four 2048² PNG textures; its desktop
 variant is 2.0 MB and its low-power variant 1.0 MB (`assets/models/README.md`). Never ship a source file, never
 edit one, and never let the browser guess which build to fetch. Delegate the tool work to

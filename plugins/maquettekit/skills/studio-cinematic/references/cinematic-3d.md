@@ -1,5 +1,16 @@
 # Cinematic 3D — when a story deserves a real-time scene
 
+> **Quick card** — the must-dos from this file; read on for the reasons and the detail.
+>
+> - Use real-time 3D only if every §1 "must" holds, a "value" row applies and §2's lighter options fail.
+> - Ask for the model; never fabricate one and present it as the subject.
+> - Keep progress in the page; never read scroll in the scene or let a canvas capture wheel or touch.
+> - Render on demand, stop once settled, and give continuous loops a pause control.
+> - Keep copy, captions and controls in DOM; draw no essential text inside the canvas.
+> - Mount one persistent, lazy canvas per view, not per section; ship a poster per beat.
+> - Keep the horizon level and cap angular speed; never use fast FOV changes or dolly-zoom.
+> - Give every camera stop a button; under reduced motion, drop scroll-driven travel and cut between stops.
+
 You decide **whether** a beat needs real-time 3D and **what the scene must do** in the story. `studio-3d`
 builds the scene; `studio-asset-optimizer` prepares any model; `studio-motion` times DOM and camera together.
 This file is the decision, the choreography and the handoff, not the renderer.

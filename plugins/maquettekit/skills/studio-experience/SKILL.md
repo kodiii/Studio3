@@ -66,6 +66,8 @@ needs Playwright (exit code 3 → `studio-setup`); `rubric` and `score` need not
 
 ## Reference files
 
+Long references open with a quick card: read it first, and the rest only when the task needs the detail.
+
 | File | Load when |
 | - | - |
 | `references/scoring.md` | Interpreting dimensions, signals, weights, confidence, gates and bands |

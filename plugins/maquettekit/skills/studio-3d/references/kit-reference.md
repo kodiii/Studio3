@@ -1,5 +1,16 @@
 # three-kit API reference
 
+> **Quick card** — the must-dos from this file; read on for the reasons and the detail.
+>
+> - Re-copy the kit folder when an export listed here is missing: your copy is older.
+> - Give every `StudioCanvas` a `label`, and set `interactive` when the scene takes input.
+> - Keep `frameloop` at `'demand'`; use `'always'` only while something animates.
+> - Call `useQuality` only inside a `StudioCanvas` tree; outside it returns `medium`.
+> - Wrap `Model` (it suspends while loading) in `Suspense` inside a `ModelBoundary`, and call `configureModelLoader` once at start for Draco or KTX2.
+> - Show a poster when `detectCapabilities().webgl2` is false (three 0.187 needs WebGL 2), and always pair `detectWebGPU` with a WebGL path.
+> - In vanilla scenes, add the capability check and context-loss handling that `createVanillaScene` lacks.
+> - Run `disposeObject` on owned resources only.
+
 Generated from `${CLAUDE_PLUGIN_ROOT}/library/src/three/` (re-checked against the source when this skill was
 written). Everything is re-exported from `library/src/three/index.ts` (package path `@maquettekit/library/three` in the
 Maquettekit repository; in a project, wherever the folder was copied). React parts need `react`, `three` and

@@ -1,5 +1,16 @@
 # Social 3D — interactive posts, showcases, avatars and AR-ready previews
 
+> **Quick card** — the must-dos from this file; read on for the reasons and the detail.
+>
+> - Use real-time 3D only when every "must" in §1 holds and at least one "value" row does.
+> - Keep one live canvas per view, `<model-viewer>` included; every other post shows its poster.
+> - Load a model only on activation ("View in 3D"), never on scroll.
+> - When the activated post scrolls well away, dispose of the scene and call `clearModel(url)`.
+> - Never capture feed scrolling: orbit only after activation, and wheel-zoom only while the viewer has focus.
+> - Give every scene interaction a named DOM control of at least 44 px; keep price and variants in DOM.
+> - Never fabricate a product or a person's likeness; get the person's consent for any real likeness.
+> - Upload nothing to hosted viewers, converters or AR services without the user's explicit agreement.
+
 You decide **whether** a social surface needs real-time 3D and **what it must do inside a feed**.
 `studio-3d` builds the scene; `studio-asset-optimizer` prepares the model; `studio-cinematic` leads if the
 piece is a scroll-driven campaign story. This file is the decision, the delivery options and the feed rules.

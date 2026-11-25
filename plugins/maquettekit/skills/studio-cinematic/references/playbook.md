@@ -1,5 +1,16 @@
 # Cinematic Studio playbook
 
+> **Quick card** — the must-dos from this file; read on for the reasons and the detail.
+>
+> - Write the beat sheet, with each beat's reduced-motion form, before any code; render chapters from it as data.
+> - Default to five beats over 5–8 vh, one idea each, with the climax in beat 3.
+> - Keep beat 1 text visible without script and beat 5's action static and immediately usable.
+> - Give every beat a still rest zone; never pin over about 3 vh without new content.
+> - Size display type with a rem term (`clamp(3rem, 1rem + 11vw, 14rem)`), never pure `vw`.
+> - Check text contrast at colour-transition midpoints, not just the ends.
+> - Never invent facts, figures or quotes; visibly mark draft copy until replaced.
+> - Give each beat an `id` for deep links; add skip links before long pinned passages.
+
 How to stage a narrative page that people remember and can still control. General taste rules are in the
 shared `design-principles.md`; scroll mechanics are in `scroll-choreography.md`; this file covers story,
 pacing and composition.

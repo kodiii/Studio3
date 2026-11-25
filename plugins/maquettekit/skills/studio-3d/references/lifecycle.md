@@ -1,5 +1,15 @@
 # Lifecycle — canvas, renderer and GPU resources
 
+> **Quick card** — the must-dos from this file; read on for the reasons and the detail.
+>
+> - Bring 3D into React only through `StudioCanvas`; never create a second renderer inside it.
+> - Dispose only what you own: never run `disposeObject` on shared resources such as a `Model`/`useModel` clone.
+> - Dispose every `<primitive>` object yourself or hand it to an owner; R3F never disposes primitives.
+> - Create GPU resources inside the effect that disposes them (`ResourceTracker` or `disposeObject`); never rely on an effect running once.
+> - With `frameloop="demand"`, call `invalidate()` after mutating through a ref, after loading something imperatively and on every frame of an animation until it settles; clamp `dt`.
+> - Use `frameloop="always"` only while something changes every frame without input, and switch back to `demand` when it stops.
+> - In vanilla scenes, add capability detection and context-loss handling (`createVanillaScene` does neither), and call `app.dispose()` exactly once.
+
 A WebGL scene is a resource with a lifetime: a context is acquired, GPU memory is allocated, frames are drawn,
 the context can be lost, and everything must be released. JavaScript garbage collection does none of this for
 you. Imports below assume the kit was copied to `./three` and `./motion`; adjust the paths.

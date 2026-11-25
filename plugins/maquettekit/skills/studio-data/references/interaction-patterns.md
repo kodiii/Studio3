@@ -1,5 +1,16 @@
 # Interaction patterns — linked views, brushing, crosshairs, tables, heatmaps, accessibility
 
+> **Quick card** — the must-dos from this file; read on for the reasons and the detail.
+>
+> - Keep one selection store that charts render from; never let one chart reach into another.
+> - Make each plot one tab stop: a `role="slider"` whose `aria-valuetext` reads the point.
+> - Make tooltips meet 1.4.13 (`Esc` dismisses, hoverable, persistent); place them beside the point, never covering it.
+> - Give every drag, pinch and wheel interaction a button or key alternative; never zoom on plain page scroll.
+> - Write pointer moves to a ref and draw in one rAF callback; set React state only on discrete events.
+> - Use `<table>` with `<caption>` and `<th scope>` for static tables, not `role="grid"`.
+> - Scroll wide tables inside a `role="region"` with `tabindex="0"` and an `aria-label`; never scroll the page sideways.
+> - Give every chart a summary generated from its data and an equivalent table.
+
 Load when a chart or table does more than sit there. Every pointer interaction below has a keyboard path;
 that is not an extra, it is the pattern.
 

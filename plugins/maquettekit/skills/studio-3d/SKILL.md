@@ -121,6 +121,8 @@ fallback, budget, what was measured.
 
 ## Reference files
 
+Long references open with a quick card: read it first, and the rest only when the task needs the detail.
+
 | File | Load when |
 |---|---|
 | `references/lifecycle.md` | Step 4, always: canvas/renderer lifecycle, StrictMode, context loss, disposal, render on demand, resize/DPR |

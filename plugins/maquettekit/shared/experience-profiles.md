@@ -1,5 +1,16 @@
 # Experience profiles — Essential, Expressive, Immersive
 
+> **Quick card** — the must-dos from this file; read on for the reasons and the detail.
+>
+> - Use the profile the user names; otherwise pick the lowest that achieves the brief.
+> - Record the profile per surface and report it next to every score.
+> - Apply the profile's multipliers to motion token values; never hard-code new numbers.
+> - Cap simultaneous animations at 1 (Essential), 3 (Expressive) or 6 (Immersive).
+> - Under reduced motion, behave at or below Essential: zero distance and stagger, one animation at a time.
+> - Make anything moving by itself for over five seconds pausable, intros skippable and sound opt-in; never hijack scroll without an escape.
+> - Never block input with animation: controls work as soon as visible, and animations stay interruptible and reversible.
+> - Keep all information and actions available when JavaScript animation fails, WebGL is unavailable or reduced motion is on.
+
 A profile is one decision that sets how much motion, depth and spectacle an experience carries. Choose it in
 the brief, record it in `maquettekit.design.json`, pass it to the Experience Lab (`--profile`), and give it to the
 runtime (`StudioMotionProvider profile="…"` in projects using the Maquettekit motion module).

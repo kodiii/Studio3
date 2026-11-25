@@ -1,5 +1,16 @@
 # Scroll choreography — pinning, scrubbing, parallax, masks, horizontal passages
 
+> **Quick card** — the must-dos from this file; read on for the reasons and the detail.
+>
+> - Never take over scroll: no `preventDefault` on wheel or touch, no scroll lock, no hidden scrollbar.
+> - Prefer a CSS sticky frame (`top: 0`) to GSAP `pin`; ancestors use `overflow: clip`, not `hidden`; frames use `svh`, never `dvh`.
+> - Attach one ScrollTrigger to the timeline, never to child tweens; set `scrub` or `toggleActions`, never both.
+> - With GSAP `pin`, animate the pinned element's children, never the element itself.
+> - Register ScrollTrigger once, client-side, behind `typeof window !== 'undefined'`; refresh after `document.fonts.ready`.
+> - Make the final, readable state the default; under reduced motion (`gsap.matchMedia()`) create no choreography; never hide beat 1.
+> - Clean up with `useGSAP` or `ctx.revert()`; check `ScrollTrigger.getAll().length` returns to baseline after navigation.
+> - Snap only short pinned sequences, never `mandatory` on a whole page; never parallax reading text.
+
 Load for any scroll-linked motion. The rule above all: **scroll position belongs to the reader.** You may
 attach motion to it; you may never take it over.
 

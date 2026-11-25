@@ -37,9 +37,10 @@ SKILL.md. Below, `maquettekit <command>` is shorthand for that invocation. Detai
    checkout): hosts like Vercel install only that folder's dependencies, which is where launch-day build failures
    come from. See `references/launch-checklist.md` §5.
 2. **Measure.** `maquettekit launch --url <preview-url> --routes /,/pricing,…` (or `--serve <export-dir>`). It checks
-   every route for title and description, `lang`, viewport, canonical, one `<h1>`, Open Graph and Twitter tags, a
-   reachable 1200×630 share image, favicon and apple-touch icon, `noindex`, robots.txt and sitemap, whether a missing
-   page answers 404, and page weight. Results: `.maquettekit/launch/launch.md`.
+   every route for title and description (and that no two routes share one), `lang`, viewport, canonical, one
+   `<h1>`, Open Graph and Twitter tags, a reachable 1200×630 share image, favicon and apple-touch icon, `noindex`,
+   robots.txt and sitemap, whether a missing page answers 404, and page weight. Results:
+   `.maquettekit/launch/launch.md`.
 3. **Fix majors, then minors**, with the framework's own mechanism (`references/launch-checklist.md` §2): Next.js
    `metadata` / `generateMetadata`, `app/icon.*`, `app/opengraph-image.*`, `app/robots.ts`, `app/sitemap.ts`;
    Astro and other static sites write the tags in the layout and ship `public/robots.txt`, `public/sitemap.xml` and a
@@ -66,6 +67,8 @@ SKILL.md. Below, `maquettekit <command>` is shorthand for that invocation. Detai
 - [ ] No invented claims in metadata: descriptions and share images follow the same honesty rules as the page.
 
 ## Reference files
+
+Long references open with a quick card: read it first, and the rest only when the task needs the detail.
 
 | File | Load when |
 |---|---|

@@ -70,6 +70,8 @@ do not substitute that variable (Codex), the same file is `../../tools/maquettek
 
 ## Reference files
 
+Long references open with a quick card: read it first, and the rest only when the task needs the detail.
+
 | File | Load when |
 | - | - |
 | `references/brief.md` | Building or reviewing `brief.json`; mapping user language to fields; defaults |

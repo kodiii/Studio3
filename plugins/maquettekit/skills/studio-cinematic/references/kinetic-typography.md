@@ -1,5 +1,16 @@
 # Kinetic typography — splitting, variable fonts, masks and timing
 
+> **Quick card** — the must-dos from this file; read on for the reasons and the detail.
+>
+> - Animate type before or after reading, never during; end each entrance in a legible hold.
+> - Split by words (≤ about 12), lines (≤ 5) or characters (≤ about 25), never body copy.
+> - Segment with `Intl.Segmenter`, never `text.split('')`; split joining scripts (Arabic, Devanagari, Thai) by words or lines.
+> - Expose exactly one accessible copy: `aria-label` on headings, a visually hidden copy elsewhere; never fix span widths in px.
+> - Show beat 1 text at first paint; never start it from `opacity: 0` or a closed mask.
+> - Split after `document.fonts.ready` or with SplitText `autoSplit`, and revert splits on unmount.
+> - Scale and move type with `transform`, never `font-size` or `letter-spacing` per frame.
+> - Under reduced motion, show the final state at once; give every continuous loop a pause control.
+
 Load for animated or oversized type. Large-type composition is in `playbook.md` §5; scroll mechanics are in
 `scroll-choreography.md`.
 

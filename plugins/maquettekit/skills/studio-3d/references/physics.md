@@ -1,5 +1,16 @@
 # Physics — only when collisions are the content
 
+> **Quick card** — the must-dos from this file; read on for the reasons and the detail.
+>
+> - Add `@react-three/rapier` only when unscripted collisions, joints or throws are the content; otherwise use damped springs or keyframes.
+> - Wrap `<Physics>` in `<Suspense>`; inside `StudioCanvas` use `updateLoop="independent"` and set `paused` off-screen and on user pause.
+> - Keep the fixed `timeStep`, not `"vary"`, and wake bodies you move from code (`applyImpulse(v, true)`).
+> - For a GLB, set `colliders={false}` and add a few primitive colliders; use trimesh only for fixed level geometry.
+> - Cap dynamic bodies at `density` × a measured number and enforce the cap in the UI.
+> - Give dragging button and arrow-key alternatives (WCAG 2.5.7), and disable orbit controls while dragging.
+> - Let the user start a playground; keep Pause and Reset visible; announce the settled state with `role="status"`.
+> - Remove decorative physics under reduced motion and show the settled state.
+
 A physics engine is a second simulation running next to the renderer: a WASM download, a fixed-rate loop, memory
 per body, and behaviour you cannot script exactly. Most "physical-feeling" motion is a damped spring.
 

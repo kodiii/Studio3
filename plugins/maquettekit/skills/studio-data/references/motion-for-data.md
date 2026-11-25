@@ -1,5 +1,16 @@
 # Motion for data — constancy, emphasis, playback
 
+> **Quick card** — the must-dos from this file; read on for the reasons and the detail.
+>
+> - Never animate a dashboard's initial load; show the data at first paint.
+> - Key marks by identity, never by index: React `key={d.id}`, D3 `selection.data(rows, (d) => d.id)`.
+> - Interpolate values and the scale domain, not geometry, so every frame is a truthful chart; retarget from on-screen values.
+> - Cut, not tween, when metric, unit, chart type or identities change, or while the user scrubs.
+> - Throttle highlights to one per cell per second, pair them with ▲/▼, never pulse large areas.
+> - Never re-sort rows on every tick; pause visual updates under the pointer or focus.
+> - Never autoplay playback or loop by default; provide Play/Pause, step buttons and a labelled scrubber.
+> - Under reduced motion, replace transitions with a cut or a ≤ 200 ms cross-fade.
+
 Load for any transition between data states, any live update, any playback. Motion in data interfaces is a
 reading aid. If a transition does not help the reader track, compare or notice, cut it.
 

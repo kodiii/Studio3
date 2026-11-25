@@ -1,5 +1,16 @@
 # Performance — budgets, animation cost and honest measurement
 
+> **Quick card** — the must-dos from this file; read on for the reasons and the detail.
+>
+> - Never hide the LCP element behind JavaScript, and never lazy-load the LCP image.
+> - Reserve space for late content: `width`/`height` or `aspect-ratio` on media, min-heights on async regions.
+> - Animate only compositor properties (`transform`, `opacity`) in loops and scroll-linked effects; note any exception.
+> - Never put `will-change` in base styles; add it just before animating and remove it after.
+> - Batch layout reads before writes, and pause every rAF loop off-screen or in a hidden tab.
+> - Code-split and lazy-load heavy features: charts, 3D, editors.
+> - Use one WebGL canvas per view, never one per card; render on demand and ship a non-WebGL fallback.
+> - Never invent a number or present a target as a result; state tool, viewport, throttling, build mode and run count.
+
 Performance is a design material: a slow interaction is a bad interaction however it looks. This file holds
 the cross-specialty rules. 3D specifics live in the `studio-3d` skill; data-rendering specifics in
 `studio-data`'s `references/performance.md`.

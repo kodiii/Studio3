@@ -1,5 +1,15 @@
 # Conversion patterns — landing pages, proof, pricing, calls to action
 
+> **Quick card** — the must-dos from this file; read on for the reasons and the detail.
+>
+> - Never invent customer names, logos, quotes, ratings, counts or figures, or run counters that are not live.
+> - Without supplied proof, label each slot `Placeholder: replace with real customer evidence` or omit the section, and tell the user which.
+> - Attribute quotes by name, role and organisation, give every number a source and date, and use only consenting customers' logos.
+> - Keep the hero's primary action visible without scrolling at 390 × 700.
+> - Use exactly one primary action per view, with the same verb-and-object label from hero to footer, never "Submit".
+> - Show the price with unit and period, and state currency, tax, limits, trial end and how to cancel.
+> - Make the billing toggle a labelled radio group or switch; prices change in place without width jumps, announced once.
+
 Load for marketing surfaces. The aim is a page that lets the right visitor decide quickly and correctly.
 
 ## 1. Landing page structure

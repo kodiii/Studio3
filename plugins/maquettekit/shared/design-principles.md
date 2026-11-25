@@ -1,5 +1,16 @@
 # Maquettekit design principles — the taste code
 
+> **Quick card** — the must-dos from this file; read on for the reasons and the detail.
+>
+> - The brief wins: build what it asks for, even a purple gradient.
+> - Before markup, plan 4–6 named colours with roles, two or three type roles, a layout device, one bold move, three things to avoid.
+> - Use at most two type families and one signal colour unless the brief requires more.
+> - Meet contrast floors in both themes: body text 4.5:1; large text, UI boundaries and meaningful graphics 3:1.
+> - Give every interactive element rest, hover, focus-visible, active, disabled and, where relevant, loading states.
+> - Never invent metrics, testimonials or client logos; label sample content (`Sample data`).
+> - Check every view at 320, 390, 768, 1024 and 1440 px, in each theme.
+> - Score each view 1–5 on the six rubric axes; fix any 1 or 2.
+
 Read this before you choose a visual direction and again before you call a build finished. It applies to
 every specialty. Tokens, palettes and font files come from the Design Intelligence Engine
 (`studio-design-system`); this file is about the judgement that tokens cannot encode.

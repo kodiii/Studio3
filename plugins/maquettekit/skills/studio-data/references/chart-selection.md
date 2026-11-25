@@ -1,5 +1,16 @@
 # Chart selection — from question to honest chart
 
+> **Quick card** — the must-dos from this file; read on for the reasons and the detail.
+>
+> - Start bars, columns and areas at zero (`domain([0, max])`); label any non-zero line baseline.
+> - Avoid dual axes: use two aligned charts or index both series to 100.
+> - Show missing data as gaps (`line().defined()`), never interpolated; dash and label partial periods.
+> - Show uncertainty with bands or error bars and the stated interval; dash and label forecasts.
+> - Never add 3D, perspective or decorative gradients to 2D charts; never use rainbow scales.
+> - Label simulated data as `Simulated data` wherever it appears, exports included; never attach it to real tickers or people.
+> - When asked for a misleading form, explain in one sentence and build the honest one unless the user confirms.
+> - Compute the text summary from the data at render time; offer an equivalent table.
+
 Load whenever you choose, review or change a chart. Pick by the question being asked, then apply the
 integrity rules; a beautiful chart that misleads is a defect.
 

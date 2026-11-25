@@ -1,5 +1,15 @@
 # Flow patterns — onboarding, forms, states, transitions, tours
 
+> **Quick card** — the must-dos from this file; read on for the reasons and the detail.
+>
+> - Show no errors before a field is first left; validate on blur with content and on submit, focusing the first invalid field.
+> - Keep labels visible above fields, never in the placeholder; never disable paste or clear the form on error.
+> - Say how to fix the error, under the field, with text, icon and border, never colour alone.
+> - Give each onboarding step one primary action, honest progress, a working back button and focus moved to its heading; make it skippable and resumable across reloads.
+> - Design all five states for every async surface; never blank the whole view for one failed panel.
+> - Show nothing for waits under about 300 ms; make skeletons reserve the content's exact space.
+> - Give destructive or costly submissions a review step or undo (WCAG 3.3.4).
+
 Load for in-product work: anything the user moves through step by step.
 
 ## 1. Onboarding
