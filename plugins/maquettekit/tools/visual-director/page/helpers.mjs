@@ -8,15 +8,66 @@ export function installPageHelpers() {
   const w = /** @type {any} */ (window);
   if (w.__S3VD__) return;
   const clickTargets = new WeakSet();
+  /** Pointer-input event types whose handlers only run when the pointer actually reaches the element. */
+  const POINTER_TYPES = ['click', 'dblclick', 'contextmenu', 'pointerdown', 'pointerup', 'pointerenter', 'pointerleave', 'pointerover', 'pointerout', 'pointermove',
+    'mousedown', 'mouseup', 'mouseenter', 'mouseleave', 'mouseover', 'mouseout', 'mousemove', 'touchstart', 'touchend'];
+  /** element → { type: listener count } for pointer-input listeners added with addEventListener */
+  const listenerTypes = new WeakMap();
   try {
     const origAdd = EventTarget.prototype.addEventListener;
+    const origRemove = EventTarget.prototype.removeEventListener;
     EventTarget.prototype.addEventListener = function (type) {
       try {
-        if (type === 'click' && this && /** @type {any} */ (this).nodeType === 1) clickTargets.add(this);
+        if (this && /** @type {any} */ (this).nodeType === 1) {
+          if (type === 'click') clickTargets.add(this);
+          if (POINTER_TYPES.indexOf(type) !== -1) {
+            const rec = listenerTypes.get(this) || {};
+            rec[type] = (rec[type] || 0) + 1;
+            listenerTypes.set(this, rec);
+          }
+        }
       } catch { /* ignore */ }
       return origAdd.apply(this, /** @type {any} */ (arguments));
     };
+    EventTarget.prototype.removeEventListener = function (type) {
+      try {
+        const rec = this && listenerTypes.get(this);
+        if (rec && rec[type]) rec[type] -= 1;
+      } catch { /* ignore */ }
+      return origRemove.apply(this, /** @type {any} */ (arguments));
+    };
   } catch { /* ignore */ }
+
+  const REACT_EVENT = /^on(Click|DoubleClick|ContextMenu|Pointer(?:Down|Up|Enter|Leave|Over|Out|Move)|Mouse(?:Down|Up|Enter|Leave|Over|Out|Move)|Touch(?:Start|End))(?:Capture)?$/;
+  /**
+   * Pointer-input handler types attached to an element: native listeners, inline/property handlers (onclick=…),
+   * React props (React delegates events to the root, but keeps each element's props on a `__reactProps$…` key)
+   * and Solid's delegated `$$click` style handlers. Returns [] when none are known.
+   * @param {any} el
+   */
+  function handlerTypes(el) {
+    const out = new Set();
+    if (!el || el.nodeType !== 1) return [];
+    const rec = listenerTypes.get(el);
+    if (rec) for (const t of Object.keys(rec)) if (rec[t] > 0) out.add(t);
+    for (const t of POINTER_TYPES) { try { if (typeof el['on' + t] === 'function') out.add(t); } catch { /* ignore */ } }
+    let keys = [];
+    try { keys = Object.keys(el); } catch { /* ignore */ }
+    for (const k of keys) {
+      if (k.startsWith('__reactProps$')) {
+        const props = el[k];
+        if (props && typeof props === 'object') {
+          for (const name of Object.keys(props)) {
+            const m = REACT_EVENT.exec(name);
+            if (m && typeof props[name] === 'function') out.add(m[1] === 'DoubleClick' ? 'dblclick' : m[1].toLowerCase());
+          }
+        }
+      } else if (k.startsWith('$$') && POINTER_TYPES.indexOf(k.slice(2)) !== -1 && typeof el[k] === 'function') {
+        out.add(k.slice(2));
+      }
+    }
+    return Array.from(out);
+  }
 
   /** @param {any} el */
   function sel(el) {
@@ -72,7 +123,7 @@ export function installPageHelpers() {
   const POPUP = 'dialog[open],[role="dialog"],[role="alertdialog"],[role="menu"],[role="listbox"],[aria-modal="true"],[popover]';
 
   Object.defineProperty(w, '__S3VD__', {
-    value: { sel, visible, text, deepActive, clickTargets, INTERACTIVE, POPUP, kb: null },
+    value: { sel, visible, text, deepActive, clickTargets, handlerTypes, POINTER_TYPES, INTERACTIVE, POPUP, kb: null },
     enumerable: false, configurable: false, writable: false,
   });
 }

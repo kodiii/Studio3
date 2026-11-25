@@ -13,6 +13,7 @@ import { runDomChecks } from './checks/dom.mjs';
 import { attachWatchers, reportAssetsAndConsole } from './checks/assets.mjs';
 import { runAxe } from './checks/a11y.mjs';
 import { runKeyboard } from './checks/keyboard.mjs';
+import { runInteractionChecks } from './checks/interaction.mjs';
 import { collectMotion, reportMotion } from './checks/motion.mjs';
 import { instrument3D, pageSnapshot3D } from './three-d/instrument.mjs';
 import { run3DDiagnostics, runInteraction, markAll3D, noGpuBrowserFactory, DEFAULT_BUDGETS, THREE_D_CHECKS } from './three-d/diagnostics.mjs';
@@ -173,6 +174,7 @@ export async function runReview(opts) {
           const dom = await runDomChecks(page, { route, viewport, touch: !!vp.hasTouch, emitViewportMeta: firstTouchVp ? viewport === firstTouchVp : viewport === viewports[0], col });
           await runAxe(page, { route, viewport, col, disabled: opts.a11y === false });
           normalMotion = await collectMotion(page, { sampleRaf: viewport === primaryVp });
+          await runInteractionChecks(page, { route, viewport, touch: !!vp.hasTouch, col });
           if (viewport === primaryVp) await runKeyboard(page, { route, viewport, col });
           const explicit = explicitStates.filter((s) => !s.route || s.route === route);
           const states = await captureStates(page, url, { outDir, route, viewport, touch: !!vp.hasTouch, col, explicit, watch });

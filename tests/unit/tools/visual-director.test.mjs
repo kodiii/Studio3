@@ -241,7 +241,7 @@ describe('visual-director: browser runs', () => {
   });
 
   bit('vd-good: expected checks ran and passed; unavailable ones are labelled honestly', () => {
-    for (const id of ['horizontal-overflow', 'clipped-content', 'broken-layout', 'failed-assets', 'console-errors', 'accessibility-axe', 'keyboard-navigation', 'focus-visible', 'dialog-focus', 'responsive', 'reduced-motion', 'motion-summary',
+    for (const id of ['horizontal-overflow', 'clipped-content', 'broken-layout', 'failed-assets', 'console-errors', 'accessibility-axe', 'keyboard-navigation', 'focus-visible', 'dialog-focus', 'interaction-reachability', 'responsive', 'reduced-motion', 'motion-summary',
       '3d-canvas-init', '3d-context-lost', '3d-assets', '3d-budgets', '3d-render-loop', '3d-resize', '3d-interaction', '3d-fallback']) {
       expect(checkOf(good, id), id).toMatchObject({ status: 'passed', ran: true });
       expect(good.coverage.checksRun).toContain(id);
@@ -312,6 +312,29 @@ describe('visual-director: browser runs', () => {
     expect(idxRun).toMatchObject({ status: 'not-applicable', ran: false });
   });
 
+  bit('interaction reachability: handlers and hover states under an overlay are found; the correct patterns are not', () => {
+    const cov = byCheck(broken, 'interaction-reachability', (i) => i.route === '/');
+    const handler = cov.filter((i) => i.key === 'handler-covered');
+    for (const vp of ['desktop', 'tablet', 'mobile']) {
+      expect(handler.filter((i) => i.viewport === vp).map((i) => i.selector).sort(), vp).toEqual(['#preview-native', '#preview-react', '#save']);
+    }
+    const native = handler.find((i) => i.selector === '#preview-native' && i.viewport === 'desktop');
+    expect(native).toMatchObject({ severity: 'major', evidence: { types: ['pointerenter'], via: '::after', coverTag: 'a' } });
+    expect(native.message).toMatch(/covered by .*a\.card-link.*::after overlay/);
+    expect(handler.find((i) => i.selector === '#preview-react').evidence).toMatchObject({ framework: 'react', types: ['pointerenter'] });
+    expect(handler.find((i) => i.selector === '#save').evidence.types).toEqual(['click']);
+    const hover = cov.filter((i) => i.key === 'hover-unreachable');
+    expect(hover.map((i) => i.viewport)).toEqual(['desktop']); // touch viewports have no hover
+    expect(hover[0]).toMatchObject({ severity: 'minor', selector: expect.stringMatching(/div\.tile(?::nth-of-type\(\d+\))?$/), evidence: { coverTag: 'div', hoverOnly: true } });
+    expect(checkOf(broken, 'interaction-reachability').status).toBe('failed');
+    // the same patterns done right: handler on the card that contains the link, button raised above the overlay,
+    // a pointer-events: none layer, an inert thumbnail
+    expect(byCheck(good, 'interaction-reachability')).toEqual([]);
+    const run = checkOf(good, 'interaction-reachability').runs.find((r) => r.route === '/' && r.viewport === 'desktop');
+    expect(run.details.handlerElements).toBeGreaterThanOrEqual(3);
+    expect(run.details.hitTested).toBeGreaterThan(0);
+  });
+
   bit('vd-broken: every planted defect is detected by the right check', () => {
     expect(broken.summary.critical).toBeGreaterThan(0);
     // horizontal overflow at mobile only
@@ -369,7 +392,7 @@ describe('visual-director: browser runs', () => {
     expect(s.renderLoop.continuous).toBe(true);
     expect(s.draw.totalDrawCalls).toBeGreaterThan(50);
     expect(checkOf(broken, '3d-cleanup').status).toBe('limited');
-    for (const id of ['horizontal-overflow', 'clipped-content', 'failed-assets', 'console-errors', 'accessibility-axe', 'keyboard-navigation', 'focus-visible', 'dialog-focus', 'responsive', 'reduced-motion', '3d-assets', '3d-resize', '3d-fallback']) expect(checkOf(broken, id).status, id).toBe('failed');
+    for (const id of ['horizontal-overflow', 'clipped-content', 'failed-assets', 'console-errors', 'accessibility-axe', 'keyboard-navigation', 'focus-visible', 'dialog-focus', 'interaction-reachability', 'responsive', 'reduced-motion', '3d-assets', '3d-resize', '3d-fallback']) expect(checkOf(broken, id).status, id).toBe('failed');
     // every issue is well-formed
     for (const i of broken.issues) {
       expect(['critical', 'major', 'minor', 'info']).toContain(i.severity);

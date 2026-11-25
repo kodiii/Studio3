@@ -23,6 +23,17 @@
     .spacer { height: 160vh; }
     .late { opacity: 0; color: #bbbbbb; background: #ffffff; }    /* defect once revealed by scrolling: contrast */
     .late.in { opacity: 1; }
+    /* defect: a stretched link covers the whole card, including elements with their own handlers */
+    .cards { list-style: none; padding: 0; }
+    .card { position: relative; border: 1px solid #cccccc; padding: 12px; max-width: 320px; }
+    .card-preview { height: 120px; background: #eeeeff; }
+    .card-link::after { content: ""; position: absolute; inset: 0; }
+    .card-save { min-height: 44px; min-width: 88px; }
+    /* defect: a transparent layer sits on top of a tile with hover styles */
+    .tile-wrap { position: relative; width: 200px; height: 80px; }
+    .tile { height: 80px; background: #eeeeee; }
+    .tile:hover { background: #dddddd; }
+    .tile-glass { position: absolute; inset: 0; }
   </style>
 </head>
 <body>
@@ -57,6 +68,16 @@
       <li role="none"><a role="menuitem" href="#two">Two</a></li>
     </ul>
 
+    <ul class="cards">
+      <li class="card">
+        <div class="card-preview" id="preview-native">Preview</div>
+        <h2><a class="card-link" href="#product">Product card</a></h2>
+        <button type="button" class="card-save" id="save">Save</button>
+        <div class="card-preview" id="preview-react">Second preview</div>
+      </li>
+    </ul>
+    <div class="tile-wrap"><div class="tile">Hover tile</div><div class="tile-glass" aria-hidden="true"></div></div>
+
     <div class="spacer" aria-hidden="true"></div>
     <p class="late" id="late-note">This note is revealed on scroll and is far too faint to read.</p>
   </main>
@@ -66,6 +87,10 @@
     var late = document.getElementById('late-note');
     function reveal() { if (late.getBoundingClientRect().top < window.innerHeight) { late.classList.add('in'); window.removeEventListener('scroll', reveal); } }
     window.addEventListener('scroll', reveal, { passive: true });
+    // defects: handlers on elements the card's stretched link covers (native listeners, and a React-style handler prop)
+    document.getElementById('preview-native').addEventListener('pointerenter', function () { this.textContent = 'Playing'; });
+    document.getElementById('save').addEventListener('click', function () { this.textContent = 'Saved'; });
+    document.getElementById('preview-react')['__reactProps$fixture'] = { children: 'Second preview', onPointerEnter: function () {} };
     // defect: menu opens without moving focus, ignores Escape
     document.getElementById('options').addEventListener('click', function () {
       document.getElementById('options-menu').hidden = false;

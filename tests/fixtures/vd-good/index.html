@@ -68,6 +68,17 @@
     </section>
 
     <!-- Regression case: a correct reveal-on-scroll below the fold, measured once revealed (readable, settled). -->
+    <!-- Regression cases for interaction reachability: correct versions of the covered-handler patterns. -->
+    <ul class="linked-cards">
+      <li class="linked-card" id="linked-card">
+        <div class="linked-preview">Preview runs while the card is hovered</div>
+        <h2><a class="linked-link" href="#feature">Linked card</a></h2>
+        <button type="button" class="btn linked-save" id="linked-save">Save</button>
+      </li>
+    </ul>
+    <div class="glass-wrap"><div class="glass-tile">Tile under a see-through layer</div><div class="glass" aria-hidden="true"></div></div>
+    <div inert class="inert-thumb"><div id="inert-preview">Inert thumbnail</div></div>
+
     <div class="spacer" aria-hidden="true"></div>
     <p class="late" id="late-note">Revealed on scroll, with readable contrast once it is in view.</p>
   </main>
@@ -101,6 +112,11 @@
       document.addEventListener('click', function (e) { if (!menu.contains(e.target) && e.target !== button) close(false); });
       var dialog = document.getElementById('contact');
       document.getElementById('open-dialog').addEventListener('click', function () { dialog.showModal(); });
+      // handlers on the card (which contains the stretched link) and on a button raised above it — both reachable
+      document.getElementById('linked-card').addEventListener('pointerenter', function () { this.setAttribute('data-hot', ''); });
+      document.getElementById('linked-save').addEventListener('click', function () { this.textContent = 'Saved'; });
+      // inside an inert subtree: not reachable by design, not a defect
+      document.getElementById('inert-preview').addEventListener('click', function () {});
       var late = document.getElementById('late-note');
       if ('IntersectionObserver' in window) {
         var io = new IntersectionObserver(function (entries) { if (entries[0].isIntersecting) { late.classList.add('in'); io.disconnect(); } });

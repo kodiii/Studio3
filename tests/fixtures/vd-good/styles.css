@@ -49,6 +49,20 @@ footer a { display: inline-block; padding: 12px; }
 .spacer { height: 120vh; }
 .late { margin: 0 0 40px; font-size: 1.125rem; color: #111827; }
 
+/* stretched link done right: the card carries the hover handler, the secondary button sits above the overlay */
+.linked-cards { list-style: none; margin: 40px 0; padding: 0; max-width: 360px; }
+.linked-card { position: relative; border: 1px solid #d1d5db; border-radius: 12px; padding: 20px; }
+.linked-preview { min-height: 96px; margin-bottom: 12px; background: #f3f4f6; }
+.linked-card h2 { margin: 0 0 12px; font-size: 1.25rem; }
+.linked-link::after { content: ""; position: absolute; inset: 0; border-radius: 12px; }
+.linked-save { position: relative; z-index: 1; }
+/* a decorative layer above a hoverable tile that lets the pointer through */
+.glass-wrap { position: relative; max-width: 360px; margin: 24px 0; }
+.glass-tile { padding: 24px; background: #f3f4f6; border-radius: 12px; }
+.glass-tile:hover { background: #e5e7eb; }
+.glass { position: absolute; inset: 0; pointer-events: none; border-radius: 12px; }
+.inert-thumb { max-width: 360px; padding: 12px; background: #f9fafb; }
+
 @media (prefers-reduced-motion: no-preference) {
   .rise { animation: rise 600ms ease-out both; }
   .mask > span { animation: mask-rise 1500ms ease-out both; }
