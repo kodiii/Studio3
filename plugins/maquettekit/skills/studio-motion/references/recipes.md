@@ -50,6 +50,7 @@ New recipes keep landing: confirm an id with `maquettekit catalog search` before
 | `scroll-pin-chapters` | scroll | gsap, css, svg | gsap, @gsap/react | process or how-it-works section |
 | `scroll-progress-rail` | scroll | css | — | long-form article |
 | `image-ripple-distortion` | shaders | r3f, three, glsl, canvas2d | three, @react-three/fiber | portfolio or exhibition carousel |
+| `liquid-glass-lens` | shaders | glsl, three, r3f, canvas2d | three, @react-three/fiber | draggable glass loupe over a hero or product detail, light that follows the pointer |
 | `particle-field-gpu` | shaders | r3f, three, glsl | three, @react-three/fiber | immersive hero background |
 | `shader-aurora-plane` | shaders | r3f, three, glsl | three, @react-three/fiber | immersive hero background |
 | `like-heart-morph` | social | svg, waapi, css | — | feed post actions |
