@@ -165,16 +165,17 @@ export default function CursorFollowerShowcase({ params }: EffectProps<Params>) 
 /* ── Archive strip: native horizontal scroll, plus mouse drag that keeps its velocity ───────────────────── */
 
 /** Release velocity is projected this far ahead (s) to pick the tile the strip glides to. */
-const PROJECTION = 0.32;
+const PROJECTION = 0.26;
 
 interface Drag { id: number; x0: number; s0: number; max: number; width: number; samples: { t: number; x: number }[] }
 
 function ArchiveStrip({ reduced, headingId, hintId }: { reduced: boolean; headingId: string; hintId: string }) {
   const strip = useRef<HTMLDivElement>(null);
   const drag = useRef<Drag | null>(null);
-  // Coasting after release: a first-order glide that starts at exactly the release velocity and ends on a tile,
-  // or a release-token spring when there is no velocity to carry (slow release, or back from past an edge).
-  const coast = useRef({ pos: axis(), target: 0, tau: 0, mode: 'spring' as 'glide' | 'spring', max: 0, width: 0, virtual: 0 });
+  // Coasting after a throw: a cubic ease-out whose starting speed is exactly the release speed and which ends on a
+  // tile, so the hand-off is seamless and the landing is soft but finite. With nothing to carry (a slow release,
+  // or letting go past an edge) a release-token spring settles it instead.
+  const coast = useRef({ mode: 'spring' as 'glide' | 'spring', pos: axis(), from: 0, target: 0, span: 0, t: 0, max: 0, width: 0, virtual: 0 });
   const [coasting, setCoasting] = useState(false);
   const [dragging, setDragging] = useState(false);
 
@@ -198,12 +199,19 @@ function ArchiveStrip({ reduced, headingId, hintId }: { reduced: boolean; headin
 
   useRafLoop(strip, (dt) => {
     const c = coast.current;
+    let x: number;
+    let done: boolean;
     if (c.mode === 'glide') {
-      c.pos.x = c.target + (c.pos.x - c.target) * Math.exp(-dt / c.tau);
-      c.pos.v = (c.target - c.pos.x) / c.tau;
-    } else stepAxis(c.pos, c.target, SPRING.release, dt);
-    const done = c.mode === 'glide' ? Math.abs(c.pos.x - c.target) < 0.5 : atRest(c.pos, c.target, 0.3);
-    apply(done ? c.target : c.pos.x, c.max, c.width);
+      c.t = Math.min(c.span, c.t + dt);
+      const u = 1 - c.t / c.span;
+      x = c.target + (c.from - c.target) * u * u * u;
+      done = c.t >= c.span;
+    } else {
+      stepAxis(c.pos, c.target, SPRING.release, dt);
+      x = c.pos.x;
+      done = atRest(c.pos, c.target, 0.3);
+    }
+    apply(done ? c.target : x, c.max, c.width);
     if (done) setCoasting(false);
   }, coasting && !reduced);
 
@@ -240,7 +248,7 @@ function ArchiveStrip({ reduced, headingId, hintId }: { reduced: boolean; headin
     // Velocity over the last ~80 ms in scroll space; a pause before letting go means no throw.
     const recent = d.samples.filter((s) => e.timeStamp - s.t <= 80);
     const a = recent[0], b = recent[recent.length - 1];
-    const v = a && b && b.t - a.t > 8 ? -((b.x - a.x) / (b.t - a.t)) * 1000 : 0;
+    const v = a && b && b.t - a.t > 8 && e.timeStamp - b.t < 50 ? -((b.x - a.x) / (b.t - a.t)) * 1000 : 0;
     // Tiles to land on (read before any write in this handler).
     const items = Array.from(el.querySelectorAll<HTMLElement>('[data-tile]'));
     const first = items[0]?.offsetLeft ?? 0;
@@ -251,12 +259,15 @@ function ArchiveStrip({ reduced, headingId, hintId }: { reduced: boolean; headin
     c.max = d.max;
     c.width = d.width;
     c.target = target;
+    c.from = virtual;
+    c.t = 0;
     c.pos.x = virtual;
     c.pos.v = v;
-    const tau = (target - virtual) / v;
+    // Glide when the throw heads for the chosen tile: duration 3·distance/speed starts the ease-out at the release speed.
+    const span = (3 * (target - virtual)) / v;
     const inRange = virtual >= 0 && virtual <= d.max;
-    c.mode = inRange && Number.isFinite(tau) && tau > 0.08 && tau < 0.8 ? 'glide' : 'spring';
-    c.tau = tau;
+    c.mode = inRange && Number.isFinite(span) && span > 0.12 && span < 1.4 ? 'glide' : 'spring';
+    c.span = span;
     if (Math.abs(target - virtual) > 0.5 || Math.abs(v) > 1) setCoasting(true);
     else apply(target, d.max, d.width);
   };
