@@ -59,7 +59,9 @@ which criterion it fails.
 for the report: vanilla three.js for non-React projects, R3F in React; physics, postprocessing, a continuous loop
 and WebGPU are separate decisions, each justified or absent.
 
-**2. Art direction.** From `maquettekit.design.json → threeD`: `artDirection`, `lighting` (key, fill, rim,
+**2. Art direction.** Aim for a scene that reads as real and answers the hand: one light direction shared with
+the page, environment reflections, a contact shadow, correct tone mapping, inertia on every camera and object
+move (`${CLAUDE_PLUGIN_ROOT}/shared/motion-craft.md` §3–§5). From `maquettekit.design.json → threeD`: `artDirection`, `lighting` (key, fill, rim,
 environment), `materials.principles` and `colorManagement`, `camera` (`fovDeg`, framing, movement, limits).
 Without it, write one sentence each for mood, light and camera and confirm with `studio-design-system`. Use design
 tokens for background, accent, highlight and focus colours.

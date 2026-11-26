@@ -94,7 +94,8 @@ interactions follow `references/interaction-patterns.md`.
 **5. Motion pass.** Delegate tokens and orchestration to `studio-motion`; apply
 `references/motion-for-data.md`. Data motion has three jobs: keep objects identifiable across changes, draw
 attention to what changed, and play back time on request. Never animate a dashboard's initial load; cut when
-there is no meaningful in-between state.
+there is no meaningful in-between state. Exploration and data stories (Expressive) also meet the craft floor in
+`${CLAUDE_PLUGIN_ROOT}/shared/motion-craft.md` §1: brushing, scrubbing and dragging act on the marks directly.
 
 **6. 3D, only if earned.** Depth must carry information the task needs, and an accurate 2D view plus a table
 must ship alongside it. Load `references/spatial-data.md` and hand the scene to `studio-3d` with the contract

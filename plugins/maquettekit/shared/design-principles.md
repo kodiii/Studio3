@@ -32,7 +32,9 @@ Derive it from the subject, in this order:
 2. **Audience and job.** Who is looking, for how long, and what must they leave able to do? An operator at
    hour six of a shift needs different contrast, density and motion than a first-time visitor.
 3. **One point of boldness.** Pick a single place to be unmistakable: the type scale, the colour, the layout
-   device, or one orchestrated motion moment. Everything else supports it quietly.
+   device, or one orchestrated motion moment. Everything else supports it. Supporting is not the same as
+   static: on Expressive and Immersive surfaces the rest still has weight, light and response
+   (`motion-craft.md`).
 4. **Constraints.** Existing brand colours, the project's stack, the experience profile
    (`experience-profiles.md`), performance budget (`performance.md`).
 

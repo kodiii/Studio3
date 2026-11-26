@@ -5,6 +5,20 @@ semantic versioning. Plugin manifests (Claude Code and Codex) always carry the s
 
 ## [Unreleased]
 
+### Added
+- **Motion craft** (`shared/motion-craft.md`): the affirmative bar the shared rules lacked. A craft floor per profile
+  (designed, physical, lit, alive, touchable), animation principles mapped to motion tokens, realism (weight and
+  light), reactive drivers with catalogue starting points, direct manipulation, and a five-line motion brief.
+- Experience Lab rubric question `motionUsefulness.craft`: scores whether a surface meets the craft floor of its
+  profile (weight 0.5 Essential, 3 Expressive, 4 Immersive), so inert Expressive and Immersive builds lose points.
+
+### Changed
+- `studio-motion` writes a motion brief before choosing technology, picks the lightest technology that delivers the
+  brief in full, and treats the craft floor and velocity-carrying gestures as non-negotiables. Steps renumbered.
+- Profiles: "pick the lowest profile that achieves the brief" is now "pick the profile the surface deserves and
+  deliver it in full". `studio-product`, `studio-cinematic`, `studio-social`, `studio-data` and `studio-3d` point their
+  motion and art-direction steps at the craft floor. No gate changed.
+
 ## [4.1.0] — 2026-11-25
 
 Two new skills (14 in all: `studio-launch`, `studio-match`), one-command verification (`maquettekit check`), a

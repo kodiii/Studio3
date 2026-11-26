@@ -84,8 +84,11 @@ animations and WAAPI first; Motion for React state and presence; GSAP + ScrollTr
 timelines (free under GreenSock's standard no-charge licence, which is not MIT; mention it if licences matter).
 
 **5. Motion pass.** Delegate token and orchestration questions to `studio-motion`; apply
-`references/scroll-choreography.md` and `references/kinetic-typography.md`. One idea per beat; vary pace;
-everything interruptible; the page never fights the user's scroll.
+`references/scroll-choreography.md` and `references/kinetic-typography.md`. Write the motion brief first and
+meet the Immersive craft floor (`${CLAUDE_PLUGIN_ROOT}/shared/motion-craft.md` §1, §6): a signature move,
+weight and follow-through, one light direction, motion driven by scroll velocity and pointer, a subject the
+visitor can handle. One idea per beat; vary pace; everything interruptible; the page never fights the user's
+scroll.
 
 **6. 3D, only if earned.** Real-time 3D is justified when the story is about an object or a space the camera
 must move through, the scene carries a beat that flat media cannot, an asset exists, and a static fallback

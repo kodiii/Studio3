@@ -80,7 +80,8 @@ moderation states (pending review, removed with reason, reported, blocked). Run 
 `expanding-card-detail`, `skeleton-shimmer-handoff`, `number-ticker`, `morph-submit-button`. Every gesture gets
 its button and keyboard twin as you build it, not afterwards (`references/interaction-patterns.md`).
 
-**5. Motion pass.** Delegate tokens to `studio-motion`. Feedback paints in the next frame; springs carry
+**5. Motion pass.** Delegate tokens to `studio-motion`; meet the craft floor in
+`${CLAUDE_PLUGIN_ROOT}/shared/motion-craft.md` §1. Feedback paints in the next frame; springs carry
 gesture velocity; celebration is brief and reserved for the person's own action. Content already moves in a
 feed, so ambient motion stays low.
 
