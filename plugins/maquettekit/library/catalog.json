@@ -680,6 +680,118 @@
       ]
     },
     {
+      "id": "cursor-follower",
+      "name": "Cursor Follower",
+      "description": "A dot and a spring ring that trail the native cursor inside one container and read what is under it. The ring keeps its velocity, smears into an ellipse along its direction of travel and wobbles round when the pointer stops; over a magnetic button it wraps the button's own outline and pulls it gently toward the pointer, over a card it blooms into a filled \"View\" disc, and over a paragraph it narrows to a caret that lands between real letters.",
+      "category": "cursor",
+      "specialties": [
+        "cinematic",
+        "product"
+      ],
+      "technology": [
+        "css",
+        "svg"
+      ],
+      "interaction": [
+        "pointer",
+        "hover",
+        "press"
+      ],
+      "complexity": 3,
+      "intensity": "bold",
+      "applications": [
+        "portfolio and studio sites",
+        "\"View\" labels on case-study cards",
+        "\"Drag\" affordance on carousels and timelines",
+        "magnetic calls to action in a hero",
+        "editorial long-reads with a text caret"
+      ],
+      "dependencies": [],
+      "params": [
+        {
+          "key": "follow",
+          "label": "Follow spring",
+          "type": "select",
+          "default": "release",
+          "options": [
+            "press",
+            "settle",
+            "release",
+            "pop",
+            "glide"
+          ]
+        },
+        {
+          "key": "size",
+          "label": "Ring size",
+          "type": "number",
+          "default": 36,
+          "min": 20,
+          "max": 72,
+          "step": 2,
+          "unit": "px"
+        },
+        {
+          "key": "stretch",
+          "label": "Squash and stretch",
+          "type": "number",
+          "default": 0.55,
+          "min": 0,
+          "max": 1,
+          "step": 0.05
+        },
+        {
+          "key": "pull",
+          "label": "Magnet pull",
+          "type": "number",
+          "default": 0.3,
+          "min": 0,
+          "max": 0.6,
+          "step": 0.05
+        },
+        {
+          "key": "blend",
+          "label": "Invert (difference blend)",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "key": "dot",
+          "label": "Show dot",
+          "type": "boolean",
+          "default": true
+        }
+      ],
+      "accessibility": [
+        "The native cursor is never hidden. The follower is two aria-hidden, pointer-events: none layers, so clicks, hover states and text selection reach the page untouched.",
+        "Fine pointers only, (hover: hover) and (pointer: fine): coarse devices render nothing, and a touch or pen event on a hybrid laptop hides the follower until the mouse moves again. The showcase works fully without it.",
+        "Any non-modifier key hides the follower so it never sits over a focus ring; focus styles are left alone, and moving the mouse brings it back.",
+        "\"View\" and \"Drag\" repeat what the content already says: each card is a named button, and the archive is a labelled, focusable region that scrolls with the arrow keys, by touch and by mouse drag.",
+        "A magnet moves toward the pointer, never away, with its travel capped so the hit area stays under the cursor; it uses the CSS translate property, so the element's own transform, press state and focus ring keep working."
+      ],
+      "reducedMotion": "The follower is decoration, so it is not rendered at all and magnets stay put. The native cursor, hover and focus states and the draggable archive work as usual; the archive stops where you let go, with no momentum or rubber band.",
+      "performance": [
+        "One useRafLoop runs only while something moves and goes back to sleep once every spring is at rest; it also pauses offscreen and in hidden tabs.",
+        "Target rects, the scope rect and the layer origin are cached when a target is entered and refreshed at the start of the next frame after scroll or resize; every frame reads before it writes, and nothing is measured after a write.",
+        "Position, squash and stretch, press and presence are transforms and opacity. The outline morph writes the geometry of one SVG rect, only while a morph is moving, and identical values are never re-written.",
+        "Listeners are passive and installed only on fine-pointer devices with motion allowed; unmount removes them and clears every translate written to a magnet."
+      ],
+      "preview": {
+        "height": 760
+      },
+      "path": "library/src/effects/cursor-follower",
+      "files": [
+        "index.tsx",
+        "art.tsx",
+        "cursor-follower.tsx",
+        "engine.ts",
+        "follower.module.css",
+        "physics.ts",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
       "id": "dot-grid-pointer-field",
       "name": "Dot Grid Pointer Field",
       "description": "A canvas grid of dots that leans away from the pointer, swells and warms to the accent colour, then springs back; a click sends a ripple ring through the field. The loop runs only while something is moving and stops the moment every spring has settled.",
@@ -2162,6 +2274,119 @@
       ]
     },
     {
+      "id": "liquid-glass-lens",
+      "name": "Liquid Glass Lens",
+      "description": "A thick glass lens you drag and throw across an editorial page drawn in the theme's own colours and type. A GLSL pass refracts the page through a flat-topped, round-edged SDF lens (pill, circle or squircle): the centre stays sharp while the rim bends, splits into spectral colour and catches one light that follows your pointer, over a soft glass shadow with a caustic.",
+      "category": "shaders",
+      "specialties": [
+        "cinematic",
+        "product",
+        "3d"
+      ],
+      "technology": [
+        "glsl",
+        "three",
+        "r3f",
+        "canvas2d"
+      ],
+      "interaction": [
+        "drag",
+        "pointer",
+        "keyboard"
+      ],
+      "complexity": 3,
+      "intensity": "bold",
+      "applications": [
+        "hero over a headline or key visual",
+        "product detail loupe over packaging or a label",
+        "image inspection: drag a magnifier-style glass across a chart, map or scan",
+        "glass control surface (tab bar, toolbar) prototype over live content"
+      ],
+      "dependencies": [
+        {
+          "name": "three",
+          "version": "^0.187.0"
+        },
+        {
+          "name": "@react-three/fiber",
+          "version": "^9.8.2"
+        }
+      ],
+      "params": [
+        {
+          "key": "refraction",
+          "label": "Refraction strength",
+          "type": "number",
+          "default": 1,
+          "min": 0,
+          "max": 1.5,
+          "step": 0.05
+        },
+        {
+          "key": "dispersion",
+          "label": "Dispersion",
+          "type": "number",
+          "default": 0.55,
+          "min": 0,
+          "max": 1,
+          "step": 0.05
+        },
+        {
+          "key": "frost",
+          "label": "Frost",
+          "type": "number",
+          "default": 0,
+          "min": 0,
+          "max": 1,
+          "step": 0.05
+        },
+        {
+          "key": "shape",
+          "label": "Shape",
+          "type": "select",
+          "default": "pill",
+          "options": [
+            "pill",
+            "circle",
+            "squircle"
+          ]
+        },
+        {
+          "key": "light",
+          "label": "Light follows pointer",
+          "type": "boolean",
+          "default": true
+        }
+      ],
+      "accessibility": [
+        "The lens is a focusable control named \"Glass lens\" with visible focus: arrow keys move it, Shift with an arrow moves it four times further, Home centres it; its new position is announced in a polite live region.",
+        "Shape is chosen with real buttons (aria-pressed) and a Centre button repeats the Home key, so nothing depends on dragging.",
+        "The page under the glass is decorative sample content; the canvas carries a name and a description of what it shows.",
+        "Without WebGL the same page is drawn as SVG under a CSS glass panel that is dragged and keyed the same way."
+      ],
+      "reducedMotion": "The lens follows the pointer or keys directly: no momentum, rubber band, stretch or lift animation, shape changes snap, and the light stays at its resting angle. Everything stays operable.",
+      "performance": [
+        "frameloop=\"demand\": frames render only while the lens is held, gliding or settling, or while the light eases after the pointer; at rest nothing renders.",
+        "One full-frame quad and one draw call. Pixels away from the lens and its shadow take a single texture read; the lens itself takes 6, 9 or 12 spectral taps by quality level.",
+        "The page texture is drawn once at the drawing-buffer size (CSS size × the profile's DPR cap), with mipmaps for frost; it is redrawn only on theme, font or resize changes (debounced) and disposed each time.",
+        "The lens physics runs in the R3F frame loop (or a rAF loop that pauses offscreen in the fallback) and stops when everything has settled."
+      ],
+      "preview": {
+        "height": 620
+      },
+      "path": "library/src/effects/liquid-glass-lens",
+      "files": [
+        "index.tsx",
+        "composition.ts",
+        "engine.ts",
+        "fallback.tsx",
+        "scene.tsx",
+        "shader.ts",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
       "id": "magnetic-button",
       "name": "Magnetic Button",
       "description": "Call-to-action buttons that lean toward a nearby pointer and spring home when it leaves. The pull fades smoothly to zero at the edge of the field, the label floats a little further than the body for depth, and the physics is a hand-rolled token spring on one paused-when-idle rAF loop.",
@@ -3379,6 +3604,110 @@
       "path": "library/src/effects/reaction-burst",
       "files": [
         "index.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "rive-state-machine",
+      "name": "Rive State Machine",
+      "description": "Two Rive files driven by plain DOM controls. Birb idles on a lit stage, looks up when the pointer passes above its head and dances on a real toggle button; a native five-star radio group previews and commits values into a second state machine. The runtime loads lazily from your own origin, sizes itself to the element and stops drawing offscreen.",
+      "category": "vector-animation",
+      "specialties": [
+        "product",
+        "social"
+      ],
+      "technology": [
+        "rive",
+        "css"
+      ],
+      "interaction": [
+        "pointer",
+        "hover",
+        "press",
+        "keyboard",
+        "data"
+      ],
+      "complexity": 3,
+      "intensity": "bold",
+      "applications": [
+        "mascot or onboarding character that reacts to the user",
+        "animated rating, feedback or survey control",
+        "empty, success and error states with a character",
+        "interactive product illustration in a hero"
+      ],
+      "dependencies": [
+        {
+          "name": "@rive-app/canvas-lite",
+          "version": "^2.55.1"
+        }
+      ],
+      "params": [
+        {
+          "key": "scene",
+          "label": "Scene",
+          "type": "select",
+          "default": "both",
+          "options": [
+            "both",
+            "character",
+            "rating"
+          ]
+        },
+        {
+          "key": "pointer",
+          "label": "Pointer reactions",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "key": "backdrop",
+          "label": "Stage backdrop",
+          "type": "select",
+          "default": "spotlight",
+          "options": [
+            "spotlight",
+            "grid",
+            "none"
+          ]
+        },
+        {
+          "key": "tint",
+          "label": "Rating colour",
+          "type": "select",
+          "default": "artwork",
+          "options": [
+            "artwork",
+            "accent",
+            "mono"
+          ]
+        }
+      ],
+      "accessibility": [
+        "The canvases are aria-hidden; meaning lives in the DOM: the stage is a labelled image whose name follows the state machine (idle, looking up, dancing) and every input has a native control.",
+        "Dance is a toggle button with aria-pressed, Look up is a plain button, so keyboard users get every reaction the pointer gets; a polite status line announces the look-up and pause changes the canvas cannot speak.",
+        "The rating is a native fieldset of five radio buttons laid over the drawn stars: arrow keys move and commit, hover and focus preview, the committed value is announced politely, and a double focus ring stays visible on the gradient.",
+        "The idle loop runs longer than five seconds, so the stage has a visible Pause/Play button (WCAG 2.2.2).",
+        "If the runtime or a file cannot load, the controls keep working: the rating falls back to drawn DOM stars and the stage says what is missing."
+      ],
+      "reducedMotion": "Nothing plays on its own: Birb holds a still idle frame and pointer reactions are off. Dance, Look up and Play are explicit controls, so they still animate and Birb settles back to a still frame afterwards. Rating changes jump straight to the final frame of each state (state machine stopped, the matching animation scrubbed to its end) with a 160 ms cross-fade.",
+      "performance": [
+        "The Rive runtime is a dynamic import inside an effect, so other pages never download it; its WASM (about 374 KB gzipped) and the .riv files are fetched once per page from your own origin, never from a CDN.",
+        "Each canvas sizes its drawing buffer from a ResizeObserver with the device pixel ratio capped at 2, and redraws on DPR changes.",
+        "Rendering stops while a canvas is offscreen or the tab is hidden, and the rating state machine settles: once its stars have landed no frames are drawn until the input changes.",
+        "Every Rive instance is released with cleanup() on unmount; loads that finish after unmount are dropped, so StrictMode double mounts and Replay leave nothing behind."
+      ],
+      "preview": {
+        "height": 620
+      },
+      "path": "library/src/effects/rive-state-machine",
+      "files": [
+        "index.tsx",
+        "BirdStage.tsx",
+        "cue.ts",
+        "RatingStars.tsx",
+        "rive-canvas.module.css",
+        "RiveCanvas.tsx",
         "styles.module.css",
         "meta.ts"
       ]

@@ -7,6 +7,7 @@ import { meta as e_brushLinkedRange } from './effects/brush-linked-range/meta';
 import { meta as e_cameraPresetRig } from './effects/camera-preset-rig/meta';
 import { meta as e_commandMenuReveal } from './effects/command-menu-reveal/meta';
 import { meta as e_cssCubeCarousel } from './effects/css-cube-carousel/meta';
+import { meta as e_cursorFollower } from './effects/cursor-follower/meta';
 import { meta as e_dotGridPointerField } from './effects/dot-grid-pointer-field/meta';
 import { meta as e_dragReorderList } from './effects/drag-reorder-list/meta';
 import { meta as e_expandingCardDetail } from './effects/expanding-card-detail/meta';
@@ -22,6 +23,7 @@ import { meta as e_kineticMarquee } from './effects/kinetic-marquee/meta';
 import { meta as e_layeredDepthStack } from './effects/layered-depth-stack/meta';
 import { meta as e_likeHeartMorph } from './effects/like-heart-morph/meta';
 import { meta as e_lineChartMorph } from './effects/line-chart-morph/meta';
+import { meta as e_liquidGlassLens } from './effects/liquid-glass-lens/meta';
 import { meta as e_magneticButton } from './effects/magnetic-button/meta';
 import { meta as e_morphSubmitButton } from './effects/morph-submit-button/meta';
 import { meta as e_morphingNavPill } from './effects/morphing-nav-pill/meta';
@@ -34,6 +36,7 @@ import { meta as e_pressDepthButton } from './effects/press-depth-button/meta';
 import { meta as e_progressOrbitLoader } from './effects/progress-orbit-loader/meta';
 import { meta as e_pullToRevealSheet } from './effects/pull-to-reveal-sheet/meta';
 import { meta as e_reactionBurst } from './effects/reaction-burst/meta';
+import { meta as e_riveStateMachine } from './effects/rive-state-machine/meta';
 import { meta as e_scrambleDecode } from './effects/scramble-decode/meta';
 import { meta as e_scrollCameraDolly } from './effects/scroll-camera-dolly/meta';
 import { meta as e_scrollPinChapters } from './effects/scroll-pin-chapters/meta';
@@ -78,6 +81,7 @@ export const effects: readonly EffectEntry[] = [
   { meta: e_cameraPresetRig, load: () => import('./effects/camera-preset-rig/index') },
   { meta: e_commandMenuReveal, load: () => import('./effects/command-menu-reveal/index') },
   { meta: e_cssCubeCarousel, load: () => import('./effects/css-cube-carousel/index') },
+  { meta: e_cursorFollower, load: () => import('./effects/cursor-follower/index') },
   { meta: e_dotGridPointerField, load: () => import('./effects/dot-grid-pointer-field/index') },
   { meta: e_dragReorderList, load: () => import('./effects/drag-reorder-list/index') },
   { meta: e_expandingCardDetail, load: () => import('./effects/expanding-card-detail/index') },
@@ -93,6 +97,7 @@ export const effects: readonly EffectEntry[] = [
   { meta: e_layeredDepthStack, load: () => import('./effects/layered-depth-stack/index') },
   { meta: e_likeHeartMorph, load: () => import('./effects/like-heart-morph/index') },
   { meta: e_lineChartMorph, load: () => import('./effects/line-chart-morph/index') },
+  { meta: e_liquidGlassLens, load: () => import('./effects/liquid-glass-lens/index') },
   { meta: e_magneticButton, load: () => import('./effects/magnetic-button/index') },
   { meta: e_morphSubmitButton, load: () => import('./effects/morph-submit-button/index') },
   { meta: e_morphingNavPill, load: () => import('./effects/morphing-nav-pill/index') },
@@ -105,6 +110,7 @@ export const effects: readonly EffectEntry[] = [
   { meta: e_progressOrbitLoader, load: () => import('./effects/progress-orbit-loader/index') },
   { meta: e_pullToRevealSheet, load: () => import('./effects/pull-to-reveal-sheet/index') },
   { meta: e_reactionBurst, load: () => import('./effects/reaction-burst/index') },
+  { meta: e_riveStateMachine, load: () => import('./effects/rive-state-machine/index') },
   { meta: e_scrambleDecode, load: () => import('./effects/scramble-decode/index') },
   { meta: e_scrollCameraDolly, load: () => import('./effects/scroll-camera-dolly/index') },
   { meta: e_scrollPinChapters, load: () => import('./effects/scroll-pin-chapters/index') },

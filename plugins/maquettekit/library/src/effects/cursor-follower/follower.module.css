@@ -1,0 +1,100 @@
+/*
+ * Two fixed, click-through layers: the ring and dot (which may blend), then the label disc (which never does, so
+ * its text stays legible). The engine clips both to the scope and moves everything with transforms.
+ * Theme with --cursor-ring, --cursor-dot, --cursor-fill, --cursor-on-fill, --cursor-halo and --cursor-z.
+ */
+.layer {
+  --_ring: var(--cursor-ring, var(--mk-ink, #11110f));
+  --_dot: var(--cursor-dot, var(--mk-signal, #bf2f09));
+  --_fill: var(--cursor-fill, var(--mk-signal, #bf2f09));
+  --_on-fill: var(--cursor-on-fill, var(--mk-on-signal, #ffffff));
+  --_halo: var(--cursor-halo, var(--mk-surface, #fbf9f4));
+  position: fixed;
+  inset: 0;
+  z-index: var(--cursor-z, 60);
+  pointer-events: none;
+  user-select: none;
+  contain: strict;
+}
+.layer[data-idle] { visibility: hidden; }
+.ringLayer[data-blend] {
+  --_ring: #fff;
+  --_dot: #fff;
+  mix-blend-mode: difference;
+}
+
+/* Every moving part is a zero-size box at the follower's centre, so transforms act around that point. */
+.body {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  will-change: transform, opacity;
+}
+.svg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: visible;
+}
+.ring {
+  fill: var(--_ring);
+  fill-opacity: 0;
+  stroke: var(--_ring);
+  stroke-width: 1.5px;
+}
+.dot {
+  position: absolute;
+  left: -3px;
+  top: -3px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--_dot);
+  will-change: transform, opacity;
+}
+.fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  opacity: 0;
+}
+/* A thin halo in the page colour keeps the disc readable over artwork of the same hue. */
+.fillRect {
+  fill: var(--_fill);
+  stroke: var(--_halo);
+  stroke-width: 4px;
+  paint-order: stroke;
+}
+/* Soft contact shadow under the disc: light from above, so it sits a few pixels low. */
+.shadow {
+  position: absolute;
+  left: -60px;
+  top: -60px;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(0 0 0 / 0.24), rgb(0 0 0 / 0.09) 62%, transparent);
+  opacity: 0;
+}
+.text {
+  position: absolute;
+  left: 0;
+  top: 0;
+  translate: -50% -50%;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  white-space: nowrap;
+  color: var(--_on-fill);
+  font-family: var(--mk-font-mono, ui-monospace, monospace);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+  opacity: 0;
+}

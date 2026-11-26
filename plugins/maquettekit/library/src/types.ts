@@ -12,7 +12,8 @@ export type Specialty = 'product' | 'cinematic' | 'data' | 'social' | '3d';
 
 export type EffectCategory =
   | 'typography' | 'navigation' | 'scroll' | 'layout' | 'gestures' | 'cards' | 'buttons' | 'loading'
-  | 'charts' | 'social' | 'svg' | 'backgrounds' | '3d-transforms' | 'camera' | 'spatial' | 'shaders';
+  | 'charts' | 'social' | 'svg' | 'backgrounds' | '3d-transforms' | 'camera' | 'spatial' | 'shaders'
+  | 'cursor' | 'vector-animation';
 
 export type Technology =
   | 'css' | 'waapi' | 'view-transitions' | 'motion' | 'gsap' | 'svg' | 'canvas2d' | 'd3'
@@ -117,7 +118,7 @@ export const SPECIALTIES: readonly { id: Specialty; name: string; philosophy: st
 
 export const EFFECT_CATEGORIES: readonly EffectCategory[] = [
   'typography', 'navigation', 'scroll', 'layout', 'gestures', 'cards', 'buttons', 'loading',
-  'charts', 'social', 'svg', 'backgrounds', '3d-transforms', 'camera', 'spatial', 'shaders',
+  'charts', 'social', 'svg', 'backgrounds', '3d-transforms', 'camera', 'spatial', 'shaders', 'cursor', 'vector-animation',
 ];
 
 /** Merge param defaults with overrides, clamping numbers and rejecting unknown select options. */
