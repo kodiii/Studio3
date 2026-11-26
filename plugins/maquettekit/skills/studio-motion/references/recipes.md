@@ -33,6 +33,7 @@ New recipes keep landing: confirm an id with `maquettekit catalog search` before
 | `orbit-inspect-controls` | camera | r3f, three | three, @react-three/fiber | product or furniture inspection |
 | `scroll-camera-dolly` | camera | r3f, three | three, @react-three/fiber | scrollytelling chapter |
 | `expanding-card-detail` | cards | motion, css, svg | motion | event or course listings |
+| `cursor-follower` | cursor | css, svg | — | portfolio or studio site: "View" and "Drag" labels, magnetic targets |
 | `bar-race-transition` | charts | d3, css | d3 | leaderboard over time |
 | `brush-linked-range` | charts | d3, svg, css | d3 | time-series explorer |
 | `line-chart-morph` | charts | d3, svg, css | d3 | analytics overview with a range switcher |
@@ -63,6 +64,7 @@ New recipes keep landing: confirm an id with `maquettekit catalog search` before
 | `scramble-decode` | typography | css | — | hero kicker or status line |
 | `split-line-reveal` | typography | waapi, css | — | hero headline |
 | `variable-weight-wave` | typography | css | — | hero headline |
+| `rive-state-machine` | vector-animation | rive, css | @rive-app/canvas-lite | reactive mascot; animated rating control over native radios |
 
 House patterns worth knowing before you adapt one:
 
@@ -73,6 +75,8 @@ House patterns worth knowing before you adapt one:
 | Motion | `morphing-nav-pill` | `layoutId` prefixed with `useId()`, `transition={{ type: 'spring', ...spring[token] }}`, `{ duration: 0 }` when reduced |
 | GSAP | `scroll-pin-chapters`, `horizontal-scroll-gallery` | `useGSAP({ scope, dependencies: [reduced, …], revertOnUpdate: true })`, CSS sticky pinning, `ResizeObserver` → `refresh()`, early return when reduced |
 | R3F / GLSL | `shader-aurora-plane` | `StudioCanvas` with fallback; `frameloop` `always` only while animating; uniforms in `useMemo` |
+| Rive | `rive-state-machine` (`RiveCanvas`) | Runtime imported lazily; `RuntimeLoader.setWasmUrl`/`setWasmFallbackUrl` to your own origin before the first instance; drawing buffer from a `ResizeObserver` (DPR ≤ 2); stop rendering offscreen and when hidden; inputs set from DOM controls; `cleanup()` on unmount |
+| Spring physics on rAF | `cursor-follower`, `magnetic-button` | Sub-stepped springs that keep velocity, one read-then-write pass per frame on a `useRafLoop` that sleeps when settled; fine pointers only; off under reduced motion |
 
 ## 3. Adapting
 

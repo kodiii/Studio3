@@ -5958,6 +5958,7 @@
         "index.tsx",
         "data.ts",
         "Gallery.tsx",
+        "HeroBackdrop.tsx",
         "Leaderboard.tsx",
         "motifs.tsx",
         "NeedlePatch.tsx",
