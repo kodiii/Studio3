@@ -16,7 +16,7 @@ export type EffectCategory =
 
 export type Technology =
   | 'css' | 'waapi' | 'view-transitions' | 'motion' | 'gsap' | 'svg' | 'canvas2d' | 'd3'
-  | 'three' | 'r3f' | 'drei' | 'rapier' | 'glsl';
+  | 'three' | 'r3f' | 'drei' | 'rapier' | 'glsl' | 'rive' | 'lottie';
 
 export type InteractionType = 'none' | 'hover' | 'press' | 'drag' | 'scroll' | 'pointer' | 'keyboard' | 'time' | 'data';
 

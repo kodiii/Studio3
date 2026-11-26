@@ -12,3 +12,5 @@ next-env.d.ts
 dist
 .next-prod
 plugins/maquettekit/evals/results
+# runtime binaries copied by scripts/copy-runtime-assets.mjs
+apps/gallery/public/rive/*.wasm

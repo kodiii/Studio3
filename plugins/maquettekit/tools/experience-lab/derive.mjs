@@ -270,6 +270,22 @@ export function deriveSignals(pages, site) {
     for (const p of motionPages) for (const pr of p.motion.normal.late?.declaredLayoutTransitions ?? []) if (LAYOUT_KEBAB.has(pr)) props.add(pr);
     put('perceivedPerformance.layoutAnimations', props.size, props.size ? `Layout-triggering properties animated or transitioned: ${[...props].join(', ')}.` : 'Only compositor-friendly properties are animated.', [...props]); }
 
+  // ---- liveliness: continuous response to the pointer and to scrolling -----------------
+  for (const [id, key, what] of [['motionUsefulness.pointerResponse', 'pointer', 'the pointer'], ['motionUsefulness.scrollResponse', 'scroll', 'the scroll']]) {
+    const probed = primary.filter((p) => p.liveliness?.[key]);
+    const measured = probed.filter((p) => p.liveliness[key].status === 'measured');
+    if (!measured.length) {
+      if (probed.length && probed.every((p) => p.liveliness[key].status === 'not-applicable')) na(id, probed.map((p) => `${p.route}: ${p.liveliness[key].reason}`).join('; '));
+      else un(id, probed.find((p) => p.liveliness[key].reason)?.liveliness[key].reason ?? `${key} probe did not run`);
+      continue;
+    }
+    const yes = measured.filter((p) => p.liveliness[key].responds);
+    put(id, r3(yes.length / measured.length),
+      yes.length ? `${yes.length} of ${measured.length} route(s) respond continuously to ${what}.` : `Nothing responds continuously to ${what} on ${measured.length} route(s).`,
+      measured.map((p) => `${at(p)}: ${p.liveliness[key].summary}`),
+      { routes: measured.map((p) => ({ route: p.route, responds: p.liveliness[key].responds, elements: p.liveliness[key].elements ?? [] })) });
+  }
+
   // ---- cognitive load ------------------------------------------------------------------
   { const w = maxBy(primary, (p) => p.dom.text.fontSizes.length); put('cognitiveLoad.fontSizes', w.dom.text.fontSizes.length, `${w.dom.text.fontSizes.length} distinct font sizes on ${w.route} (${w.dom.text.fontSizes.join(', ')} px).`, primary.map((p) => `${p.route}: ${p.dom.text.fontSizes.length} sizes`)); }
   { const w = maxBy(primary, (p) => p.dom.text.colorCount); put('cognitiveLoad.textColors', w.dom.text.colorCount, `${w.dom.text.colorCount} distinct text colours on ${w.route}.`, primary.map((p) => `${p.route}: ${p.dom.text.colorCount} colours`)); }

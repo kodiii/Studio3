@@ -90,11 +90,12 @@ weight and follow-through, one light direction, motion driven by scroll velocity
 visitor can handle. One idea per beat; vary pace; everything interruptible; the page never fights the user's
 scroll.
 
-**6. 3D, only if earned.** Real-time 3D is justified when the story is about an object or a space the camera
-must move through, the scene carries a beat that flat media cannot, an asset exists, and a static fallback
-plus budget are in place. Then load `references/cinematic-3d.md` and hand the scene to `studio-3d`. Otherwise
+**6. 3D when it earns its place.** Real-time 3D belongs in a cinematic piece when the story has an object or a
+space worth seeing in real light or moving through, when depth carries a beat flat media cannot, or when the
+visitor gets to handle the subject. It needs an asset (or procedural geometry that is the subject), a static
+fallback and the budget. Then load `references/cinematic-3d.md` and hand the scene to `studio-3d`. Otherwise
 use the lightweight alternative: layered parallax, CSS 3D, an image sequence or video, a 2D canvas or CSS
-gradient background. A decorative particle field is not a reason.
+gradient background. A particle field with no relation to the story is decoration, not a reason.
 
 **7. Verify.** Fastest path: `maquettekit check --url <url>` runs the design-file check, token lint, review and experience assessment in one go and writes one ranked fix list to `.maquettekit/check/check.md`; fix in order and re-run (at most three rounds). The steps below are the same checks one by one.
 Start the dev server or a build. Via `studio-review`:

@@ -12,7 +12,7 @@ const LIB = path.resolve('plugins/maquettekit/library');
 const catalog = JSON.parse(fs.readFileSync(path.join(LIB, 'catalog.json'), 'utf8')) as {
   effects: Array<Record<string, any>>; demos: Array<Record<string, any>>;
 };
-const TECH = new Set(['css', 'waapi', 'view-transitions', 'motion', 'gsap', 'svg', 'canvas2d', 'd3', 'three', 'r3f', 'drei', 'rapier', 'glsl']);
+const TECH = new Set(['css', 'waapi', 'view-transitions', 'motion', 'gsap', 'svg', 'canvas2d', 'd3', 'three', 'r3f', 'drei', 'rapier', 'glsl', 'rive', 'lottie']);
 const INTERACTION = new Set(['none', 'hover', 'press', 'drag', 'scroll', 'pointer', 'keyboard', 'time', 'data']);
 const SPEC_IDS = new Set(SPECIALTIES.map((s) => s.id));
 

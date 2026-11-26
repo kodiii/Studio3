@@ -46,5 +46,6 @@ export const MODULES = [
 export const TECH_LABEL: Record<string, string> = {
   css: 'CSS', waapi: 'Web Animations', 'view-transitions': 'View Transitions', motion: 'Motion', gsap: 'GSAP', svg: 'SVG',
   canvas2d: 'Canvas 2D', d3: 'D3', three: 'three.js', r3f: 'React Three Fiber', drei: 'Drei', rapier: 'Rapier', glsl: 'GLSL',
+  rive: 'Rive', lottie: 'Lottie',
 };
 export const isWebGL = (tech: readonly string[]): boolean => tech.some((t) => t === 'three' || t === 'r3f' || t === 'glsl' || t === 'drei' || t === 'rapier');

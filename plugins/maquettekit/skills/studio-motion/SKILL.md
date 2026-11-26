@@ -23,7 +23,8 @@ up after itself.
 - Adding or reviewing transitions, feedback, entrances/exits, stagger, shared-element or route transitions.
 - Scroll-linked motion, pinned/scrubbed sequences (with `studio-cinematic` for the narrative), DOM motion that
   must stay in step with a 3D scene (with `studio-3d`).
-- Choosing between CSS, WAAPI, Motion and GSAP; defining or applying motion tokens and profiles.
+- Choosing between CSS, WAAPI, Motion and GSAP, or playing designer-made Lottie and Rive files; defining or applying
+  motion tokens and profiles.
 - Reduced-motion behaviour, animation jank, leaking timelines or listeners.
 
 ## Don't use when

@@ -85,8 +85,8 @@ its button and keyboard twin as you build it, not afterwards (`references/intera
 gesture velocity; celebration is brief and reserved for the person's own action. Content already moves in a
 feed, so ambient motion stays low.
 
-**6. 3D, only if earned.** Real-time 3D is justified when the object or the avatar is what people came to
-inspect or share, the post works as a poster without it, and the feed keeps one canvas. Load
+**6. 3D when it earns its place.** Real-time 3D fits when the object or the avatar is what people came to
+inspect, play with or share, the post works as a poster without it, and the feed keeps one canvas. Load
 `references/social-3d.md` and hand the scene to `studio-3d`. Otherwise use the poster, video or CSS
 alternative it lists.
 

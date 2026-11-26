@@ -97,7 +97,7 @@ attention to what changed, and play back time on request. Never animate a dashbo
 there is no meaningful in-between state. Exploration and data stories (Expressive) also meet the craft floor in
 `${CLAUDE_PLUGIN_ROOT}/shared/motion-craft.md` §1: brushing, scrubbing and dragging act on the marks directly.
 
-**6. 3D, only if earned.** Depth must carry information the task needs, and an accurate 2D view plus a table
+**6. 3D where depth carries information.** Depth must carry information the task needs, and an accurate 2D view plus a table
 must ship alongside it. Load `references/spatial-data.md` and hand the scene to `studio-3d` with the contract
 there; otherwise build the 2D alternative it names.
 

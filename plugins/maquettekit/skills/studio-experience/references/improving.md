@@ -8,7 +8,7 @@
 | Navigation consistency | the same nav items, order and placement on every route; current page marked (`aria-current`) | specialty skill |
 | Touch interaction | targets ≥ 24 px (44 px for primary), spacing, no hover-only functions, gesture alternatives | specialty skill |
 | Keyboard support | native elements, logical order, visible focus, Escape closes overlays, no traps | `studio-review` to verify |
-| Motion usefulness | remove decorative loops; shorten durations to the profile; motion explains change or guides attention | `studio-motion` |
+| Motion usefulness | remove decorative loops; shorten durations to the profile; motion explains change or guides attention; on Expressive and Immersive surfaces, make something answer the pointer or the scroll (light, tilt, parallax, a scrubbed or velocity-driven layer) on springs, off under reduced motion | `studio-motion` (`shared/motion-craft.md`), recipes `tilt-parallax-card`, `spotlight-border-card`, `magnetic-button`, `kinetic-marquee`, `parallax-depth-layers` |
 | Cognitive load | one primary action per view; fewer type sizes and colours; progressive disclosure | `studio-design-system` (tokens), specialty skill |
 | Loading experience | skeletons that match the layout, no layout shift, progress only when it is real | `studio-motion` (loading recipes) |
 | Perceived performance | optimistic UI, instant feedback, lazy-load below the fold, smaller hero media | specialty skill, `studio-asset-optimizer` for 3D |

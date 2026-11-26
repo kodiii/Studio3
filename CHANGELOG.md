@@ -11,6 +11,16 @@ semantic versioning. Plugin manifests (Claude Code and Codex) always carry the s
   light), reactive drivers with catalogue starting points, direct manipulation, and a five-line motion brief.
 - Experience Lab rubric question `motionUsefulness.craft`: scores whether a surface meets the craft floor of its
   profile (weight 0.5 Essential, 3 Expressive, 4 Immersive), so inert Expressive and Immersive builds lose points.
+- Experience Lab measures liveliness, not only excess: `motionUsefulness.pointerResponse` (a four-point pointer sweep
+  of the first viewport; an element counts when it takes three or more distinct styles, so a plain hover state does
+  not, and a canvas counts when it redraws with the pointer beyond its own change at rest) and
+  `motionUsefulness.scrollResponse` (three scroll steps; parallax or style change in two of them, so one-shot reveals
+  do not count). Weights 0 Essential, 2/1 Expressive, 3/2 Immersive; half the routes responding scores fully.
+- Eval cases `judge-3d-earned` (a ceramic lamp whose glaze under changing light is the question: real-time 3D is the
+  right answer, with its obligations) and `build-product-hero` (a launch-page hero graded on the craft floor: continuous
+  response, physical motion, light that responds, direct manipulation with a keyboard twin).
+- Library: categories `cursor` and `vector-animation`, technologies `rive` and `lottie`. `scripts/copy-runtime-assets.mjs`
+  (run before the gallery's dev and build) serves the Rive runtime's WASM from the gallery's own origin.
 
 ### Changed
 - `studio-motion` writes a motion brief before choosing technology, picks the lightest technology that delivers the
@@ -18,6 +28,14 @@ semantic versioning. Plugin manifests (Claude Code and Codex) always carry the s
 - Profiles: "pick the lowest profile that achieves the brief" is now "pick the profile the surface deserves and
   deliver it in full". `studio-product`, `studio-cinematic`, `studio-social`, `studio-data` and `studio-3d` point their
   motion and art-direction steps at the craft floor. No gate changed.
+- Profile table: Expressive surfaces now allow pointer-tracked light and tilt, up to three parallax layers, scroll-linked
+  and velocity response, driven ambient motion and an optional custom cursor (native cursor stays visible), and every
+  profile has a direct-manipulation row. Motion that follows the user's own pointer, drag or scroll does not count
+  toward the simultaneous-animation budget.
+- 3D criteria (`technology-selection.md` §2.1 and the studios' step 6): real light and material, handling the subject
+  and a space the story moves through now justify real-time 3D; "only if earned" became "when it earns its place".
+  A decorative object unrelated to the subject still never qualifies; the fallback and budget obligations are unchanged.
+  `product-3d.md` gains two value rows (material and light response; handling the object).
 
 ### Fixed
 - CI's browser tests had failed on every run since 4.0.0. Two visual-regression references were captured with a newer

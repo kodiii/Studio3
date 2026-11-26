@@ -153,7 +153,7 @@ These are defaults that appear when nobody chose anything. None is forbidden; ea
 | Dark page, neon accent, glow on everything | The "tech" costume | Dark only if the use case wants it (media, night use, terminals); one emissive element at most |
 | Cream background + serif + terracotta | The "tasteful" costume | Same test: can you justify each from the subject? |
 | Decorative 3D blob or particle field behind the hero | Expensive, unrelated to content | A real artefact of the product, or nothing; see each specialty's 3D criteria |
-| Identical hover lift (`translateY(-4px)` + shadow) on every card | Uniform, uninformative | Hover reveals something useful (secondary action, preview) or does nothing |
+| Identical hover lift (`translateY(-4px)` + shadow) on every card | Uniform, uninformative | Hover reveals something useful (secondary action, preview), or the surface answers the pointer with light and depth from one light direction (`motion-craft.md` §3) |
 
 ## 7. Self-critique rubric
 

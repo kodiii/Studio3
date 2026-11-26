@@ -11,7 +11,7 @@ import { noGpuBrowserFactory } from '../visual-director/three-d/diagnostics.mjs'
 import { discoverStaticRoutes } from '../visual-director/run.mjs';
 import { routeSlug, toolVersion, writeJson } from '../visual-director/util.mjs';
 import { installExperienceProbes, pageAnimations, pageCanvasInfo, pageMeasure, pagePerfReport } from './probes/page.mjs';
-import { motionFrames, probeAxe, probeFallback, probeForms, probeHover, probeKeyboard, probeLatency, probeNotFound, probePopups, NOT_FOUND_PATH } from './probes/interact.mjs';
+import { motionFrames, probeAxe, probeFallback, probeForms, probeHover, probeKeyboard, probeLatency, probeLiveliness, probeNotFound, probePopups, NOT_FOUND_PATH } from './probes/interact.mjs';
 import { deriveSignals } from './derive.mjs';
 import { scoreExperience, TOOL } from './score.mjs';
 import { parseAnswers } from './rubric.mjs';
@@ -79,6 +79,7 @@ async function measurePage(browser, c) {
       rec.axe = await probeAxe(page);
       rec.keyboard = await probeKeyboard(page);
       rec.hover = touch ? { status: 'unavailable', reason: 'touch viewport: no hover' } : await probeHover(page, c.url);
+      rec.liveliness = await probeLiveliness(page, { touch });
       rec.popups = await probePopups(page, c.url); // before latency: popups restore state, latency clicks may not
       rec.latency = await probeLatency(page, c.url);
       await sleepUntil(t0, 5200); // persistence check ≥ 5 s after load (WCAG 2.2.2 threshold)
@@ -193,7 +194,7 @@ export async function runAssessment(opts) {
     'Timings (FCP, LCP, CLS, long tasks, input latency) are lab measurements in headless Chromium with software rendering on loopback, without CPU or network throttling — not field data and not representative of user devices.',
     `Pointer, keyboard, popup, latency, form and axe-core probes ran on the "${primaryVp}" viewport only; touch-target checks ran on ${touchVps.length ? touchVps.join(', ') : 'no viewport (no touch viewport requested)'}.`,
     'Forms were submitted empty with non-GET requests blocked and navigation prevented; server-side validation and success paths were not exercised.',
-    'Motion detection reads document.getAnimations() at load and after ~2 s, and diffs viewport screenshots 400 ms apart; canvas and video motion is included on purpose (it must respect reduced motion too). Scroll-triggered motion was not exercised.',
+    'Motion detection reads document.getAnimations() at load and after ~2 s, and diffs viewport screenshots 400 ms apart; canvas and video motion is included on purpose (it must respect reduced motion too). Response to the pointer and to scrolling is probed on the primary (desktop) view only: a four-point pointer sweep and three scroll steps.',
     'Interaction samples are small (≤ 8 hovered controls, ≤ 3 popup triggers, ≤ 2 forms, ≤ 40 tab stops per page); untested controls may behave differently.',
   ];
   if (pages.some((p) => !p.computedNames)) limitations.push('Chromium computedName was unavailable; accessible names were approximated.');
