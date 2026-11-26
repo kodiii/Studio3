@@ -201,7 +201,7 @@ export function RatingStars({ index, tint }: Props) {
         </fieldset>
 
         <div className={styles.result}>
-          <p className={styles.score} data-preview={previewing || undefined}>
+          <p className={styles.score} data-preview={previewing || undefined} data-empty={!shown || undefined}>
             <span key={shown} className={styles.scoreNum}>{shown || '–'}</span>
             <span className={styles.scoreOf}>/ 5</span>
           </p>

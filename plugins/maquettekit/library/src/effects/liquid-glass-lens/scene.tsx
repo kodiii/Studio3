@@ -119,7 +119,7 @@ export function Scene({ engine, draw, drawKey, refraction, dispersion, frost, lo
     u.uShape.value.set(f.hx * k, f.hy * k, f.r * k, f.n);
     u.uStretch.value.set(f.dirX, -f.dirY, f.stretch);
     u.uLight.value.set(f.lx, -f.ly, f.lz);
-    u.uLift.value = (5 + 15 * f.lift) * k;
+    u.uLift.value = (8 + 18 * f.lift) * k; // resting on a thin cushion of air; held glass rises
     if (busy) invalidate();
   });
 

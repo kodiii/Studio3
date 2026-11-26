@@ -147,7 +147,7 @@ export function BirdStage({ index, pointer, backdrop }: Props) {
   const hint = reduced
     ? 'Reduced motion: Birb holds still until you press Dance, Look up or Play, then settles again.'
     : pointer
-      ? 'Bring the pointer in above Birb’s head and it looks up at you. Dance and Look up do the same from the keyboard.'
+      ? 'Bring the pointer in above Birb’s head and it looks up at you; Look up does the same from the keyboard, Dance toggles the routine.'
       : 'Pointer reactions are off: Dance and Look up drive the state machine.';
 
   return (

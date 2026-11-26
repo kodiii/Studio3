@@ -101,7 +101,8 @@ vec2 shadowAt(vec2 px, float rim) {
   float soft = 1.5 * uDpr + uLift * 0.45;
   float foot = 1.0 - smoothstep(-soft, soft * 1.5, ds);
   float band = smoothstep(-rim * 0.95, -rim * 0.05, ds);
-  float wide = (1.0 - smoothstep(-rim * 0.5, rim * 0.7 + uLift * 2.4, ds)) * 0.3;
+  // Occlusion only around the footprint: glass transmits, so the page under it is not occluded.
+  float wide = (1.0 - smoothstep(-rim * 0.5, rim * 0.7 + uLift * 2.4, ds)) * smoothstep(-rim * 0.45, rim * 0.15, ds) * 0.3;
   float dark = max(foot * band * 0.9, wide) * uShadow;
   float ring = foot * exp(-pow((ds + rim * 0.68) / (rim * 0.12 + uDpr), 2.0)) * uCaustic;  // irradiance gain
   return vec2(dark, ring);
@@ -193,7 +194,7 @@ void main() {
   float cosI = clamp(N.z, 0.0, 1.0);
   float F = 0.04 + 0.96 * pow(1.0 - cosI, 5.0);
   vec3 R = reflect(I, N);
-  float lobe = pow(max(dot(R, uLight), 0.0), 3.0);
+  float lobe = pow(max(dot(R, uLight), 0.0), 14.0);
   vec3 env = mix(uEnvLo, uEnvHi, smoothstep(0.25, 0.95, R.z)) + uLightColor * lobe * 0.8;
   vec3 col = mix(seen, env, F * 0.92);
 
@@ -201,7 +202,10 @@ void main() {
   // and the light that crossed the glass catching the far rim.
   vec3 H = normalize(uLight + V);
   float nh = max(dot(N, H), 0.0);
-  float spec = pow(nh, 110.0) * 1.1 + pow(nh, 22.0) * 0.12;
+  // Polished glass: the flat top only mirrors the light near the reflection direction, so the broad sheen lives on
+  // the curved bezel alone.
+  float curve = 1.0 - u;
+  float spec = pow(nh, 110.0) * 1.1 + pow(nh, 22.0) * 0.14 * curve;
   vec3 Nb = normalize(vec3(-N.xy, N.z));
   float back = pow(max(dot(Nb, H), 0.0), 80.0) * 0.2 * (1.0 - u) * (1.0 - u);
   vec2 lxy = uLight.xy / max(length(uLight.xy), 1e-4);
@@ -215,6 +219,8 @@ void main() {
     + mix(uLightColor, seen * 1.6 + 0.1, 0.5) * back);
   float inner = exp(-abs(t - 2.4 * uDpr) / (1.2 * uDpr)) * smoothstep(0.35, -0.9, facing);
   col *= 1.0 - inner * mix(0.2, 0.32, uDark);
+  // The bezel turned away from the light looks through the glass's own shadow at the darker side of the room.
+  col *= 1.0 - smoothstep(0.15, -1.0, facing) * curve * curve * mix(0.09, 0.16, uDark);
 
   float cover = clamp(0.5 - d / 1.1, 0.0, 1.0);             // ~1px anti-aliased outline
   gl_FragColor = vec4(mix(outside, col, cover), 1.0);
