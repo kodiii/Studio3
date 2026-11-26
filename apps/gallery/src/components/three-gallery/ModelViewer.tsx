@@ -23,6 +23,8 @@ export function ModelViewer() {
   const [enabled, setEnabled] = useState(true);
   const [lighting, setLighting] = useState<LightingPresetName>('studio-soft');
   const [camera, setCamera] = useState('hero');
+  /** Preset the camera rests at: set when CameraRig arrives, cleared when a move starts or the user orbits. */
+  const [cameraAt, setCameraAt] = useState<string | null>(null);
   const [colour, setColour] = useState(cfg.colourways[0].id);
   const [finish, setFinish] = useState(cfg.finishes[0].id);
   const [loaded, setLoaded] = useState<LoadedModel | null>(null);
@@ -105,6 +107,7 @@ export function ModelViewer() {
         <div
           ref={stage}
           data-viewer-stage=""
+          data-camera-at={cameraAt ?? undefined}
           className="mk-viewer-stage relative aspect-[4/5] max-h-[78dvh] w-full overflow-hidden rounded-[10px] border border-line sm:aspect-[4/3] [&:fullscreen]:max-h-none [&:fullscreen]:rounded-none"
         >
           <StudioCanvas
@@ -121,8 +124,8 @@ export function ModelViewer() {
           >
             <CameraProbe />
             <LightingRig preset={lighting} shadowRadius={cfg.shadowRadius} />
-            <OrbitInspect ref={orbit} target={cfg.target} minDistance={cfg.distance[0]} maxDistance={cfg.distance[1]} />
-            <CameraRig ref={rig} presets={cfg.presets} preset={camera in cfg.presets ? camera : 'hero'} />
+            <OrbitInspect ref={orbit} target={cfg.target} minDistance={cfg.distance[0]} maxDistance={cfg.distance[1]} onStart={() => setCameraAt(null)} />
+            <CameraRig ref={rig} presets={cfg.presets} preset={camera in cfg.presets ? camera : 'hero'} onArrive={setCameraAt} />
             {url ? (
               <ModelBoundary resetKey={url} onError={setError}>
                 <Suspense fallback={null}>
@@ -214,7 +217,7 @@ export function ModelViewer() {
           <p className="mt-2 text-[13px] leading-snug text-muted">{cfg.blurb}</p>
         </Section>
         <Section label="Camera">
-          <ChipGroup name={`${uid}cam`} legend="Camera preset" value={camera} onChange={(v) => { setCamera(v); rig.current?.goTo(v); }} options={Object.entries(cfg.presets).map(([k, p]) => ({ value: k, label: p.label, disabled: !live }))} />
+          <ChipGroup name={`${uid}cam`} legend="Camera preset" value={camera} onChange={(v) => { setCamera(v); setCameraAt(null); rig.current?.goTo(v); }} options={Object.entries(cfg.presets).map(([k, p]) => ({ value: k, label: p.label, disabled: !live }))} />
         </Section>
         <Section label="Colour" hint={colourName}>
           <ChipGroup name={`${uid}col`} legend="Colourway" value={colour} onChange={setColour} options={cfg.colourways.map((c) => ({ value: c.id, label: c.name, swatch: c.swatch }))} columns={2} />

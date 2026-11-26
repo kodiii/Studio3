@@ -2,7 +2,7 @@
 
 > **Quick card** — the must-dos from this file; read on for the reasons and the detail.
 >
-> - Use the profile the user names; otherwise pick the lowest that achieves the brief.
+> - Use the profile the user names; otherwise pick the one the surface deserves, and build it to that profile's craft floor.
 > - Record the profile per surface and report it next to every score.
 > - Apply the profile's multipliers to motion token values; never hard-code new numbers.
 > - Cap simultaneous animations at 1 (Essential), 3 (Expressive) or 6 (Immersive).
@@ -31,7 +31,10 @@ onboarding and an Essential admin console. Record the profile for each surface y
 
 ## 2. Choosing
 
-Pick the lowest profile that achieves the brief. Move up only for a stated reason.
+Pick the profile the surface deserves, then deliver it in full. Surfaces people work in lean down; surfaces
+people look at, evaluate or remember lean up. Choosing too low is as much an error as choosing too high: an
+Expressive brief delivered as Essential is an unfinished build. Each profile has a craft floor in
+`motion-craft.md` §1 as well as the limits below.
 
 | Signal in the brief or project | Choose |
 |---|---|
@@ -142,6 +145,7 @@ per profile on `:root` and let components read them.
 
 Run the Experience Lab with the profile you chose: `maquettekit experience assess --profile <profile>` (see
 `maquettekit experience --help` for the remaining flags). The profile changes what the assessment expects: an
-Essential surface is penalised for decorative motion; an Immersive one is expected to stage its content but is
-penalised just as hard for missing controls, missing fallbacks or blocked input. Report the profile next to
+Essential surface is penalised for decorative motion; an Expressive or Immersive one is penalised for inert,
+uniform or untouchable motion (the `motionUsefulness.craft` rubric question); an Immersive one is expected to
+stage its content but is penalised just as hard for missing controls, missing fallbacks or blocked input. Report the profile next to
 every score: a score without its profile is meaningless.

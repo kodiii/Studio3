@@ -12,7 +12,8 @@
 > - Read licences from the installed `package.json`, not from memory.
 
 One decision document for every specialty. Pick the lightest technology that fully delivers the effect, state the
-reason, and record what you rejected. "Lightest" means: fewest shipped bytes, fewest concepts for the next
+reason, and record what you rejected. "Fully delivers" is measured against the motion brief (`motion-craft.md`
+§6): never shrink the effect to fit a lower rung. "Lightest" means: fewest shipped bytes, fewest concepts for the next
 maintainer, least main-thread and GPU work, and no new dependency when an installed one already does the job.
 
 Before choosing, run `maquettekit review inspect --dir .` (framework, styling, animation and 3D libraries, model files)

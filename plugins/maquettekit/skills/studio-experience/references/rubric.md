@@ -11,6 +11,7 @@ format. Answers go into `answers.json` and are merged with the measured signals.
 | Copy clarity, error messages, empty states | the exact text and where it appears (route + selector or file:line) |
 | Predictability (does X do what it looks like it does) | the interaction you performed and what happened |
 | Motion purpose | the animation (selector or recipe id), what it communicates, and the frame screenshots |
+| Motion craft | per row of the craft floor (`shared/motion-craft.md` §1): the selector or recipe that meets it, or "missing" |
 | Spatial clarity (3D) | camera/control instructions present?, escape/reset available?, screenshot of the canvas and its fallback |
 
 Rules:

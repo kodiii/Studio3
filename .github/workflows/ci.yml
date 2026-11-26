@@ -62,7 +62,9 @@ jobs:
 
   install-macos:
     name: Installer on macOS (Apple Silicon)
-    runs-on: macos-14
+    # macos-latest is Apple Silicon. A pinned image is retired about a year after the next one ships, and then its
+    # jobs are cancelled without running (macos-14 went on 2026-11-02).
+    runs-on: macos-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4

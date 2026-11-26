@@ -83,9 +83,11 @@ catalogue: `morphing-nav-pill`, `command-menu-reveal`, `magnetic-button`, `press
 `flip-grid-reorder`, `number-ticker`, `spotlight-border-card`. Build every component state in the matrix in the
 playbook, not just the resting state.
 
-**5. Motion pass.** Delegate to `studio-motion`. Product motion has three jobs only: feedback (≤ 160 ms to
-start), continuity between states (shared elements, layout changes), and one orchestrated entrance above the
-fold. Use motion tokens; honour reduced motion.
+**5. Motion pass.** Delegate to `studio-motion`, starting from a motion brief
+(`${CLAUDE_PLUGIN_ROOT}/shared/motion-craft.md` §6). Product motion has four jobs: feedback (≤ 160 ms to start),
+continuity between states (shared elements, layout changes), one orchestrated entrance above the fold, and
+tactility: controls and cards with weight, light and a spring under the hand. Meet the craft floor for the
+profile; repeated flows stay Essential. Use motion tokens; honour reduced motion.
 
 **6. 3D, only if earned.** Real-time 3D is justified when **all** hold: the product is a physical or spatial
 object; the user needs to inspect or configure it from angles a few images cannot cover; the configuration

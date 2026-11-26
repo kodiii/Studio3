@@ -153,7 +153,7 @@ export function validate({ cli = true } = {}) {
     const f = path.join(PLUGIN, 'tools', map[c] ?? c, 'index.mjs');
     if (!fs.existsSync(f)) err(`tool "${c}": ${rel(f)} missing`);
   }
-  for (const f of ['tooling.md', 'workflow.md', 'design-principles.md', 'accessibility.md', 'performance.md', 'experience-profiles.md', 'technology-selection.md'])
+  for (const f of ['tooling.md', 'workflow.md', 'design-principles.md', 'accessibility.md', 'performance.md', 'experience-profiles.md', 'technology-selection.md', 'motion-craft.md'])
     if (!fs.existsSync(path.join(PLUGIN, 'shared', f))) err(`shared/${f} missing`);
   try {
     const cat = readJson(path.join(PLUGIN, 'library', 'catalog.json'));
