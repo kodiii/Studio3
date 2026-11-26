@@ -65,6 +65,7 @@ New recipes keep landing: confirm an id with `maquettekit catalog search` before
 | `scramble-decode` | typography | css | — | hero kicker or status line |
 | `split-line-reveal` | typography | waapi, css | — | hero headline |
 | `variable-weight-wave` | typography | css | — | hero headline |
+| `lottie-micro-interactions` | vector-animation | lottie, svg, css | lottie-web | animated icon buttons whose hover is the first beat of the transition |
 | `rive-state-machine` | vector-animation | rive, css | @rive-app/canvas-lite | reactive mascot; animated rating control over native radios |
 
 House patterns worth knowing before you adapt one:
@@ -76,6 +77,7 @@ House patterns worth knowing before you adapt one:
 | Motion | `morphing-nav-pill` | `layoutId` prefixed with `useId()`, `transition={{ type: 'spring', ...spring[token] }}`, `{ duration: 0 }` when reduced |
 | GSAP | `scroll-pin-chapters`, `horizontal-scroll-gallery` | `useGSAP({ scope, dependencies: [reduced, …], revertOnUpdate: true })`, CSS sticky pinning, `ResizeObserver` → `refresh()`, early return when reduced |
 | R3F / GLSL | `shader-aurora-plane` | `StudioCanvas` with fallback; `frameloop` `always` only while animating; uniforms in `useMemo` |
+| Lottie | `lottie-micro-interactions` (`LottieIcon`) | Light SVG player imported lazily; one instance per icon, `destroy()` on unmount; segments played from the current frame so toggles reverse mid-way; colours from CSS classes mapped to tokens; reduced motion jumps to each segment's last frame |
 | Rive | `rive-state-machine` (`RiveCanvas`) | Runtime imported lazily; `RuntimeLoader.setWasmUrl`/`setWasmFallbackUrl` to your own origin before the first instance; drawing buffer from a `ResizeObserver` (DPR ≤ 2); stop rendering offscreen and when hidden; inputs set from DOM controls; `cleanup()` on unmount |
 | Spring physics on rAF | `cursor-follower`, `magnetic-button` | Sub-stepped springs that keep velocity, one read-then-write pass per frame on a `useRafLoop` that sleeps when settled; fine pointers only; off under reduced motion |
 
