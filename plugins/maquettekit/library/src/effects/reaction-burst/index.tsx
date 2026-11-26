@@ -23,7 +23,9 @@ export default function ReactionBurst({ params }: EffectProps<Params>) {
   const { reduced } = useStudioMotion();
   const rootRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { width, height } = useElementSize(rootRef);
+  // Measure the canvas itself: it covers the root's padding box, so the root's content box (what a ResizeObserver
+  // reports for the root) would stretch the backing store and shift every particle away from its button.
+  const { width, height } = useElementSize(canvasRef);
   const [pressed, setPressed] = useState<Record<ReactionId, boolean>>({ love: false, spark: false, bloom: false });
   const [status, setStatus] = useState('');
   const [active, setActive] = useState(false);
@@ -84,12 +86,14 @@ export default function ReactionBurst({ params }: EffectProps<Params>) {
 
   const burst = useCallback((button: HTMLElement, shape: number) => {
     const root = rootRef.current;
-    if (!root) return;
+    const canvas = canvasRef.current;
+    if (!root || !canvas) return;
     const cs = getComputedStyle(root);
     colors.current = { accent: cs.getPropertyValue('--mk-accent').trim() || '#bf2f09', ink: cs.getPropertyValue('--mk-ink').trim() || '#11110f' };
-    const rb = root.getBoundingClientRect();
+    // Spawn in the canvas's own coordinate space (the box it is drawn into), not the root's.
+    const cb = canvas.getBoundingClientRect();
     const ib = (button.querySelector('svg') ?? button).getBoundingClientRect();
-    const ox = ib.left + ib.width / 2 - rb.left, oy = ib.top + ib.height / 2 - rb.top;
+    const ox = ib.left + ib.width / 2 - cb.left, oy = ib.top + ib.height / 2 - cb.top;
     const cone = (params.spread * Math.PI) / 180;
     for (let i = 0; i < params.count; i++) {
       const p = pool.current[cursor.current];

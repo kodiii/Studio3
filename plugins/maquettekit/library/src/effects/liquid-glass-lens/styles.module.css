@@ -52,29 +52,41 @@
 .page { position: absolute; inset: 0; }
 .page svg { display: block; width: 100%; height: 100%; }
 
-/* No WebGL: the lens becomes a CSS glass panel over the SVG page. Rims and the sheen take the light direction;
-   frost, refraction and dispersion map to blur, bezel glow and coloured edge fringes. */
+/* No WebGL: the lens becomes a CSS glass panel over the SVG page. Rims, bezel shade and sheen take the light direction;
+   frost, refraction and dispersion map to blur, bezel depth and coloured edge fringes. Clear at frost 0. */
 .frame[data-css-glass] .lens {
-  --sx: calc(50% + var(--lx) * 40%);
-  --sy: calc(50% + var(--ly) * 40%);
-  --rim-shade: rgb(0 0 0 / 0.14);
-  --drop: rgb(0 0 0 / 0.18);
+  --sx: calc(50% + var(--lx) * 42%);
+  --sy: calc(50% + var(--ly) * 42%);
+  --sheen: rgb(255 255 255 / 0.3);
+  --veil: rgb(255 255 255 / 0.08);
+  --bezel: rgb(255 255 255 / 0.16);
+  --rim-shade: rgb(0 0 0 / 0.12);
+  --far: rgb(0 0 0 / 0.07);
+  --drop: rgb(0 0 0 / 0.16);
   background:
-    radial-gradient(farthest-corner at var(--sx) var(--sy), rgb(255 255 255 / 0.4), rgb(255 255 255 / 0.07) 36%, rgb(255 255 255 / 0) 64%),
-    linear-gradient(170deg, rgb(255 255 255 / 0.18), rgb(255 255 255 / 0.03) 60%);
-  -webkit-backdrop-filter: blur(calc(1.2px + var(--frost, 0) * 11px)) saturate(1.7) brightness(1.03) contrast(1.05);
-  backdrop-filter: blur(calc(1.2px + var(--frost, 0) * 11px)) saturate(1.7) brightness(1.03) contrast(1.05);
+    radial-gradient(130% 150% at var(--sx) var(--sy), var(--sheen), rgb(255 255 255 / 0.03) 40%, rgb(255 255 255 / 0) 70%),
+    linear-gradient(170deg, var(--veil), rgb(255 255 255 / 0) 60%);
+  -webkit-backdrop-filter: blur(calc(0.3px + var(--frost, 0) * 12px)) saturate(1.25) contrast(1.06) brightness(1.02);
+  backdrop-filter: blur(calc(0.3px + var(--frost, 0) * 12px)) saturate(1.25) contrast(1.06) brightness(1.02);
   box-shadow:
-    inset 0 0 0 1px rgb(255 255 255 / 0.46),
-    inset calc(var(--lx) * -1.6px) calc(var(--ly) * -1.6px) 0 0 rgb(255 255 255 / 0.7),
-    inset calc(var(--lx) * 1.6px) calc(var(--ly) * 1.6px) 0 0 var(--rim-shade),
-    inset 0 0 calc(4px + var(--refract, 1) * 16px) rgb(255 255 255 / 0.24),
-    inset calc(1px + var(--disperse, 0.5) * 2.5px) 0 calc(var(--disperse, 0.5) * 5px) calc(var(--disperse, 0.5) * -2px) rgb(255 70 40 / 0.42),
-    inset calc(-1px - var(--disperse, 0.5) * 2.5px) 0 calc(var(--disperse, 0.5) * 5px) calc(var(--disperse, 0.5) * -2px) rgb(40 110 255 / 0.42),
+    inset 0 0 0 1px rgb(255 255 255 / 0.42),
+    inset calc(var(--lx) * -1.5px) calc(var(--ly) * -1.5px) 0 0 rgb(255 255 255 / 0.75),
+    inset calc(var(--lx) * 1.5px) calc(var(--ly) * 1.5px) 0 0 var(--rim-shade),
+    inset 0 0 calc(5px + var(--refract, 1) * 14px) var(--bezel),
+    inset calc(var(--lx) * 9px) calc(var(--ly) * 9px) calc(10px + var(--refract, 1) * 10px) -4px var(--far),
+    inset calc(1px + var(--disperse, 0.5) * 2.5px) 0 calc(var(--disperse, 0.5) * 5px) calc(var(--disperse, 0.5) * -2px) rgb(255 70 40 / 0.4),
+    inset calc(-1px - var(--disperse, 0.5) * 2.5px) 0 calc(var(--disperse, 0.5) * 5px) calc(var(--disperse, 0.5) * -2px) rgb(40 110 255 / 0.4),
     calc(var(--lx) * -3px) calc(var(--ly) * -3px) 4px var(--drop),
-    calc(var(--lx) * (-10px - var(--lift) * 16px)) calc(var(--ly) * (-10px - var(--lift) * 16px)) calc(16px + var(--lift) * 22px) var(--drop);
+    calc(var(--lx) * (-12px - var(--lift) * 16px)) calc(var(--ly) * (-12px - var(--lift) * 16px)) calc(18px + var(--lift) * 22px) var(--drop);
 }
-.frame[data-css-glass][data-dark] .lens { --rim-shade: rgb(0 0 0 / 0.35); --drop: rgb(0 0 0 / 0.5); }
+.frame[data-css-glass][data-dark] .lens {
+  --sheen: rgb(255 255 255 / 0.16);
+  --veil: rgb(255 255 255 / 0.04);
+  --bezel: rgb(255 255 255 / 0.1);
+  --rim-shade: rgb(0 0 0 / 0.4);
+  --far: rgb(0 0 0 / 0.22);
+  --drop: rgb(0 0 0 / 0.5);
+}
 
 /* The kit's "no WebGL" note, set as a small badge so it does not sit over the middle of the page. */
 .frame [data-maquettekit-fallback] > p[role='status'] {
@@ -87,7 +99,7 @@
   border-radius: 999px;
   background: var(--mk-surface, #fbf9f4);
   box-shadow: 0 0 0 1px var(--mk-line, #11110f24);
-  font-size: 12px !important;
+  font-size: 11.5px !important;
   line-height: 1.35;
   text-align: left !important;
 }

@@ -2326,7 +2326,7 @@
           "key": "dispersion",
           "label": "Dispersion",
           "type": "number",
-          "default": 0.55,
+          "default": 0.45,
           "min": 0,
           "max": 1,
           "step": 0.05
@@ -3678,8 +3678,7 @@
           "default": "artwork",
           "options": [
             "artwork",
-            "accent",
-            "mono"
+            "accent"
           ]
         }
       ],

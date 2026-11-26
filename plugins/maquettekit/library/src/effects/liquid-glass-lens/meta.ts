@@ -22,7 +22,7 @@ export const meta: EffectMeta = {
   ],
   params: [
     { key: 'refraction', label: 'Refraction strength', type: 'number', default: 1, min: 0, max: 1.5, step: 0.05 },
-    { key: 'dispersion', label: 'Dispersion', type: 'number', default: 0.55, min: 0, max: 1, step: 0.05 },
+    { key: 'dispersion', label: 'Dispersion', type: 'number', default: 0.45, min: 0, max: 1, step: 0.05 },
     { key: 'frost', label: 'Frost', type: 'number', default: 0, min: 0, max: 1, step: 0.05 },
     { key: 'shape', label: 'Shape', type: 'select', default: 'pill', options: ['pill', 'circle', 'squircle'] },
     { key: 'light', label: 'Light follows pointer', type: 'boolean', default: true },

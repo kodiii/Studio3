@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useId, useRef, useState, type CSSProperties, type FocusEvent, type PointerEvent } from 'react';
 import type { DeprecationId } from '@rive-app/canvas-lite';
-import { duration as D, useStudioMotion } from '../../motion';
+import { cssEase, duration as D, useStudioMotion } from '../../motion';
 import { useCueSweep } from './cue';
 import { RiveCanvas, type RiveCanvasApi } from './RiveCanvas';
 import styles from './styles.module.css';
@@ -47,7 +47,8 @@ export function RatingStars({ index, tint }: Props) {
   const mode = useRef<'machine' | 'frames'>('machine');
   const first = useRef(true);
   const fade = useRef<Animation | null>(null);
-  useEffect(() => () => fade.current?.cancel(), []);
+  const ringAnim = useRef<Animation | null>(null);
+  useEffect(() => () => { fade.current?.cancel(); ringAnim.current?.cancel(); }, []);
   useEffect(() => {
     const a = api.current;
     if (!ready || !a) return;
@@ -92,9 +93,14 @@ export function RatingStars({ index, tint }: Props) {
     const ring = burstRef.current;
     if (!reduced && ring && typeof ring.animate === 'function') {
       ring.style.setProperty('--at', String(n));
-      ring.animate(
-        [{ transform: 'translate(-50%, -50%) scale(0.55)', opacity: 0.95 }, { transform: 'translate(-50%, -50%) scale(1.7)', opacity: 0 }],
-        { duration: D.slow, easing: 'cubic-bezier(0.05, 0.7, 0.1, 1)' },
+      ringAnim.current?.cancel();
+      ringAnim.current = ring.animate(
+        [
+          { transform: 'translate(-50%, -50%) scale(0.6)', opacity: 1, borderWidth: '3px' },
+          { transform: 'translate(-50%, -50%) scale(1.3)', opacity: 0.75, borderWidth: '2px', offset: 0.4 },
+          { transform: 'translate(-50%, -50%) scale(1.8)', opacity: 0, borderWidth: '1px' },
+        ],
+        { duration: D.slow + D.base, easing: cssEase('standard') },
       );
     }
   };

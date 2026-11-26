@@ -1,5 +1,5 @@
 'use client';
-import { useCallback, useEffect, useId, useRef, useState, type CSSProperties, type PointerEvent } from 'react';
+import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore, type CSSProperties, type PointerEvent } from 'react';
 import type { DeprecationId } from '@rive-app/canvas-lite';
 import { duration as D, useStudioMotion } from '../../motion';
 import { useCueSweep } from './cue';
@@ -12,11 +12,25 @@ const ART = { size: 600, cx: 299, eyeY: 200, half: 188 };
 /** The sample file predates data binding: it is driven by inputs and reports states, which Rive now flags. */
 const QUIET: readonly DeprecationId[] = ['state-machine-inputs', 'state-change-events'];
 const SAY: Record<string, string> = { idle: 'idling', lookUp: 'looking up', slowDance: 'dancing' };
+/** Longest explicit reaction (the look-up runs ≈ 2.8 s): if no state change reports it finished, stop anyway. */
+const SAFETY_MS = 4000;
 
 type Props = { index: string; pointer: boolean; backdrop: string };
 
+/** A precise pointer that can hover (the hint says "bring the pointer in"); touch screens tap above Birb instead. */
+const FINE = '(hover: hover) and (pointer: fine)';
+const subscribeFine = (cb: () => void) => {
+  if (typeof window === 'undefined' || !window.matchMedia) return () => {};
+  const mql = window.matchMedia(FINE);
+  mql.addEventListener('change', cb);
+  return () => mql.removeEventListener('change', cb);
+};
+const fineSnapshot = () => typeof window !== 'undefined' && !!window.matchMedia && window.matchMedia(FINE).matches;
+const serverSnapshot = () => true;
+
 export function BirdStage({ index, pointer, backdrop }: Props) {
   const { reduced } = useStudioMotion();
+  const fine = useSyncExternalStore(subscribeFine, fineSnapshot, serverSnapshot);
   const uid = useId();
   const api = useRef<RiveCanvasApi | null>(null);
   const boxRef = useRef<HTMLDivElement>(null);
@@ -90,7 +104,7 @@ export function BirdStage({ index, pointer, backdrop }: Props) {
     setDance(next);
     if (!reduced) setPlaying(true);
     else if (next) { if (!playing) playThenSettle(false); } // dances until toggled off or paused
-    else if (!playing || live.current.settle) playThenSettle(true, 4000); // ease back to idle, then hold
+    else if (!playing || live.current.settle) playThenSettle(true, SAFETY_MS); // ease back to idle, then hold
     sweep(cueRefs.current.dance);
   };
 
@@ -98,7 +112,8 @@ export function BirdStage({ index, pointer, backdrop }: Props) {
     const input = api.current?.input('look up');
     if (from === 'button') {
       if (!reduced) setPlaying(true);
-      else if (!playing || live.current.settle) playThenSettle(false, 4000);
+      // Mid-dance the routine resumes after the glance, so only a look-up from idle needs the safety stop.
+      else if (!playing || live.current.settle) playThenSettle(false, dance ? undefined : SAFETY_MS);
       say(ready ? 'Birb looks up.' : 'Birb is still loading.');
     }
     input?.fire();
@@ -134,7 +149,7 @@ export function BirdStage({ index, pointer, backdrop }: Props) {
     if (e.pointerType !== 'touch' && wallRef.current) {
       const nx = ((e.clientX - stage.left) / stage.width) * 2 - 1;
       const ny = ((e.clientY - stage.top) / stage.height) * 2 - 1;
-      wallRef.current.style.transform = `translate3d(${(nx * 7).toFixed(2)}%, ${(ny * 4).toFixed(2)}%, 0)`;
+      wallRef.current.style.transform = `translate3d(${(nx * 9).toFixed(2)}%, ${(ny * 5).toFixed(2)}%, 0)`;
     }
   };
   const onPointerLeave = () => {
@@ -146,9 +161,11 @@ export function BirdStage({ index, pointer, backdrop }: Props) {
   const stateWord = failed ? 'unavailable' : !ready ? 'loading' : paused ? 'paused' : (SAY[state] ?? state);
   const hint = reduced
     ? 'Reduced motion: Birb holds still until you press Dance, Look up or Play, then settles again.'
-    : pointer
-      ? 'Bring the pointer in above Birb’s head and it looks up at you; Look up does the same from the keyboard, Dance toggles the routine.'
-      : 'Pointer reactions are off: Dance and Look up drive the state machine.';
+    : !pointer
+      ? 'Pointer reactions are off: Dance and Look up drive the state machine.'
+      : fine
+        ? 'Bring the pointer in above Birb’s head and it looks up at you; Look up does the same from the keyboard, Dance toggles the routine.'
+        : 'Tap above Birb’s head and it looks up at you; Look up does the same, Dance toggles the routine.';
 
   return (
     <section className={styles.panel} aria-labelledby={`${uid}t`} style={{ '--i': 0 } as CSSProperties}>
@@ -192,7 +209,7 @@ export function BirdStage({ index, pointer, backdrop }: Props) {
                   <circle cx="73" cy="56" r="6" className={styles.fbEye} />
                   <path d="M54 68h12l-6 8z" className={styles.fbEye} />
                 </svg>
-                <p>Birb could not load here (Rive runtime or birb.riv unavailable). The buttons still set its inputs.</p>
+                <p>Birb could not load here: the Rive runtime or birb.riv is unavailable. The controls still respond, with nothing to animate.</p>
               </div>
             )}
             onReady={(a) => { api.current = a; setReady(true); setFailed(false); }}

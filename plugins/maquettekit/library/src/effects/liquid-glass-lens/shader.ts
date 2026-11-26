@@ -165,7 +165,7 @@ void main() {
   for (int i = 0; i < SAMPLES; i++) {
     float fi = float(i);
     float c = fract((fi + 0.5) * 0.6180339887);             // wavelength, decorrelated from the frost tap
-    float iorC = 1.0 + (ior - 1.0) * (1.0 + uDisperse * 0.42 * (c - 0.5));
+    float iorC = 1.0 + (ior - 1.0) * (1.0 + uDisperse * 0.62 * (c - 0.5));
     vec3 r1 = refract(I, N, 1.0 / iorC);
     vec2 off = r1.xy / max(-r1.z, 0.2) * thick;
     vec3 r2 = refract(r1, vec3(0.0, 0.0, 1.0), iorC);        // out through the flat underside

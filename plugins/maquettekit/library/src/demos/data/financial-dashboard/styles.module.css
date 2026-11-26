@@ -112,12 +112,13 @@
 .kpiNote { font-size: 0.75rem; line-height: 1.35; color: var(--mk-ink-muted, #5c5a52); font-variant-numeric: tabular-nums; }
 .kpiPeriod { margin: 8px 0 0; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; font-size: 0.78rem; color: var(--mk-ink-muted, #5c5a52); font-variant-numeric: tabular-nums; }
 
-.ticker { display: inline-flex; align-items: baseline; }
-.digit { position: relative; display: inline-block; height: 1.1em; padding-block: 0.06em; margin-block: -0.06em; overflow: clip; vertical-align: baseline; }
-.strip { display: flex; flex-direction: column; }
-.cell { display: block; height: 1.1em; line-height: 1.1; text-align: center; }
-.cell + .cell { margin-top: 0.12em; }
-.symbol { display: inline-block; white-space: pre; }
+/* Odometer figure (Ticker.tsx). Every glyph box is exactly one cell (1.15em) tall and top-aligned, so digits and
+   symbols share a baseline; a reel is a gapless column of cells that moves in whole cells (see CELL_EM). */
+.tk { display: inline-flex; align-items: flex-start; vertical-align: top; line-height: 1.15em; }
+.tkSym { display: inline-block; height: 1.15em; line-height: 1.15em; white-space: pre; }
+.tkDigit { display: inline-block; height: 1.15em; overflow: hidden; }
+.tkReel { display: flex; flex-direction: column; }
+.tkCell { display: block; height: 1.15em; line-height: 1.15em; text-align: center; }
 
 .delta { display: inline-flex; align-items: baseline; gap: 4px; font-family: var(--mk-font-mono, ui-monospace, monospace); font-size: 0.75rem; font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .delta[data-dir='up'] { color: var(--fh-up); }

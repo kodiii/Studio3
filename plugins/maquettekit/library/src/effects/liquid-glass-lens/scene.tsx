@@ -40,13 +40,16 @@ export function Scene({ engine, draw, drawKey, refraction, dispersion, frost, lo
   // Page texture at drawing-buffer resolution (already capped by the quality profile's DPR). Resizes are debounced so
   // a window drag does not redraw and re-upload on every frame; the old texture stretches for the moment in between.
   const [texSize, setTexSize] = useState<[number, number] | null>(null);
+  const hasTexture = texSize !== null;
   useEffect(() => {
     const max = gl.capabilities.maxTextureSize || 4096;
     const next: [number, number] = [Math.min(max, Math.round(size.width * dpr)), Math.min(max, Math.round(size.height * dpr))];
     if (next[0] < 2 || next[1] < 2) return;
-    const id = window.setTimeout(() => setTexSize((s) => (s && s[0] === next[0] && s[1] === next[1] ? s : next)), texSize ? 140 : 0);
+    const apply = () => setTexSize((s) => (s && s[0] === next[0] && s[1] === next[1] ? s : next));
+    if (!hasTexture) { apply(); return; }
+    const id = window.setTimeout(apply, 140);
     return () => window.clearTimeout(id);
-  }, [size.width, size.height, dpr, gl, texSize]);
+  }, [size.width, size.height, dpr, gl, hasTexture]);
 
   const texture = useMemo(() => {
     if (!texSize) return null;

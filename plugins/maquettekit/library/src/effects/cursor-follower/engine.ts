@@ -52,7 +52,7 @@ export const CURSOR_SELECTOR = '[data-cursor], [data-cursor-label]';
 const MODIFIERS = new Set(['Shift', 'Control', 'Alt', 'AltGraph', 'Meta', 'CapsLock', 'Fn', 'OS']);
 
 /* Springs — all Motion Lab tokens, some played faster (same damping ratio, so the same character). */
-const DOT = quicken(SPRING.press, 2.5); // the dot is nearly weightless
+const DOT = quicken(SPRING.press, 4); // the dot is nearly weightless: ~16 px behind at 1000 px/s, then exactly on
 const SHAPE = SPRING.settle; // outline morphs land without a visible bounce
 const ENTER = SPRING.settle;
 const EXIT = quicken(SPRING.press, 1.25); // exits are faster than entrances
@@ -450,6 +450,11 @@ export class FollowerEngine {
     }
     let magnetsAtRest = true;
     for (const mm of this.magnets.values()) {
+      if (!mm.el.isConnected) { // the element left the page: forget it
+        this.magnets.delete(mm.el);
+        if (this.magnet === mm) { this.magnet = null; this.target = null; this.kind = 'default'; }
+        continue;
+      }
       const engaged = mm.engaged && visible;
       let mx = 0, my = 0;
       if (engaged) {
@@ -475,7 +480,10 @@ export class FollowerEngine {
     const S = clamp(jelly.x, MIN_STRETCH, MAX_STRETCH) * round * round;
     const sx = 1 + S, sy = 1 / (1 + S);
     const theta = Math.atan2(this.os, this.oc) / 2;
-    const depth = clamp((PRESS_PX * 2) / Math.max(1, W, H), 0.035, 0.24);
+    // A press squeezes the outline by ~PRESS_PX, but around a magnet it never closes the gap onto the element.
+    const depth = this.visual === 'magnet' && this.magnet
+      ? clamp((o.padding * 1.2) / Math.max(1, W, H), 0.015, 0.12)
+      : clamp((PRESS_PX * 2) / Math.max(1, W, H), 0.035, 0.24);
     const k = (0.3 + 0.7 * pres) * (1 - depth * press.x);
     const turn = `rotate(${f4(theta)}rad)`, back = `rotate(${f4(-theta)}rad)`;
     const body = `translate3d(${f2(rx.x - this.ox)}px, ${f2(ry.x - this.oy)}px, 0) ${turn} scale(${f4(sx * k)}, ${f4(sy * k)}) ${back}`;
@@ -494,7 +502,7 @@ export class FollowerEngine {
     set('stroke', f4(clamp01(stroke.x)), (v) => { n.ring.style.strokeOpacity = v; });
     set('caret', f4(clamp01(caretAmt.x) * clamp01((10 - W) / 7)), (v) => { n.ring.style.fillOpacity = v; });
     set('fill', `scale(${f4(fs)})`, (v) => { n.fill.style.transform = v; });
-    set('fillO', f4(clamp01(fillAmt.x * 1.6)), (v) => { n.fill.style.opacity = v; });
+    set('fillO', f4(clamp01(fillAmt.x * 2.2)), (v) => { n.fill.style.opacity = v; });
     set('shadow', `translate3d(0, ${f2(3 + 5 * clamp01(fillAmt.x))}px, 0) scale(${f4((W * fs) / 100)}, ${f4((H * fs) / 100)})`, (v) => { n.shadow.style.transform = v; });
     set('shadowO', f4(clamp01(fillAmt.x)), (v) => { n.shadow.style.opacity = v; });
     // The label text keeps its proportions while the disc smears: undo the stretch, then rise into place.

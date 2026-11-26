@@ -36,24 +36,26 @@ const lagged = (keys: Keys, by: number, gain: number, end: number): [number, num
    The outer bars breathe apart and the middle bar draws back (wind-up), then the outer bars converge and cross on an
    overshoot while the middle one is swallowed; the cross lands with a small squash. Reversible as it stands. */
 function menu(w: number): LottieAnimation {
-  const W = WIND, MEET = 19, END = 32;
+  const W = WIND, MEET = 16, END = 32;
   const stroke: StrokePaint = { tone: 'ink', width: w };
-  const bar = (name: string, y: number, spread: number, angle: number): SceneNode => draw(name, {
+  // The cross lands on a spring: past 45° to 53°, back to 43°, and settles.
+  const land = (sign: number): Keys => [[20, 53 * sign, 'emphasized'], [24, 43 * sign, 'swing'], [27.5, 45.6 * sign, 'swing'], [31, 45 * sign, 'swing']];
+  const bar = (name: string, y: number, spread: number, sign: number): SceneNode => draw(name, {
     paths: [line([-8, 0], [8, 0])],
     stroke,
     transform: {
       position: track<Vec2>([12, y]).to(W, [12, y + spread], 'standard').to(MEET, [12, 12], 'inOut'),
-      rotation: track(0).hold(13).to(END - 2, angle, 'overshoot'),
+      rotation: track(0).hold(MEET - 2).keysTo(land(sign)),
     },
   });
   const middle = draw('middle', {
     paths: [line([0, 0], [16, 0])],
-    stroke: { ...stroke, opacity: track(1).hold(13).to(17, 0, 'linear') },
-    transform: { position: [4, 12], scale: track<Vec2>([1, 1]).to(W, [0.62, 1], 'standard').to(17, [0, 1], 'exit') },
+    stroke: { ...stroke, opacity: track(1).hold(12).to(15, 0, 'linear') },
+    transform: { position: [4, 12], scale: track<Vec2>([1, 1]).to(W, [0.55, 1], 'standard').to(15, [0, 1], 'exit') },
   });
-  const cross = group('menu', [middle, bar('bottom', 18, 1, -45), bar('top', 6, -1, 45)], {
+  const cross = group('menu', [middle, bar('bottom', 18, 1.2, -1), bar('top', 6, -1.2, 1)], {
     pivot: [12, 12],
-    scale: track(1).hold(MEET - 1).to(MEET + 2, 0.93, 'exit').to(MEET + 8, 1.035, 'swing').to(END, 1, 'swing'),
+    scale: track(1).hold(MEET - 1).to(MEET + 1, 0.9, 'exit').to(MEET + 6, 1.04, 'swing').to(MEET + 12, 1, 'swing'),
   });
   return compose({ name: 'Menu', frames: END, scene: [cross], markers: { on: [0, END] } });
 }
@@ -64,21 +66,25 @@ function menu(w: number): LottieAnimation {
 function play(w: number): LottieAnimation {
   const W = 8, END = 30;
   const left = track(polyline([[10, 8], [13.2, 10], [13.2, 14], [10, 16]], true))
-    .hold(W).to(18, polyline([[8.8, 8.2], [9.8, 8.2], [9.8, 15.8], [8.8, 15.8]], true), 'emphasized');
+    .hold(W).to(W + 9, polyline([[8.8, 8.2], [9.8, 8.2], [9.8, 15.8], [8.8, 15.8]], true), 'inOut');
   const right = track(polyline([[13.2, 10], [16.4, 12], [16.4, 12], [13.2, 14]], true))
-    .hold(W + 2).to(20, polyline([[14.2, 8.2], [15.2, 8.2], [15.2, 15.8], [14.2, 15.8]], true), 'emphasized');
+    .hold(W + 1).to(W + 10, polyline([[14.2, 8.2], [15.2, 8.2], [15.2, 15.8], [14.2, 15.8]], true), 'inOut');
   const paint = { fill: { tone: 'on' as const }, stroke: { tone: 'on' as const, width: w } }; // round joins round the corners
   const disc = draw('disc', {
     paths: [circle([12, 12], 11)],
     fill: { tone: 'solid' },
-    transform: { pivot: [12, 12], scale: track(1).to(W, 0.94, 'standard').to(15, 1.045, 'emphasized').to(22, 0.99, 'swing').to(END, 1, 'swing') },
+    transform: { pivot: [12, 12], scale: track(1).to(W, 0.94, 'standard').to(W + 8, 1.05, 'emphasized').to(W + 15, 0.99, 'swing').to(END, 1, 'swing') },
   });
   const glyph = group('glyph', [
     group('stretch', [draw('left', { paths: [left], ...paint }), draw('right', { paths: [right], ...paint })], {
       pivot: [12, 12],
-      scale: track<Vec2>([1, 1]).hold(W + 2).to(16, [1.03, 1.12], 'emphasized').to(22, [1, 0.95], 'swing').to(END - 2, [1, 1], 'swing'),
+      scale: track<Vec2>([1, 1]).hold(W + 4).to(W + 10, [1.04, 1.14], 'emphasized').to(W + 16, [1, 0.95], 'swing').to(END, [1, 1], 'swing'),
     }),
-  ], { pivot: [10, 12], scale: track<Vec2>([1, 1]).to(W, [0.86, 1.05], 'standard').to(W + 6, [1, 1], 'emphasized') });
+  ], {
+    pivot: [10, 12],
+    scale: track<Vec2>([1, 1]).to(W, [0.86, 1.05], 'standard').to(W + 6, [1, 1], 'emphasized'),
+    rotation: track(0).to(W, -7, 'standard').to(W + 9, 2, 'emphasized').to(W + 15, 0, 'swing'),
+  });
   return compose({ name: 'Play / pause', frames: END, scene: [disc, glyph], markers: { on: [0, END] } });
 }
 
@@ -87,16 +93,27 @@ function play(w: number): LottieAnimation {
    the ribbon, hanging from its top edge, stretches under the weight and bounces back. Unsaving lifts the ribbon and
    rolls the ink back up into the top edge. */
 function bookmark(w: number): LottieAnimation {
-  const W = WIND, HIT = 17, SPLAT = 20, FULL = 32, END = 38, OFF_W = END + 6, OFF_END = 54;
+  const W = WIND, HIT = 16, SPLAT = 18, FULL = 27, END = 42, OFF_W = END + 6, OFF_END = 58;
   const ribbon = roundedPolygon([[6.5, 3.5], [17.5, 3.5], [17.5, 20.5], [12, 16.4], [6.5, 20.5]], [2.2, 2.2, 0.6, 0.6, 0.6]);
   const angles = vertexAngles(ribbon, [12, 11]);
   const blob = (c: Vec2, rx: number, ry: number): Path => ellipseAt(c, rx, ry, angles);
-  const inkShape = track(blob([12, -0.6], 0.05, 0.05))
-    .to(W - 3, blob([12, -0.6], 1.75, 1.5), 'emphasized') // beads, a little wide (surface tension)
-    .to(W, blob([12, -0.6], 1.5, 1.7), 'swing') //            hangs, a little long
-    .to(HIT, blob([12, 7.4], 1.15, 2.5), 'exit') //            falls, stretching as it speeds up
-    .to(SPLAT, blob([12, 8.4], 3.4, 1.5), 'enter') //          splats on the top edge
-    .to(FULL, ribbon, 'emphasized'); //                         floods the ribbon
+  // A drop: the blob with its two top vertices (the ribbon's top edge) drawn up into a point.
+  const tear = (c: Vec2, rx: number, ry: number, tip: number): Path => {
+    const b = blob(c, rx, ry);
+    const top = c[1] - ry - tip;
+    return {
+      ...b,
+      v: b.v.map((p, n) => (n === 1 ? [c[0] - 0.04, top] : n === 2 ? [c[0] + 0.04, top] : p)),
+      i: b.i.map((t, n) => (n === 1 ? [-rx * 0.42, ry * 0.7] : n === 2 ? [0, 0] : t)),
+      o: b.o.map((t, n) => (n === 1 ? [0, 0] : n === 2 ? [rx * 0.42, ry * 0.7] : t)),
+    };
+  };
+  const inkShape = track(blob([12, -0.8], 0.05, 0.05))
+    .to(5, blob([12, -0.8], 1.65, 1.35), 'emphasized') // beads, a little wide (surface tension)
+    .to(W, tear([12, -0.8], 1.45, 1.5, 1.4), 'swing') // hangs as a drop
+    .to(HIT, tear([12, 8], 1.1, 2.1, 1.2), 'exit') //     falls, stretching as it speeds up
+    .to(SPLAT, blob([12, 8.6], 3.5, 1.45), 'enter') //    splats on the top edge
+    .to(FULL, ribbon, 'emphasized'); //                    floods the ribbon
   const ink = draw('ink', {
     paths: [inkShape],
     fill: { tone: 'tint' },
@@ -111,10 +128,11 @@ function bookmark(w: number): LottieAnimation {
     paths: [ribbon],
     stroke: { tone: 'ink', width: w, opacity: track(1).hold(FULL).to(FULL + 3, 0, 'linear').hold(END).to(END + 2, 1, 'linear') },
   });
+  // The ribbon hangs from its top edge: the impact stretches it down, it recoils, then settles.
   const hanging = group('ribbon', [outline, ink], {
     pivot: [12, 3.5],
-    scale: track<Vec2>([1, 1]).hold(HIT).keysTo([
-      [HIT + 5, [0.97, 1.08], 'enter'], [HIT + 11, [1.015, 0.97], 'swing'], [HIT + 16, [0.995, 1.012], 'swing'], [END, [1, 1], 'swing'],
+    scale: track<Vec2>([1, 1]).hold(SPLAT).keysTo([
+      [SPLAT + 5, [0.96, 1.09], 'enter'], [SPLAT + 12, [1.02, 0.965], 'swing'], [SPLAT + 18, [0.995, 1.012], 'swing'], [END, [1, 1], 'swing'],
       [OFF_W, [1.01, 0.95], 'standard'], [OFF_END - 4, [0.99, 1.02], 'emphasized'], [OFF_END, [1, 1], 'swing'],
     ]),
   });
@@ -126,10 +144,10 @@ function bookmark(w: number): LottieAnimation {
    a damped ring about the hanger, with the clapper lagging two frames behind at a wider swing, and sound waves
    thrown out on the first swings. Turning off muffles the bell with a short dead swing and strikes the slash back. */
 function bell(w: number): LottieAnimation {
-  const W = 8, END = 54, OFF_W = END + 6, OFF_END = 76;
+  const W = 8, END = 42, OFF_W = END + 6, OFF_END = 62;
   const PIVOT: Vec2 = [12, 3.2];
-  const ring = oscillation(0, 18, { start: W, halfPeriod: 6.5, decay: 0.6, swings: 6 });
-  const muffle: Keys = [[OFF_W, 4, 'standard'], [OFF_W + 5, -3, 'swing'], [OFF_W + 10, 1.2, 'swing'], [OFF_W + 14, 0, 'swing']];
+  const ring = oscillation(0, 18, { start: W, halfPeriod: 5.5, decay: 0.58, swings: 5 });
+  const muffle: Keys = [[OFF_W, 4, 'standard'], [OFF_W + 5, -3, 'swing'], [OFF_W + 9, 1.2, 'swing'], [OFF_W + 12, 0, 'swing']];
   const body = draw('bell', {
     paths: [{ v: [[12, 4.4], [17.4, 10.2], [19.2, 16.6], [4.8, 16.6], [6.6, 10.2]], i: [[-3, 0], [0, -3.2], [-1.4, -1.2], [0, 0], [0, 3.6]], o: [[3, 0], [0, 3.6], [0, 0], [1.4, -1.2], [0, -3.2]], c: true }],
     stroke: { tone: 'ink', width: w },
@@ -204,18 +222,18 @@ function heart(w: number): LottieAnimation {
     pivot: [12, 19.8],
     position: track<Vec2>([12, 19.8]).hold(W).to(14, [12, 18.6], 'enter').to(20, [12, 19.8], 'standard'),
     scale: track<Vec2>([1, 1]).keysTo([
-      [W, [1.07, 0.9], 'standard'], [14, [0.9, 1.12], 'exit'], [19, [1.08, 0.94], 'enter'], [25, [0.98, 1.02], 'swing'], [31, [1, 1], 'swing'],
+      [W, [1.08, 0.88], 'standard'], [14, [0.88, 1.14], 'exit'], [19, [1.1, 0.92], 'enter'], [25, [0.97, 1.03], 'swing'], [31, [1, 1], 'swing'],
       [OFF_W, [1.04, 0.95], 'standard'], [OFF_END - 4, [0.98, 1.02], 'swing'], [OFF_END, [1, 1], 'swing'],
     ]),
   });
   const ring = draw('ring', {
-    paths: [ellipse(C, track<Vec2>([7, 7]).hold(13).to(28, [29, 29], 'emphasized'))],
-    stroke: { tone: 'tint', width: track(3.2).hold(13).to(28, 0, 'emphasized'), opacity: track(0).to(13, 1, 'hold').to(28, 0, 'hold') },
+    paths: [ellipse(C, track<Vec2>([11, 11]).hold(13).to(27, [30, 30], 'emphasized'))],
+    stroke: { tone: 'tint', width: track(2.6).hold(13).to(27, 0, 'emphasized'), opacity: track(0).to(13, 1, 'hold').to(27, 0, 'hold') },
   });
   const particles = Array.from({ length: 8 }, (_, n): SceneNode => {
     const big = n % 2 === 0;
     const a = 22.5 + n * 45;
-    const size = big ? 2.6 : 1.7;
+    const size = big ? 2.6 : 1.5;
     return draw(`particle ${n}`, {
       paths: [ellipse(
         track(polar(C, big ? 8.5 : 7.5, a)).hold(14).to(30, polar(C, big ? 15.5 : 12.5, a), 'enter'),
@@ -266,28 +284,29 @@ function sparkle(c: Vec2, r: number): Path {
 }
 
 function theme(w: number): LottieAnimation {
-  const W = 9, END = 40;
+  const W = 9, END = 42;
   const C: Vec2 = [12, 12];
   const moon = crescent(C, 8.2, 45, 4.6, 6.4);
   const disc = (r: number): Path => ellipseAt(C, r, r, moon.angles);
+  // Staged: the sun gathers (wind-up), the rays fold into it, then the disc swells into a full moon and is bitten.
   const body = draw('body', {
-    paths: [track(disc(4.4)).to(W, disc(4.9), 'standard').to(17, disc(7.4), 'inOut').to(28, moon.path, 'emphasized')],
+    paths: [track(disc(4.4)).to(W, disc(4.1), 'standard').hold(13).to(21, disc(7.6), 'inOut').to(31, moon.path, 'emphasized')],
     stroke: { tone: 'ink', width: w },
   });
   const orb = group('orb', [body], {
     pivot: C,
-    rotation: track(32).hold(W).to(30, 0, 'emphasized'),
-    scale: track(1).hold(22).to(27, 1.05, 'standard').to(34, 1, 'swing'),
+    rotation: track(32).hold(13).to(33, 0, 'emphasized'),
+    scale: track(1).hold(25).to(30, 1.05, 'standard').to(37, 1, 'swing'),
   });
   const order = [45, 0, 90, 315, 135, 270, 180, 225]; // fold from the bite side round to the far side
   const rays = order.map((a, n): SceneNode => {
-    const t0 = W + 1 + n * 1.2;
+    const t0 = W + 1 + n * 0.8;
     return draw(`ray ${a}`, {
-      paths: [track(line(polar(C, 7.2, a), polar(C, 9.6, a))).to(W, line(polar(C, 7.2, a), polar(C, 9, a)), 'standard').hold(t0).to(t0 + 7, line(polar(C, 7.2, a), polar(C, 7.25, a)), 'exit')],
-      stroke: { tone: 'ink', width: w, opacity: track(1).hold(t0 + 5).to(t0 + 7, 0, 'linear') },
+      paths: [track(line(polar(C, 7.2, a), polar(C, 9.6, a))).to(W, line(polar(C, 7, a), polar(C, 8.9, a)), 'standard').hold(t0).to(t0 + 5, line(polar(C, 6.6, a), polar(C, 6.7, a)), 'exit')],
+      stroke: { tone: 'ink', width: w, opacity: track(1).hold(t0 + 2).to(t0 + 5, 0, 'linear') },
     });
   });
-  const rayGroup = group('rays', rays, { pivot: C, rotation: track(0).to(W, -12, 'standard').to(26, -40, 'standard') });
+  const rayGroup = group('rays', rays, { pivot: C, rotation: track(0).to(W, -12, 'standard').to(W + 12, -36, 'standard') });
   const star = (name: string, c: Vec2, r: number, t0: number): SceneNode => draw(name, {
     paths: [sparkle(c, r)],
     fill: { tone: 'tint' },
@@ -299,16 +318,16 @@ function theme(w: number): LottieAnimation {
   });
   return compose({
     name: 'Sun / moon', frames: END,
-    scene: [rayGroup, orb, star('star', [19.4, 4.6], 2.6, 24), star('star small', [21.5, 10.6], 1.6, 28)],
+    scene: [rayGroup, orb, star('star', [19.4, 4.6], 2.6, 27), star('star small', [21.5, 10.6], 1.6, 31)],
     markers: { on: [0, END] },
   });
 }
 
 export const ICONS: Record<IconId, IconDesign> = {
-  menu: { id: 'menu', segments: { on: [0, 32], hover: { on: WIND, off: 8 } }, build: menu },
+  menu: { id: 'menu', segments: { on: [0, 32], hover: { on: WIND, off: 10 } }, build: menu },
   play: { id: 'play', segments: { on: [0, 30], hover: { on: 8, off: 8 } }, build: play },
-  bookmark: { id: 'bookmark', segments: { on: [0, 38], off: [38, 54], hover: { on: WIND, off: 6 } }, build: bookmark },
-  bell: { id: 'bell', segments: { on: [0, 54], off: [54, 76], hover: { on: 8, off: 6 } }, build: bell },
+  bookmark: { id: 'bookmark', segments: { on: [0, 42], off: [42, 58], hover: { on: WIND, off: 6 } }, build: bookmark },
+  bell: { id: 'bell', segments: { on: [0, 42], off: [42, 62], hover: { on: 8, off: 6 } }, build: bell },
   heart: { id: 'heart', segments: { on: [0, 34], off: [34, 50], hover: { on: 9, off: 6 } }, build: heart },
-  theme: { id: 'theme', segments: { on: [0, 40], hover: { on: 9, off: 8 } }, build: theme },
+  theme: { id: 'theme', segments: { on: [0, 42], hover: { on: 9, off: 8 } }, build: theme },
 };

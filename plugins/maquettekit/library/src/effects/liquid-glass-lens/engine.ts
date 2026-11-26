@@ -92,6 +92,8 @@ export class LensEngine {
       // Resting spot: across the display word and the edge of the sun, where there is most to bend.
       snap(this.x, w * 0.56);
       snap(this.y, h * 0.6);
+      // Arrival: the glass is set down onto the page, its shadow tightening as it lands.
+      if (!this.reduced) this.lift.x = 1.2;
     } else if (this.w > 0 && this.h > 0) {
       const sx = w / this.w, sy = h / this.h;
       for (const [s, k] of [[this.x, sx], [this.y, sy]] as const) { s.x *= k; s.to *= k; }
@@ -105,10 +107,15 @@ export class LensEngine {
 
   setShape(id: ShapeId, instant = false): void {
     const t = SHAPES[id];
+    const grow = t.hx - this.shape.hx.to;
     for (const k of ['hx', 'hy', 'r', 'n'] as const) {
       this.shape[k].to = t[k];
       if (instant || this.reduced) snap(this.shape[k]);
     }
+    if (instant || this.reduced || Math.abs(grow) < 1e-3) return;
+    // Liquid follow-through: the glass lags the change of width, then wobbles through it.
+    if (Math.abs(this.stretch.x) < 0.01) this.dir = { x: 1, y: 0 };
+    this.stretch.v -= Math.sign(grow) * Math.sign(this.dir.x || 1) * 1.1;
   }
 
   /** Lens centre limits for the target shape. */
@@ -116,14 +123,6 @@ export class LensEngine {
     const hx = this.shape.hx.to * this.R + MARGIN, hy = this.shape.hy.to * this.R + MARGIN;
     const lx = Math.min(hx, this.w / 2), ly = Math.min(hy, this.h / 2);
     return [lx, Math.max(lx, this.w - hx), ly, Math.max(ly, this.h - hy)];
-  }
-
-  /** True when (px, py) falls on the lens (its current, unstretched shape). */
-  hit(px: number, py: number): boolean {
-    const f = this.frame();
-    const qx = Math.abs(px - f.x) - f.hx + f.r, qy = Math.abs(py - f.y) - f.hy + f.r;
-    const ox = Math.max(qx, 0), oy = Math.max(qy, 0);
-    return Math.min(Math.max(qx, qy), 0) + Math.hypot(ox, oy) - f.r <= 0;
   }
 
   pointerMove(px: number, py: number, inside = true): void {

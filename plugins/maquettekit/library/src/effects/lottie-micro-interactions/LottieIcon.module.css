@@ -1,0 +1,59 @@
+/* LottieIcon: a button reset, the icon box and the tone → token mapping. Consumers style the button via className. */
+.button {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.button:focus-visible { outline: 2px solid var(--mk-focus, #1d4ed8); outline-offset: 2px; }
+
+/* The icon box is the design grid; the player and fallback overhang it by the composition's bleed. */
+.glyph {
+  position: relative;
+  display: block;
+  flex: none;
+  width: var(--lmi-size, 24px);
+  height: var(--lmi-size, 24px);
+  pointer-events: none;
+}
+.player, .fallback {
+  position: absolute;
+  top: calc(var(--lmi-size, 24px) * var(--lmi-bleed, 0) * -1);
+  left: calc(var(--lmi-size, 24px) * var(--lmi-bleed, 0) * -1);
+  display: block;
+  width: calc(var(--lmi-size, 24px) * (1 + 2 * var(--lmi-bleed, 0)));
+  height: calc(var(--lmi-size, 24px) * (1 + 2 * var(--lmi-bleed, 0)));
+  overflow: visible;
+}
+.player :global(svg) { display: block; overflow: visible; }
+.ghost { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.glyph[data-ready] .fallback { display: none; }
+
+/* Tones. Colours in the Lottie data are only a fallback: CSS beats SVG presentation attributes, so every tagged
+   fill and stroke follows the theme (and any local token override) live, with no rebuild. */
+.glyph :global(.lmi-st.lmi-ink) { stroke: var(--lmi-ink, var(--mk-ink, #11110f)); }
+.glyph :global(.lmi-fl.lmi-ink) { fill: var(--lmi-ink, var(--mk-ink, #11110f)); }
+.glyph :global(.lmi-st.lmi-tint) { stroke: var(--lmi-tint, var(--mk-accent, #bf2f09)); }
+.glyph :global(.lmi-fl.lmi-tint) { fill: var(--lmi-tint, var(--mk-accent, #bf2f09)); }
+.glyph :global(.lmi-st.lmi-solid) { stroke: var(--lmi-solid, var(--lmi-ink, var(--mk-ink, #11110f))); }
+.glyph :global(.lmi-fl.lmi-solid) { fill: var(--lmi-solid, var(--lmi-ink, var(--mk-ink, #11110f))); }
+.glyph :global(.lmi-st.lmi-on) { stroke: var(--lmi-on, var(--mk-surface, #fbf9f4)); }
+.glyph :global(.lmi-fl.lmi-on) { fill: var(--lmi-on, var(--mk-surface, #fbf9f4)); }
+.glyph :global(.lmi-st.lmi-knock) { stroke: var(--lmi-knock, var(--mk-surface, #fbf9f4)); }
+.glyph :global(.lmi-fl.lmi-knock) { fill: var(--lmi-knock, var(--mk-surface, #fbf9f4)); }
+
+@media (forced-colors: active) {
+  .glyph :global(.lmi-st) { stroke: CanvasText; }
+  .glyph :global(.lmi-fl) { fill: CanvasText; }
+  .glyph :global(.lmi-st.lmi-knock), .glyph :global(.lmi-st.lmi-on) { stroke: Canvas; }
+  .glyph :global(.lmi-fl.lmi-on) { fill: Canvas; }
+}

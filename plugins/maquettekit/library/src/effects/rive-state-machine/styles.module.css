@@ -525,11 +525,11 @@
   /* Entrance: the panel lands, then its rows follow in order. */
   .root:not([data-reduced]) .panel {
     animation: rs-lift var(--mk-duration-slow, 560ms) var(--mk-ease-emphasized, cubic-bezier(0.16, 1, 0.3, 1)) both;
-    animation-delay: calc(var(--i, 0) * 90ms);
+    animation-delay: calc(var(--i, 0) * var(--mk-stagger-loose, 90ms));
   }
   .root:not([data-reduced]) .panel > :not(.srOnly) {
     animation: rs-rise var(--mk-duration-moderate, 360ms) var(--mk-ease-enter, cubic-bezier(0.05, 0.7, 0.1, 1)) both;
-    animation-delay: calc(var(--i, 0) * 90ms + 140ms + var(--row, 0) * 48ms);
+    animation-delay: calc(var(--i, 0) * var(--mk-stagger-loose, 90ms) + var(--mk-stagger-dramatic, 140ms) + var(--row, 0) * var(--mk-stagger-base, 48ms));
   }
   .root:not([data-reduced]) .panel > :nth-child(2) { --row: 1; }
   .root:not([data-reduced]) .panel > :nth-child(3) { --row: 2; }
@@ -538,9 +538,9 @@
   /* The score ticks to its new value. */
   .root:not([data-reduced]) .scoreNum { animation: rs-tick var(--mk-duration-moderate, 360ms) var(--mk-ease-emphasized, ease) both; }
   /* The equaliser bounces while Birb dances. */
-  .root:not([data-reduced]) .eq[data-on] i { animation: rs-eq 0.46s var(--mk-ease-inOut, ease-in-out) infinite alternate; }
-  .root:not([data-reduced]) .eq[data-on] i:nth-child(2) { animation-delay: -0.3s; }
-  .root:not([data-reduced]) .eq[data-on] i:nth-child(3) { animation-delay: -0.15s; }
+  .root:not([data-reduced]) .eq[data-on] i { animation: rs-eq var(--mk-duration-moderate, 360ms) var(--mk-ease-inOut, ease-in-out) infinite alternate; }
+  .root:not([data-reduced]) .eq[data-on] i:nth-child(2) { animation-delay: calc(var(--mk-duration-moderate, 360ms) * -0.66); }
+  .root:not([data-reduced]) .eq[data-on] i:nth-child(3) { animation-delay: calc(var(--mk-duration-moderate, 360ms) * -0.33); }
 }
 @keyframes rs-lift { from { opacity: 0; transform: translateY(18px) scale(0.985); } }
 @keyframes rs-rise { from { opacity: 0; transform: translateY(10px); } }
