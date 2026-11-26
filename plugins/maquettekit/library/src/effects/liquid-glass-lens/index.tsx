@@ -34,7 +34,7 @@ function glassLook(t: Theme): GlassLook {
   // ceiling colour sets how much the body veils what is under it.
   return p.dark
     ? { dark: true, envLo: mix(p.paper, '#ffffff', 0.04), envHi: mix(p.paper, '#ffffff', 0.22), light: '#fff7ec', shadow: '#000000', shadowAmount: 0.62, caustic: 1.5 }
-    : { dark: false, envLo: mix(p.paper, p.ink, 0.5), envHi: mix(p.paper, p.ink, 0.34), light: '#fffaf2', shadow: '#4d5160', shadowAmount: 0.34, caustic: 0.14 };
+    : { dark: false, envLo: mix(p.paper, p.ink, 0.62), envHi: mix(p.paper, p.ink, 0.34), light: '#fffaf2', shadow: '#4d5160', shadowAmount: 0.34, caustic: 0.14 };
 }
 
 export interface LensHandle {
@@ -143,7 +143,7 @@ export function LiquidGlassLens({
     const r = frame.current!.getBoundingClientRect();
     return { x: e.clientX - r.left, y: e.clientY - r.top };
   };
-  const onFramePointerMove = (e: PointerEvent<HTMLDivElement>) => { const p = local(e); engine.pointerMove(p.x, p.y, true); kick(); };
+  const onFramePointerMove = (e: PointerEvent<HTMLDivElement>) => { const p = local(e); engine.pointerMove(p.x, p.y, true, e.pointerType === 'mouse'); kick(); };
   const onFramePointerLeave = () => { if (!engine.dragging) { engine.pointerLeave(); kick(); } };
   const onFrameClick = (e: MouseEvent<HTMLDivElement>) => {
     if (handle.current?.contains(e.target as Node)) return;
@@ -209,8 +209,6 @@ export function LiquidGlassLens({
         onPointerUp={onHandleUp}
         onPointerCancel={onHandleUp}
         onLostPointerCapture={onHandleUp}
-        onPointerEnter={(e) => { if (e.pointerType === 'mouse') { engine.setHover(true); kick(); } }}
-        onPointerLeave={(e) => { if (e.pointerType === 'mouse') { engine.setHover(false); kick(); } }}
         onKeyDown={onKeyDown}
       />
       {describedBy ? null : (

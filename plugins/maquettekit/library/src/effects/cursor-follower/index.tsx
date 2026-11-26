@@ -167,7 +167,7 @@ export default function CursorFollowerShowcase({ params }: EffectProps<Params>) 
 /** Release velocity is projected this far ahead (s) to pick the tile the strip glides to. */
 const PROJECTION = 0.26;
 
-interface Drag { id: number; x0: number; s0: number; max: number; width: number; samples: { t: number; x: number }[] }
+interface Drag { id: number; x0: number; s0: number; max: number; width: number; moved: boolean; samples: { t: number; x: number }[] }
 
 function ArchiveStrip({ reduced, headingId, hintId }: { reduced: boolean; headingId: string; hintId: string }) {
   const strip = useRef<HTMLDivElement>(null);
@@ -223,7 +223,7 @@ function ArchiveStrip({ reduced, headingId, hintId }: { reduced: boolean; headin
     if (coasting) setCoasting(false);
     coast.current.virtual = start;
     // Measure once per gesture (reads first); the move handler only writes.
-    drag.current = { id: e.pointerId, x0: e.clientX, s0: start, max: Math.max(0, el.scrollWidth - el.clientWidth), width: el.clientWidth, samples: [{ t: e.timeStamp, x: e.clientX }] };
+    drag.current = { id: e.pointerId, x0: e.clientX, s0: start, max: Math.max(0, el.scrollWidth - el.clientWidth), width: el.clientWidth, moved: false, samples: [{ t: e.timeStamp, x: e.clientX }] };
     el.setPointerCapture(e.pointerId);
     setDragging(true);
   };
@@ -231,6 +231,8 @@ function ArchiveStrip({ reduced, headingId, hintId }: { reduced: boolean; headin
   const onPointerMove = (e: PointerEvent<HTMLDivElement>) => {
     const d = drag.current;
     if (!d || e.pointerId !== d.id) return;
+    if (!d.moved && Math.abs(e.clientX - d.x0) < 3) return; // a press that has not become a drag yet
+    d.moved = true;
     apply(d.s0 - (e.clientX - d.x0), d.max, d.width);
     d.samples.push({ t: e.timeStamp, x: e.clientX });
     while (d.samples.length > 2 && e.timeStamp - d.samples[0].t > 100) d.samples.shift();
@@ -244,6 +246,7 @@ function ArchiveStrip({ reduced, headingId, hintId }: { reduced: boolean; headin
     setDragging(false);
     if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
     const virtual = coast.current.virtual;
+    if (!d.moved) return; // a plain click leaves the strip where it is
     if (reduced) { apply(clamp(virtual, 0, d.max), d.max, d.width); return; }
     // Velocity over the last ~80 ms in scroll space; a pause before letting go means no throw.
     const recent = d.samples.filter((s) => e.timeStamp - s.t <= 80);

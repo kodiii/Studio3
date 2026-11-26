@@ -257,7 +257,7 @@ function Breakdown({ value }: { value: number }) {
               <span className={styles.barTrack} aria-hidden="true">
                 <span className={styles.barFill} style={{ transform: `scaleX(${(c / max).toFixed(4)})` }} />
               </span>
-              <span className={styles.barCount}>{c}</span>
+              <span className={styles.barCount}>{c}<span className={styles.srOnly}> ratings</span></span>
             </li>
           );
         })}

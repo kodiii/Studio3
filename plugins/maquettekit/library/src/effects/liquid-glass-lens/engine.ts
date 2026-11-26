@@ -3,7 +3,7 @@
  * their own frame loop and read `frame()`. Coordinates are CSS pixels inside the stage, y pointing down.
  *
  * - Drag tracks the pointer 1:1 (rubber-banded past the edges); release keeps the pointer's velocity and glides with
- *   friction; past an edge a `spring.release` pulls the lens back, so a throw bounces gently instead of stopping dead.
+ *   friction; past an edge a `spring.settle` pulls the lens back, so a throw bounces gently instead of stopping dead.
  * - Keyboard steps, "centre" and click-to-place seek with springs that keep the current velocity.
  * - Speed stretches the glass along its motion (area-preserving, `spring.pop`), so it wobbles when it stops.
  * - One light direction for the whole scene, eased with `spring.glide` toward the pointer.
@@ -40,6 +40,8 @@ const band = (over: number, d: number) => (1 - 1 / ((over * 0.55) / d + 1)) * d;
 
 /** Velocity decays with this time constant while gliding (throw distance ≈ speed × GLIDE). */
 const GLIDE = sec(duration.moderate);
+/** Sliding friction (px/s²): ends the exponential tail of a glide crisply. */
+const FRICTION = 160;
 const MAX_SPEED = 3600;
 const STRETCH_MAX = 0.085;
 const MARGIN = 10;
@@ -76,7 +78,7 @@ export class LensEngine {
   private stretch = make(0);
   private dir = { x: 1, y: 0 };
   private lift = make(0);
-  private hovered = false;
+  private mouse = true;
   private pointer = { x: 0, y: 0, inside: false };
   private az: [number, number] = [...REST_AZ];
   private light = { x: make(lightVec(REST_AZ, REST_EL)[0]), y: make(lightVec(REST_AZ, REST_EL)[1]), z: make(lightVec(REST_AZ, REST_EL)[2]) };
@@ -125,8 +127,20 @@ export class LensEngine {
     return [lx, Math.max(lx, this.w - hx), ly, Math.max(ly, this.h - hy)];
   }
 
-  pointerMove(px: number, py: number, inside = true): void {
+  /** True when (px, py) falls on the lens as drawn (squircle corners approximated by their Lp norm). */
+  private contains(px: number, py: number): boolean {
+    const f = this.frame();
+    const qx = Math.abs(px - f.x) - f.hx + f.r, qy = Math.abs(py - f.y) - f.hy + f.r;
+    const ox = Math.max(qx, 0), oy = Math.max(qy, 0);
+    const corner = ox || oy ? (ox ** f.n + oy ** f.n) ** (1 / f.n) : 0;
+    return Math.min(Math.max(qx, qy), 0) + corner - f.r <= 0;
+  }
+
+  /** Pointer over the stage. Hover is derived from geometry each frame, so a lens that glides out from under a
+   *  still mouse stops looking hovered without waiting for the next pointer event. */
+  pointerMove(px: number, py: number, inside = true, mouse = true): void {
     this.pointer = { x: px, y: py, inside };
+    this.mouse = mouse;
     if (this.mode === 'drag') {
       this.raw = { x: px, y: py };
       const t = performance.now();
@@ -135,7 +149,6 @@ export class LensEngine {
     }
   }
   pointerLeave(): void { this.pointer = { ...this.pointer, inside: false }; }
-  setHover(on: boolean): void { this.hovered = on; }
 
   dragStart(px: number, py: number): void {
     this.mode = 'drag';
@@ -260,7 +273,8 @@ export class LensEngine {
     }
 
     // Lift: held glass rises (its shadow grows and softens), hovered glass rises a little.
-    this.lift.to = this.mode === 'drag' ? 1 : this.hovered ? 0.35 : 0;
+    const hovered = this.mouse && this.pointer.inside && this.contains(this.pointer.x, this.pointer.y);
+    this.lift.to = this.mode === 'drag' ? 1 : hovered ? 0.35 : 0;
     if (this.reduced) snap(this.lift); else { advance(this.lift, spring.settle, dt); if (still(this.lift, 0.002)) snap(this.lift); else busy = true; }
 
     // One light for the scene: toward the pointer when it follows, else the resting upper-left light.
@@ -279,13 +293,16 @@ export class LensEngine {
     return busy;
   }
 
+  /** Free glide: drag plus a little sliding friction (a clean stop, no long creep); past an edge a spring pulls back. */
   private glideAxis(s: Spring1, lo: number, hi: number, dt: number): void {
-    const c = spring.release;
+    const c = spring.settle;
     for (let t = 0; t < dt; t += SUB) {
       const h = Math.min(SUB, dt - t);
       const edge = s.x < lo ? lo : s.x > hi ? hi : null;
-      if (edge === null) s.v *= Math.exp(-h / GLIDE);
-      else s.v += ((-c.stiffness * (s.x - edge) - c.damping * s.v) / c.mass) * h;
+      if (edge === null) {
+        s.v *= Math.exp(-h / GLIDE);
+        s.v -= Math.sign(s.v) * Math.min(Math.abs(s.v), FRICTION * h);
+      } else s.v += ((-c.stiffness * (s.x - edge) - c.damping * s.v) / c.mass) * h;
       s.x += s.v * h;
     }
     s.to = s.x;

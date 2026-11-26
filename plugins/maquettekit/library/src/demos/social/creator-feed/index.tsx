@@ -1,5 +1,6 @@
 'use client';
-import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore, type FormEvent, type KeyboardEvent, type PointerEvent } from 'react';
+import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore, type CSSProperties, type FormEvent, type KeyboardEvent, type PointerEvent } from 'react';
+import { animate } from 'motion/react';
 import ReactionBurst from '../../../effects/reaction-burst';
 import { meta as burstMeta } from '../../../effects/reaction-burst/meta';
 import { duration as D, spring, springToLinear, useStudioMotion } from '../../../motion';
@@ -7,12 +8,16 @@ import type { EffectMeta, ParamValues } from '../../../types';
 import { EDITIONS, POSTS, PROFILE, SAMPLE_NOW, type PostData } from './data';
 import { MorphToggle } from './MorphToggle';
 import { PrintArt, RegMark } from './Prints';
+import { grainTile } from './grain';
+import { RegistrationContext, usePlate, useRegistrationField } from './registration';
 import { Sheet } from './Sheet';
 import { createFeedStore, type CommentState, type FeedStore, type PostState } from './store';
 import styles from './styles.module.css';
 
 const defaults = (m: EffectMeta): ParamValues => Object.fromEntries(m.params.map((p) => [p.key, p.default]));
 const POP = springToLinear(spring.pop);
+const PRESS = springToLinear(spring.press);
+const SETTLE = springToLinear(spring.settle);
 const absolute = (iso: string) => new Date(iso).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'UTC' }) + ' GMT';
 const PROOFS = [
   { offset: 3, caption: 'Proof 1 — three millimetres out', alt: 'Proof one: the coral plate sits three millimetres low and right, so every corner mark is doubled.' },
@@ -23,6 +28,10 @@ const PROOFS = [
 type SheetState = { type: 'comments' | 'share'; postId: string } | { type: 'share-profile' } | null;
 
 export default function CreatorFeed() {
+  const rootRef = useRef<HTMLDivElement>(null);
+  const register = useRegistrationField(rootRef);
+  const [grain, setGrain] = useState('');
+  useEffect(() => { setGrain(grainTile()); }, []);
   const [store] = useState<FeedStore>(createFeedStore);
   const state = useSyncExternalStore(store.subscribe, store.get, store.get);
   const uid = useId();
@@ -73,8 +82,15 @@ export default function CreatorFeed() {
 
   const openPost = sheet && sheet.type !== 'share-profile' ? POSTS.find((p) => p.id === sheet.postId) ?? null : null;
 
+  const vars = {
+    '--cf-press': PRESS.easing, '--cf-press-dur': `${PRESS.duration}ms`,
+    '--cf-settle': SETTLE.easing, '--cf-settle-dur': `${SETTLE.duration}ms`,
+    '--cf-grain': grain ? `url(${grain})` : 'none',
+  } as CSSProperties;
+
   return (
-    <div className={styles.root}>
+    <RegistrationContext.Provider value={register}>
+    <div ref={rootRef} className={styles.root} style={vars}>
       <div className={styles.page} inert={sheet !== null}>
         <p className={styles.sampleBar}>
           <span className="mk-label">Sample content</span>
@@ -82,7 +98,7 @@ export default function CreatorFeed() {
         </p>
 
         <div className={styles.layout}>
-          <header className={styles.proof} aria-labelledby={`${uid}-name`}>
+          <header className={styles.proof} data-sheet="" aria-labelledby={`${uid}-name`}>
             <RegMark className={`${styles.reg} ${styles.regTL}`} /><RegMark className={`${styles.reg} ${styles.regTR}`} />
             <RegMark className={`${styles.reg} ${styles.regBL}`} /><RegMark className={`${styles.reg} ${styles.regBR}`} />
             <div className={styles.slugRow}>
@@ -91,10 +107,7 @@ export default function CreatorFeed() {
             </div>
             <div className={styles.nameRow}>
               <span className={styles.avatar} aria-hidden="true">IV</span>
-              <h2 id={`${uid}-name`} className={styles.name}>
-                <span className={styles.nameInk}>Ines <br />Varga</span>
-                <span className={styles.nameCoral} aria-hidden="true">Ines <br />Varga</span>
-              </h2>
+              <ProfileName id={`${uid}-name`} />
             </div>
             <p className={styles.handle}>@{PROFILE.handle} · {PROFILE.place}</p>
             <p className={styles.role}>{PROFILE.role}</p>
@@ -179,7 +192,7 @@ export default function CreatorFeed() {
             <div role="tabpanel" id={`${uid}-panel-editions`} aria-labelledby={`${uid}-tab-editions`} hidden={tab !== 'editions'}>
               <ul className={styles.editions}>
                 {EDITIONS.map((e) => (
-                  <li key={e.id} className={styles.edition}>
+                  <li key={e.id} className={styles.edition} data-sheet="">
                     <div role="img" aria-label={`Print: ${e.title}`} className={styles.editionArt}><PrintArt media={e.media} /></div>
                     <p className={styles.editionTitle}>{e.title}</p>
                     <p className={styles.muted}>{e.detail}</p>
@@ -223,7 +236,7 @@ function SuggestedEssay({ uid, hideCounts }: { uid: string; hideCounts: boolean 
   const [liked, setLiked] = useState(false);
   const [saved, setSaved] = useState(false);
   return (
-    <article className={styles.essay} aria-labelledby={`${uid}-essay`}>
+    <article className={styles.essay} data-sheet="" aria-labelledby={`${uid}-essay`}>
       <p className={`mk-label ${styles.muted}`}>Essay · 7 min read</p>
       <h4 id={`${uid}-essay`} className={styles.essayTitle}>In praise of the plate that slips</h4>
       <p className={styles.essayDek}>Why the best two-colour prints keep a little drift, and how to tell drift from a mistake. By Halvard Oyelaran-Sund.</p>
@@ -269,7 +282,7 @@ function Post({ post: p, index, total, s, store, hideCounts, uid, onComments, on
   };
 
   return (
-    <article id={`note-${p.no}`} className={styles.post} aria-labelledby={`${id}-by`} aria-describedby={`${id}-text`} aria-posinset={index + 1} aria-setsize={total} tabIndex={-1}>
+    <article id={`note-${p.no}`} className={styles.post} data-sheet="" aria-labelledby={`${id}-by`} aria-describedby={`${id}-text`} aria-posinset={index + 1} aria-setsize={total} tabIndex={-1}>
       <div className={styles.postHead}>
         <span className={styles.avatarSm} aria-hidden="true">IV</span>
         <p id={`${id}-by`} className={styles.byline}>
@@ -312,29 +325,105 @@ function Post({ post: p, index, total, s, store, hideCounts, uid, onComments, on
   );
 }
 
+/**
+ * Three proofs in a carousel. Touch and trackpads scroll it natively (scroll-snap); a mouse can grab and throw it:
+ * the track follows the pointer, rubber-bands at the ends, and on release a `release` spring carries the throw's
+ * velocity to the nearest proof (one proof per throw at most). Previous / Next and ← → (track focused) glide the
+ * same way. Reduced motion: every move is a jump; dragging still follows the pointer.
+ */
 function Proofs() {
   const { reduced } = useStudioMotion();
   const track = useRef<HTMLDivElement>(null);
   const [i, setI] = useState(0);
+  const at = useRef(0);
+  const glide = useRef<{ stop: () => void } | null>(null);
+  const band = useRef<Animation | null>(null);
+  const drag = useRef<{ id: number; x: number; left: number; from: number; samples: { x: number; t: number }[] } | null>(null);
+  const last = PROOFS.length - 1;
+
+  useEffect(() => () => { glide.current?.stop(); band.current?.cancel(); }, []);
   useEffect(() => {
     const el = track.current;
     if (!el) return;
     let raf = 0;
-    const read = () => { raf = 0; setI(Math.max(0, Math.min(PROOFS.length - 1, Math.round(el.scrollLeft / Math.max(1, el.clientWidth))))); };
+    const read = () => {
+      raf = 0;
+      if (drag.current || glide.current) return;
+      const n = Math.max(0, Math.min(last, Math.round(el.scrollLeft / Math.max(1, el.clientWidth))));
+      at.current = n;
+      setI(n);
+    };
     const onScroll = () => { if (!raf) raf = requestAnimationFrame(read); };
     el.addEventListener('scroll', onScroll, { passive: true });
     return () => { el.removeEventListener('scroll', onScroll); if (raf) cancelAnimationFrame(raf); };
-  }, []);
-  const go = (n: number) => {
+  }, [last]);
+
+  const go = (n: number, velocity = 0) => {
     const el = track.current;
     if (!el) return;
-    const to = Math.max(0, Math.min(PROOFS.length - 1, n));
-    el.scrollTo({ left: to * el.clientWidth, behavior: reduced ? 'auto' : 'smooth' });
+    const to = Math.max(0, Math.min(last, n));
+    const target = to * el.clientWidth;
+    glide.current?.stop();
+    glide.current = null;
+    at.current = to;
     setI(to);
+    if (reduced || Math.abs(el.scrollLeft - target) < 1) { el.scrollLeft = target; delete el.dataset.gliding; return; }
+    el.dataset.gliding = '';
+    const a = animate(el.scrollLeft, target, { type: 'spring', ...spring.release, velocity, onUpdate: (v) => { el.scrollLeft = v; } });
+    glide.current = a;
+    void a.then(() => { if (glide.current === a) { glide.current = null; delete el.dataset.gliding; } });
   };
+
+  const onDown = (e: PointerEvent<HTMLDivElement>) => {
+    const el = track.current;
+    if (!el || e.pointerType !== 'mouse' || e.button !== 0) return;
+    glide.current?.stop();
+    glide.current = null;
+    band.current?.cancel();
+    el.style.transform = '';
+    drag.current = { id: e.pointerId, x: e.clientX, left: el.scrollLeft, from: at.current, samples: [{ x: e.clientX, t: e.timeStamp }] };
+    el.setPointerCapture?.(e.pointerId);
+    el.dataset.dragging = '';
+  };
+  const onMove = (e: PointerEvent<HTMLDivElement>) => {
+    const d = drag.current;
+    const el = track.current;
+    if (!d || d.id !== e.pointerId || !el) return;
+    const max = el.scrollWidth - el.clientWidth;
+    const want = d.left - (e.clientX - d.x);
+    el.scrollLeft = Math.max(0, Math.min(max, want));
+    // Past either end the whole strip rubber-bands: resistance grows with the distance.
+    const over = want < 0 ? -want : want > max ? max - want : 0;
+    el.style.transform = over ? `translateX(${Math.sign(over) * Math.sqrt(Math.abs(over)) * 4}px)` : '';
+    d.samples.push({ x: e.clientX, t: e.timeStamp });
+    if (d.samples.length > 6) d.samples.shift();
+  };
+  const onUp = (e: PointerEvent<HTMLDivElement>) => {
+    const d = drag.current;
+    const el = track.current;
+    if (!d || d.id !== e.pointerId || !el) return;
+    drag.current = null;
+    delete el.dataset.dragging;
+    const a = d.samples[0], b = d.samples[d.samples.length - 1];
+    const vx = b.t > a.t ? ((b.x - a.x) / (b.t - a.t)) * 1000 : 0; // pointer px/s
+    const from = el.style.transform;
+    if (from) {
+      el.style.transform = '';
+      band.current = reduced ? null : el.animate([{ transform: from }, { transform: 'none' }], { duration: SETTLE.duration, easing: SETTLE.easing });
+    }
+    const w = Math.max(1, el.clientWidth);
+    const projected = (el.scrollLeft - vx * 0.22) / w;
+    go(Math.max(d.from - 1, Math.min(d.from + 1, Math.round(projected))), -vx);
+  };
+  const onKey = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.preventDefault(); go(at.current + (e.key === 'ArrowRight' ? 1 : -1)); }
+    else if (e.key === 'Home' || e.key === 'End') { e.preventDefault(); go(e.key === 'Home' ? 0 : last); }
+  };
+
   return (
     <div className={styles.carousel} role="region" aria-roledescription="carousel" aria-label="Three proofs of the harbour chart">
-      <div ref={track} className={styles.track} tabIndex={0} role="group" aria-label="Proofs — scroll sideways or use the buttons below">
+      <div ref={track} className={styles.track} tabIndex={0} role="group" aria-label="Proofs — drag, scroll sideways, use the arrow keys or the buttons below"
+        onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} onKeyDown={onKey}>
         {PROOFS.map((pr, n) => (
           <div key={pr.offset} className={styles.slide} role="group" aria-roledescription="slide" aria-label={`${n + 1} of ${PROOFS.length}`}>
             <div role="img" aria-label={pr.alt} className={styles.mediaArt}><PrintArt media="proofs" offset={pr.offset} /></div>
@@ -345,8 +434,11 @@ function Proofs() {
         <button type="button" className={styles.iconBtn} onClick={() => go(i - 1)} disabled={i === 0}>
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14.5 6 8.500 12l6 6" /></svg><span className="mk-sr-only">Previous proof</span>
         </button>
-        <p className={styles.carouselPos} aria-live="polite"><span className={styles.carouselNum}>{i + 1}/{PROOFS.length}</span> {PROOFS[i].caption}</p>
-        <button type="button" className={styles.iconBtn} onClick={() => go(i + 1)} disabled={i === PROOFS.length - 1}>
+        <div className={styles.carouselMid}>
+          <span className={styles.dots} aria-hidden="true">{PROOFS.map((pr, n) => <i key={pr.offset} data-on={n === i || undefined} />)}</span>
+          <p className={styles.carouselPos} aria-live="polite"><span className={styles.carouselNum}>{i + 1}/{PROOFS.length}</span> {PROOFS[i].caption}</p>
+        </div>
+        <button type="button" className={styles.iconBtn} onClick={() => go(i + 1)} disabled={i === last}>
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m9.500 6 6 6-6 6" /></svg><span className="mk-sr-only">Next proof</span>
         </button>
       </div>

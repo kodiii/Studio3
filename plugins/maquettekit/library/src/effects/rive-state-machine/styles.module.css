@@ -497,6 +497,7 @@
     transform var(--rs-settle-ms, 560ms) var(--rs-settle, var(--mk-ease-emphasized, ease)),
     background-color var(--mk-duration-base, 240ms) var(--mk-ease-standard, ease);
 }
+.barKey { text-align: center; }
 .barCount { text-align: right; }
 .bar[data-mine] { color: var(--mk-ink, #11110f); font-weight: 600; }
 .bar[data-mine] .barFill { background: var(--mk-accent, #bf2f09); }

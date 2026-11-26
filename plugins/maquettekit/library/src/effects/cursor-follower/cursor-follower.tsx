@@ -148,7 +148,7 @@ function FollowerLayers({
         </div>
         <div ref={dotEl} className={styles.dot} />
       </div>
-      <div ref={labelLayer} className={cls(styles.layer, styles.labelLayer, className)} data-idle="" aria-hidden="true" style={style}>
+      <div ref={labelLayer} className={cls(styles.layer, className)} data-idle="" aria-hidden="true" style={style}>
         <div ref={labelBody} className={styles.body}>
           <div ref={shadow} className={styles.shadow} />
           <div ref={fill} className={styles.fill}>

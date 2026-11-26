@@ -8,7 +8,7 @@
  */
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
 import { easeCubicInOut, scaleLinear } from 'd3';
-import { duration as D, useElementSize, useStudioMotion } from '../../../motion';
+import { duration as D, profileScale, useElementSize, useStudioMotion } from '../../../motion';
 import { fmt } from './data';
 import s from './styles.module.css';
 
@@ -64,7 +64,7 @@ function xTicks(dates: number[], a: number, b: number, max: number): { i: number
 }
 
 export function PerformanceChart({ dates, series, win, transition }: Props) {
-  const { reduced, scale } = useStudioMotion();
+  const { reduced } = useStudioMotion();
   const plotRef = useRef<HTMLDivElement>(null);
   const { width, height } = useElementSize(plotRef);
   const [a, b] = win;
@@ -89,7 +89,8 @@ export function PerformanceChart({ dates, series, win, transition }: Props) {
     const prev = shown.current;
     shown.current = target;
     const rest: Frame = { lines: target.lines, lo: target.lo, hi: target.hi, e: 1, prev: null };
-    const dur = D.slow * 0.86 * scale.duration;
+    // Essential profile: a range change is an axis rescale, `moderate` × 0.7 — quick enough for a terminal, long enough to follow.
+    const dur = D.moderate * profileScale.essential.duration;
     if (transitionRef.current !== 'morph' || reduced || dur < 1) { setFrame(rest); return; }
     setActive(null);
     const from = frameRef.current;
@@ -112,7 +113,7 @@ export function PerformanceChart({ dates, series, win, transition }: Props) {
     };
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
-  }, [target, reduced, scale.duration]);
+  }, [target, reduced]);
 
   const wide = width >= 560;
   const right = wide ? 132 : 10;

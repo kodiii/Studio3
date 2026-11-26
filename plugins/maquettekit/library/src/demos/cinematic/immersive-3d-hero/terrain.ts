@@ -2,7 +2,7 @@
  * Kelda Ridge (fictional): a deterministic height field, the walking route and the camera path.
  * Runs on the client only (inside the canvas), so floating-point output never meets server HTML.
  */
-import { CatmullRomCurve3, Vector3 } from 'three';
+import { CatmullRomCurve3, Vector3, type Ray } from 'three';
 
 export const SIZE = 64; // world units across the terrain square
 export const WATER = 0.32;
@@ -59,7 +59,7 @@ export interface Viewpoint { id: StopId; position: [number, number, number]; tar
 
 /** Camera stops in story order; the scroll camera travels through all four, the step buttons cut between the last three. */
 export const VIEWPOINTS: readonly Viewpoint[] = [
-  { id: 'overview', position: [0, 13.5, 31], target: [0, 3.2, -6] },
+  { id: 'overview', position: [0, 13.5, 31], target: [0, 5.6, -6] },
   { id: 'lake', position: [-10.5, 2.6, 18.5], target: [1.5, 3.6, 1] },
   { id: 'ridge', position: [2.2, 10.6, 2.6], target: [14, 8.2, -4.5] },
   { id: 'sky', position: [7.5, 12.4, -1.2], target: [5, 27, -42] },
@@ -69,3 +69,31 @@ export const cameraPath = (): { pos: CatmullRomCurve3; look: CatmullRomCurve3 } 
   pos: new CatmullRomCurve3(VIEWPOINTS.map((v) => new Vector3(...v.position)), false, 'centripetal'),
   look: new CatmullRomCurve3(VIEWPOINTS.map((v) => new Vector3(...v.target)), false, 'centripetal'),
 });
+
+/**
+ * Where a ray first meets the height field (the head-torch aims at the pointer's spot on the ground).
+ * Marches with a step that grows with distance, then bisects the crossing; false when the ray leaves the map or
+ * points at the sky. Cheap enough to run once per rendered frame on the CPU.
+ */
+export function marchTerrain(ray: Ray, out: Vector3, maxDist = 95): boolean {
+  const o = ray.origin;
+  const d = ray.direction;
+  const half = SIZE / 2;
+  const above = (t: number): boolean => o.y + d.y * t > height(o.x + d.x * t, o.z + d.z * t);
+  let prev = 0.3;
+  if (!above(prev)) return false;
+  for (let t = prev; t < maxDist; t += 0.18 + t * 0.018) {
+    const x = o.x + d.x * t;
+    const z = o.z + d.z * t;
+    if (Math.abs(x) > half || Math.abs(z) > half) return false;
+    if (!above(t)) {
+      let a = prev;
+      let b = t;
+      for (let i = 0; i < 12; i++) { const m = (a + b) / 2; if (above(m)) a = m; else b = m; }
+      out.set(o.x + d.x * b, o.y + d.y * b, o.z + d.z * b);
+      return true;
+    }
+    prev = t;
+  }
+  return false;
+}
