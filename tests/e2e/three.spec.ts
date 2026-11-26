@@ -17,17 +17,12 @@ async function modelReady(page: Page) {
   await expect(page.locator(`${STAGE} canvas`)).toBeVisible({ timeout: 30_000 });
   await expect(page.locator('[data-stat="triangles"]')).not.toHaveText('—', { timeout: 60_000 });
 }
-/** Wait until the camera attribute stops changing (transitions done). */
-async function cameraAtRest(page: Page) {
-  let prev: string | null = null;
-  await expect.poll(async () => {
-    const now = await page.locator(HOST).getAttribute('data-camera');
-    const still = now !== null && now === prev;
-    prev = now;
-    return still;
-  }, { intervals: [700], timeout: 30_000 }).toBe(true);
-  return prev as string | null;
-}
+/**
+ * The stage names the preset the camera rests at once CameraRig reports arrival. Wait for this rather than for the
+ * camera attribute to stop changing: on software WebGL a single frame can take longer than a polling interval, so a
+ * quiet interval is not proof that a move finished (in CI that read y ≈ 3.95 on the way to the top preset's 5.6).
+ */
+const cameraAt = (page: Page, preset: string) => page.locator(`${STAGE}[data-camera-at="${preset}"]`);
 /** Fraction of pixels whose RGB differs by more than 24 between two PNG screenshots (decoded in the page). */
 function pixelDiff(page: Page, a: Buffer, b: Buffer): Promise<number> {
   return page.evaluate(async ([pa, pb]) => {
@@ -91,22 +86,24 @@ test.describe('3D gallery (/3d)', () => {
   test('camera presets and keyboard orbit move the camera; a colourway change repaints the model', async ({ page }) => {
     await page.goto('/3d');
     await modelReady(page);
-    const start = await cameraAtRest(page);
+    await expect(cameraAt(page, 'hero')).toBeAttached();
     await radio(page, 'Top').check({ force: true });
-    await expect.poll(() => page.locator(HOST).getAttribute('data-camera'), { timeout: 15_000 }).not.toBe(start);
-    const top = await cameraAtRest(page);
+    await expect(cameraAt(page, 'hero')).not.toBeAttached();
+    await expect(cameraAt(page, 'top')).toBeAttached({ timeout: 30_000 });
+    const top = await page.locator(HOST).getAttribute('data-camera');
     const [, y] = (top ?? '0,0,0').split(',').map(Number);
     expect(y, 'the top preset looks down from above').toBeGreaterThan(4);
 
-    await page.locator(`${STAGE} canvas`).focus();
-    await page.keyboard.press('ArrowLeft');
-    await expect.poll(() => page.locator(HOST).getAttribute('data-camera'), { timeout: 10_000 }).not.toBe(top);
-
+    // The camera has arrived and no clip plays (no autoPlay), so only the colourway can change these pixels.
     const canvas = page.locator(`${STAGE} canvas`);
-    await cameraAtRest(page);
     const before = await canvas.screenshot();
     await radio(page, 'Bone / Cobalt').check({ force: true });
     await expect.poll(async () => pixelDiff(page, before, await canvas.screenshot()), { timeout: 20_000, message: 'share of canvas pixels changed by the colourway' }).toBeGreaterThan(0.02);
+
+    await canvas.focus();
+    await page.keyboard.press('ArrowLeft');
+    await expect.poll(() => page.locator(HOST).getAttribute('data-camera'), { timeout: 10_000 }).not.toBe(top);
+    await expect(cameraAt(page, 'top'), 'orbiting leaves the preset').not.toBeAttached();
   });
 
   test('disposes GPU resources when leaving the page (3 round trips, no context warnings)', async ({ page }) => {

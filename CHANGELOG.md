@@ -19,6 +19,15 @@ semantic versioning. Plugin manifests (Claude Code and Codex) always carry the s
   deliver it in full". `studio-product`, `studio-cinematic`, `studio-social`, `studio-data` and `studio-3d` point their
   motion and art-direction steps at the craft floor. No gate changed.
 
+### Fixed
+- CI's browser tests had failed on every run since 4.0.0. Two visual-regression references were captured with a newer
+  Chromium than the one Playwright pins in CI (same layout, text about 3 % narrower); they are now CI's own renders.
+- The 3D camera test waited for the camera attribute to stop changing for 700 ms, so one slow software-rendered frame
+  read the "Top" preset mid-move (y ≈ 3.95 of 5.6). The viewer stage now carries `data-camera-at` once `CameraRig`
+  reports arrival (cleared when a move starts or the user orbits), and the test waits for it.
+- The macOS installer job never ran: `macos-14` runners were retired on 2026-11-02, so every job was cancelled
+  before it started. It now runs on `macos-latest` (Apple Silicon).
+
 ## [4.1.0] — 2026-11-25
 
 Two new skills (14 in all: `studio-launch`, `studio-match`), one-command verification (`maquettekit check`), a
