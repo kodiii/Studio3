@@ -143,7 +143,10 @@ export function LiquidGlassLens({
     const r = frame.current!.getBoundingClientRect();
     return { x: e.clientX - r.left, y: e.clientY - r.top };
   };
-  const onFramePointerMove = (e: PointerEvent<HTMLDivElement>) => { const p = local(e); engine.pointerMove(p.x, p.y, true, e.pointerType === 'mouse'); kick(); };
+  const onFramePointerMove = (e: PointerEvent<HTMLDivElement>) => {
+    const p = local(e);
+    if (engine.pointerMove(p.x, p.y, true, e.pointerType === 'mouse')) kick();
+  };
   const onFramePointerLeave = () => { if (!engine.dragging) { engine.pointerLeave(); kick(); } };
   const onFrameClick = (e: MouseEvent<HTMLDivElement>) => {
     if (handle.current?.contains(e.target as Node)) return;

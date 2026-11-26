@@ -24,6 +24,7 @@ import { meta as e_layeredDepthStack } from './effects/layered-depth-stack/meta'
 import { meta as e_likeHeartMorph } from './effects/like-heart-morph/meta';
 import { meta as e_lineChartMorph } from './effects/line-chart-morph/meta';
 import { meta as e_liquidGlassLens } from './effects/liquid-glass-lens/meta';
+import { meta as e_lottieMicroInteractions } from './effects/lottie-micro-interactions/meta';
 import { meta as e_magneticButton } from './effects/magnetic-button/meta';
 import { meta as e_morphSubmitButton } from './effects/morph-submit-button/meta';
 import { meta as e_morphingNavPill } from './effects/morphing-nav-pill/meta';
@@ -98,6 +99,7 @@ export const effectMetas: readonly EffectMeta[] = [
   e_likeHeartMorph,
   e_lineChartMorph,
   e_liquidGlassLens,
+  e_lottieMicroInteractions,
   e_magneticButton,
   e_morphSubmitButton,
   e_morphingNavPill,

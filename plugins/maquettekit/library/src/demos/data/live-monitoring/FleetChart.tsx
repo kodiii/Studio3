@@ -6,7 +6,7 @@
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { easeCubicInOut, scaleLinear } from 'd3';
-import { duration as D, useElementSize, useStudioMotion } from '../../../motion';
+import { duration as D, profileScale, useElementSize, useStudioMotion } from '../../../motion';
 import s from './styles.module.css';
 
 export const N = 240;
@@ -41,7 +41,7 @@ const yMaxOf = (d: ChartData): number => {
 };
 
 export function FleetChart({ data, modeKey, windowKey, label }: { data: ChartData; modeKey: string; windowKey: number; label: string }) {
-  const { reduced, scale } = useStudioMotion();
+  const { reduced } = useStudioMotion();
   const ref = useRef<HTMLDivElement>(null);
   const { width, height } = useElementSize(ref);
   const target: Shown = useMemo(() => ({ a: data.a, b: data.b, c: data.c, yMax: yMaxOf(data), yMax2: data.mode === 'fleet' ? niceMax(data.b, 4) : 1 }), [data]);
@@ -60,7 +60,8 @@ export function FleetChart({ data, modeKey, windowKey, label }: { data: ChartDat
     if (prev.windowKey === windowKey) { if (!tween.current) setShown(target); return; }
     cancelAnimationFrame(tween.current);
     const from = shownRef.current;
-    const dur = D.moderate * 1.2 * scale.duration;
+    // Essential profile: a window switch is an axis rescale, `moderate` × 0.7.
+    const dur = D.moderate * profileScale.essential.duration;
     let t0 = 0;
     const lerp = (p: Float64Array, q: Float64Array, e: number) => { const o = new Float64Array(N); for (let k = 0; k < N; k++) o[k] = p[k] + (q[k] - p[k]) * e; return o; };
     const frame = (now: number) => {
@@ -73,7 +74,7 @@ export function FleetChart({ data, modeKey, windowKey, label }: { data: ChartDat
       tween.current = requestAnimationFrame(frame);
     };
     tween.current = requestAnimationFrame(frame);
-  }, [target, modeKey, windowKey, reduced, scale.duration]);
+  }, [target, modeKey, windowKey, reduced]);
   useEffect(() => () => cancelAnimationFrame(tween.current), []);
 
   const innerW = Math.max(0, width - M.left - M.right);

@@ -134,7 +134,8 @@ export function useRegistrationField(root: RefObject<HTMLElement | null>): Regis
     s.vx *= Math.exp(-dt * 6);
     s.vy *= Math.exp(-dt * 6);
     s.svy *= Math.exp(-dt * 5);
-    const vx = s.vx, vy = s.vy + s.svy * 0.8;
+    // Scrolling down moves the content up the screen, so the page's own motion is -scroll velocity.
+    const vx = s.vx, vy = s.vy - s.svy * 0.8;
     const speed = Math.hypot(vx, vy);
     if (speed > DEAD) { s.dx = -vx / speed; s.dy = -vy / speed; }
     const mag = speed <= DEAD ? REST : Math.min(MAX, MIN + ((speed - DEAD) / (FULL - DEAD)) * (MAX - MIN));

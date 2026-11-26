@@ -4,13 +4,21 @@
   --cf-blue: #2b4aa8;   /* ≥ 6.3:1 on bg, surface and surface-2 */
   --cf-coral: #d9483a;  /* fills and marks only (≥ 3.38:1) — never small text */
   --mk-accent: var(--cf-coral);
+  /* One light, from the top left: every shadow falls down and slightly right. Two layers each — a tight contact
+     shadow and a wide ambient one; lifting shrinks the first and grows the second, pressing does the opposite. */
+  --cf-shadow: 38 30 20;
+  --cf-sheet-rest: 0 1px 1px rgb(var(--cf-shadow) / 0.07), 1px 4px 10px -4px rgb(var(--cf-shadow) / 0.12);
+  --cf-sheet-lift: 0 2px 2px rgb(var(--cf-shadow) / 0.05), 6px 22px 40px -14px rgb(var(--cf-shadow) / 0.32);
+  --cf-key-rest: 0 1px 1px rgb(var(--cf-shadow) / 0.2), 1px 3px 7px -3px rgb(var(--cf-shadow) / 0.3);
+  --cf-key-lift: 0 1px 1px rgb(var(--cf-shadow) / 0.1), 2px 8px 16px -6px rgb(var(--cf-shadow) / 0.4);
+  --cf-key-down: 0 0 0 rgb(var(--cf-shadow) / 0), 0 0 1px rgb(var(--cf-shadow) / 0.35);
   position: relative;
   min-height: 100dvh;
   background: var(--mk-bg);
   color: var(--mk-ink);
   font-family: var(--mk-font-text);
 }
-:global([data-theme='dark']) .root { --cf-blue: #9db2ff; --cf-coral: #ff7a63; }
+:global([data-theme='dark']) .root { --cf-blue: #9db2ff; --cf-coral: #ff7a63; --cf-shadow: 0 0 0; }
 
 .page { max-width: 1200px; margin-inline: auto; padding: 0 16px 56px; }
 .muted { color: var(--mk-ink-muted); }
@@ -30,7 +38,7 @@
 @container (max-width: 61.99rem) { .main { max-width: 640px; width: 100%; margin-inline: auto; } .proof { max-width: 640px; width: 100%; margin-inline: auto; box-sizing: border-box; } }
 
 /* ── Profile: a proof sheet ─────────────────────────────────────────────── */
-.proof { position: relative; padding: 26px 22px 22px; background: var(--mk-surface); border: 1px solid var(--mk-line); }
+.proof { position: relative; padding: 26px 22px 22px; background: var(--mk-surface); border: 1px solid var(--mk-line); box-shadow: var(--cf-sheet-rest); }
 @container (min-width: 62rem) { .proof { position: sticky; top: 72px; } }
 .reg { position: absolute; width: 22px; height: 22px; color: var(--cf-blue); }
 .regTL { top: -11px; left: -11px; } .regTR { top: -11px; right: -11px; }
@@ -53,8 +61,14 @@
 }
 @container (min-width: 62rem) { .name { font-size: 4rem; } }
 .nameInk { position: relative; }
-/* The coral plate, printed a hair out of register. Decorative copy; multiply mixes the overlap to plum. */
-.nameCoral { position: absolute; inset: 0; color: var(--cf-coral); transform: translate(0.05em, 0.03em); mix-blend-mode: multiply; pointer-events: none; }
+/* The coral plate, printed a hair out of register. Decorative copy; multiply mixes the overlap to plum. It is a plate
+   in the registration field (JS drives `transform`); the printed offset is `translate`, which snaps to zero when the
+   card is hovered or holds focus. */
+.nameCoral {
+  position: absolute; inset: 0; color: var(--cf-coral); translate: 0.05em 0.03em; mix-blend-mode: multiply; pointer-events: none;
+  transition: translate var(--cf-press-dur) var(--cf-press);
+}
+.proof:hover .nameCoral, .proof:focus-within .nameCoral { translate: 0 0; }
 :global([data-theme='dark']) .nameCoral { mix-blend-mode: screen; }
 .handle { margin: 16px 0 0; font-family: var(--mk-font-mono); font-size: 0.8125rem; }
 .role { margin: 2px 0 0; font-size: 0.875rem; color: var(--mk-ink-muted); }
@@ -68,26 +82,52 @@
 .follow, .primaryBtn {
   min-height: 44px; padding: 0 22px; border: 1.5px solid var(--cf-blue); border-radius: var(--mk-radius-s);
   background: var(--cf-blue); color: var(--mk-bg); font: inherit; font-size: 0.9375rem; font-weight: 600;
-  transition: background-color var(--mk-duration-fast) var(--mk-ease-standard), color var(--mk-duration-fast) var(--mk-ease-standard);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.2), var(--cf-key-rest);
 }
 .follow { min-width: 7.5rem; }
-.follow[aria-pressed='true'] { background: transparent; color: var(--cf-blue); }
-.primaryBtn:disabled { background: var(--mk-surface-2); border-color: var(--mk-line); color: var(--mk-ink-muted); cursor: not-allowed; }
+.follow[aria-pressed='true'] { background: var(--mk-surface); color: var(--cf-blue); box-shadow: inset 0 1px 2px rgb(var(--cf-shadow) / 0.18), var(--cf-key-down); }
+.primaryBtn:disabled { background: var(--mk-surface-2); border-color: var(--mk-line); color: var(--mk-ink-muted); cursor: not-allowed; box-shadow: none; }
 .ghostBtn {
   display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px;
-  border: 1px solid var(--mk-line-strong); border-radius: var(--mk-radius-s); background: transparent; color: inherit; font: inherit; font-size: 0.875rem; font-weight: 500;
+  border: 1px solid var(--mk-line-strong); border-radius: var(--mk-radius-s); background: var(--mk-surface); color: inherit; font: inherit; font-size: 0.875rem; font-weight: 500;
+  box-shadow: var(--cf-key-rest);
 }
-.ghostBtn:hover { background: var(--mk-surface-2); }
+
+/* Press depth on every control: hover lifts a pixel (contact shadow softens, ambient grows), press drops the face
+   below its rest and collapses the shadow in one frame, release springs back on the `press` spring. */
+.follow, .primaryBtn, .ghostBtn, .iconBtn, .action, .morph, .switch, .textBtn, .tab {
+  transition:
+    transform var(--cf-press-dur) var(--cf-press), box-shadow var(--cf-press-dur) var(--cf-press),
+    background-color var(--mk-duration-fast) var(--mk-ease-standard), color var(--mk-duration-fast) var(--mk-ease-standard),
+    border-color var(--mk-duration-fast) var(--mk-ease-standard);
+}
+@media (hover: hover) {
+  .follow:hover, .primaryBtn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.2), var(--cf-key-lift); }
+  .follow[aria-pressed='true']:hover { transform: none; background: var(--mk-surface-2); box-shadow: inset 0 1px 2px rgb(var(--cf-shadow) / 0.18), var(--cf-key-down); }
+  .ghostBtn:hover, .iconBtn:hover:not(:disabled) { transform: translateY(-1px); background: var(--mk-surface-2); box-shadow: var(--cf-key-lift); }
+  .action:hover, .morph:hover { transform: translateY(-1px); background: var(--mk-surface-2); box-shadow: var(--cf-key-rest); }
+}
+.follow:active, .primaryBtn:active:not(:disabled), .ghostBtn:active, .iconBtn:active:not(:disabled) {
+  transform: translateY(1px) scale(0.98); box-shadow: inset 0 1px 2px rgb(var(--cf-shadow) / 0.22), var(--cf-key-down);
+  transition-duration: var(--mk-duration-instant); transition-timing-function: var(--mk-ease-standard);
+}
+.action:active, .morph:active, .textBtn:active, .tab:active {
+  transform: translateY(1px) scale(0.95); box-shadow: inset 0 1px 2px rgb(var(--cf-shadow) / 0.18);
+  transition-duration: var(--mk-duration-instant); transition-timing-function: var(--mk-ease-standard);
+}
 .ghostBtn svg, .action svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
 .inlineError { margin: 8px 16px 10px; padding: 8px 12px; border-left: 3px solid var(--mk-danger); background: var(--mk-surface-2); font-size: 0.875rem; line-height: 1.4; }
 .proof .inlineError { margin: 12px 0 0; }
-.textBtn { min-height: 24px; padding: 2px 4px; border: 0; background: none; color: var(--cf-blue); font: inherit; font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+.textBtn { min-height: 24px; padding: 2px 4px; border: 0; border-radius: var(--mk-radius-s); background: none; color: var(--cf-blue); font: inherit; font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+@media (hover: hover) { .textBtn:hover { background: var(--mk-surface-2); } }
 
 /* ── Settings + tabs ────────────────────────────────────────────────────── */
 .settings { display: flex; flex-wrap: wrap; gap: 0 18px; margin-bottom: 8px; }
 .switch { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 2px; border: 0; background: none; color: inherit; font: inherit; font-size: 0.875rem; }
 .switchTrack { position: relative; flex: none; width: 34px; height: 20px; border: 1.5px solid var(--mk-line-strong); border-radius: 999px; box-sizing: border-box; transition: background-color var(--mk-duration-fast) var(--mk-ease-standard); }
-.switchThumb { position: absolute; top: 2.5px; left: 2.5px; width: 12px; height: 12px; border-radius: 50%; background: var(--mk-ink); transition: transform var(--mk-duration-fast) var(--mk-ease-standard); }
+.switchThumb { position: absolute; top: 2.5px; left: 2.5px; width: 12px; height: 12px; border-radius: 50%; background: var(--mk-ink); box-shadow: 0 1px 1px rgb(var(--cf-shadow) / 0.3); transition: transform var(--cf-press-dur) var(--cf-press), scale var(--cf-press-dur) var(--cf-press); }
+.switch:active .switchThumb { scale: 1.22 0.9; transition-duration: var(--mk-duration-instant); }
+@media (hover: hover) { .switch:hover .switchTrack { border-color: var(--mk-ink); } }
 .switch[aria-checked='true'] .switchTrack { background: var(--cf-blue); border-color: var(--cf-blue); }
 .switch[aria-checked='true'] .switchThumb { transform: translateX(14px); background: var(--mk-bg); }
 .switchNote { padding: 1px 6px; border: 1px solid var(--mk-line-strong); font-family: var(--mk-font-mono); font-size: 0.625rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mk-ink-muted); }
@@ -97,14 +137,24 @@
   display: inline-flex; align-items: center; gap: 8px; min-height: 44px; margin-bottom: -1px; padding: 0 12px;
   border: 0; border-bottom: 3px solid transparent; background: none; color: var(--mk-ink-muted); font: inherit; font-size: 0.9375rem; font-weight: 600;
 }
-.tab:hover { color: var(--mk-ink); }
+@media (hover: hover) { .tab:hover { color: var(--mk-ink); background: color-mix(in oklab, var(--mk-surface-2) 60%, transparent); } }
 .tab[aria-selected='true'] { color: var(--mk-ink); border-bottom-color: var(--cf-coral); }
 
 /* ── Pinned (composed reaction-burst recipe) ────────────────────────────── */
 .pinned { margin-bottom: 32px; }
 .pinnedHead { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--mk-line-strong); }
 .pinnedHead h3 { margin: 0; color: var(--cf-blue); }
-.pinnedStage { position: relative; background: var(--mk-surface); border: 1px solid var(--mk-line); border-top: 0; overflow: hidden; }
+.pinnedStage { position: relative; background: var(--mk-surface); border: 1px solid var(--mk-line); border-top: 0; overflow: hidden; box-shadow: var(--cf-sheet-rest); }
+/* The composed reaction-burst chips get the page's press depth (same light, same spring). */
+.pinnedStage button[aria-pressed] {
+  box-shadow: var(--cf-key-rest);
+  transition:
+    transform var(--cf-press-dur) var(--cf-press), box-shadow var(--cf-press-dur) var(--cf-press),
+    background-color var(--mk-duration-fast) var(--mk-ease-standard), color var(--mk-duration-fast) var(--mk-ease-standard), border-color var(--mk-duration-fast) var(--mk-ease-standard);
+}
+@media (hover: hover) { .pinnedStage button[aria-pressed]:hover { transform: translateY(-1px); box-shadow: var(--cf-key-lift); } }
+.pinnedStage button[aria-pressed]:active { transform: translateY(1px) scale(0.97); box-shadow: inset 0 1px 2px rgb(var(--cf-shadow) / 0.25), var(--cf-key-down); transition-duration: var(--mk-duration-instant); }
+.pinnedStage button[aria-pressed='true'] { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12), var(--cf-key-rest); }
 .pinnedNo {
   display: block; margin: 18px 18px -8px auto; width: max-content; pointer-events: none;
   font-family: var(--mk-font-display); font-weight: 800; font-size: clamp(5.5rem, 4rem + 6cqi, 7.5rem); line-height: 0.8; letter-spacing: -0.05em;
@@ -115,7 +165,20 @@
 /* ── Feed ───────────────────────────────────────────────────────────────── */
 .feedNote { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 0 0 14px; font-size: 0.8125rem; color: var(--mk-ink-muted); }
 .feed { display: grid; gap: 28px; }
-.post { background: var(--mk-surface); border: 1px solid var(--mk-line); scroll-margin-top: 64px; }
+.post {
+  position: relative; isolation: isolate; background: var(--mk-surface); border: 1px solid var(--mk-line); scroll-margin-top: 64px;
+  box-shadow: var(--cf-sheet-rest);
+  transition: transform var(--cf-settle-dur) var(--cf-settle);
+}
+/* The lifted shadow is its own layer whose opacity changes, so a lift never repaints a large shadow per frame. */
+.post::before {
+  content: ''; position: absolute; inset: -1px; z-index: -1; pointer-events: none;
+  box-shadow: var(--cf-sheet-lift); opacity: 0; transition: opacity var(--cf-settle-dur) var(--cf-settle);
+}
+@media (hover: hover) {
+  .post:hover { transform: translateY(-3px); }
+  .post:hover::before { opacity: 1; }
+}
 .post:focus-visible { outline: 2px solid var(--mk-focus); outline-offset: 3px; }
 .postHead { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; padding: 12px 16px; }
 .avatarSm { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--mk-ink); color: var(--mk-bg); font-family: var(--mk-font-mono); font-size: 0.625rem; letter-spacing: 0.06em; }
@@ -125,6 +188,14 @@
 .slug { font-family: var(--mk-font-display); font-weight: 800; font-size: 1.375rem; letter-spacing: -0.01em; color: var(--cf-blue); }
 .media { position: relative; margin: 0; aspect-ratio: 4 / 5; overflow: hidden; border-block: 1px solid var(--mk-line); touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; cursor: default; }
 .mediaArt { width: 100%; height: 100%; }
+/* A print: paper + blue plate below, the coral plate above it (multiply), paper grain over both. */
+.print { position: relative; width: 100%; height: 100%; overflow: hidden; isolation: isolate; }
+.plate { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+.coralPlate { mix-blend-mode: multiply; will-change: transform; }
+.print::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background-image: var(--cf-grain); background-size: 128px 128px; mix-blend-mode: multiply; opacity: 0.32;
+}
 .heartPop { position: absolute; top: 50%; left: 50%; width: 30%; opacity: 0; transform: translate(-50%, -50%); pointer-events: none; }
 .heartPop svg { display: block; width: 100%; fill: var(--cf-coral); stroke: #f2ede2; stroke-width: 1.5; }
 .postText { margin: 14px 16px 4px; font-family: var(--mk-font-serif); font-size: 1.25rem; line-height: 1.3; text-wrap: pretty; }
@@ -163,22 +234,32 @@
 .morphCount span { display: inline-block; }
 @container (max-width: 27.99rem) { .morph[data-kind='save'] .morphCaption { display: none; } }
 
-/* Carousel (three proofs) */
-.carousel { border-block: 1px solid var(--mk-line); }
-.track { display: flex; aspect-ratio: 4 / 5; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-width: none; }
+/* Carousel (three proofs): native scroll-snap for touch and trackpads, pointer throw for a mouse. */
+.carousel { overflow: hidden; border-block: 1px solid var(--mk-line); }
+.track {
+  display: flex; aspect-ratio: 4 / 5; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scrollbar-width: none;
+  user-select: none; -webkit-user-select: none; background: var(--mk-surface-2);
+}
+@media (pointer: fine) { .track { cursor: grab; } }
+.track[data-dragging] { cursor: grabbing; }
+.track[data-dragging], .track[data-gliding] { scroll-snap-type: none; }
 .track::-webkit-scrollbar { display: none; }
 .track:focus-visible { outline: 2px solid var(--mk-focus); outline-offset: -2px; }
 .slide { flex: 0 0 100%; height: 100%; scroll-snap-align: start; }
 .carouselBar { display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; gap: 8px; padding: 6px 8px; border-top: 1px solid var(--mk-line); }
+.carouselMid { display: grid; justify-items: center; gap: 5px; }
+.dots { display: flex; gap: 4px; }
+.dots i { display: block; width: 16px; height: 4px; border-radius: 2px; background: var(--mk-line-strong); opacity: 0.22; transform: scaleX(0.4); transition: transform var(--cf-press-dur) var(--cf-press), opacity var(--mk-duration-fast) var(--mk-ease-standard), background-color var(--mk-duration-fast) var(--mk-ease-standard); }
+.dots i[data-on] { opacity: 1; background: var(--cf-blue); transform: none; }
 .carouselPos { margin: 0; text-align: center; font-size: 0.8125rem; }
 .carouselNum { margin-right: 6px; font-family: var(--mk-font-mono); font-weight: 600; color: var(--cf-blue); }
 .iconBtn {
   display: grid; place-items: center; width: 44px; height: 44px; padding: 0; flex: none;
   border: 1px solid var(--mk-line); border-radius: var(--mk-radius-s); background: var(--mk-surface); color: inherit;
+  box-shadow: var(--cf-key-rest);
 }
 .iconBtn svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
-.iconBtn:hover:not(:disabled) { background: var(--mk-surface-2); }
-.iconBtn:disabled { color: var(--mk-ink-muted); border-color: transparent; cursor: default; }
+.iconBtn:disabled { color: var(--mk-ink-muted); border-color: transparent; cursor: default; box-shadow: none; background: transparent; }
 
 /* ── End of feed ────────────────────────────────────────────────────────── */
 .caughtUp { margin: 44px 0 0; padding: 30px 20px 34px; text-align: center; border-block: 1px solid var(--mk-line-strong); }
@@ -191,7 +272,7 @@
 .suggestedHead { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 10px 16px; padding-bottom: 12px; }
 .suggestedHead h3 { margin: 0 0 4px; }
 .suggestedHead p { margin: 0; max-width: 46ch; font-size: 0.875rem; line-height: 1.45; }
-.essay { padding: 18px 16px 4px; background: var(--mk-surface); border: 1px solid var(--mk-line); }
+.essay { padding: 18px 16px 4px; background: var(--mk-surface); border: 1px solid var(--mk-line); box-shadow: var(--cf-sheet-rest); }
 .essay > p { margin: 0; }
 .essayTitle { margin: 10px 0 0; font-family: var(--mk-font-serif); font-size: clamp(1.875rem, 1.5rem + 1.6cqi, 2.5rem); font-weight: 400; line-height: 1.02; letter-spacing: -0.01em; text-wrap: balance; }
 .essay .essayDek { margin: 10px 0 6px; max-width: 46ch; font-size: 0.9375rem; line-height: 1.45; color: var(--mk-ink-muted); }
@@ -200,7 +281,15 @@
 .editions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 16px; margin: 0 0 16px; padding: 0; list-style: none; }
 .edition { display: grid; align-content: start; gap: 2px; font-size: 0.8125rem; }
 .edition p { margin: 0; }
-.editionArt { aspect-ratio: 4 / 5; margin-bottom: 8px; border: 1px solid var(--mk-line); }
+.editionArt {
+  position: relative; isolation: isolate; aspect-ratio: 4 / 5; margin-bottom: 8px; border: 1px solid var(--mk-line); box-shadow: var(--cf-sheet-rest);
+  transition: transform var(--cf-settle-dur) var(--cf-settle);
+}
+.editionArt::before { content: ''; position: absolute; inset: -1px; z-index: -1; box-shadow: var(--cf-sheet-lift); opacity: 0; transition: opacity var(--cf-settle-dur) var(--cf-settle); }
+@media (hover: hover) {
+  .edition:hover .editionArt { transform: translateY(-4px) rotate(-0.4deg); }
+  .edition:hover .editionArt::before { opacity: 1; }
+}
 .editionTitle { font-size: 0.9375rem; font-weight: 600; line-height: 1.3; }
 
 .footer { margin-top: 44px; padding-top: 14px; border-top: 1px solid var(--mk-line); font-size: 0.8125rem; color: var(--mk-ink-muted); }
@@ -210,18 +299,28 @@
 .sheetLayer { position: absolute; inset: 0; z-index: 40; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; }
 .sheetScrim { position: absolute; inset: 0; background: rgb(14 14 12 / 0.48); }
 .sheetPanel {
+  --sheet-axis: y;
   position: sticky; bottom: 0; z-index: 1; display: flex; flex-direction: column; box-sizing: border-box;
   width: min(100%, 600px); max-height: calc(100dvh - 44px - 24px);
   background: var(--mk-surface); border: 1px solid var(--mk-line-strong); border-bottom: 0;
-  box-shadow: 0 -16px 48px rgb(0 0 0 / 0.2);
+  border-radius: var(--mk-radius-m) var(--mk-radius-m) 0 0;
+  box-shadow: 0 -1px 2px rgb(0 0 0 / 0.08), 0 -18px 48px -8px rgb(0 0 0 / 0.28);
 }
 .sheetPanel:focus { outline: none; }
 .sheetPanel:focus-visible { outline: 2px solid var(--mk-focus); outline-offset: -2px; }
 @container (min-width: 62rem) {
   .sheetLayer { justify-content: flex-start; align-items: flex-end; }
-  .sheetPanel { top: 44px; bottom: auto; width: 440px; height: calc(100dvh - 44px); max-height: none; border-bottom: 1px solid var(--mk-line-strong); border-right: 0; box-shadow: -16px 0 48px rgb(0 0 0 / 0.2); }
+  .sheetPanel { --sheet-axis: x; top: 44px; bottom: auto; width: 440px; height: calc(100dvh - 44px); max-height: none; border-bottom: 1px solid var(--mk-line-strong); border-right: 0; border-radius: var(--mk-radius-m) 0 0 var(--mk-radius-m); box-shadow: -1px 0 2px rgb(0 0 0 / 0.08), -18px 0 48px -8px rgb(0 0 0 / 0.28); }
 }
-.sheetHead { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 16px 16px 12px; border-bottom: 1px solid var(--mk-line); }
+/* The head is the drag handle (down on phones, right on the drawer); its controls stay plain buttons. */
+.sheetHead { position: relative; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 22px 16px 12px; border-bottom: 1px solid var(--mk-line); touch-action: none; cursor: grab; }
+.sheetPanel[data-dragging] .sheetHead { cursor: grabbing; }
+.grabber { position: absolute; top: 8px; left: 50%; width: 40px; height: 4px; margin-left: -20px; border-radius: 2px; background: var(--mk-line-strong); opacity: 0.3; transition: opacity var(--mk-duration-fast) var(--mk-ease-standard); }
+.sheetHead:hover .grabber, .sheetPanel[data-dragging] .grabber { opacity: 0.6; }
+@container (min-width: 62rem) {
+  .sheetHead { padding-left: 22px; padding-top: 16px; }
+  .grabber { top: 50%; left: 7px; width: 4px; height: 40px; margin: -20px 0 0; }
+}
 .sheetHead p { margin: 0; }
 .sheetTitle { margin: 4px 0 0; font-family: var(--mk-font-display); font-size: 1.25rem; font-weight: 700; line-height: 1.15; letter-spacing: -0.01em; text-wrap: balance; }
 .sheetBody { flex: 1 1 auto; min-height: 96px; overflow-y: auto; overscroll-behavior: contain; padding: 4px 16px 12px; }
@@ -252,3 +351,17 @@
 .copy > p { margin: 0; }
 .copyRow { display: flex; flex-wrap: wrap; gap: 8px; }
 .copyInput { flex: 1 1 200px; min-width: 0; min-height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid var(--mk-line-strong); border-radius: var(--mk-radius-s); background: var(--mk-bg); color: inherit; font-family: var(--mk-font-mono); font-size: 0.8125rem; }
+
+/* Reduced motion: states still change (fill, shadow, colour) but nothing travels or springs. */
+@media (prefers-reduced-motion: reduce) {
+  .post, .post::before, .editionArt, .editionArt::before, .nameCoral, .switchThumb, .dots i,
+  .follow, .primaryBtn, .ghostBtn, .iconBtn, .action, .morph, .switch, .textBtn, .tab, .pinnedStage button[aria-pressed] { transition: none; }
+  .post:hover, .edition:hover .editionArt, .follow:hover, .primaryBtn:hover, .ghostBtn:hover, .iconBtn:hover, .action:hover, .morph:hover,
+  .follow:active, .primaryBtn:active, .ghostBtn:active, .iconBtn:active, .action:active, .morph:active, .textBtn:active, .tab:active,
+  .pinnedStage button[aria-pressed]:hover, .pinnedStage button[aria-pressed]:active { transform: none; }
+  .coralPlate { will-change: auto; }
+}
+.root[data-reduced] .post, .root[data-reduced] .post::before, .root[data-reduced] .editionArt, .root[data-reduced] .nameCoral,
+.root[data-reduced] .follow, .root[data-reduced] .primaryBtn, .root[data-reduced] .ghostBtn, .root[data-reduced] .iconBtn,
+.root[data-reduced] .action, .root[data-reduced] .morph, .root[data-reduced] .switchThumb, .root[data-reduced] .dots i { transition: none; }
+.root[data-reduced] .post:hover, .root[data-reduced] .edition:hover .editionArt, .root[data-reduced] :is(.follow, .primaryBtn, .ghostBtn, .iconBtn, .action, .morph, .textBtn, .tab):is(:hover, :active) { transform: none; }

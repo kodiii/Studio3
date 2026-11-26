@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
-import { useStudioMotion } from '../../../motion';
+import { cssEase, duration as D, profileScale, useStudioMotion } from '../../../motion';
 import { FleetChart, N, type ChartData } from './FleetChart';
 import { AGENTS, SEED, advance, createStore, statusOf, type FleetEvent, type Severity, type Status, type Store } from './sim';
 import s from './styles.module.css';
@@ -107,7 +107,8 @@ export default function LiveMonitoring() {
   useEffect(() => {
     const el = ping.current;
     if (!el || reduced || paused || typeof el.animate !== 'function') return;
-    const a = el.animate([{ transform: 'scale(1)', opacity: 0.5 }, { transform: 'scale(2.4)', opacity: 0 }], { duration: 800, easing: 'cubic-bezier(0.2, 0, 0, 1)' });
+    // One ring per received sample, from tokens (Essential: slow × 0.7 ≈ 390 ms), over well before the next tick.
+    const a = el.animate([{ transform: 'scale(1)', opacity: 0.5 }, { transform: 'scale(2.4)', opacity: 0 }], { duration: D.slow * profileScale.essential.duration, easing: cssEase('standard') });
     return () => a.cancel();
   }, [view, reduced, paused]);
 
@@ -208,7 +209,7 @@ export default function LiveMonitoring() {
   const kpiDelta = fleet ? fleet.sum / Math.max(1, fleet.avg) - 1 : 0;
 
   return (
-    <div className={s.root} data-state={state}>
+    <div className={s.root} data-state={state} data-reduced={reduced || undefined}>
       <header className={s.bar}>
         <div className={`${s.wrap} ${s.barInner}`}>
           <div className={s.brand}>

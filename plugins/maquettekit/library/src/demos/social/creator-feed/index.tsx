@@ -28,6 +28,7 @@ const PROOFS = [
 type SheetState = { type: 'comments' | 'share'; postId: string } | { type: 'share-profile' } | null;
 
 export default function CreatorFeed() {
+  const { reduced } = useStudioMotion();
   const rootRef = useRef<HTMLDivElement>(null);
   const register = useRegistrationField(rootRef);
   const [grain, setGrain] = useState('');
@@ -90,7 +91,7 @@ export default function CreatorFeed() {
 
   return (
     <RegistrationContext.Provider value={register}>
-    <div ref={rootRef} className={styles.root} style={vars}>
+    <div ref={rootRef} className={styles.root} style={vars} data-reduced={reduced || undefined}>
       <div className={styles.page} inert={sheet !== null}>
         <p className={styles.sampleBar}>
           <span className="mk-label">Sample content</span>
@@ -228,6 +229,19 @@ export default function CreatorFeed() {
 
       <p role="status" aria-live="polite" className="mk-sr-only">{state.announce.text}{state.announce.n % 2 ? ' ' : ''}</p>
     </div>
+    </RegistrationContext.Provider>
+  );
+}
+
+/** The profile name, printed twice: blue, and a coral copy that is one more plate in the registration field. */
+function ProfileName({ id }: { id: string }) {
+  const coral = useRef<HTMLSpanElement>(null);
+  usePlate(coral);
+  return (
+    <h2 id={id} className={styles.name}>
+      <span className={styles.nameInk}>Ines <br />Varga</span>
+      <span ref={coral} className={styles.nameCoral} aria-hidden="true">Ines <br />Varga</span>
+    </h2>
   );
 }
 
@@ -403,17 +417,18 @@ function Proofs() {
     const el = track.current;
     if (!d || d.id !== e.pointerId || !el) return;
     drag.current = null;
-    delete el.dataset.dragging;
     const a = d.samples[0], b = d.samples[d.samples.length - 1];
     const vx = b.t > a.t ? ((b.x - a.x) / (b.t - a.t)) * 1000 : 0; // pointer px/s
+    // Read the position while snapping is still off: re-enabling scroll-snap first would re-snap on this read.
+    const w = Math.max(1, el.clientWidth);
+    const projected = (el.scrollLeft - vx * 0.22) / w;
     const from = el.style.transform;
     if (from) {
       el.style.transform = '';
       band.current = reduced ? null : el.animate([{ transform: from }, { transform: 'none' }], { duration: SETTLE.duration, easing: SETTLE.easing });
     }
-    const w = Math.max(1, el.clientWidth);
-    const projected = (el.scrollLeft - vx * 0.22) / w;
     go(Math.max(d.from - 1, Math.min(d.from + 1, Math.round(projected))), -vx);
+    delete el.dataset.dragging;
   };
   const onKey = (e: KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.preventDefault(); go(at.current + (e.key === 'ArrowRight' ? 1 : -1)); }

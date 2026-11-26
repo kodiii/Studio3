@@ -136,17 +136,23 @@ export class LensEngine {
     return Math.min(Math.max(qx, qy), 0) + corner - f.r <= 0;
   }
 
-  /** Pointer over the stage. Hover is derived from geometry each frame, so a lens that glides out from under a
-   *  still mouse stops looking hovered without waiting for the next pointer event. */
-  pointerMove(px: number, py: number, inside = true, mouse = true): void {
+  /**
+   * Pointer over the stage. Hover is derived from geometry each frame, so a lens that glides out from under a still
+   * mouse stops looking hovered without waiting for the next pointer event. Returns whether a frame is needed: not
+   * when the light is fixed and the move changes nothing else.
+   */
+  pointerMove(px: number, py: number, inside = true, mouse = true): boolean {
+    const wasOver = this.mouse && this.pointer.inside && this.contains(this.pointer.x, this.pointer.y);
     this.pointer = { x: px, y: py, inside };
     this.mouse = mouse;
+    const over = mouse && inside && this.contains(px, py);
     if (this.mode === 'drag') {
       this.raw = { x: px, y: py };
       const t = performance.now();
       this.samples.push({ t, x: px, y: py });
       while (this.samples.length > 8 || (this.samples.length > 2 && t - this.samples[0].t > 160)) this.samples.shift();
     }
+    return this.mode === 'drag' || (this.follow && !this.reduced) || over !== wasOver;
   }
   pointerLeave(): void { this.pointer = { ...this.pointer, inside: false }; }
 

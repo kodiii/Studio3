@@ -26,6 +26,7 @@ export const effectLoaders: Readonly<Record<string, () => Promise<{ default: Eff
   'like-heart-morph': () => import('./effects/like-heart-morph/index'),
   'line-chart-morph': () => import('./effects/line-chart-morph/index'),
   'liquid-glass-lens': () => import('./effects/liquid-glass-lens/index'),
+  'lottie-micro-interactions': () => import('./effects/lottie-micro-interactions/index'),
   'magnetic-button': () => import('./effects/magnetic-button/index'),
   'morph-submit-button': () => import('./effects/morph-submit-button/index'),
   'morphing-nav-pill': () => import('./effects/morphing-nav-pill/index'),

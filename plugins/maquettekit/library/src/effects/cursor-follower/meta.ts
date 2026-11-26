@@ -40,5 +40,5 @@ export const meta: EffectMeta = {
     'Position, squash and stretch, press and presence are transforms and opacity. The outline morph writes the geometry of one SVG rect, only while a morph is moving, and identical values are never re-written.',
     'Listeners are passive and installed only on fine-pointer devices with motion allowed; unmount removes them and clears every translate written to a magnet.',
   ],
-  preview: { height: 760 },
+  preview: { height: 1000 },
 };

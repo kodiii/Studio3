@@ -229,7 +229,7 @@ function transformJson(t: Transform = {}): LottieItem {
     nm: 'Transform',
     a: encode(t.anchor ?? pivot, vec),
     p: encode(t.position ?? pivot, vec),
-    s: encode<number | Vec2>(t.scale ?? 1, scaleVec),
+    s: encode<number | Vec2, number[]>(t.scale ?? 1, scaleVec),
     r: encode(t.rotation ?? 0, (n) => r3(n)),
     o: encode(t.opacity ?? 1, (n) => r3(n * 100)),
     sk: { a: 0, k: 0 },
