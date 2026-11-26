@@ -76,7 +76,7 @@
 .brand { display: grid; gap: 1px; min-width: 0; margin: 0; padding-left: 2px; }
 .show {
   font-family: var(--mk-font-display, ui-sans-serif, system-ui, sans-serif);
-  font-size: 0.9375rem;
+  font-size: clamp(0.8125rem, 4cqi, 0.9375rem);
   font-weight: 700;
   letter-spacing: -0.015em;
   line-height: 1.2;
@@ -105,30 +105,43 @@
   .iconButton:hover, .pill:hover { box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--mk-ink, #11110f) 24%, transparent); }
 }
 
-/* ── Queue (disclosure content) ────────────────────────────────────────────────────────────────────────────── */
+/* ── Queue (disclosure content): a popover under the bar, so opening it never moves the card ─────────────────── */
 .queue {
-  display: grid;
-  grid-template-rows: 0fr;
-  margin-top: -16px;
+  position: absolute;
+  z-index: 3;
+  top: calc(var(--pad) * 0.55 + 50px);
+  left: calc(var(--pad) * 0.55);
+  right: calc(var(--pad) * 0.55);
+  padding: 12px 16px 4px;
+  border: 1px solid var(--mk-line, #11110f24);
+  border-radius: var(--mk-radius-l, 18px);
+  background: var(--mk-surface, #fbf9f4);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05), 0 1px 2px rgb(0 0 0 / 0.08), 0 26px 50px -22px rgb(0 0 0 / 0.5);
+  transform-origin: 22px 0;
+  opacity: 0;
   visibility: hidden;
+  transform: translateY(-8px) scale(0.96);
+  /* Exit: quicker than the entrance, accelerating away. */
   transition:
-    grid-template-rows var(--mk-duration-moderate, 360ms) var(--mk-ease-emphasized, ease),
-    margin-top var(--mk-duration-moderate, 360ms) var(--mk-ease-emphasized, ease),
-    visibility 0s linear var(--mk-duration-moderate, 360ms);
+    opacity var(--mk-duration-fast, 160ms) var(--mk-ease-exit, ease-in),
+    transform var(--mk-duration-fast, 160ms) var(--mk-ease-exit, ease-in),
+    background-color var(--mk-duration-slow, 560ms) var(--mk-ease-standard, ease),
+    visibility 0s linear var(--mk-duration-fast, 160ms);
 }
 .queue[data-open] {
-  grid-template-rows: 1fr;
-  margin-top: 0;
+  opacity: 1;
   visibility: visible;
+  transform: none;
+  /* Entrance: settles on spring.settle (sampled into linear()). */
   transition:
-    grid-template-rows var(--mk-duration-moderate, 360ms) var(--mk-ease-emphasized, ease),
-    margin-top var(--mk-duration-moderate, 360ms) var(--mk-ease-emphasized, ease),
+    opacity var(--mk-duration-base, 240ms) var(--mk-ease-standard, ease),
+    transform var(--settle-duration, 360ms) var(--settle-ease, ease),
+    background-color var(--mk-duration-slow, 560ms) var(--mk-ease-standard, ease),
     visibility 0s;
 }
-.queueInner { min-height: 0; overflow: hidden; }
 .queueTitle {
   margin: 0;
-  padding: 2px 0 8px;
+  padding-bottom: 8px;
   font-size: 0.625rem;
   text-transform: uppercase;
   color: var(--mk-ink-muted, #5c5a52);
@@ -139,22 +152,22 @@
   grid-template-columns: 1.75rem minmax(0, 1fr) auto;
   align-items: baseline;
   gap: 8px;
-  padding: 9px 0;
-  border-bottom: 1px solid var(--mk-line, #11110f24);
+  padding: 10px 0;
   font-size: 0.875rem;
   opacity: 0;
-  translate: 0 -6px;
+  translate: 0 -4px;
   transition: opacity var(--mk-duration-fast, 160ms) var(--mk-ease-standard, ease), translate var(--mk-duration-fast, 160ms) var(--mk-ease-standard, ease);
 }
+.queueList li + li { border-top: 1px solid var(--mk-line, #11110f24); }
 .queue[data-open] .queueList li {
   opacity: 1;
   translate: 0 0;
   transition-duration: var(--mk-duration-moderate, 360ms);
   transition-timing-function: var(--mk-ease-emphasized, ease);
 }
-.queue[data-open] .queueList li:nth-child(1) { transition-delay: 60ms; }
-.queue[data-open] .queueList li:nth-child(2) { transition-delay: calc(60ms + var(--mk-stagger-base, 48ms)); }
-.queue[data-open] .queueList li:nth-child(3) { transition-delay: calc(60ms + 2 * var(--mk-stagger-base, 48ms)); }
+.queue[data-open] .queueList li:nth-child(1) { transition-delay: 40ms; }
+.queue[data-open] .queueList li:nth-child(2) { transition-delay: calc(40ms + var(--mk-stagger-base, 48ms)); }
+.queue[data-open] .queueList li:nth-child(3) { transition-delay: calc(40ms + 2 * var(--mk-stagger-base, 48ms)); }
 .queueNo, .queueMin { font-size: 0.6875rem; color: var(--mk-ink-muted, #5c5a52); font-variant-numeric: tabular-nums; }
 .queueName { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
@@ -267,7 +280,20 @@
 }
 .caption { font-size: 0.875rem; font-weight: 600; letter-spacing: -0.005em; transition: color var(--mk-duration-base, 240ms) var(--mk-ease-standard, ease); }
 .pill[aria-pressed='true'] .caption { color: var(--lmi-tint, var(--mk-accent, #bf2f09)); }
-.count { font-size: 0.75rem; font-variant-numeric: tabular-nums; color: var(--mk-ink-muted, #5c5a52); }
+/* Narrow cards: captions sit under their icons (tab-bar style) so large icon sizes still fit beside the play disc. */
+@container (max-width: 480px) {
+  .pill { flex-direction: column; justify-content: center; gap: 3px; height: auto; min-height: 52px; padding: 5px 10px; border-radius: 16px; }
+  .caption { font-size: 0.75rem; }
+}
+.count { display: inline-flex; flex: none; overflow: hidden; font-size: 0.75rem; font-variant-numeric: tabular-nums; color: var(--mk-ink-muted, #5c5a52); }
+.countRoll { display: inline-block; }
+/* The count rolls with the like: up when it grows, down when it shrinks (a secondary action to the heart). */
+@media (prefers-reduced-motion: no-preference) {
+  .root:not([data-reduced]) .countRoll[data-dir='up'] { animation: rollUp var(--mk-duration-moderate, 360ms) var(--mk-ease-emphasized, ease) 120ms both; }
+  .root:not([data-reduced]) .countRoll[data-dir='down'] { animation: rollDown var(--mk-duration-base, 240ms) var(--mk-ease-standard, ease) both; }
+}
+@keyframes rollUp { from { transform: translateY(80%); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes rollDown { from { transform: translateY(-60%); opacity: 0; } to { transform: none; opacity: 1; } }
 .primary { border-radius: 50%; }
 /* The disc is part of the Lottie drawing; its shadow follows the drawn silhouette, lifting on hover, pressing down. */
 .primary > span:first-child {
@@ -293,7 +319,7 @@
   }
 }
 .hint {
-  max-width: 40ch;
+  max-width: 46ch;
   margin: 0;
   font-size: 0.625rem;
   line-height: 1.6;
@@ -375,11 +401,16 @@
 .srOnly { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 
 /* ── Reduced motion: state changes stay (cross-fades inside the icons), travel and ambient motion go ─────────── */
-.root[data-reduced] .queue, .root[data-reduced] .queue[data-open] { transition: visibility 0s; }
-.root[data-reduced] .queueList li { translate: none; transition: opacity var(--mk-duration-fast, 160ms) linear; transition-delay: 0s !important; }
+.root[data-reduced] .queue { transform: none; transition: opacity var(--mk-duration-fast, 160ms) linear, visibility 0s linear var(--mk-duration-fast, 160ms); }
+.root[data-reduced] .queue[data-open] { transition: opacity var(--mk-duration-fast, 160ms) linear, visibility 0s; }
+.root[data-reduced] .queueList li { translate: none; transition: none; }
 .root[data-reduced] .sun, .root[data-reduced] .moon { transform: none; transition: opacity var(--mk-duration-fast, 160ms) linear; }
+/* Palette swaps (night mode, theme) are state changes: a short fade at most. */
+.root[data-reduced] .card, .root[data-reduced] .card :global(.lmi-st), .root[data-reduced] .card :global(.lmi-fl),
+.root[data-reduced] .cover::after, .root[data-reduced] .waves path { transition-duration: var(--mk-duration-fast, 160ms); }
 @media (prefers-reduced-motion: reduce) {
-  .queue, .queue[data-open] { transition: visibility 0s; }
-  .queueList li { translate: none; transition-delay: 0s !important; }
+  .card, .card :global(.lmi-st), .card :global(.lmi-fl), .cover::after, .waves path { transition-duration: var(--mk-duration-fast, 160ms); }
+  .queue { transform: none; }
+  .queueList li { translate: none; transition: none; }
   .sun, .moon { transform: none !important; }
 }

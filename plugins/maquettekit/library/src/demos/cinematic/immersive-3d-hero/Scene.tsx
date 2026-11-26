@@ -2,7 +2,7 @@
 import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
 import {
-  AdditiveBlending, BackSide, BufferAttribute, BufferGeometry, CatmullRomCurve3, Color, MathUtils, MeshBasicMaterial,
+  AdditiveBlending, BackSide, BufferAttribute, BufferGeometry, CatmullRomCurve3, Color, DoubleSide, MathUtils, MeshBasicMaterial,
   OctahedronGeometry, PlaneGeometry, Raycaster, ShaderMaterial, SphereGeometry, TubeGeometry, Vector2, Vector3,
   type PerspectiveCamera,
 } from 'three';
@@ -63,7 +63,28 @@ function stepSpring(s: { x: number; v: number }, target: number, cfg: { stiffnes
   }
 }
 
-interface Mats { terrain: ShaderMaterial; sky: ShaderMaterial; stars: ShaderMaterial; route: MeshBasicMaterial; halo: MeshBasicMaterial }
+interface Mats { terrain: ShaderMaterial; sky: ShaderMaterial; stars: ShaderMaterial; route: MeshBasicMaterial; halo: MeshBasicMaterial; fells: MeshBasicMaterial }
+
+/** The far fells: a ring of silhouettes around the map, standing just above the horizon against the afterglow. */
+function fellsGeometry(): BufferGeometry {
+  const n = 256;
+  const R = 165;
+  const pos = new Float32Array((n + 1) * 6);
+  const idx: number[] = [];
+  for (let i = 0; i <= n; i++) {
+    const a = (i / n) * Math.PI * 2;
+    const p = 0.5 + 0.22 * Math.sin(3 * a + 1) + 0.14 * Math.sin(7 * a + 0.3) + 0.09 * Math.sin(13 * a + 2) + 0.05 * Math.sin(29 * a + 0.7);
+    const x = Math.sin(a) * R;
+    const z = -Math.cos(a) * R;
+    pos.set([x, -40, z, x, 13 + p * 13, z], i * 6);
+    if (i < n) { const b = i * 2; idx.push(b, b + 1, b + 2, b + 1, b + 3, b + 2); }
+  }
+  const g = new BufferGeometry();
+  g.setAttribute('position', new BufferAttribute(pos, 3));
+  g.setIndex(idx);
+  g.computeBoundingSphere();
+  return g;
+}
 
 /**
  * One frame loop for everything that moves: camera travel (damped toward the page's progress), the entrance push-in,
@@ -79,6 +100,7 @@ function Director({ bridge, input, mats, reduced, animate, stop }: { bridge: Bri
   const pal = useMemo(() => ({
     duskTop: new Color(NIGHT.duskTop), nightTop: new Color(NIGHT.nightTop), duskHorizon: new Color(NIGHT.duskHorizon),
     nightHorizon: new Color(NIGHT.nightHorizon), groundDusk: new Color(NIGHT.groundDusk), groundNight: new Color(NIGHT.groundNight),
+    floor: new Color(),
   }), []);
   const st = useRef({
     u: bridge.u,
@@ -192,11 +214,15 @@ function Director({ bridge, input, mats, reduced, animate, stop }: { bridge: Bri
     ku.uAur.value = aur;
     ku.uFlare.value = s.flare;
     (tu.uBase.value as Color).lerpColors(pal.groundDusk, pal.groundNight, night);
-    (tu.uFog.value as Color).copy(ku.uHorizon.value as Color);
+    // Distance, the far fells and the land below the horizon share one colour, so the map's edge never shows.
+    pal.floor.lerpColors(tu.uBase.value as Color, ku.uHorizon.value as Color, 0.28);
+    (tu.uFog.value as Color).copy(pal.floor);
+    (ku.uFloor.value as Color).copy(pal.floor);
+    mats.fells.color.copy(pal.floor);
     tu.uDusk.value = dusk;
     tu.uAurLight.value = aur * aur * (1 + 1.2 * s.flare);
     mats.stars.uniforms.uNight.value = night;
-    mats.halo.opacity = 0.16 + 0.2 * night;
+    mats.halo.opacity = 0.12 + 0.14 * night;
 
     if (animate) {
       ku.uTime.value += dt;
@@ -232,7 +258,7 @@ export function Scene({ bridge, input, reduced, animate, stop }: { bridge: Bridg
     const curve = new CatmullRomCurve3(pts);
     return {
       tube: new TubeGeometry(curve, 220, 0.042, 5, false),
-      halo: new TubeGeometry(curve, 160, 0.16, 6, false),
+      halo: new TubeGeometry(curve, 160, 0.085, 6, false),
       cairns: [pts[14], pts[72], pts[pts.length - 1]],
     };
   }, []);
@@ -255,6 +281,7 @@ export function Scene({ bridge, input, reduced, animate, stop }: { bridge: Bridg
     return g;
   }, [starCount]);
   const skyGeo = useMemo(() => new SphereGeometry(200, 64, 32), []);
+  const fellsGeo = useMemo(() => fellsGeometry(), []);
   const cairnGeo = useMemo(() => new OctahedronGeometry(0.2, 0), []);
 
   // Materials are created here so their uniform objects are the ones the Director writes to.
@@ -272,7 +299,7 @@ export function Scene({ bridge, input, reduced, animate, stop }: { bridge: Bridg
     sky: new ShaderMaterial({
       vertexShader: skyVert, fragmentShader: skyFrag, side: BackSide, depthWrite: false,
       uniforms: {
-        uTop: color(NIGHT.duskTop), uHorizon: color(NIGHT.duskHorizon), uGlow: color(NIGHT.afterglow),
+        uTop: color(NIGHT.duskTop), uHorizon: color(NIGHT.duskHorizon), uGlow: color(NIGHT.afterglow), uFloor: color(NIGHT.groundDusk),
         uAurA: color(NIGHT.aurGreen), uAurB: color(NIGHT.aurViolet), uAurC: color(NIGHT.aurRose),
         uTime: { value: 7 }, uAur: { value: 0.24 }, uFlare: { value: 0 }, uDusk: { value: 1 },
       },
@@ -283,20 +310,22 @@ export function Scene({ bridge, input, reduced, animate, stop }: { bridge: Bridg
     }),
     route: new MeshBasicMaterial({ color: new Color(NIGHT.route), toneMapped: false }),
     halo: new MeshBasicMaterial({ color: new Color(NIGHT.route), toneMapped: false, transparent: true, opacity: 0.2, blending: AdditiveBlending, depthWrite: false }),
+    fells: new MeshBasicMaterial({ color: new Color(NIGHT.groundDusk), toneMapped: false, side: DoubleSide }),
   }), []);
 
   useEffect(() => () => { terrain.dispose(); }, [terrain]);
   useEffect(() => () => { stars.dispose(); }, [stars]);
   useEffect(() => () => {
-    route.tube.dispose(); route.halo.dispose(); skyGeo.dispose(); cairnGeo.dispose();
+    route.tube.dispose(); route.halo.dispose(); skyGeo.dispose(); fellsGeo.dispose(); cairnGeo.dispose();
     Object.values(mats).forEach((m) => m.dispose());
-  }, [route, skyGeo, cairnGeo, mats]);
+  }, [route, skyGeo, fellsGeo, cairnGeo, mats]);
   useEffect(() => { mats.stars.uniforms.uDpr.value = dpr; invalidate(); }, [dpr, mats, invalidate]);
 
   return (
     <>
       <mesh geometry={skyGeo} material={mats.sky} renderOrder={-1} frustumCulled={false} />
       <points geometry={stars} material={mats.stars} renderOrder={0} frustumCulled={false} />
+      <mesh geometry={fellsGeo} material={mats.fells} frustumCulled={false} />
       <mesh geometry={terrain} material={mats.terrain} />
       <mesh geometry={route.halo} material={mats.halo} renderOrder={1} />
       <mesh geometry={route.tube} material={mats.route} />

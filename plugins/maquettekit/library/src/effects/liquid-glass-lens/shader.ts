@@ -122,8 +122,9 @@ void main() {
   float rim = 0.46 * min(uShape.x, uShape.y);
   vec3 base = page(frag, 0.0);
 
-  // Far from the lens and its shadow: just the page.
-  float reach = max(uShape.x, uShape.y) * (1.0 + abs(uStretch.z)) + uLift * 3.5 + rim + 8.0 * uDpr;
+  // Far from the lens and its shadow: just the page. The box diagonal bounds every shape (a squircle's corners reach
+  // past max(hx, hy)); a low light throws the shadow up to ~2 lifts away and its occlusion fades within ~2.4 more.
+  float reach = length(uShape.xy) * (1.0 + abs(uStretch.z)) + uLift * 4.5 + rim + 8.0 * uDpr;
   vec2 rel = frag - uCenter;
   if (dot(rel, rel) > reach * reach) {
     gl_FragColor = vec4(base, 1.0);
@@ -207,7 +208,7 @@ void main() {
   float curve = 1.0 - u;
   float spec = pow(nh, 110.0) * 1.1 + pow(nh, 22.0) * 0.14 * curve;
   vec3 Nb = normalize(vec3(-N.xy, N.z));
-  float back = pow(max(dot(Nb, H), 0.0), 80.0) * 0.2 * (1.0 - u) * (1.0 - u);
+  float back = pow(max(dot(Nb, H), 0.0), 80.0) * 0.2 * curve * curve;
   vec2 lxy = uLight.xy / max(length(uLight.xy), 1e-4);
   float facing = dot(g, lxy);
   // Edge definition: a bright hairline where the rim meets the light (fading round to the far side), and a thin band

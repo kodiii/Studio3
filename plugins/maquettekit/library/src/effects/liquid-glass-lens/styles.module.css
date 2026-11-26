@@ -1,9 +1,12 @@
+/* Height-driven layout: the frame starts at 16:9, grows into whatever height the stage offers (a tall phone stage
+   turns it portrait) and never shrinks, so in a short host (a catalogue card) the frame stays whole and the toolbar
+   is what overflows. Auto margins centre the group when there is room and collapse when there is not. */
 .root {
   container-type: inline-size;
   width: 100%;
   align-self: stretch;
-  display: grid;
-  align-content: center;
+  display: flex;
+  flex-direction: column;
   gap: clamp(10px, 1.8cqi, 16px);
   padding: clamp(10px, 2.4cqi, 22px);
   font-family: var(--mk-font-text, ui-sans-serif, system-ui, sans-serif);
@@ -18,7 +21,10 @@
   --lift: 0;
   --shadow-a: 0.3;
   position: relative;
+  flex: 1 0 auto;
   aspect-ratio: 16 / 9;
+  max-height: calc(100cqi / 1.45); /* wide hosts stay landscape */
+  margin-top: auto;
   overflow: hidden;
   border-radius: var(--mk-radius-m, 10px);
   background: var(--mk-surface, #fbf9f4);
@@ -62,7 +68,8 @@
   --bezel: rgb(255 255 255 / 0.16);
   --rim-shade: rgb(0 0 0 / 0.12);
   --far: rgb(0 0 0 / 0.07);
-  --drop: rgb(0 0 0 / 0.16);
+  --drop: rgb(0 0 0 / 0.2);
+  --edge: rgb(0 0 0 / 0.08);
   background:
     radial-gradient(130% 150% at var(--sx) var(--sy), var(--sheen), rgb(255 255 255 / 0.03) 40%, rgb(255 255 255 / 0) 70%),
     linear-gradient(170deg, var(--veil), rgb(255 255 255 / 0) 60%);
@@ -71,6 +78,7 @@
   -webkit-backdrop-filter: blur(calc(0.3px + var(--frost, 0) * 12px)) saturate(1.3);
   backdrop-filter: blur(calc(0.3px + var(--frost, 0) * 12px)) saturate(1.3);
   box-shadow:
+    0 0 0 1px var(--edge),
     inset 0 0 0 1px rgb(255 255 255 / 0.42),
     inset calc(var(--lx) * -1.5px) calc(var(--ly) * -1.5px) 0 0 rgb(255 255 255 / 0.75),
     inset calc(var(--lx) * 1.5px) calc(var(--ly) * 1.5px) 0 0 var(--rim-shade),
@@ -88,6 +96,7 @@
   --rim-shade: rgb(0 0 0 / 0.4);
   --far: rgb(0 0 0 / 0.22);
   --drop: rgb(0 0 0 / 0.5);
+  --edge: rgb(255 255 255 / 0.07);
 }
 
 /* The kit's "no WebGL" note, set as a small badge so it does not sit over the middle of the page. */
@@ -111,6 +120,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 10px 12px;
+  margin-bottom: auto;
 }
 .shapes {
   display: inline-flex;
@@ -188,7 +198,7 @@
   .shape, .centre { min-height: 44px; }
 }
 @container (max-width: 560px) {
-  .frame { aspect-ratio: 4 / 5; }
+  .frame { max-height: calc(100cqi / 0.72); } /* narrow hosts may go portrait */
   .shape { padding: 0 12px 0 9px; }
 }
 

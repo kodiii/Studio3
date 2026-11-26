@@ -37,7 +37,7 @@ export function Poster({ className }: { className?: string }) {
         const y = 250 + b * 64 + 34 * Math.sin(x / 150 + b * 2) + 14 * Math.sin(x / 41 - b);
         bottom.unshift(`${x} ${r1(y)}`);
         top.push(`${x} ${r1(y - (110 + 50 * Math.sin(x / 90 + b)) * w)}`);
-        if (Math.round(x / 14) % 3 === 0) rays.push(`M${x} ${r1(y)}V${r1(y - (60 + 120 * rnd()) * w)}`);
+        if (rnd() < 0.42) rays.push(`M${r1(x + rnd() * 10)} ${r1(y)}V${r1(y - (40 + 150 * rnd()) * w)}`);
       }
       return { d: `M${top.join('L')}L${bottom.join('L')}Z`, rays: rays.join('') };
     });
@@ -55,6 +55,8 @@ export function Poster({ className }: { className?: string }) {
           <stop offset="0" stopColor={NIGHT.afterglow} stopOpacity="0.85" />
           <stop offset="1" stopColor={NIGHT.afterglow} stopOpacity="0" />
         </radialGradient>
+        <filter id={`${id}soft`} x="-10%" y="-20%" width="120%" height="140%"><feGaussianBlur stdDeviation="5" /></filter>
+        <filter id={`${id}rays`} x="-10%" y="-20%" width="120%" height="140%"><feGaussianBlur stdDeviation="2.4" /></filter>
         <linearGradient id={`${id}aur`} x1="0" x2="0" y1="0" y2="1">
           <stop offset="0" stopColor={NIGHT.aurViolet} stopOpacity="0" />
           <stop offset="0.6" stopColor={NIGHT.aurViolet} stopOpacity="0.18" />
@@ -66,8 +68,8 @@ export function Poster({ className }: { className?: string }) {
       {art.stars.map((st, i) => <circle key={i} cx={st.x} cy={st.y} r={st.r} fill={NIGHT.star} opacity={st.o} />)}
       {art.curtains.map((c, i) => (
         <g key={i} opacity={i ? 0.6 : 0.9}>
-          <path d={c.d} fill={`url(#${id}aur)`} />
-          <path d={c.rays} stroke={NIGHT.aurGreen} strokeOpacity="0.22" strokeWidth="3" />
+          <path d={c.d} fill={`url(#${id}aur)`} filter={`url(#${id}soft)`} />
+          <path d={c.rays} stroke={NIGHT.aurGreen} strokeOpacity="0.3" strokeWidth="2.5" filter={`url(#${id}rays)`} />
         </g>
       ))}
       {art.ridges.map((r) => (

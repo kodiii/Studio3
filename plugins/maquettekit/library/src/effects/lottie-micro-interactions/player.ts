@@ -7,10 +7,16 @@
  * lottie-web only ticks while an instance plays, so an idle icon costs nothing.
  */
 import type { AnimationItem } from 'lottie-web/build/player/lottie_light';
+import { duration } from '../../motion';
 import type { LottieSegments } from './segments';
 
 type Mode = 'rest' | 'preview' | 'release' | 'toggle' | 'scrub';
 const EPS = 0.01;
+/**
+ * A hover preview plays the wind-up in the `fast` token's time. When a toggle starts straight from rest (touch,
+ * keyboard, a quick click), the same frames are compressed into the `instant` token's time so the commit lands sooner.
+ */
+const BRISK = duration.fast / duration.instant;
 
 export interface PlayerSnapshot { frame: number; mode: Mode }
 
@@ -23,8 +29,15 @@ export class IconPlayer {
   /** A preview may start. Cleared by a toggle, re-armed when pointer and focus have both left. */
   private armed = true;
   private hoverEnabled = true;
+  private speed = 1;
+  /** While set, the wind-up plays at BRISK × speed until the frame passes `until` in direction `dir`. */
+  private brisk: { until: number; dir: 1 | -1 } | null = null;
   private readonly onComplete = (): void => this.landed();
-  private readonly onEnterFrame = (): void => this.listener?.(this.frame());
+  private readonly onEnterFrame = (): void => {
+    const f = this.frame();
+    if (this.brisk && (this.brisk.dir > 0 ? f >= this.brisk.until : f <= this.brisk.until)) this.calm();
+    this.listener?.(f);
+  };
 
   constructor(
     private readonly anim: AnimationItem,
@@ -36,7 +49,7 @@ export class IconPlayer {
   ) {
     this.pressed = pressed;
     anim.addEventListener('complete', this.onComplete);
-    if (listener) anim.addEventListener('enterFrame', this.onEnterFrame);
+    anim.addEventListener('enterFrame', this.onEnterFrame); // lottie only emits it while playing or seeking
     this.seek(this.rest());
   }
 
@@ -45,13 +58,21 @@ export class IconPlayer {
   get lastFrame(): number { return (this.segments.off ?? this.segments.on)[1]; }
   private rest(): number { return this.pressed ? this.segments.on[1] : this.segments.on[0]; }
 
+  private calm(): void {
+    if (!this.brisk) return;
+    this.brisk = null;
+    this.anim.setSpeed(this.speed);
+  }
+
   private seek(frame: number): void {
+    this.calm();
     this.anim.setSegment(0, this.op);
     this.anim.goToAndStop(frame, true);
   }
 
   /** Play from the current frame to `to`. lottie stops a forward segment one frame early, so aim one frame past. */
   private playTo(to: number): void {
+    this.calm();
     const from = this.frame();
     this.target = to;
     if (Math.abs(from - to) < 0.5) { this.seek(to); this.landed(); return; }
@@ -84,11 +105,27 @@ export class IconPlayer {
 
   setPressed(next: boolean, animate: boolean): void {
     if (next === this.pressed) return;
+    const fromRest = this.mode === 'rest';
     this.pressed = next;
     this.armed = false;
     if (!animate) { this.jumpToRest(); return; }
     this.mode = 'toggle';
     this.settle();
+    if (fromRest && this.target !== null) this.hurryWindUp();
+  }
+
+  /** Compress the wind-up of a transition that starts at rest (see BRISK). */
+  private hurryWindUp(): void {
+    const [a, b] = this.segments.on;
+    const off = this.segments.off;
+    const n = (this.pressed ? this.segments.hover?.on : this.segments.hover?.off) ?? 0;
+    if (n <= 0) return;
+    const f = this.frame();
+    const end = this.pressed ? a + n : off ? b + n : b - n;
+    const dir: 1 | -1 = end >= f ? 1 : -1;
+    if (Math.abs(end - f) < 0.5) return;
+    this.brisk = { until: end, dir };
+    this.anim.setSpeed(this.speed * BRISK);
   }
 
   /** Stop wherever the icon is and show the rest pose of the current state (reduced motion). */
@@ -120,7 +157,10 @@ export class IconPlayer {
     if (!on && this.mode === 'preview') { this.mode = 'release'; this.playTo(this.rest()); }
   }
 
-  setSpeed(speed: number): void { this.anim.setSpeed(Math.max(0.05, speed)); }
+  setSpeed(speed: number): void {
+    this.speed = Math.max(0.05, speed);
+    this.anim.setSpeed(this.brisk ? this.speed * BRISK : this.speed);
+  }
 
   setSegments(segments: LottieSegments): void {
     this.segments = segments;
@@ -152,8 +192,9 @@ export class IconPlayer {
   }
 
   dispose(): void {
+    this.brisk = null;
     this.anim.removeEventListener('complete', this.onComplete);
-    if (this.listener) this.anim.removeEventListener('enterFrame', this.onEnterFrame);
+    this.anim.removeEventListener('enterFrame', this.onEnterFrame);
     this.anim.destroy();
   }
 }

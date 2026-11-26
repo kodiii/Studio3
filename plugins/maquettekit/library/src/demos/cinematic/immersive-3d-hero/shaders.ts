@@ -41,7 +41,9 @@ float isoline(float v, float width) {
 }
 void main() {
   vec3 n = normalize(vNormal);
-  float water = 1.0 - step(uWaterLevel + 0.004, vH);
+  // Anti-aliased shoreline (one pixel of soft edge, whatever the mesh resolution).
+  float fw = max(fwidth(vH), 1e-4);
+  float water = 1.0 - smoothstep(uWaterLevel + 0.004 - fw, uWaterLevel + 0.004 + fw, vH);
   float land = 1.0 - water;
   // Sky light from the north and above: slopes that face it catch the aurora.
   float north = clamp(dot(n, normalize(vec3(0.0, 0.7, -1.0))), 0.0, 1.0);
@@ -49,7 +51,7 @@ void main() {
   // The head-torch: a cone from the walker's head toward the pointer's spot on the ground.
   vec3 L = vWorld - uTorchPos;
   float dist = max(length(L), 1e-3);
-  float cone = smoothstep(0.958, 0.993, dot(L / dist, uTorchDir));
+  float cone = smoothstep(0.95, 0.992, dot(L / dist, uTorchDir));
   float facing = clamp(dot(n, -L / dist), 0.0, 1.0);
   float torch = uTorch * cone * (0.3 + 0.7 * facing) / (1.0 + 0.0065 * dist * dist);
 
@@ -60,11 +62,13 @@ void main() {
   col = mix(col, uIndex + aurora * 0.4, major * 0.95);
   // The lake mirrors the sky: its hatch lines pick up the afterglow at dusk and the aurora at night.
   float hatch = isoline(vWorld.z * 1.4, 0.8) * water;
-  vec3 sheen = mix(uLine, uGlow * 1.4, uDusk * 0.75) + uAurA * uAurLight * 0.45;
-  col = mix(col, sheen, hatch * 0.7);
+  vec3 sheen = mix(uLine, uGlow, uDusk * 0.4) + uAurA * uAurLight * 0.4;
+  col = mix(col, sheen, hatch * 0.5);
   // Warm pool of torchlight: lifts the ground and makes the nearest contour lines glow.
-  col += uTorchCol * torch * (0.16 + 1.25 * max(minor, major) + 0.4 * hatch);
-  col = mix(col, uFog, smoothstep(uFogNear, uFogFar, vDepth));
+  col += uTorchCol * torch * (0.2 + 1.6 * max(minor, major) + 0.5 * hatch);
+  // Distance fog, plus a fade at the map's edge so the square tile dissolves into the far fells' silhouette.
+  float edge = smoothstep(26.0, 31.8, max(abs(vWorld.x), abs(vWorld.z)));
+  col = mix(col, uFog, max(smoothstep(uFogNear, uFogFar, vDepth), edge));
   gl_FragColor = vec4(col, 1.0);
   #include <colorspace_fragment>
 }`;
@@ -77,7 +81,7 @@ void main() {
 }`;
 
 export const skyFrag = /* glsl */ `
-uniform vec3 uTop, uHorizon, uGlow, uAurA, uAurB, uAurC;
+uniform vec3 uTop, uHorizon, uGlow, uAurA, uAurB, uAurC, uFloor;
 uniform float uTime, uAur, uFlare, uDusk;
 varying vec3 vDir;
 ${NOISE}
@@ -86,23 +90,26 @@ ${NOISE}
 // turns edge-on to the viewer it glows brighter (the fold factor), and fine vertical rays shimmer along it.
 vec3 curtain(float az, float el, float base0, float seed, float t, float amp) {
   float w = az * 1.6 + seed;
-  float f1 = 2.3, f2 = 4.4;
-  float fold = 0.55 * sin(w * f1 + t * 0.11) + 0.32 * sin(w * f2 - t * 0.17 + seed);
-  float x = az + 0.17 * fold;
-  float dx = 1.0 + 0.17 * 1.6 * (0.55 * f1 * cos(w * f1 + t * 0.11) + 0.32 * f2 * cos(w * f2 - t * 0.17 + seed));
-  float edgeOn = clamp(0.55 / (abs(dx) + 0.18), 0.25, 2.4);
-  float base = base0 + 0.05 * sin(x * 2.1 + seed * 3.0 + t * 0.07) + 0.035 * (noise(vec2(x * 3.2 + seed, t * 0.05)) - 0.5);
+  float f1 = 2.3, f2 = 4.6;
+  float a1 = 0.3 * 0.6, a2 = 0.3 * 0.36;
+  float p1 = w * f1 + t * 0.11, p2 = w * f2 - t * 0.17 + seed;
+  float x = az + a1 * sin(p1) + a2 * sin(p2);
+  // d(x)/d(az): where it crosses zero the ribbon turns edge-on and doubles back — a bright pleat.
+  float dx = 1.0 + 1.6 * (a1 * f1 * cos(p1) + a2 * f2 * cos(p2));
+  float edgeOn = clamp(0.42 / (abs(dx) + 0.12), 0.22, 2.6);
+  float base = base0 + 0.055 * sin(x * 2.1 + seed * 3.0 + t * 0.07) + 0.032 * sin(x * 5.7 - seed + t * 0.1) + 0.045 * (noise(vec2(x * 3.2 + seed, t * 0.05)) - 0.5);
   float h = el - base;
-  float rays = 0.62 * noise(vec2(x * 64.0 + seed * 13.0, t * 0.55)) + 0.38 * noise(vec2(x * 160.0 + seed, t * 1.05));
-  rays = rays * rays;
-  float rayTop = 0.11 + 0.26 * noise(vec2(x * 8.0 + seed * 2.0, t * 0.08));
-  float lower = smoothstep(-0.012, 0.008, h);
-  float body = exp(-max(h, 0.0) * 12.0);
-  float upper = smoothstep(rayTop, 0.0, h) * (0.35 + 1.4 * rays);
-  float strength = lower * (0.5 * body + 0.75 * upper) * edgeOn;
-  strength *= 0.3 + 0.95 * smoothstep(0.22, 0.78, noise(vec2(x * 1.4 + seed, t * 0.045)));
-  vec3 c = mix(uAurA, uAurB, smoothstep(0.03, 0.3, h));
-  c = mix(c, uAurC, smoothstep(1.2, 2.4, edgeOn) * (1.0 - smoothstep(0.0, 0.05, h)) * 0.55);
+  float rays = 0.6 * noise(vec2(x * 64.0 + seed * 13.0, t * 0.55)) + 0.4 * noise(vec2(x * 170.0 + seed, t * 1.05));
+  rays = rays * rays * rays * 2.2;
+  float rayTop = 0.14 + 0.3 * noise(vec2(x * 8.0 + seed * 2.0, t * 0.08));
+  float lower = smoothstep(-0.008, 0.006, h);
+  float body = 1.25 * exp(-max(h, 0.0) * 26.0) + 0.3 * exp(-max(h, 0.0) * 7.0);
+  float upper = smoothstep(rayTop, 0.0, h) * (0.25 + rays);
+  // Pleats brighten the whole height of the ribbon, the lower edge only a little (no hot spots where they cross).
+  float strength = lower * (body * mix(1.0, edgeOn, 0.35) + 0.6 * upper * edgeOn);
+  strength *= 0.25 + 1.0 * smoothstep(0.2, 0.8, noise(vec2(x * 1.4 + seed, t * 0.045)));
+  vec3 c = mix(uAurA, uAurB, smoothstep(0.04, 0.34, h));
+  c = mix(c, uAurC, smoothstep(1.4, 2.6, edgeOn) * (1.0 - smoothstep(0.0, 0.03, h)) * 0.35);
   return c * strength * amp;
 }
 
@@ -112,18 +119,22 @@ void main() {
   float az = atan(d.x, -d.z);
   vec3 col = mix(uHorizon, uTop, smoothstep(-0.03, 0.52, d.y));
   // Afterglow on the north-west horizon at dusk; it drains away as the night comes on.
-  float glow = exp(-max(el, 0.0) * 9.0) * smoothstep(2.7, 0.15, abs(az + 0.6)) * step(-0.08, el);
+  float glow = exp(-max(el, 0.0) * 5.5) * smoothstep(2.7, 0.15, abs(az + 0.6)) * step(-0.08, el);
   col = mix(col, uGlow, glow * uDusk * 0.85);
   // Aurora across the northern half of the sky: three curtains at different heights and distances.
   float north = smoothstep(2.35, 0.65, abs(az));
   float amount = uAur * (1.0 + 1.5 * uFlare);
   float t = uTime;
-  vec3 aur = curtain(az, el, 0.13, 0.0, t, 1.0)
-           + curtain(az * 1.18 + 0.7, el, 0.06, 4.1, t * 0.9, 0.55)
-           + curtain(az * 0.82 - 0.5, el, 0.22, 8.3, t * 1.12, 0.42);
+  vec3 aur = curtain(az, el, 0.19, 0.0, t, 1.0)
+           + curtain(az * 1.18 + 0.7, el, 0.1, 4.1, t * 0.9, 0.55)
+           + curtain(az * 0.82 - 0.5, el, 0.31, 8.3, t * 1.12, 0.4);
   // A broad glow under the curtains, so the sky itself brightens when they flare.
-  aur += uAurA * 0.07 * exp(-abs(el - 0.15) * 5.0);
-  col += aur * north * amount;
+  aur += uAurA * 0.06 * exp(-abs(el - 0.2) * 5.0);
+  aur *= north * amount;
+  // Soft shoulder: a flare brightens the curtains without clipping them to white.
+  col += aur / (1.0 + 0.55 * max(max(aur.r, aur.g), aur.b));
+  // Below the horizon the dome is distant land: the far fells' colour.
+  col = mix(uFloor, col, smoothstep(-0.02, 0.005, el));
   gl_FragColor = vec4(col, 1.0);
   #include <colorspace_fragment>
 }`;

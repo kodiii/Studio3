@@ -59,7 +59,7 @@ export interface Viewpoint { id: StopId; position: [number, number, number]; tar
 
 /** Camera stops in story order; the scroll camera travels through all four, the step buttons cut between the last three. */
 export const VIEWPOINTS: readonly Viewpoint[] = [
-  { id: 'overview', position: [0, 13.5, 31], target: [0, 5.6, -6] },
+  { id: 'overview', position: [0, 13.5, 31], target: [0, 8, -6] },
   { id: 'lake', position: [-10.5, 2.6, 18.5], target: [1.5, 3.6, 1] },
   { id: 'ridge', position: [2.2, 10.6, 2.6], target: [14, 8.2, -4.5] },
   { id: 'sky', position: [7.5, 12.4, -1.2], target: [5, 27, -42] },

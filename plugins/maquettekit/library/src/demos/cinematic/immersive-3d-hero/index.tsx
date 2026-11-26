@@ -207,18 +207,21 @@ export default function Immersive3DHero() {
       bridge.invalidate?.();
     };
     const onLeave = (e: PointerEvent) => { if (e.pointerId !== g.id) { input.over = false; bridge.invalidate?.(); } };
+    // Touch pointers are implicitly captured by the element under the finger; moving the capture to the journey makes
+    // that child lose it (the event bubbles here). Only the journey losing its own capture ends a drag.
+    const onLost = (e: PointerEvent) => { if (e.target === el) end(e); };
     el.addEventListener('pointerdown', onDown);
     el.addEventListener('pointermove', onMove, { passive: true });
     el.addEventListener('pointerup', end);
     el.addEventListener('pointercancel', end);
-    el.addEventListener('lostpointercapture', end);
+    el.addEventListener('lostpointercapture', onLost);
     el.addEventListener('pointerleave', onLeave);
     return () => {
       el.removeEventListener('pointerdown', onDown);
       el.removeEventListener('pointermove', onMove);
       el.removeEventListener('pointerup', end);
       el.removeEventListener('pointercancel', end);
-      el.removeEventListener('lostpointercapture', end);
+      el.removeEventListener('lostpointercapture', onLost);
       el.removeEventListener('pointerleave', onLeave);
       input.dragging = false;
       input.over = false;
@@ -319,7 +322,7 @@ export default function Immersive3DHero() {
               </div>
             ) : null}
             <div className={s.toggles}>
-              {!reduced ? <button type="button" className={s.toggle} aria-pressed={!playing} onClick={() => setPlaying((p) => !p)}>Pause sky</button> : null}
+              {!reduced ? <button type="button" className={`${s.toggle} ${s.pauseSky}`} aria-pressed={!playing} onClick={() => setPlaying((p) => !p)}>Pause sky</button> : null}
               <button type="button" className={s.toggle} aria-pressed={off3d} onClick={() => setOff3d((o) => !o)}>Turn off 3D</button>
             </div>
           </div>

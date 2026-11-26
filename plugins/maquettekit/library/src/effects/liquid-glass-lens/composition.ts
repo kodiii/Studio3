@@ -91,7 +91,6 @@ export function canvasMeasure(): Measure {
   };
 }
 
-const HEADLINE = ['Light, bent', 'through thick glass.'];
 const BODY = [
   'A thick lens bends whatever it crosses. Where the surface curves, light slows, turns and opens into its colours; over the flat centre it passes almost untouched.',
   'Read the page through it: the rim gathers rules, type and colour into one bright edge, while the shadow falls away from the light, softer the higher the glass is held.',
@@ -110,21 +109,26 @@ function wrap(text: string, font: string, width: number, m: Measure): string[] {
 }
 
 /** Largest size at which `text` fits `width` (tracking included), capped at `max`. */
-function fit(text: string, family: string, weight: number, tracking: number, width: number, max: number, m: Measure): number {
+function fit(text: string, font: (size: number) => string, tracking: number, width: number, max: number, m: Measure): number {
   const ref = 100;
-  const w = m.width(text, `${weight} ${ref}px ${family}`) + tracking * ref * (text.length - 1);
+  const w = m.width(text, font(ref)) + tracking * ref * (text.length - 1);
   return Math.min(max, (width / Math.max(1, w)) * ref);
 }
 
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+const clamp01 = (v: number) => Math.min(1, Math.max(0, v));
+
 /**
- * Lay out the proof sheet for a stage of the given aspect ratio (width / height): a landscape spread, or a portrait
- * page below 1. Everything is in design units; renderers scale the result to cover the stage.
+ * Lay out the proof sheet at the stage's own aspect ratio (width / height), so cover-fitting never crops the print
+ * marks at its edges: a landscape spread whose width follows the aspect (elements anchored left and right), or below
+ * 1.2 a portrait page whose height follows it (the sun and headline compact as it gets shorter). Design units.
  */
 export function compose(aspect: number, { palette: p, fonts: f }: Theme, m: Measure): Composition {
-  const portrait = aspect < 1.02;
-  const W = portrait ? 400 : 1000;
-  const H = portrait ? 500 : 562;
+  const portrait = aspect < 1.2;
+  const W = portrait ? 400 : Math.round(Math.min(1250, Math.max(674, 562 * aspect)));
+  const H = portrait ? Math.round(Math.min(560, Math.max(333, 400 / aspect))) : 562;
   const M = portrait ? 22 : 40;
+  const tall = portrait ? clamp01((H - 333) / (500 - 333)) : 1; // 0 compact … 1 full portrait page
   const items: Item[] = [];
   const text = (t: Omit<TextItem, 'k'>) => items.push({ k: 'text', ...t });
   const mono = (s: string, x: number, y: number, align: Align, fill = p.muted, size = portrait ? 8.5 : 10) =>
@@ -136,12 +140,13 @@ export function compose(aspect: number, { palette: p, fonts: f }: Theme, m: Meas
   // Masthead and its rule.
   const top = portrait ? 30 : 34;
   mono('Optics & Matter', M + 14, top, 'left', p.ink);
-  if (!portrait) mono('Nº 07 — The light issue', W / 2, top, 'center');
-  mono('Sample composition', W - M - 14, top, 'right');
+  if (!portrait && W >= 860) mono('Nº 07 — The light issue', W / 2, top, 'center');
+  mono(portrait ? 'Sample' : 'Sample composition', W - M - 14, top, 'right');
   items.push({ k: 'line', x1: M, y1: top + 12, x2: W - M, y2: top + 12, stroke: p.ink, width: 1 });
 
-  // Colour field: the sun, with bars knocked out of its lower half.
-  const sun = portrait ? { cx: 300, cy: 142, r: 78 } : { cx: 772, cy: 198, r: 134 };
+  // Colour field: the sun, anchored to the right, with bars knocked out of its lower half.
+  const r = portrait ? lerp(52, 78, tall) : 134;
+  const sun = portrait ? { cx: W - M - r - 4, cy: lerp(104, 142, tall), r } : { cx: W - 228, cy: 198, r };
   const bars: [number, number][] = [];
   for (let k = 0, y = sun.cy + sun.r * 0.12; k < 7 && y < sun.cy + sun.r; k++) {
     const h = sun.r * (0.018 + k * 0.014);
@@ -149,38 +154,48 @@ export function compose(aspect: number, { palette: p, fonts: f }: Theme, m: Meas
     y += h + sun.r * (0.115 - k * 0.006);
   }
   items.push({ k: 'sun', ...sun, fill: p.signal, bars, barFill: p.paper });
-  mono(portrait ? 'Fig. 1 — n = 1.52' : 'Fig. 1 — one light, one lens, n = 1.52', sun.cx + sun.r, sun.cy + sun.r + (portrait ? 16 : 22), 'right');
+  const capY = sun.cy + sun.r + (portrait ? 16 : 22);
+  mono(portrait || W < 860 ? 'Fig. 1 — n = 1.52' : 'Fig. 1 — one light, one lens, n = 1.52', sun.cx + sun.r, capY, 'right');
 
-  // Headline in the serif italic, then two narrow columns of body copy.
-  const hSize = portrait ? 34 : 54;
-  const hLines = portrait ? ['Light,', 'bent through', 'thick glass.'] : HEADLINE;
-  const hTop = portrait ? 92 : 124;
-  hLines.forEach((s, i) => text({ x: M, y: hTop + i * hSize * (portrait ? 1.02 : 1.0), text: s, family: f.serif, size: hSize, weight: 400, italic: true, tracking: -0.01, fill: p.ink, align: 'left' }));
+  // Headline in the serif italic, sized to the room left of the sun.
+  const hLines = portrait ? ['Light,', 'bent through', 'thick glass.'] : ['Light, bent', 'through thick glass.'];
+  const hRoom = sun.cx - sun.r - (portrait ? 14 : 28) - M;
+  const serif = (size: number) => `italic 400 ${size}px ${f.serif}`;
+  const hSize = Math.min(...hLines.map((l) => fit(l, serif, -0.01, hRoom, portrait ? lerp(27, 34, tall) : 54, m)));
+  const hTop = portrait ? lerp(78, 92, tall) : 124;
+  const hLead = hSize * (portrait ? 1.02 : 1.0);
+  hLines.forEach((l, i) => text({ x: M, y: hTop + i * hLead, text: l, family: f.serif, size: hSize, weight: 400, italic: true, tracking: -0.01, fill: p.ink, align: 'left' }));
 
+  // Bottom-anchored: colour bar, then the display word above it, as wide as the measure allows.
+  const barY = H - (portrait ? 52 : 42);
+  const baseline = barY - (portrait ? 20 : 22);
+  const blockTop = Math.max(capY + 6, hTop + (hLines.length - 1) * hLead + hSize * 0.3);
+  const capRatio = m.capHeight(`800 100px ${f.display}`) / 100;
+  const display = (size: number) => `800 ${size}px ${f.display}`;
+  // The word is the hero: on a short page the copy gives way, never the word.
+  const dSize = fit('Refract', display, -0.045, W - 2 * M, (baseline - blockTop - 12) / Math.max(0.5, capRatio), m);
+  const capTop = baseline - dSize * capRatio;
+  text({ x: M - dSize * 0.02, y: baseline, text: 'Refract', family: f.display, size: dSize, weight: 800, tracking: -0.045, fill: p.ink, align: 'left' });
+
+  // Body copy between the headline and the display word: two narrow columns when there is room left of the sun.
   const bSize = portrait ? 10.5 : 12;
   const bLead = bSize * 1.45;
   const bFont = `400 ${bSize}px ${f.text}`;
-  const bTop = portrait ? 264 : 248;
-  const cols = portrait ? [{ x: M, w: W - 2 * M, s: BODY[0] }] : [{ x: M, w: 212, s: BODY[0] }, { x: M + 236, w: 212, s: BODY[1] }];
-  for (const c of cols) wrap(c.s, bFont, c.w, m).slice(0, portrait ? 4 : 6).forEach((s, i) => text({ x: c.x, y: bTop + i * bLead, text: s, family: f.text, size: bSize, weight: 400, tracking: 0, fill: p.muted, align: 'left' }));
-
-  // The display word: as wide as the measure allows while its caps stay clear of the sun.
-  const word = 'Refract';
-  const baseline = portrait ? 428 : 498;
-  const room = baseline - (portrait ? bTop + 4 * bLead + 4 : sun.cy + sun.r + 34);
-  const capRatio = m.capHeight(`800 100px ${f.display}`) / 100;
-  const dSize = fit(word, f.display, 800, -0.045, W - 2 * M, room / Math.max(0.5, capRatio), m);
-  text({ x: M - dSize * 0.02, y: baseline, text: word, family: f.display, size: dSize, weight: 800, tracking: -0.045, fill: p.ink, align: 'left' });
+  const bTop = portrait ? Math.max(blockTop + 18, capTop - 14 - bLead * 4) : 248;
+  const lines = Math.max(0, Math.min(portrait ? 4 : 6, Math.floor((capTop - 12 - bTop) / bLead) + 1));
+  const colRoom = sun.cx - sun.r - 24 - M;
+  const cols = portrait ? [{ x: M, w: W - 2 * M, s: BODY[0] }]
+    : colRoom >= 448 ? [{ x: M, w: 212, s: BODY[0] }, { x: M + 236, w: 212, s: BODY[1] }] : [{ x: M, w: Math.min(300, colRoom), s: BODY[0] }];
+  for (const c of cols) wrap(c.s, bFont, c.w, m).slice(0, lines).forEach((l, i) => text({ x: c.x, y: bTop + i * bLead, text: l, family: f.text, size: bSize, weight: 400, tracking: 0, fill: p.muted, align: 'left' }));
 
   // Print furniture: colour bar of theme tokens, halftone ramp, ruler, registration marks.
-  const barY = portrait ? 448 : 520;
   const sw = portrait ? 22 : 30, sh = portrait ? 12 : 14;
   const swatches = [p.ink, mix(p.ink, p.paper, 0.4), mix(p.ink, p.paper, 0.72), p.signal, mix(p.signal, p.paper, 0.5), p.blue, p.green, p.ochre, p.magenta, p.paper2];
   swatches.forEach((fill, i) => items.push({ k: 'rect', x: M + i * sw, y: barY, w: sw - 2, h: sh, fill }));
   const afterBar = M + swatches.length * sw + (portrait ? 10 : 18);
   items.push({ k: 'dots', x: afterBar, y: barY, w: portrait ? W - M - afterBar : 150, h: sh, step: portrait ? 5 : 6, r0: 0.35, r1: portrait ? 2.3 : 2.8, fill: p.ink });
-  if (!portrait) {
-    const rx = afterBar + 168, rw = W - M - rx;
+  const rx = afterBar + 168, rw = Math.floor((W - M - rx) / 50) * 50;
+  if (!portrait && rw >= 100) {
     items.push({ k: 'line', x1: rx, y1: barY + sh, x2: rx + rw, y2: barY + sh, stroke: p.ink, width: 1 });
     for (let x = 0, i = 0; x <= rw + 0.01; x += 5, i++) items.push({ k: 'line', x1: rx + x, y1: barY + sh, x2: rx + x, y2: barY + sh - (i % 10 === 0 ? 14 : i % 2 === 0 ? 8 : 4), stroke: p.ink, width: 1 });
     for (let x = 0, n = 0; x <= rw + 0.01; x += 50, n++) mono(String(n), rx + x + 3, barY + 6, 'left', p.muted, 8);

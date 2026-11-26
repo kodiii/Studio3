@@ -33,6 +33,7 @@ export default function LottieMicroInteractions({ params }: EffectProps<Params>)
   const { reduced } = useStudioMotion();
   const uid = useId();
   const [on, setOn] = useState(OFF);
+  const [likeTicks, setLikeTicks] = useState(0); // the count only rolls after a real like/unlike, never on load
   const weight = params.weight;
   const data = useMemo(
     () => Object.fromEntries(ORDER.map((id) => [id, ICONS[id].build(weight)])) as Record<IconId, LottieAnimation>,
@@ -41,6 +42,7 @@ export default function LottieMicroInteractions({ params }: EffectProps<Params>)
   const handles = useRef<Partial<Record<IconId, LottieIconHandle | null>>>({});
   const timeline = useRef<TimelineApi | null>(null);
   const press = useMemo(() => springToLinear(spring.press), []);
+  const settle = useMemo(() => springToLinear(spring.settle), []);
   const tint = ['duotone', 'accent', 'ink'].includes(params.tint) ? params.tint : 'duotone';
   const size = Math.round(params.size);
 
@@ -51,7 +53,10 @@ export default function LottieMicroInteractions({ params }: EffectProps<Params>)
       grid={24}
       label={LABEL[id]}
       pressed={on[id]}
-      onToggle={(v) => setOn((s) => ({ ...s, [id]: v }))}
+      onToggle={(v) => {
+        setOn((s) => ({ ...s, [id]: v }));
+        if (id === 'heart') setLikeTicks((n) => n + 1);
+      }}
       kind={opts.disclosure ? 'disclosure' : 'toggle'}
       controls={opts.disclosure ? `${uid}queue` : undefined}
       size={opts.size}
@@ -78,11 +83,21 @@ export default function LottieMicroInteractions({ params }: EffectProps<Params>)
     <div
       className={styles.root}
       data-reduced={reduced || undefined}
-      style={{ '--press-ease': press.easing, '--press-duration': `${press.duration}ms` } as CSSProperties}
+      style={{
+        '--press-ease': press.easing, '--press-duration': `${press.duration}ms`,
+        '--settle-ease': settle.easing, '--settle-duration': `${settle.duration}ms`,
+      } as CSSProperties}
     >
       <div className={styles.layout}>
         <div className={styles.column}>
-          <section className={styles.card} data-tint={tint} data-night={on.theme || undefined} data-playing={on.play || undefined} aria-label="Sample podcast player">
+          <section
+            className={styles.card}
+            data-tint={tint}
+            data-night={on.theme || undefined}
+            data-playing={on.play || undefined}
+            aria-label="Sample podcast player"
+            onKeyDown={(e) => { if (e.key === 'Escape' && on.menu) setOn((s) => ({ ...s, menu: false })); }}
+          >
             <header className={styles.bar}>
               {icon('menu', { size, className: styles.iconButton, disclosure: true })}
               <p className={styles.brand}>
@@ -96,14 +111,12 @@ export default function LottieMicroInteractions({ params }: EffectProps<Params>)
             </header>
 
             <div id={`${uid}queue`} className={styles.queue} data-open={on.menu || undefined}>
-              <div className={styles.queueInner}>
-                <p className={styles.queueTitle}>Up next</p>
-                <ol className={styles.queueList}>
-                  {QUEUE.map((q) => (
-                    <li key={q.n}><span className={styles.queueNo}>{q.n}</span><span className={styles.queueName}>{q.title}</span><span className={styles.queueMin}>{q.min} min</span></li>
-                  ))}
-                </ol>
-              </div>
+              <p className={styles.queueTitle}>Up next · sample queue</p>
+              <ol className={styles.queueList}>
+                {QUEUE.map((q) => (
+                  <li key={q.n}><span className={styles.queueNo}>{q.n}</span><span className={styles.queueName}>{q.title}</span><span className={styles.queueMin}>{q.min} min</span></li>
+                ))}
+              </ol>
             </div>
 
             <div className={styles.now}>
@@ -137,7 +150,10 @@ export default function LottieMicroInteractions({ params }: EffectProps<Params>)
             <div className={styles.controls}>
               <div className={styles.side}>
                 {icon('heart', { size: Math.round(size * 1.08), className: styles.pill, children: <span className={styles.caption}>Like</span> })}
-                <span className={styles.count}>{LIKES + (on.heart ? 1 : 0)}<span className={styles.srOnly}> likes (sample)</span></span>
+                <span className={styles.count}>
+                  <span key={likeTicks} className={styles.countRoll} data-dir={likeTicks ? (on.heart ? 'up' : 'down') : undefined}>{LIKES + (on.heart ? 1 : 0)}</span>
+                  <span className={styles.srOnly}> likes (sample)</span>
+                </span>
               </div>
               {icon('play', { size: Math.round(size * 1.9), className: styles.primary })}
               <div className={`${styles.side} ${styles.sideEnd}`}>
@@ -145,7 +161,7 @@ export default function LottieMicroInteractions({ params }: EffectProps<Params>)
               </div>
             </div>
           </section>
-          <p className={styles.hint}>Hover or focus an icon to preview its wind-up · click to commit from that frame · click again mid-way to reverse</p>
+          <p className={styles.hint}>Hover or focus previews the wind&#8209;up · a click commits from that frame · click again mid&#8209;way to reverse</p>
         </div>
 
         <Timeline lanes={lanes} api={timeline} fps={FPS} />

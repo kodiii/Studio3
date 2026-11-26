@@ -3,7 +3,7 @@ import type { EffectMeta } from '../../types';
 export const meta: EffectMeta = {
   id: 'liquid-glass-lens',
   name: 'Liquid Glass Lens',
-  description: 'A thick glass lens you drag and throw across an editorial page drawn in the theme\'s own colours and type. A GLSL pass refracts the page through a flat-topped, round-edged SDF lens (pill, circle or squircle): the centre stays sharp while the rim bends, splits into spectral colour and catches one light that follows your pointer, over a soft glass shadow with a caustic.',
+  description: 'A thick glass lens you drag and throw across an editorial page drawn in the theme\'s own colours and type. A GLSL pass refracts the page through a flat-topped, round-edged SDF lens (pill, circle or squircle): the centre stays sharp while the rim bends the page, splits it into spectral colour and catches one light that follows your pointer, and the glass casts a soft shadow away from that light.',
   category: 'shaders',
   specialties: ['cinematic', 'product', '3d'],
   technology: ['glsl', 'three', 'r3f', 'canvas2d'],

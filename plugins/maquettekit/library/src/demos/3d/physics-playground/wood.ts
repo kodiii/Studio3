@@ -90,7 +90,7 @@ export function createWoodMaterial(o: WoodOptions): { material: MeshStandardMate
       .replace('#include <common>', `#include <common>\n${NOISE}`)
       .replace('#include <color_fragment>', '#include <color_fragment>\nfloat woodLine = woodPattern(vWoodPos);\ndiffuseColor.rgb *= 1.0 - uGrain * woodLine;')
       .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nroughnessFactor = clamp(roughnessFactor + woodLine * 0.14, 0.0, 1.0);')
-      .replace('#include <lights_fragment_end>', '#include <lights_fragment_end>\nfloat rimF = pow(1.0 - clamp(dot(normal, normalize(vViewPosition)), 0.0, 1.0), 2.4);\ntotalEmissiveRadiance += uRimColor * (rimF * 1.15 + 0.06) * uRim;');
+      .replace('#include <lights_fragment_end>', '#include <lights_fragment_end>\nfloat rimF = pow(1.0 - clamp(dot(normal, normalize(vViewPosition)), 0.0, 1.0), 3.2);\ntotalEmissiveRadiance += uRimColor * rimF * uRim * 0.85;\nreflectedLight.directSpecular *= 1.0 + uRim * 0.6;');
   };
   // One compiled program per material class, whatever the colour or seed.
   material.customProgramCacheKey = () => `blockwerk-wood-${o.lacquer ? 'lacquer' : 'satin'}`;
