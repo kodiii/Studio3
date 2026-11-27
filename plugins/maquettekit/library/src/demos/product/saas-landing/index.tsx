@@ -2,14 +2,19 @@
 import { useEffect, useId, useRef, useState, type CSSProperties, type MouseEvent } from 'react';
 import SplitLineReveal from '../../../effects/split-line-reveal';
 import { meta as splitMeta } from '../../../effects/split-line-reveal/meta';
-import { useStudioMotion } from '../../../motion';
+import { spring as SPRING, springToLinear, useStudioMotion } from '../../../motion';
 import type { ParamSpec, ParamValues } from '../../../types';
 import { RESEND_DIFF } from './content';
+import { HeroWindow } from './HeroWindow';
 import { Inbox } from './Inbox';
 import { Cta, Faq, HowItWorks, Indicator, Pricing, Section, useIndicator, useReveal } from './parts';
 import styles from './styles.module.css';
 
 const defaults = (specs: readonly ParamSpec[]): ParamValues => Object.fromEntries(specs.map((s) => [s.key, s.default]));
+/* Springs sampled once into CSS linear() curves for presses, releases and settling indicators. */
+const PRESS = springToLinear(SPRING.press);
+const SETTLE = springToLinear(SPRING.settle);
+const SPRINGS = { '--press': PRESS.easing, '--press-dur': `${PRESS.duration}ms`, '--settle': SETTLE.easing, '--settle-dur': `${SETTLE.duration}ms` } as CSSProperties;
 
 const LINKS = [
   { id: 'tarn-how', label: 'How it works' },
@@ -70,7 +75,7 @@ export default function SaasLanding() {
   const headingRef = (id: string) => (el: HTMLHeadingElement | null) => { headings.current[id] = el; };
 
   return (
-    <div className={styles.root} data-reduced={reduced || undefined} ref={revealRoot}>
+    <div className={styles.root} data-reduced={reduced || undefined} ref={revealRoot} style={SPRINGS}>
       <header className={styles.nav}>
         <a className={styles.brand} href="#tarn-top" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' }); }}>
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 15c3-2 6-2 9 0s6 2 9 0" /><path d="M3 10c3-2 6-2 9 0s6 2 9 0" /><path d="M5 5h14" /></svg>
@@ -107,13 +112,13 @@ export default function SaasLanding() {
           </div>
           <p className={styles.lede}>Tarn keeps every webhook your payments provider, shop or CRM sends, byte for byte. Search it, compare it, and replay it to localhost, staging or production, so a fix is tested on the exact delivery that broke.</p>
           <div className={styles.heroActions}>
-            <Cta />
+            <Cta magnetic reduced={reduced} />
             <a className={styles.textLink} href="#tarn-how" onClick={(e) => go(e, 'tarn-how')}>See how replay works</a>
           </div>
         </div>
-        <div className={styles.heroVisual}>
+        <HeroWindow reduced={reduced}>
           <Inbox reduced={reduced} />
-        </div>
+        </HeroWindow>
       </section>
 
       <Section id="tarn-how" label="How it works" title="Capture, inspect, replay." headingRef={headingRef('tarn-how')}

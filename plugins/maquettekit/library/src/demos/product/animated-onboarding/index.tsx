@@ -1,7 +1,8 @@
 'use client';
-import { useCallback, useEffect, useId, useRef, useState, type CSSProperties, type FormEvent, type KeyboardEvent, type ReactNode } from 'react';
+import { useCallback, useEffect, useId, useRef, useState, type CSSProperties, type FormEvent, type KeyboardEvent, type PointerEvent, type ReactNode, type RefObject } from 'react';
 import { flushSync } from 'react-dom';
-import { cssEase, duration as D, flip, useStudioMotion, viewTransition } from '../../../motion';
+import { cssEase, duration as D, flip, spring as SPRING, stagger as STAGGER, useRafLoop, useStudioMotion } from '../../../motion';
+import { POP, SETTLE, captureSources, liftOff } from './choreo';
 import {
   EMPTY, GOALS, INTEGRATIONS, ORDER, PREP_LIST, ROLES, STEPS,
   allowed, clear, hashFor, indexOf, load, save, stepFromHash, validateEmail, validateKitchen,
@@ -9,30 +10,6 @@ import {
 } from './data';
 import { Check, MorphButton, type MorphPhase } from './MorphButton';
 import styles from './styles.module.css';
-
-/** Answer elements and their ticket lines share these names so the View Transitions API can fly one into the other. */
-const fly = (name: string | false | null | undefined): CSSProperties | undefined =>
-  name ? ({ viewTransitionName: `larder-a-${name}`, viewTransitionClass: 'larder-fly' } as CSSProperties) : undefined;
-
-const TRANSITION_CSS = `
-::view-transition-group(larder-step) { animation-duration: ${D.moderate}ms; }
-::view-transition-old(larder-step) { animation: ${D.base}ms ${cssEase('exit')} both larder-out; }
-::view-transition-new(larder-step) { animation: ${D.moderate}ms ${cssEase('emphasized')} 60ms both larder-in; }
-:root[data-larder-dir='back']::view-transition-old(larder-step) { animation-name: larder-out-back; }
-:root[data-larder-dir='back']::view-transition-new(larder-step) { animation-name: larder-in-back; }
-::view-transition-old(larder-progress) { display: none; }
-::view-transition-new(larder-progress) { animation: none; }
-::view-transition-group(larder-ticket), ::view-transition-group(*.larder-fly) { animation-duration: ${D.slow - 80}ms; animation-timing-function: ${cssEase('emphasized')}; }
-:root[data-larder-vt='fade']::view-transition-group(*) { animation: none; }
-:root[data-larder-vt='fade']::view-transition-old(*) { animation: 180ms linear both larder-fade-out; }
-:root[data-larder-vt='fade']::view-transition-new(*) { animation: 180ms linear both larder-fade-in; }
-@keyframes larder-out { to { opacity: 0; transform: translateX(-28px); } }
-@keyframes larder-in { from { opacity: 0; transform: translateX(28px); } }
-@keyframes larder-out-back { to { opacity: 0; transform: translateX(28px); } }
-@keyframes larder-in-back { from { opacity: 0; transform: translateX(-28px); } }
-@keyframes larder-fade-out { to { opacity: 0; } }
-@keyframes larder-fade-in { from { opacity: 0; } }
-`;
 
 function RoleIcon({ id }: { id: RoleId }) {
   const p = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.6, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
@@ -50,32 +27,68 @@ function Bang() {
   return <svg className={styles.errIcon} viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="7" /><path d="M8 4.5v4.2M8 11.3v.2" /></svg>;
 }
 
+/* ── The ticket hangs from a clip: landings, scroll velocity and a brushing pointer swing it on a spring ─── */
+function useSwing(ticket: RefObject<HTMLDivElement | null>, enabled: boolean) {
+  const sim = useRef({ x: 0, v: 0 });
+  const [running, setRunning] = useState(false);
+  const runningRef = useRef(false);
+  const kick = useCallback((dv: number) => {
+    if (!enabled) return;
+    sim.current.v = Math.max(-90, Math.min(90, sim.current.v + dv));
+    if (!runningRef.current) { runningRef.current = true; setRunning(true); }
+  }, [enabled]);
+  useRafLoop(ticket, (dt) => {
+    const s = sim.current, c = SPRING.release;
+    const n = Math.max(1, Math.ceil(dt * 240)), h = dt / n;
+    for (let i = 0; i < n; i++) { s.v += ((-c.stiffness * s.x - c.damping * s.v) / c.mass) * h; s.x += s.v * h; }
+    s.x = Math.max(-4, Math.min(4, s.x));
+    ticket.current?.style.setProperty('--swing', s.x.toFixed(3));
+    if (Math.abs(s.x) < 0.004 && Math.abs(s.v) < 0.02) { s.x = 0; s.v = 0; ticket.current?.style.setProperty('--swing', '0'); runningRef.current = false; setRunning(false); }
+  }, running && enabled);
+  // Scrolling the page sways the paper a little, in proportion to the scroll speed.
+  useEffect(() => {
+    if (!enabled) return;
+    let last = window.scrollY, t = performance.now();
+    const onScroll = () => {
+      const now = performance.now(), y = window.scrollY;
+      const vel = (y - last) / Math.max(8, now - t);
+      last = y; t = now;
+      kick(Math.max(-14, Math.min(14, vel * 9)));
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [enabled, kick]);
+  return kick;
+}
+
 /* ── Ticket on the rail: the running summary every answer flies into ──── */
-function Ticket({ data, step, flight }: { data: Data; step: StepId; flight: StepId | null }) {
+function Ticket({ data, step, ticketRef, onBrush }: { data: Data; step: StepId; ticketRef: RefObject<HTMLDivElement | null>; onBrush: (dv: number) => void }) {
   const role = ROLES.find((r) => r.id === data.role);
-  const goals = GOALS.filter((g) => data.goals.includes(g.id));
+  const goals = data.goals.map((id) => GOALS.find((g) => g.id === id)).filter((g): g is (typeof GOALS)[number] => !!g);
   const connected = INTEGRATIONS.filter((i) => data.connected.includes(i.id));
   const skipped = (s: StepId) => data.skipped.includes(s);
-  type Line = { s: StepId; label: string; value: string | null; items?: { key: string; text: string }[] };
+  type Line = { s: StepId; label: string; value: string | null; items?: { key: string; text: string; n?: number }[] };
   const lines: Line[] = [
     { s: 'kitchen', label: 'Kitchen', value: data.kitchen.trim() || null },
     { s: 'role', label: 'Role', value: role?.name ?? (skipped('role') ? 'Skipped' : null) },
-    { s: 'goals', label: 'First lists', value: goals.length ? '' : skipped('goals') ? 'Prep lists (default)' : null, items: goals.map((g) => ({ key: `goal-${g.id}`, text: g.name })) },
+    { s: 'goals', label: 'First lists', value: goals.length ? '' : skipped('goals') ? 'Prep lists (default)' : null, items: goals.map((g, i) => ({ key: `goal-${g.id}`, text: g.name, n: i + 1 })) },
     { s: 'connect', label: 'Connected', value: connected.length ? '' : indexOf(step) > indexOf('connect') ? 'Sample data' : null, items: connected.map((i) => ({ key: `int-${i.id}`, text: i.name })) },
     { s: 'brigade', label: 'Brigade', value: data.invited.length ? `${data.invited.length} invited` : skipped('brigade') ? 'Just you for now' : null },
   ];
-  const answered = lines.filter((l) => l.s !== step && (l.value !== null)).length;
+  const answered = lines.filter((l) => l.s !== step && l.value !== null).length;
+  const lastX = useRef<number | null>(null);
   return (
     <aside className={styles.rail} aria-label="Setup ticket">
       <div className={styles.railBar} aria-hidden="true" />
-      <div className={styles.ticket} style={{ viewTransitionName: 'larder-ticket' } as CSSProperties}>
+      <div ref={ticketRef} className={styles.ticket}
+        onPointerMove={(e) => { if (e.pointerType === 'touch') return; const x = e.clientX; if (lastX.current !== null) onBrush((x - lastX.current) * 0.5); lastX.current = x; }}
+        onPointerLeave={() => { lastX.current = null; }}>
         <span className={styles.clip} aria-hidden="true" />
         <p className={styles.ticketHead}><span>Larder · setup</span><span>No. 001</span></p>
         <dl className={styles.ticketLines}>
           {lines.map((l) => {
             const editing = l.s === step;
             const filled = !editing && l.value !== null;
-            const flying = flight === l.s;
             return (
               <div key={l.s} className={styles.ticketLine} data-state={editing ? 'editing' : filled ? 'filled' : 'empty'}>
                 <dt>{l.label}</dt>
@@ -83,8 +96,10 @@ function Ticket({ data, step, flight }: { data: Data; step: StepId; flight: Step
                   {editing ? <span className={styles.ticketEditing}>answering now…</span>
                     : !filled ? <span className={styles.ticketEmpty}>—</span>
                       : l.items?.length ? (
-                        <span className={styles.ticketItems}>{l.items.map((it) => <span key={it.key} style={fly(flying && it.key)}>{it.text}</span>)}</span>
-                      ) : <span style={fly(flying && !l.items?.length && l.s)}>{l.value}</span>}
+                        <span className={styles.ticketItems}>{l.items.map((it) => (
+                          <span key={it.key} className={styles.ticketItem}>{it.n ? <span className={styles.ticketRank}>{it.n}</span> : null}<span data-fly-dst={it.key}>{it.text}</span></span>
+                        ))}</span>
+                      ) : <span data-fly-dst={l.s}>{l.value}</span>}
                 </dd>
               </div>
             );
@@ -99,7 +114,7 @@ function Ticket({ data, step, flight }: { data: Data; step: StepId; flight: Step
 function Progress({ step }: { step: StepId }) {
   const cur = indexOf(step);
   return (
-    <div className={styles.progress} role="group" aria-label="Setup progress" style={{ viewTransitionName: 'larder-progress' } as CSSProperties}>
+    <div className={styles.progress} role="group" aria-label="Setup progress">
       <ol>
         {STEPS.map((s, i) => {
           const state = i < cur ? 'done' : i === cur ? 'current' : 'todo';
@@ -119,6 +134,7 @@ interface StepShellProps {
   n: number; question: ReactNode; why: string; headingRef: (el: HTMLHeadingElement | null) => void; uid: string;
   onSubmit: (e: FormEvent<HTMLFormElement>) => void; children: ReactNode; actions: ReactNode; onBack?: () => void;
 }
+/** Every direct child is a `data-part`: the parts leave and arrive one after another, not as one block. */
 function StepShell({ n, question, why, headingRef, uid, onSubmit, children, actions, onBack }: StepShellProps) {
   // Enter on a radio or checkbox advances, like Enter in a text field.
   const onKeyDown = (e: KeyboardEvent<HTMLFormElement>) => {
@@ -128,17 +144,19 @@ function StepShell({ n, question, why, headingRef, uid, onSubmit, children, acti
   return (
     <form className={styles.form} noValidate onSubmit={onSubmit} onKeyDown={onKeyDown} aria-labelledby={`${uid}q`}>
       {onBack ? (
-        <button type="button" className={styles.back} onClick={onBack}>
-          <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M10 3 5 8l5 5" /></svg>Back
-        </button>
+        <div data-part="">
+          <button type="button" className={styles.back} onClick={onBack}>
+            <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M10 3 5 8l5 5" /></svg>Back
+          </button>
+        </div>
       ) : null}
-      <h2 id={`${uid}q`} ref={headingRef} tabIndex={-1} className={styles.question}>
+      <h2 id={`${uid}q`} ref={headingRef} tabIndex={-1} className={styles.question} data-part="">
         <span className={styles.eyebrow}>{n <= 5 ? `Step ${n} of 5` : 'All set'}</span>
         <span className={styles.questionText}>{question}</span>
       </h2>
-      <p className={styles.why}>{why}</p>
-      <div className={styles.body}>{children}</div>
-      <div className={styles.actions}>{actions}</div>
+      <p className={styles.why} data-part="">{why}</p>
+      <div className={styles.body} data-part="">{children}</div>
+      <div className={styles.actions} data-part="">{actions}</div>
     </form>
   );
 }
@@ -151,7 +169,6 @@ export default function AnimatedOnboarding() {
   const { reduced } = useStudioMotion();
   const [step, setStep] = useState<StepId>('kitchen');
   const [data, setData] = useState<Data>(EMPTY);
-  const [flight, setFlight] = useState<StepId | null>(null);
   const [failNext, setFailNext] = useState(false);
   const [ready, setReady] = useState(false);
 
@@ -162,24 +179,41 @@ export default function AnimatedOnboarding() {
   /** Demo switch: the next simulated request fails once, then the switch turns itself off. */
   const takeFailure = useCallback(() => { if (!failRef.current) return false; failRef.current = false; setFailNext(false); return true; }, []);
   const heading = useRef<HTMLHeadingElement | null>(null);
+  const panel = useRef<HTMLDivElement>(null);
+  const layer = useRef<HTMLDivElement>(null);
+  const ticket = useRef<HTMLDivElement>(null);
   const depth = useRef(0);
-  const vtToken = useRef(0);
-  const alive = useRef(true);
-  useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
+  const token = useRef(0);
+  const pending = useRef<StepId | null>(null);
+  const running = useRef<{ anims: Animation[]; timers: number[]; flight: { cancel: () => void } | null }>({ anims: [], timers: [], flight: null });
+  const kick = useSwing(ticket, !reduced);
 
   const patch = useCallback((p: Patch) => setData((d) => ({ ...d, ...(typeof p === 'function' ? p(d) : p) })), []);
 
-  /** One place that changes step: shared-element view transition, focus to the new heading. */
+  /** Stop whatever step change is still moving: animations, timers and flyers; held text reappears. */
+  const stopAll = useCallback(() => {
+    const r = running.current;
+    for (const a of r.anims) { try { a.cancel(); } catch { /* detached */ } }
+    for (const t of r.timers) window.clearTimeout(t);
+    r.flight?.cancel();
+    running.current = { anims: [], timers: [], flight: null };
+    pending.current = null;
+  }, []);
+  useEffect(() => () => stopAll(), [stopAll]);
+
+  /**
+   * One place that changes step. Forward: answers lift off their fields, the step's parts leave left (fast, staggered),
+   * the next step's parts arrive from the right (slower, staggered), the answers fly onto the ticket and land with a
+   * stamp that swings it. Back: the same moves mirrored, without flights. Focus goes to the new heading at the swap;
+   * the new step is interactive the moment it is on screen.
+   */
   const transitionTo = useCallback((next: StepId, dir: 'forward' | 'back', p?: Partial<Data>) => {
-    const from = stepRef.current;
-    const root = document.documentElement;
-    const token = ++vtToken.current;
-    root.dataset.larderDir = dir;
-    root.dataset.larderVt = reducedRef.current ? 'fade' : 'move';
-    const update = () => {
+    stopAll();
+    const my = ++token.current;
+    const root = panel.current;
+    const swap = () => {
       flushSync(() => {
         if (p) setData((d) => ({ ...d, ...p }));
-        setFlight(dir === 'forward' ? from : null);
         setStep(next);
       });
       const h = heading.current;
@@ -188,15 +222,52 @@ export default function AnimatedOnboarding() {
         if (h.getBoundingClientRect().top < 56) h.scrollIntoView({ block: 'start' });
       }
     };
-    void viewTransition(update).then(() => {
-      if (token !== vtToken.current) return;
-      delete root.dataset.larderDir;
-      delete root.dataset.larderVt;
-      if (alive.current) setFlight(null);
+    if (reducedRef.current || !root || !layer.current) {
+      swap();
+      // Reduced motion: the new step simply fades in (≤ 200 ms).
+      const parts = panel.current?.querySelectorAll<HTMLElement>('[data-part]');
+      if (reducedRef.current && parts) for (const el of parts) running.current.anims.push(el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 180, easing: 'linear' }));
+      return;
+    }
+    const sign = dir === 'forward' ? 1 : -1;
+    const sources = dir === 'forward' ? captureSources(root) : [];
+    const flight = sources.length ? liftOff(sources, layer.current) : null;
+    running.current.flight = flight;
+    pending.current = next;
+    const out = [...root.querySelectorAll<HTMLElement>('[data-part]')];
+    out.forEach((el, i) => {
+      running.current.anims.push(el.animate(
+        [{ opacity: 1, transform: 'none' }, { opacity: 0, transform: `translateX(${-28 * sign}px)` }],
+        { duration: D.fast, delay: i * STAGGER.tight, easing: cssEase('exit'), fill: 'forwards' },
+      ));
     });
-  }, []);
+    const exitEnd = D.fast + Math.max(0, out.length - 1) * STAGGER.tight;
+    running.current.timers.push(window.setTimeout(() => {
+      if (my !== token.current) return;
+      for (const a of running.current.anims) { try { a.cancel(); } catch { /* gone */ } }
+      running.current.anims = [];
+      pending.current = null;
+      swap();
+      const parts = [...(panel.current?.querySelectorAll<HTMLElement>('[data-part]') ?? [])];
+      parts.forEach((el, i) => {
+        running.current.anims.push(el.animate(
+          [{ opacity: 0, transform: `translateX(${36 * sign}px)` }, { opacity: 1, transform: 'none' }],
+          { duration: D.moderate, delay: i * STAGGER.base, easing: cssEase('emphasized'), fill: 'backwards' },
+        ));
+      });
+      const t = ticket.current;
+      if (flight && t) {
+        flight.launch(t, (dst, i) => {
+          // Landing: a stamp of ink on the line, a small pop, and the ticket swings on its clip.
+          running.current.anims.push(dst.animate([{ transform: 'scale(1.12)', boxShadow: 'inset 0 -0.5em 0 color-mix(in oklab, var(--mk-signal, #bf2f09) 30%, transparent)' }, { transform: 'scale(1)', boxShadow: 'inset 0 -0.5em 0 color-mix(in oklab, var(--mk-signal, #bf2f09) 0%, transparent)' }], { duration: POP.duration, easing: POP.easing }));
+          kick(i % 2 ? -26 : 34);
+        });
+      }
+    }, exitEnd));
+  }, [kick, stopAll]);
 
   const goForward = useCallback((next: StepId, p?: Partial<Data>) => {
+    if (pending.current === next) return; // a double press while the step is leaving
     depth.current += 1;
     window.history.pushState(null, '', hashFor(next));
     transitionTo(next, 'forward', p);
@@ -229,13 +300,23 @@ export default function AnimatedOnboarding() {
       transitionTo(allowed(target, dataRef.current), dir);
     };
     window.addEventListener('popstate', onPop);
-    return () => {
-      window.removeEventListener('popstate', onPop);
-      delete document.documentElement.dataset.larderDir;
-      delete document.documentElement.dataset.larderVt;
-    };
+    return () => window.removeEventListener('popstate', onPop);
   }, [transitionTo]);
   useEffect(() => { if (ready) save(step, data); }, [ready, step, data]);
+
+  // One orchestrated entrance above the fold: progress, question, answer area and ticket arrive in order.
+  useEffect(() => {
+    if (reduced || !ready) return;
+    const root = panel.current?.parentElement?.parentElement;
+    if (!root) return;
+    const els = [...root.querySelectorAll<HTMLElement>('[data-enter], [data-part]')];
+    const anims = els.map((el, i) => el.animate([{ opacity: 0, transform: 'translateY(14px)' }, { opacity: 1, transform: 'none' }], { duration: D.moderate, delay: 40 + i * STAGGER.base, easing: cssEase('emphasized'), fill: 'backwards' }));
+    const t = ticket.current;
+    if (t) anims.push(t.animate([{ translate: '0 -34px', opacity: 0 }, { translate: '0 0', opacity: 1 }], { duration: SETTLE.duration, delay: 160, easing: SETTLE.easing, fill: 'backwards' }));
+    const swingIn = window.setTimeout(() => kick(28), 160 + SETTLE.duration * 0.55);
+    return () => { for (const a of anims) a.cancel(); window.clearTimeout(swingIn); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready]);
 
   const restart = () => {
     clear();
@@ -248,17 +329,17 @@ export default function AnimatedOnboarding() {
   const setHeading = (el: HTMLHeadingElement | null) => { heading.current = el; };
   const shell = { uid, headingRef: setHeading };
 
-  let panel: ReactNode = null;
-  if (step === 'kitchen') panel = <KitchenStep key="kitchen" {...shell} data={data} patch={patch} onNext={(kitchen) => goForward('role', { kitchen })} />;
-  if (step === 'role') panel = <RoleStep key="role" {...shell} data={data} patch={patch} onBack={goBack} onNext={() => goForward('goals', { skipped: data.skipped.filter((x) => x !== 'role') })} onSkip={() => skip('role', 'goals', { role: null })} />;
-  if (step === 'goals') panel = <GoalsStep key="goals" {...shell} data={data} patch={patch} onBack={goBack} onNext={() => goForward('connect', { skipped: data.skipped.filter((x) => x !== 'goals') })} onSkip={() => skip('goals', 'connect', { goals: [] })} />;
-  if (step === 'connect') panel = <ConnectStep key="connect" {...shell} data={data} patch={patch} reduced={reduced} takeFailure={takeFailure} onBack={goBack} onNext={() => goForward('brigade')} />;
-  if (step === 'brigade') panel = <BrigadeStep key="brigade" {...shell} data={data} patch={patch} reduced={reduced} takeFailure={takeFailure} onBack={goBack} onSent={(invited) => goForward('done', { invited, skipped: data.skipped.filter((x) => x !== 'brigade') })} onSkip={() => skip('brigade', 'done', { invited: [] })} />;
-  if (step === 'done') panel = <DoneStep key="done" {...shell} data={data} reduced={reduced} onRestart={restart} />;
+  let view: ReactNode = null;
+  if (step === 'kitchen') view = <KitchenStep key="kitchen" {...shell} data={data} patch={patch} onNext={(kitchen) => goForward('role', { kitchen })} />;
+  if (step === 'role') view = <RoleStep key="role" {...shell} data={data} patch={patch} onBack={goBack} onNext={() => goForward('goals', { skipped: data.skipped.filter((x) => x !== 'role') })} onSkip={() => skip('role', 'goals', { role: null })} />;
+  if (step === 'goals') view = <GoalsStep key="goals" {...shell} data={data} patch={patch} reduced={reduced} onBack={goBack} onNext={() => goForward('connect', { skipped: data.skipped.filter((x) => x !== 'goals') })} onSkip={() => skip('goals', 'connect', { goals: [] })} />;
+  if (step === 'connect') view = <ConnectStep key="connect" {...shell} data={data} patch={patch} reduced={reduced} takeFailure={takeFailure} onBack={goBack} onNext={() => goForward('brigade')} />;
+  if (step === 'brigade') view = <BrigadeStep key="brigade" {...shell} data={data} patch={patch} reduced={reduced} takeFailure={takeFailure} onBack={goBack} onSent={(invited) => goForward('done', { invited, skipped: data.skipped.filter((x) => x !== 'brigade') })} onSkip={() => skip('brigade', 'done', { invited: [] })} />;
+  if (step === 'done') view = <DoneStep key="done" {...shell} data={data} reduced={reduced} onRestart={restart} />;
 
+  const springs = { '--settle': SETTLE.easing, '--settle-dur': `${SETTLE.duration}ms`, '--pop': POP.easing, '--pop-dur': `${POP.duration}ms` } as CSSProperties;
   return (
-    <div className={styles.root} data-reduced={reduced || undefined}>
-      <style>{TRANSITION_CSS}</style>
+    <div className={styles.root} data-reduced={reduced || undefined} style={springs}>
       <header className={styles.top}>
         <p className={styles.brand}><span className={styles.mark} aria-hidden="true">L</span><span>Larder</span><span className={styles.brandSub}>Kitchen setup</span></p>
         <span className={styles.tag}>Sample workspace</span>
@@ -266,11 +347,13 @@ export default function AnimatedOnboarding() {
 
       <div className={styles.main}>
         <section className={styles.flow} aria-label="Kitchen setup">
-          <Progress step={step} />
-          <div className={styles.panel} style={{ viewTransitionName: 'larder-step' } as CSSProperties}>{panel}</div>
+          <div data-enter=""><Progress step={step} /></div>
+          <div ref={panel} className={styles.panel}>{view}</div>
         </section>
-        <Ticket data={data} step={step} flight={flight} />
+        <Ticket data={data} step={step} ticketRef={ticket} onBrush={kick} />
       </div>
+
+      <div ref={layer} className={styles.flyLayer} data-flyer-class={styles.flyer} aria-hidden="true" />
 
       <footer className={styles.demoBar}>
         <fieldset className={styles.demoControls}>
@@ -307,10 +390,10 @@ function KitchenStep({ uid, headingRef, data, patch, onNext }: ShellBits & { dat
       actions={<button type="submit" className={styles.primary}>Continue<Arrow /></button>}>
       <div className={styles.field} data-invalid={error ? '' : undefined}>
         <label htmlFor={`${uid}kitchen`} className={styles.label}>Kitchen name</label>
-        <div className={styles.inputWrap} style={fly(!error && data.kitchen.trim() && 'kitchen')}>
+        <div className={styles.inputWrap}>
           <input
             ref={input} id={`${uid}kitchen`} className={styles.input} type="text" name="kitchen" autoComplete="organization" enterKeyHint="next"
-            placeholder="e.g. The Gannet" value={data.kitchen} spellCheck={false}
+            placeholder="e.g. The Gannet" value={data.kitchen} spellCheck={false} data-fly-src={error ? undefined : 'kitchen'}
             aria-invalid={error ? true : undefined} aria-describedby={`${uid}kitchen-err`}
             onChange={(e) => patch({ kitchen: e.currentTarget.value })}
             onBlur={() => { if (data.kitchen !== '') setTouched(true); }}
@@ -337,11 +420,11 @@ function RoleStep({ uid, headingRef, data, patch, onNext, onBack, onSkip }: Shel
       <fieldset className={styles.cards} aria-describedby={error ? `${uid}role-err` : undefined}>
         <legend className={styles.srOnly}>Your role</legend>
         {ROLES.map((r, i) => (
-          <label key={r.id} className={styles.card} style={fly(data.role === r.id && 'role')}>
+          <label key={r.id} className={styles.card}>
             <input ref={i === 0 ? first : undefined} className={styles.cardInput} type="radio" name={`${uid}role`} value={r.id} checked={data.role === r.id}
               onChange={() => { patch({ role: r.id }); setError(null); }} />
             <RoleIcon id={r.id} />
-            <span className={styles.cardName}>{r.name}</span>
+            <span className={styles.cardName} data-fly-src={data.role === r.id ? 'role' : undefined}>{r.name}</span>
             <span className={styles.cardNote}>{r.note}</span>
           </label>
         ))}
@@ -351,13 +434,124 @@ function RoleStep({ uid, headingRef, data, patch, onNext, onBack, onSkip }: Shel
   );
 }
 
-function GoalsStep({ uid, headingRef, data, patch, onNext, onBack, onSkip }: ShellBits & { data: Data; patch: (p: Patch) => void; onNext: () => void; onBack: () => void; onSkip: () => void }) {
+/**
+ * First lists: pick, then rank. Chosen lists rise to the top in the order Larder builds them; drag the grip to
+ * reorder (the card follows the pointer, its neighbours make room, and on release it springs into its slot with the
+ * velocity it was thrown with), or focus the grip and use the arrow keys.
+ */
+function GoalsStep({ uid, headingRef, data, patch, reduced, onNext, onBack, onSkip }: ShellBits & { data: Data; patch: (p: Patch) => void; reduced: boolean; onNext: () => void; onBack: () => void; onSkip: () => void }) {
   const [error, setError] = useState<string | null>(null);
+  const [said, setSaid] = useState('');
   const first = useRef<HTMLInputElement>(null);
+  const list = useRef<HTMLOListElement>(null);
+  const grips = useRef(new Map<GoalId, HTMLButtonElement>());
+  const drag = useRef<{ id: GoalId; pointer: number; y0: number; from: number; to: number; slots: number[]; pitch: number; samples: { t: number; y: number }[] } | null>(null);
+  const settle = useRef<{ raf: number; el: HTMLElement | null }>({ raf: 0, el: null });
+  const order: GoalId[] = [...data.goals, ...GOALS.map((g) => g.id).filter((id) => !data.goals.includes(id))];
+  useEffect(() => () => cancelAnimationFrame(settle.current.raf), []);
+
+  const items = () => [...(list.current?.querySelectorAll<HTMLElement>('[data-goal]') ?? [])];
+  /** Change the order with FLIP: every card glides from where it was to where it now belongs. */
+  const reflow = (mutate: () => void) => flip(items(), () => flushSync(mutate), { duration: D.moderate, easing: SETTLE.easing, reducedMotion: reduced });
+
   const toggle = (id: GoalId, on: boolean) => {
-    patch((d) => ({ goals: GOALS.map((g) => g.id).filter((g) => (g === id ? on : d.goals.includes(g))) }));
+    reflow(() => patch((d) => ({ goals: on ? [...d.goals.filter((g) => g !== id), id] : d.goals.filter((g) => g !== id) })));
     if (on) setError(null);
   };
+  const move = (id: GoalId, to: number) => {
+    const cur = data.goals.indexOf(id);
+    const n = Math.max(0, Math.min(data.goals.length - 1, to));
+    if (cur < 0 || n === cur) return;
+    const next = data.goals.filter((g) => g !== id);
+    next.splice(n, 0, id);
+    reflow(() => patch({ goals: next }));
+    const g = GOALS.find((x) => x.id === id);
+    setSaid(`${g?.name} moved to priority ${n + 1} of ${next.length}.`);
+    requestAnimationFrame(() => grips.current.get(id)?.focus());
+  };
+
+  const onGripKey = (e: KeyboardEvent<HTMLButtonElement>, id: GoalId) => {
+    const i = data.goals.indexOf(id);
+    const to = e.key === 'ArrowUp' ? i - 1 : e.key === 'ArrowDown' ? i + 1 : e.key === 'Home' ? 0 : e.key === 'End' ? data.goals.length - 1 : null;
+    if (to === null) return;
+    e.preventDefault();
+    move(id, to);
+  };
+
+  const onGripDown = (e: PointerEvent<HTMLButtonElement>, id: GoalId) => {
+    if (e.button !== 0 || data.goals.length < 2) return;
+    e.preventDefault();
+    e.currentTarget.setPointerCapture(e.pointerId);
+    cancelAnimationFrame(settle.current.raf);
+    const els = items().slice(0, data.goals.length);
+    const tops = els.map((el) => el.getBoundingClientRect().top);
+    const from = data.goals.indexOf(id);
+    const pitch = tops.length > 1 ? tops[1] - tops[0] : els[0]?.getBoundingClientRect().height ?? 0;
+    drag.current = { id, pointer: e.pointerId, y0: e.clientY, from, to: from, slots: tops, pitch, samples: [{ t: performance.now(), y: e.clientY }] };
+    const el = els[from];
+    el?.setAttribute('data-dragging', '');
+  };
+  const onGripMove = (e: PointerEvent<HTMLButtonElement>) => {
+    const g = drag.current;
+    if (!g || g.pointer !== e.pointerId) return;
+    const els = items().slice(0, data.goals.length);
+    const el = els[g.from];
+    if (!el) return;
+    let dy = e.clientY - g.y0;
+    // Rubber band past the first and last slot.
+    const minDy = -g.from * g.pitch, maxDy = (els.length - 1 - g.from) * g.pitch;
+    if (dy < minDy) dy = minDy - Math.sqrt(minDy - dy) * 3;
+    if (dy > maxDy) dy = maxDy + Math.sqrt(dy - maxDy) * 3;
+    el.style.transform = `translateY(${dy.toFixed(1)}px) scale(1.02)`;
+    const to = Math.max(0, Math.min(els.length - 1, Math.round(g.from + dy / g.pitch)));
+    if (to !== g.to) {
+      g.to = to;
+      els.forEach((other, i) => {
+        if (i === g.from) return;
+        const shift = g.from < to && i > g.from && i <= to ? -g.pitch : g.from > to && i < g.from && i >= to ? g.pitch : 0;
+        other.style.transition = reduced ? 'none' : `transform ${SETTLE.duration}ms ${SETTLE.easing}`;
+        other.style.transform = shift ? `translateY(${shift}px)` : '';
+      });
+    }
+    g.samples.push({ t: performance.now(), y: e.clientY });
+    if (g.samples.length > 6) g.samples.shift();
+  };
+  const onGripUp = (e: PointerEvent<HTMLButtonElement>) => {
+    const g = drag.current;
+    if (!g || g.pointer !== e.pointerId) return;
+    drag.current = null;
+    const els = items().slice(0, data.goals.length);
+    const el = els[g.from];
+    if (!el) return;
+    const visualTop = el.getBoundingClientRect().top;
+    const a = g.samples[0], b = g.samples[g.samples.length - 1];
+    const velocity = b && a && b.t > a.t ? ((b.y - a.y) / (b.t - a.t)) * 1000 : 0;
+    for (const o of els) { o.style.transition = ''; o.style.transform = ''; }
+    el.removeAttribute('data-dragging');
+    if (g.to !== g.from) {
+      const next = data.goals.filter((x) => x !== g.id);
+      next.splice(g.to, 0, g.id);
+      flushSync(() => patch({ goals: next }));
+      const name = GOALS.find((x) => x.id === g.id)?.name;
+      setSaid(`${name} moved to priority ${g.to + 1} of ${next.length}.`);
+    }
+    // The dropped card springs from where it was let go into its slot, keeping the throw's velocity.
+    const dropped = list.current?.querySelector<HTMLElement>(`[data-goal="${g.id}"]`);
+    if (!dropped || reduced) return;
+    const s = { x: visualTop - dropped.getBoundingClientRect().top, v: velocity };
+    let prev = performance.now();
+    settle.current.el = dropped;
+    const tick = (now: number) => {
+      const dt = Math.min(0.05, (now - prev) / 1000); prev = now;
+      const c = SPRING.release, steps = Math.max(1, Math.ceil(dt * 240)), h = dt / steps;
+      for (let i = 0; i < steps; i++) { s.v += ((-c.stiffness * s.x - c.damping * s.v) / c.mass) * h; s.x += s.v * h; }
+      if (Math.abs(s.x) < 0.3 && Math.abs(s.v) < 4) { dropped.style.transform = ''; return; }
+      dropped.style.transform = `translateY(${s.x.toFixed(2)}px)`;
+      settle.current.raf = requestAnimationFrame(tick);
+    };
+    settle.current.raf = requestAnimationFrame(tick);
+  };
+
   const submit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!data.goals.length) { setError('Choose at least one list, or skip and Larder will start with prep lists.'); first.current?.focus(); return; }
@@ -365,23 +559,40 @@ function GoalsStep({ uid, headingRef, data, patch, onNext, onBack, onSkip }: She
   };
   return (
     <StepShell n={3} uid={uid} headingRef={headingRef} onSubmit={submit} onBack={onBack}
-      question="What should Larder build first?" why="Pick one or more. We build these from tonight’s service, so they’re useful from tomorrow morning."
+      question="What should Larder build first?" why="Pick one or more, then put them in order. We build these from tonight’s service, so they’re useful from tomorrow morning."
       actions={<StepActions skip={<button type="button" className={styles.quiet} onClick={onSkip}>Skip for now</button>} />}>
-      <fieldset className={styles.cards} data-kind="goals" aria-describedby={error ? `${uid}goal-err` : undefined}>
-        <legend className={styles.srOnly}>Lists to build first</legend>
-        {GOALS.map((g, i) => {
-          const on = data.goals.includes(g.id);
-          return (
-            <label key={g.id} className={styles.card} data-kind="check" style={fly(on && `goal-${g.id}`)}>
-              <input ref={i === 0 ? first : undefined} className={styles.cardInput} type="checkbox" checked={on} aria-invalid={error ? true : undefined}
-                onChange={(e) => toggle(g.id, e.currentTarget.checked)} />
-              <span className={styles.tick} aria-hidden="true"><Check /></span>
-              <span className={styles.cardName}>{g.name}</span>
-              <span className={styles.cardNote}>{g.note}</span>
-            </label>
-          );
-        })}
+      <fieldset className={styles.ranks} aria-describedby={`${uid}rank-hint${error ? ` ${uid}goal-err` : ''}`}>
+        <legend className={styles.srOnly}>Lists to build first, in order</legend>
+        <ol ref={list} className={styles.rankList}>
+          {order.map((id, i) => {
+            const g = GOALS.find((x) => x.id === id)!;
+            const on = data.goals.includes(id);
+            const rank = on ? data.goals.indexOf(id) + 1 : 0;
+            return (
+              <li key={id} data-goal={id} className={styles.rankItem} data-on={on || undefined}>
+                <label className={styles.card} data-kind="check">
+                  <input ref={i === 0 ? first : undefined} className={styles.cardInput} type="checkbox" checked={on} aria-invalid={error ? true : undefined}
+                    onChange={(e) => toggle(id, e.currentTarget.checked)} />
+                  <span className={styles.tick} aria-hidden="true"><Check /></span>
+                  <span className={styles.cardName} data-fly-src={on ? `goal-${id}` : undefined}>{g.name}</span>
+                  <span className={styles.cardNote}>{g.note}</span>
+                </label>
+                {on ? (
+                  <button ref={(el) => { if (el) grips.current.set(id, el); else grips.current.delete(id); }} type="button" className={styles.grip}
+                    aria-label={`${g.name}: priority ${rank} of ${data.goals.length}. Move with the arrow keys.`}
+                    onPointerDown={(e) => onGripDown(e, id)} onPointerMove={onGripMove} onPointerUp={onGripUp} onPointerCancel={onGripUp}
+                    onKeyDown={(e) => onGripKey(e, id)}>
+                    <span className={styles.rankNum} aria-hidden="true">{rank}</span>
+                    <svg viewBox="0 0 12 20" aria-hidden="true" focusable="false"><circle cx="3" cy="4" r="1.5" /><circle cx="9" cy="4" r="1.5" /><circle cx="3" cy="10" r="1.5" /><circle cx="9" cy="10" r="1.5" /><circle cx="3" cy="16" r="1.5" /><circle cx="9" cy="16" r="1.5" /></svg>
+                  </button>
+                ) : null}
+              </li>
+            );
+          })}
+        </ol>
+        <p id={`${uid}rank-hint`} className={styles.rankHint}>{data.goals.length > 1 ? 'Drag a grip to change the order, or focus it and use the arrow keys.' : 'Lists you pick move to the top, in the order you pick them.'}</p>
       </fieldset>
+      <p className={styles.srOnly} role="status">{said}</p>
       <p id={`${uid}goal-err`} className={styles.error} aria-live="polite">{error ? <><Bang />{error}</> : null}</p>
     </StepShell>
   );
@@ -421,10 +632,10 @@ function ConnectStep({ uid, headingRef, data, patch, reduced, takeFailure, onNex
           return (
             <li key={it.id} className={styles.integration} data-phase={ph}>
               <div className={styles.intText}>
-                <p className={styles.intName}>{it.name} <span className={styles.intKind}>{it.note}</span></p>
+                <p className={styles.intName}><span data-fly-src={ph === 'success' ? `int-${it.id}` : undefined}>{it.name}</span> <span className={styles.intKind}>{it.note}</span></p>
                 <p className={styles.intReads} id={`${uid}${it.id}-reads`}>{it.reads}</p>
                 <p className={styles.intStatus} aria-live="polite" id={`${uid}${it.id}-status`}>
-                  {ph === 'success' ? <span style={fly(`int-${it.id}`)} className={styles.okChip}><Check />Connected (simulated)</span>
+                  {ph === 'success' ? <span className={styles.okChip}><Check />Connected (simulated)</span>
                     : ph === 'error' ? <span className={styles.errText}><Bang />Couldn’t connect: the simulated service didn’t answer. Try again.</span>
                       : ph === 'busy' ? 'Connecting…' : 'Not connected'}
                 </p>
@@ -465,7 +676,7 @@ function BrigadeStep({ uid, headingRef, data, patch, reduced, takeFailure, onSen
   /** FLIP the rows and everything under the list so adding/removing a row never jumps. */
   const reflow = (mutate: () => void) => {
     const els = [...(list.current?.querySelectorAll<HTMLElement>('[data-row]') ?? []), ...(after.current ? [after.current] : [])];
-    flip(els, () => flushSync(mutate), { duration: D.base, reducedMotion: reduced });
+    flip(els, () => flushSync(mutate), { duration: D.base, easing: SETTLE.easing, reducedMotion: reduced });
   };
   const add = () => {
     const key = nextKey.current++;
@@ -473,7 +684,7 @@ function BrigadeStep({ uid, headingRef, data, patch, reduced, takeFailure, onSen
     requestAnimationFrame(() => {
       const el = inputs.current.get(key);
       el?.focus();
-      if (el && !reduced && typeof el.animate === 'function') el.closest('li')?.animate([{ opacity: 0, transform: 'translateY(-6px)' }, { opacity: 1, transform: 'none' }], { duration: D.base, easing: cssEase('emphasized') });
+      if (el && !reduced && typeof el.animate === 'function') el.closest('li')?.animate([{ opacity: 0, transform: 'translateY(-8px) scale(0.98)' }, { opacity: 1, transform: 'none' }], { duration: SETTLE.duration, easing: SETTLE.easing });
     });
   };
   const remove = (key: number, i: number) => {
@@ -512,7 +723,7 @@ function BrigadeStep({ uid, headingRef, data, patch, reduced, takeFailure, onSen
           primary={<MorphButton type="submit" reduced={reduced} phase={phase} describedBy={formError ? `${uid}inv-err` : undefined}
             labels={{ idle: 'Send invites', busy: 'Sending…', success: 'Invites sent', error: 'Try again' }} />} />
       )}>
-      <ul ref={list} className={styles.invites} style={fly(phase !== 'idle' && phase !== 'error' && 'brigade')}>
+      <ul ref={list} className={styles.invites}>
         {rows.map((r, i) => {
           const err = errorOf(i);
           const id = `${uid}email${r.key}`;
@@ -524,6 +735,7 @@ function BrigadeStep({ uid, headingRef, data, patch, reduced, takeFailure, onSen
                   ref={(el) => { if (el) inputs.current.set(r.key, el); else inputs.current.delete(r.key); }}
                   id={id} className={styles.input} type="email" inputMode="email" autoComplete="off" autoCapitalize="none" spellCheck={false} enterKeyHint="send"
                   placeholder="name@yourkitchen.co" value={r.value} readOnly={phase === 'busy' || phase === 'success'}
+                  data-fly-src={phase === 'success' && r.value.trim() ? 'brigade' : undefined}
                   aria-invalid={err ? true : undefined} aria-describedby={`${id}-err`}
                   onChange={(e) => { const v = e.currentTarget.value; setRows((rs) => rs.map((x) => (x.key === r.key ? { ...x, value: v } : x))); setFormError(null); }}
                   onBlur={() => setRows((rs) => rs.map((x) => (x.key === r.key && x.value !== '' ? { ...x, touched: true } : x)))}
@@ -552,6 +764,7 @@ function DoneStep({ uid, headingRef, data, reduced, onRestart }: ShellBits & { d
   const [opened, setOpened] = useState(false);
   const mark = useRef<SVGPathElement>(null);
   const ring = useRef<SVGCircleElement>(null);
+  const listRef = useRef<HTMLOListElement>(null);
   useEffect(() => {
     const t = window.setTimeout(() => setLoaded(true), reduced ? 500 : 950);
     return () => window.clearTimeout(t);
@@ -565,6 +778,13 @@ function DoneStep({ uid, headingRef, data, reduced, onRestart }: ShellBits & { d
     ];
     return () => { for (const x of a) x?.cancel(); };
   }, [reduced]);
+  // The real list replaces the skeleton row by row (the skeleton-shimmer handoff), each row settling on a spring.
+  useEffect(() => {
+    if (!loaded || reduced) return;
+    const rows = [...(listRef.current?.children ?? [])] as HTMLElement[];
+    const anims = rows.map((r, i) => r.animate([{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], { duration: SETTLE.duration, delay: i * STAGGER.base, easing: SETTLE.easing, fill: 'backwards' }));
+    return () => { for (const x of anims) x.cancel(); };
+  }, [loaded, reduced]);
   const kitchen = data.kitchen.trim() || 'Your kitchen';
   const tillNote = data.connected.includes('till') ? ' The till connection in this demo is simulated, so the figures are too.' : '';
   return (
@@ -587,7 +807,7 @@ function DoneStep({ uid, headingRef, data, reduced, onRestart }: ShellBits & { d
         </header>
         <p className={styles.srOnly} role="status">{loaded ? 'Prep list ready: 5 items.' : 'Building tomorrow’s prep list…'}</p>
         {loaded ? (
-          <ol className={styles.prepList} data-enter={!reduced || undefined}>
+          <ol ref={listRef} className={styles.prepList}>
             {PREP_LIST.map((p) => (
               <li key={p.item}><span className={styles.prepItem}>{p.item}</span><span className={styles.prepFor}>{p.for}</span><span className={styles.prepQty}>{p.qty}</span></li>
             ))}

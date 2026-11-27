@@ -12,9 +12,32 @@ export interface Delivery {
 
 export const INBOX_URL = 'https://in.tarn.example/k7f2-payments';
 
+/** Yesterday's deliveries to the payments inbox, newest first (sample data). `at` is the local time of day. */
 export const DELIVERIES: Delivery[] = [
   {
-    id: 'dlv_0193', source: 'payments', event: 'invoice.paid', status: 500, ms: 312, at: '09:41:07',
+    id: 'dlv_0195', source: 'storefront', event: 'order.created', status: 200, ms: 118, at: '21:18:44',
+    body: `{
+  "order": "ord_3342",
+  "status": "created",
+  "items": 1,
+  "total": { "amount": 2900, "currency": "eur" },
+  "shipping": "pickup"
+}`,
+  },
+  {
+    id: 'dlv_0194', source: 'payments', event: 'customer.updated', status: 200, ms: 64, at: '17:02:11',
+    body: `{
+  "id": "evt_8Kr0Hd",
+  "type": "customer.updated",
+  "api_version": "2026-09-01",
+  "data": {
+    "customer": "cus_Lm20",
+    "changed": ["address.city"]
+  }
+}`,
+  },
+  {
+    id: 'dlv_0193', source: 'payments', event: 'invoice.paid', status: 500, ms: 312, at: '14:41:07',
     body: `{
   "id": "evt_8Kq2wR",
   "type": "invoice.paid",
@@ -30,7 +53,7 @@ export const DELIVERIES: Delivery[] = [
 }`,
   },
   {
-    id: 'dlv_0192', source: 'payments', event: 'invoice.paid', status: 200, ms: 96, at: '09:12:55',
+    id: 'dlv_0192', source: 'payments', event: 'invoice.paid', status: 200, ms: 96, at: '11:12:55',
     body: `{
   "id": "evt_8Kp7Ta",
   "type": "invoice.paid",
@@ -56,7 +79,7 @@ export const DELIVERIES: Delivery[] = [
 }`,
   },
   {
-    id: 'dlv_0190', source: 'crm', event: 'contact.updated', status: 200, ms: 77, at: '08:31:02',
+    id: 'dlv_0190', source: 'crm', event: 'contact.updated', status: 200, ms: 77, at: '06:31:02',
     body: `{
   "contact": "ct_7781",
   "changed": ["phone", "consent.email"],
@@ -64,6 +87,11 @@ export const DELIVERIES: Delivery[] = [
 }`,
   },
 ];
+/** The delivery that failed, and the one before it that went through (the Inspect step compares them). */
+export const FAILED = DELIVERIES.find((d) => d.id === 'dlv_0193') ?? DELIVERIES[0];
+export const PASSED = DELIVERIES.find((d) => d.id === 'dlv_0192') ?? DELIVERIES[1];
+/** Seconds since midnight for an `at` time. */
+export const secondsOf = (at: string): number => { const [h, m, s] = at.split(':').map(Number); return h * 3600 + m * 60 + (s || 0); };
 
 export type Target = 'localhost' | 'staging' | 'production';
 export const TARGETS: { id: Target; label: string; url: string; note: string }[] = [

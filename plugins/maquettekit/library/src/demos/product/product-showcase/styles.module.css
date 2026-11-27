@@ -53,7 +53,7 @@
 .swatchInput { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
 .swatchDot {
   --ring: 0 0 0 0 transparent, 0 0 0 0 transparent;
-  width: 44px; height: 44px; border-radius: 50%;
+  width: 44px; height: 44px; border-radius: 50%; pointer-events: none;
   background:
     radial-gradient(circle at 32% 26%, rgb(255 255 255 / 0.42), rgb(255 255 255 / 0) 42%),
     radial-gradient(circle at 68% 32%, var(--b) 0 21%, transparent 22%),
@@ -65,7 +65,7 @@
 .swatch:hover .swatchDot { transform: translateY(-2px); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--mk-ink, #11110f) 22%, transparent), var(--ring), var(--sh-lift); }
 .swatch:active .swatchDot { transform: translateY(1px) scale(0.93); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--mk-ink, #11110f) 22%, transparent), var(--ring), var(--sh-press); transition-duration: var(--mk-duration-instant, 90ms); transition-timing-function: var(--mk-ease-standard, ease); }
 .swatch:has(:checked) .swatchDot { --ring: 0 0 0 3px var(--mk-bg, #f3f0e8), 0 0 0 5px var(--mk-ink, #11110f); }
-.swatchName { font-size: 0.75rem; line-height: 1.25; color: var(--mk-ink-muted, #5c5a52); }
+.swatchName { pointer-events: none; font-size: 0.75rem; line-height: 1.25; color: var(--mk-ink-muted, #5c5a52); }
 .swatch:has(:checked) .swatchName { color: var(--mk-ink, #11110f); font-weight: 600; }
 
 /* Price + action */
@@ -224,7 +224,7 @@
 .toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; width: 100%; }
 .presets { display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; border-radius: 999px; background: var(--mk-surface-2, #e9e5da); box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.12); }
 .presetBtn { min-height: 36px; padding: 0 14px; border: 0; border-radius: 999px; background: transparent; color: var(--mk-ink, #11110f); font: 500 0.8125rem/1 var(--mk-font-text, ui-sans-serif, sans-serif); cursor: pointer; }
-.presetBtn:hover:not(:disabled) { background: color-mix(in oklab, var(--mk-surface, #fbf9f4) 70%, transparent); }
+.presetBtn:hover:not(:disabled):not([aria-pressed='true']) { background: color-mix(in oklab, var(--mk-surface, #fbf9f4) 70%, transparent); }
 .presetBtn:active:not(:disabled) { transform: scale(0.95); transition-duration: var(--mk-duration-instant, 90ms); }
 .presetBtn[aria-pressed='true'] { background: var(--mk-ink, #11110f); color: var(--mk-bg, #f3f0e8); box-shadow: var(--sh-rest); }
 .presetBtn:disabled, .iconBtn:disabled, .textBtn:disabled { cursor: progress; color: var(--mk-ink-muted, #5c5a52); }

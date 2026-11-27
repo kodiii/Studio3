@@ -1,48 +1,40 @@
 'use client';
-import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
-import { duration as D, easing, useStudioMotion } from '../../../motion';
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { spring as SPRING, springToLinear, useStudioMotion } from '../../../motion';
 import {
   BARS, BASE_PRICE, DEFAULT_BUILD, EXTRAS, FENDER_MAX_TYRE, FRAMES, MODEL, PAINTS, SIZES, TYRES,
   barOf, codeOf, countBuilds, fendersFit, fitOf, formatDelta, formatPrice, frameOf, fromHash, interpolateFit, mm,
   paintOf, priceOf, sameBuild, sizeOf, solve, toHash, tyreOf,
   type Build, type ExtraId, type Fit, type TyreId,
 } from './bike';
-import { BarIcon, BikeDrawing, describeBuild } from './Drawing';
+import { BarIcon, BikeDrawing, describeBuild, useDrivetrain, type PartId } from './Drawing';
 import { Ticker } from './Ticker';
 import styles from './styles.module.css';
 
-/** cubic-bezier evaluator so the geometry tween uses the same `emphasized` token as the CSS. */
-function bezier([x1, y1, x2, y2]: readonly [number, number, number, number]) {
-  const cx = 3 * x1, bx = 3 * (x2 - x1) - cx, ax = 1 - cx - bx;
-  const cy = 3 * y1, by = 3 * (y2 - y1) - cy, ay = 1 - cy - by;
-  const sx = (t: number) => ((ax * t + bx) * t + cx) * t;
-  const dx = (t: number) => (3 * ax * t + 2 * bx) * t + cx;
-  return (x: number): number => {
-    if (x <= 0) return 0;
-    if (x >= 1) return 1;
-    let t = x;
-    for (let i = 0; i < 8; i++) { const e = sx(t) - x; const d = dx(t); if (Math.abs(e) < 1e-5 || Math.abs(d) < 1e-6) break; t -= e / d; }
-    t = Math.min(1, Math.max(0, t));
-    return ((ay * t + by) * t + cy) * t;
-  };
-}
-const EMPHASIZED = bezier(easing.emphasized);
+const PRESS = springToLinear(SPRING.press);
+const POP = springToLinear(SPRING.pop);
+const SETTLE = springToLinear(SPRING.settle);
 
-/** Tween the geometry numbers (size and tyre width) so the frame visibly grows or shrinks. Interruptible. */
-function useTweenedFit(target: Fit, reduced: boolean): Fit {
+/** The geometry (size and tyre width) follows its target on a spring, so a quick second pick carries on from the
+ *  current shape and speed instead of restarting a curve. The loop runs only until the numbers settle. */
+function useSpringFit(target: Fit, reduced: boolean): Fit {
   const [fit, setFit] = useState(target);
-  const current = useRef(target);
+  const cur = useRef({ x: { ...target }, v: Object.fromEntries(Object.keys(target).map((k) => [k, 0])) as Record<keyof Fit, number> });
   useEffect(() => {
-    const from = current.current;
-    if (reduced) { current.current = target; setFit(target); return; }
-    let raf = 0;
-    const start = performance.now();
+    if (reduced) { cur.current.x = { ...target }; setFit(target); return; }
+    let raf = 0, prev = 0;
+    const c = SPRING.settle;
     const tick = (now: number) => {
-      const t = Math.min(1, (now - start) / D.moderate);
-      const v = interpolateFit(from, target, EMPHASIZED(t));
-      current.current = v;
-      setFit(v);
-      if (t < 1) raf = requestAnimationFrame(tick);
+      const dt = prev ? Math.min(0.05, (now - prev) / 1000) : 1 / 60; prev = now;
+      const st = cur.current, n = Math.max(1, Math.ceil(dt * 240)), h = dt / n;
+      let done = true;
+      for (const k of Object.keys(target) as (keyof Fit)[]) {
+        for (let i = 0; i < n; i++) { st.v[k] += ((-c.stiffness * (st.x[k] - target[k]) - c.damping * st.v[k]) / c.mass) * h; st.x[k] += st.v[k] * h; }
+        if (Math.abs(st.x[k] - target[k]) > 0.05 || Math.abs(st.v[k]) > 0.2) done = false;
+      }
+      if (done) { st.x = { ...target }; for (const k of Object.keys(st.v) as (keyof Fit)[]) st.v[k] = 0; }
+      setFit({ ...st.x });
+      if (!done) raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
@@ -52,13 +44,15 @@ function useTweenedFit(target: Fit, reduced: boolean): Fit {
 
 interface Opt { id: string; name: string; note: string; price: number }
 
-function Choices<T extends Opt>({ n, legend, hint, name, options, value, onPick, kind, children, render }: {
+function Choices<T extends Opt>({ n, legend, hint, name, options, value, onPick, kind, children, render, id, part, onHover }: {
   n: string; legend: string; hint?: ReactNode; name: string; options: readonly T[]; value: string; kind: string;
-  onPick: (o: T) => void; render: (o: T) => ReactNode; children?: ReactNode;
+  onPick: (o: T) => void; render: (o: T) => ReactNode; children?: ReactNode; id: string; part: PartId; onHover: (p: PartId | null) => void;
 }) {
   const uid = useId();
   return (
-    <fieldset className={styles.group} aria-describedby={hint ? `${uid}h` : undefined}>
+    <fieldset id={id} className={styles.group} aria-describedby={hint ? `${uid}h` : undefined}
+      onPointerEnter={(e) => { if (e.pointerType !== 'touch') onHover(part); }} onPointerLeave={() => onHover(null)}
+      onFocus={() => onHover(part)} onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) onHover(null); }}>
       <legend className={styles.legend}><span className={styles.num} aria-hidden="true">{n}</span>{legend}</legend>
       {hint ? <p id={`${uid}h`} className={styles.hint}>{hint}</p> : null}
       <div className={styles.choices} data-kind={kind}>
@@ -102,7 +96,34 @@ export default function ProductConfigurator() {
   }, [build, ready]);
 
   const target = useMemo(() => fitOf(build), [build.size, build.tyre]); // eslint-disable-line react-hooks/exhaustive-deps
-  const fit = useTweenedFit(target, reduced);
+  const fit = useSpringFit(target, reduced);
+  const plate = useRef<HTMLElement>(null);
+  const drive = useDrivetrain(plate, reduced);
+  const [hover, setHover] = useState<PartId | null>(null);
+  // Paint flows along the tubes: the frame keeps the old colour until the new one has run down every tube.
+  const [shownPaint, setShownPaint] = useState(() => paintOf(DEFAULT_BUILD).colour);
+  const [flow, setFlow] = useState<{ key: number; colour: string } | null>(null);
+  const flowKey = useRef(0);
+  const paintColour = paintOf(build).colour;
+  useEffect(() => {
+    if (paintColour === shownPaint && !flow) return;
+    if (reduced || !ready) { setShownPaint(paintColour); setFlow(null); return; }
+    setFlow({ key: ++flowKey.current, colour: paintColour });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paintColour]);
+  const onFlowEnd = useCallback(() => { setFlow((f) => { if (f) setShownPaint(f.colour); return null; }); }, []);
+
+  /** Touching a part of the drawing opens the option group that changes it. */
+  const pickPart = (p: PartId) => {
+    const group = { frame: 'frame', wheels: 'tyre', saddle: 'size', cockpit: 'bar', fenders: 'extras', rack: 'extras', lights: 'extras', drivetrain: null }[p];
+    if (!group) return;
+    const el = document.getElementById(`${uid}g-${group}`);
+    if (!el) return;
+    el.scrollIntoView({ block: 'center', behavior: reduced ? 'auto' : 'smooth' });
+    const input = el.querySelector<HTMLInputElement>(p === 'fenders' || p === 'rack' || p === 'lights' ? `input[data-extra="${p}"]` : 'input:checked') ?? el.querySelector('input');
+    input?.focus({ preventScroll: true });
+    if (!reduced) el.animate([{ backgroundColor: 'color-mix(in oklab, var(--mk-signal, #bf2f09) 9%, transparent)' }, { backgroundColor: 'transparent' }], { duration: 1100, easing: 'ease-out' });
+  };
   const combos = useMemo(countBuilds, []);
 
   const size = sizeOf(build), frame = frameOf(build), paint = paintOf(build), bar = barOf(build), tyre = tyreOf(build);
@@ -167,7 +188,7 @@ export default function ProductConfigurator() {
   ];
 
   return (
-    <div className={styles.root} data-reduced={reduced || undefined}>
+    <div className={styles.root} data-reduced={reduced || undefined} style={{ '--press': PRESS.easing, '--press-dur': `${PRESS.duration}ms`, '--pop': POP.easing, '--pop-dur': `${POP.duration}ms`, '--settle': SETTLE.easing, '--settle-dur': `${SETTLE.duration}ms` } as CSSProperties}>
       <div className={styles.layout}>
         <header className={styles.intro}>
           <p className={styles.brand}><span className={styles.wordmark}>Hollin Cycles</span><span className={styles.tag}>Sample pricing</span></p>
@@ -175,13 +196,28 @@ export default function ProductConfigurator() {
           <p className={styles.lede}>A steel all-road tourer, built to order. Pick a size and parts; the drawing is recalculated from the frame geometry as you choose.</p>
         </header>
 
-        <section className={styles.plate} aria-labelledby={`${uid}plate`}>
+        <section ref={plate} className={styles.plate} aria-labelledby={`${uid}plate`}>
           <div className={styles.plateHead}>
             <h3 id={`${uid}plate`} className={styles.plateTitle}>Side elevation, drive side</h3>
             <span className={styles.code} aria-label={`Build code ${code}`}>{code}</span>
           </div>
           <div className={styles.drawingWrap}>
-            <BikeDrawing build={build} fit={fit} uid={uid} />
+            <BikeDrawing build={build} fit={fit} uid={uid} reduced={reduced} drive={drive} shownPaint={shownPaint} flow={flow} onFlowEnd={onFlowEnd}
+              hover={hover} onHover={setHover} onPick={pickPart}>
+            <div className={styles.spinBar} role="group" aria-label="Turn the drivetrain">
+              <button type="button" className={styles.spinBtn}
+                onPointerDown={(e) => { if (e.button === 0) drive.setPedal(true); }} onPointerUp={() => drive.setPedal(false)} onPointerLeave={() => drive.setPedal(false)} onPointerCancel={() => drive.setPedal(false)}
+                onKeyDown={(e) => { if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) { e.preventDefault(); drive.setPedal(true); } }}
+                onKeyUp={(e) => { if (e.key === ' ' || e.key === 'Enter') drive.setPedal(false); }} onBlur={() => drive.setPedal(false)}>
+                <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><circle cx="10" cy="10" r="6.5" /><path d="M10 10 14.5 6.5M13 6h2v2" /></svg>
+                <span className={styles.spinLabel}>Hold to pedal</span>
+              </button>
+              <button type="button" className={styles.spinBtn} onClick={() => drive.flick('front', 760)}>
+                <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><circle cx="10" cy="10" r="7" /><circle cx="10" cy="10" r="1.6" /><path d="M10 3v5M10 12v5M3 10h5M12 10h5" /></svg>
+                <span className={styles.spinLabel}>Spin front wheel</span>
+              </button>
+            </div>
+            </BikeDrawing>
           </div>
           <p className={styles.caption}>{describeBuild(build)}</p>
           <div className={styles.strip}>
@@ -196,7 +232,7 @@ export default function ProductConfigurator() {
         </section>
 
         <form className={styles.options} aria-label="Build options" onSubmit={(e) => e.preventDefault()}>
-          <Choices n="01" legend="Frame size" name={`${uid}size`} kind="size" options={SIZES} value={build.size}
+          <Choices n="01" legend="Frame size" name={`${uid}size`} kind="size" options={SIZES} value={build.size} id={`${uid}g-size`} part="frame" onHover={setHover}
             hint="Sizes are the seat tube length in centimetres; under each is a rider height range in centimetres. Heights are a starting point: stack and reach below are what to compare."
             onPick={(o) => commit({ ...build, size: o.id }, `Size ${o.name}.`)}
             render={(o) => (<><span className={styles.sizeNum}>{o.name}</span><span className={styles.note}>{o.rider}<span className={styles.srOnly}> cm rider height</span></span></>)}>
@@ -209,11 +245,11 @@ export default function ProductConfigurator() {
             </dl>
           </Choices>
 
-          <Choices n="02" legend="Frame" name={`${uid}frame`} kind="frame" options={FRAMES} value={build.frame}
+          <Choices n="02" legend="Frame" name={`${uid}frame`} kind="frame" options={FRAMES} value={build.frame} id={`${uid}g-frame`} part="frame" onHover={setHover}
             onPick={(o) => commit({ ...build, frame: o.id }, `Frame: ${o.name}.`)}
             render={(o) => (<><span className={styles.name}>{o.name}</span><span className={styles.note}>{o.note}</span></>)} />
 
-          <Choices n="03" legend="Paint" name={`${uid}paint`} kind="paint" options={PAINTS} value={build.paint}
+          <Choices n="03" legend="Paint" name={`${uid}paint`} kind="paint" options={PAINTS} value={build.paint} id={`${uid}g-paint`} part="frame" onHover={setHover}
             hint={frame.id === 'titanium' ? 'Titanium frames stay raw, so your colour goes on the steel fork.' : undefined}
             onPick={(o) => commit({ ...build, paint: o.id }, `Paint: ${o.name}${frame.id === 'titanium' ? ', on the fork' : ''}.`)}
             render={(o) => (
@@ -223,11 +259,11 @@ export default function ProductConfigurator() {
               </span>
             )} />
 
-          <Choices n="04" legend="Handlebar" name={`${uid}bar`} kind="bar" options={BARS} value={build.bar}
+          <Choices n="04" legend="Handlebar" name={`${uid}bar`} kind="bar" options={BARS} value={build.bar} id={`${uid}g-bar`} part="cockpit" onHover={setHover}
             onPick={(o) => commit({ ...build, bar: o.id }, `Handlebar: ${o.name}.`)}
             render={(o) => (<><BarIcon id={o.id} /><span className={styles.name}>{o.name}</span><span className={styles.note}>{o.note}</span></>)} />
 
-          <Choices n="05" legend="Tyres" name={`${uid}tyre`} kind="tyre" options={TYRES} value={build.tyre}
+          <Choices n="05" legend="Tyres" name={`${uid}tyre`} kind="tyre" options={TYRES} value={build.tyre} id={`${uid}g-tyre`} part="wheels" onHover={setHover}
             onPick={(o) => pickTyre(o.id)}
             render={(o) => (<><span className={styles.name}>{o.name}</span><span className={styles.note}>{o.note}</span></>)}>
             {notice ? (
@@ -238,16 +274,18 @@ export default function ProductConfigurator() {
             ) : null}
           </Choices>
 
-          <fieldset className={styles.group}>
+          <fieldset id={`${uid}g-extras`} className={styles.group}>
             <legend className={styles.legend}><span className={styles.num} aria-hidden="true">06</span>Fitted extras</legend>
             <div className={styles.extras}>
               {EXTRAS.map((e) => {
                 const blocked = e.id === 'fenders' && fendersBlocked;
                 const on = build.extras.includes(e.id);
                 return (
-                  <div key={e.id} className={styles.extraItem}>
+                  <div key={e.id} className={styles.extraItem}
+                    onPointerEnter={(ev) => { if (ev.pointerType !== 'touch') setHover(e.id); }} onPointerLeave={() => setHover(null)}
+                    onFocus={() => setHover(e.id)} onBlur={() => setHover(null)}>
                     <label className={styles.extra} data-blocked={blocked || undefined}>
-                      <input className={styles.input} type="checkbox" checked={on} aria-disabled={blocked || undefined}
+                      <input className={styles.input} type="checkbox" checked={on} aria-disabled={blocked || undefined} data-extra={e.id}
                         aria-describedby={blocked ? `${uid}fend` : undefined}
                         onChange={(ev) => toggleExtra(e.id, ev.currentTarget.checked)} />
                       <span className={styles.box} aria-hidden="true">

@@ -13,6 +13,11 @@
   --hc-brass: #b98a35;
   --hc-lens: #f4ead0;
   --hc-tail: #c4361f;
+  --hc-beam: #f0b93a;
+  /* Two-layer elevation (contact + ambient), light from the top-left. */
+  --sh-rest: 0 1px 1.5px rgb(20 18 12 / 0.16), 0 6px 14px -9px rgb(20 18 12 / 0.3);
+  --sh-lift: 0 1px 1px rgb(20 18 12 / 0.12), 0 16px 28px -14px rgb(20 18 12 / 0.36);
+  --sh-press: 0 0 0 rgb(0 0 0 / 0), 0 2px 4px -2px rgb(20 18 12 / 0.3);
   --hc-grid: color-mix(in oklab, var(--mk-ink, #11110f) 6%, transparent);
   --plate-h: calc((100cqi - 32px) / 1.603 + 92px);
   background: var(--mk-bg, #f3f0e8);
@@ -21,6 +26,9 @@
   overflow-x: clip;
 }
 :global([data-theme='dark']) .root {
+  --sh-rest: 0 1px 1.5px rgb(0 0 0 / 0.5), 0 6px 14px -9px rgb(0 0 0 / 0.75);
+  --sh-lift: 0 1px 1px rgb(0 0 0 / 0.45), 0 18px 30px -14px rgb(0 0 0 / 0.85);
+  --sh-press: 0 0 0 rgb(0 0 0 / 0), 0 2px 4px -2px rgb(0 0 0 / 0.7);
   --hc-metal: #92948f;
   --hc-spoke: #8d8f8a;
   --hc-rubber: #3b3a36;
@@ -160,13 +168,17 @@
 .dim { fill: none; stroke: var(--mk-signal, #bf2f09); stroke-width: 1; vector-effect: non-scaling-stroke; }
 .ext { fill: none; stroke: var(--mk-signal, #bf2f09); stroke-width: 1; stroke-dasharray: 3 4; vector-effect: non-scaling-stroke; }
 
-/* Cross-fades: every variant is drawn, the chosen one is opaque. */
+/* Every variant is drawn; the chosen one is opaque. Parts and bars drop in on a spring, the old one lifts away. */
 .part { opacity: 0; }
 .part[data-on='true'] { opacity: 1; }
-.lift { transform: translateY(-14px); }
+.part[data-on='false'] { pointer-events: none; }
+.lift { transform: translateY(-40px); }
 .lift[data-on='true'] { transform: none; }
+.drop { transform: translateY(-34px) rotate(-4deg); transform-box: fill-box; transform-origin: 0% 50%; }
+.drop[data-on='true'] { transform: none; }
 @media (prefers-reduced-motion: no-preference) {
-  .root:not([data-reduced]) .part { transition: opacity var(--mk-duration-base, 240ms) var(--mk-ease-standard, ease), transform var(--mk-duration-moderate, 360ms) var(--mk-ease-emphasized, ease); }
+  .root:not([data-reduced]) .part { transition: opacity var(--mk-duration-base, 240ms) var(--mk-ease-standard, ease), transform var(--pop-dur, 600ms) var(--pop, ease); }
+  .root:not([data-reduced]) .part[data-on='false'] { transition: opacity var(--mk-duration-fast, 160ms) var(--mk-ease-exit, ease), transform var(--mk-duration-fast, 160ms) var(--mk-ease-exit, ease); }
   .root:not([data-reduced]) .paint { transition: stroke var(--mk-duration-base, 240ms) var(--mk-ease-standard, ease); }
   .root:not([data-reduced]) .paintFill { transition: fill var(--mk-duration-base, 240ms) var(--mk-ease-standard, ease); }
 }
@@ -375,3 +387,68 @@
 .colophon { max-width: 1520px; margin: 0 auto; padding: 20px 16px 40px; border-top: 1px solid var(--mk-line, #11110f24); }
 .colophon p { margin: 0; font-size: 0.8125rem; color: var(--mk-ink-muted, #5c5a52); }
 @container (min-width: 960px) { .colophon { padding-inline: 32px; } }
+
+/* ── The drawing answers the hand ──────────────────────────────────────── */
+/* Parts light up and lift under the pointer; the option card for the same part does the same from the side. */
+.hit { cursor: pointer; transition: transform var(--pop-dur, 600ms) var(--pop, ease), filter var(--mk-duration-fast, 160ms) var(--mk-ease-standard, ease); }
+.hit[data-hover] { transform: translateY(-12px); filter: drop-shadow(0 16px 9px rgb(20 18 12 / 0.22)); }
+.hit[data-hover] .outline, .hit[data-hover] .edge, .hit[data-hover] .saddle, .hit[data-hover] .lamp { stroke: var(--mk-signal, #bf2f09); }
+.hit[data-hover] .outlineFill { fill: var(--mk-signal, #bf2f09); }
+.wheel { cursor: grab; touch-action: pan-y; }
+.spin { cursor: grab; touch-action: none; }
+.wheel:active, .spin:active { cursor: grabbing; }
+.valve { fill: var(--hc-metal); stroke: var(--hc-line); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.flow path { fill: none; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; }
+/* Dynamo light: brightness follows the front wheel's speed (a faint standlight when still). */
+.beam { pointer-events: none; opacity: calc(0.08 + var(--dynamo, 0) * 0.92); }
+.partTag {
+  position: absolute; z-index: 2; top: 12px; right: 12px; max-width: calc(100% - 24px); overflow: hidden; text-overflow: ellipsis; padding: 5px 9px; border-radius: 999px; white-space: nowrap; pointer-events: none;
+  background: var(--mk-ink, #11110f); color: var(--mk-bg, #f3f0e8); font: 600 0.6875rem/1.2 var(--mk-font-mono, ui-monospace, monospace); letter-spacing: 0.03em;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.25), 0 10px 20px -10px rgb(0 0 0 / 0.5);
+  animation: hc-tag var(--settle-dur, 490ms) var(--settle, ease) both;
+}
+@keyframes hc-tag { from { opacity: 0; translate: 0 8px; } }
+/* The twins sit in the drawing's free top-left corner: icons on narrow plates (their names stay accessible), labelled on wide ones. */
+.spinBar { position: absolute; z-index: 2; top: 8px; left: 8px; display: flex; gap: 6px; }
+.spinLabel { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+@container (min-width: 960px) {
+  .spinBar { top: 12px; left: 12px; flex-direction: column; align-items: flex-start; }
+  .spinLabel { position: static; width: auto; height: auto; margin: 0; overflow: visible; clip: auto; }
+}
+.spinBtn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-width: 36px; min-height: 36px; padding: 0 9px; border: 1px solid var(--mk-line-strong, #11110f); border-radius: 999px;
+  background: var(--mk-surface, #fbf9f4); color: var(--mk-ink, #11110f); font: 500 0.75rem/1 var(--mk-font-mono, ui-monospace, monospace); letter-spacing: 0.02em;
+  cursor: pointer; user-select: none; -webkit-user-select: none; touch-action: manipulation; box-shadow: var(--sh-rest);
+  transition: transform var(--press-dur, 330ms) var(--press, ease), box-shadow var(--press-dur, 330ms) var(--press, ease);
+}
+.spinBtn:hover { transform: translateY(-1px); box-shadow: var(--sh-lift); }
+@container (min-width: 960px) { .spinBtn { padding: 0 12px 0 9px; } }
+.spinBtn:active { transform: translateY(1px) scale(0.97); box-shadow: var(--sh-press); transition-duration: var(--mk-duration-instant, 90ms); }
+.spinBtn:focus-visible { outline: 2px solid var(--mk-focus, #1d4ed8); outline-offset: 2px; }
+.spinBtn svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ── Option cards: lift under the pointer, press in, the chosen one sits down ── */
+.choice, .extra { box-shadow: var(--sh-rest); transition: transform var(--press-dur, 330ms) var(--press, ease), box-shadow var(--press-dur, 330ms) var(--press, ease), background-color var(--mk-duration-fast, 160ms), border-color var(--mk-duration-fast, 160ms); }
+.choice:hover, .extra:hover:not([data-blocked]) { transform: translateY(-2px); box-shadow: var(--sh-lift); background: var(--mk-surface, #fbf9f4); }
+.choice:active, .extra:active:not([data-blocked]) { transform: translateY(1px) scale(0.985); box-shadow: var(--sh-press); transition-duration: var(--mk-duration-instant, 90ms); transition-timing-function: var(--mk-ease-standard, ease); }
+.choice:has(:checked), .extra:has(:checked) { box-shadow: inset 0 0 0 1px var(--mk-ink, #11110f), var(--sh-press); }
+.choice:has(:checked):hover, .extra:has(:checked):hover { box-shadow: inset 0 0 0 1px var(--mk-ink, #11110f), var(--sh-rest); }
+.choice::after { transition: background-color var(--mk-duration-fast, 160ms), box-shadow var(--pop-dur, 600ms) var(--pop, ease), transform var(--pop-dur, 600ms) var(--pop, ease); }
+.choice:has(:checked)::after { transform: scale(1.15); }
+.extra[data-blocked] { box-shadow: none; }
+.primary, .secondary { transition: transform var(--press-dur, 330ms) var(--press, ease), box-shadow var(--press-dur, 330ms) var(--press, ease), background-color var(--mk-duration-fast, 160ms); }
+.primary { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.2), 0 1px 1.5px rgb(0 0 0 / 0.22), 0 8px 18px -9px color-mix(in oklab, var(--mk-signal, #bf2f09) 75%, #000); }
+.primary:hover { transform: translateY(-2px); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.2), 0 1px 1px rgb(0 0 0 / 0.14), 0 16px 26px -12px color-mix(in oklab, var(--mk-signal, #bf2f09) 80%, #000); }
+.secondary { box-shadow: var(--sh-rest); }
+.secondary:hover { transform: translateY(-2px); box-shadow: var(--sh-lift); }
+.primary:active, .secondary:active { transform: translateY(1px) scale(0.98); box-shadow: var(--sh-press); transition-duration: var(--mk-duration-instant, 90ms); }
+
+/* ── Reduced motion: no lift, drop or spring; parts and paint change in place ── */
+.root[data-reduced] .hit, .root[data-reduced] .choice, .root[data-reduced] .extra, .root[data-reduced] .spinBtn, .root[data-reduced] .primary,
+.root[data-reduced] .secondary, .root[data-reduced] .choice::after { transition: none; }
+.root[data-reduced] .hit[data-hover] { transform: none; filter: none; }
+.root[data-reduced] .choice:hover, .root[data-reduced] .extra:hover, .root[data-reduced] .spinBtn:hover, .root[data-reduced] .primary:hover, .root[data-reduced] .secondary:hover { transform: none; }
+.root[data-reduced] .partTag { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .hit, .choice, .extra, .spinBtn, .primary, .secondary { transition: none; }
+}

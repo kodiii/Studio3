@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode, type RefObject } from 'react';
-import { useIsomorphicLayoutEffect } from '../../../motion';
-import { DELIVERIES, FAQ, INBOX_URL, OVERAGE, PLANS, TARGETS, formatUsd, type Target } from './content';
+import { spring as SPRING, useIsomorphicLayoutEffect, useRafLoop } from '../../../motion';
+import { FAILED, FAQ, INBOX_URL, OVERAGE, PASSED, PLANS, TARGETS, formatUsd, type Target } from './content';
 import { Json, StatusChip } from './Inbox';
 import { Ticker } from './Ticker';
 import styles from './styles.module.css';
@@ -52,12 +52,72 @@ export function useReveal(enabled: boolean) {
   return root;
 }
 
+/* ── Magnetic pull (the hero CTA only): the magnetic-button technique on this page's button ──
+   A precise pointer within FIELD px of the button draws it in (capped with tanh, fading to zero at the field's edge);
+   the label floats a little further than the body. Springs from the tokens; the loop sleeps once both are home. */
+const FIELD = 76;
+function useMagnet(anchor: RefObject<HTMLSpanElement | null>, body: RefObject<HTMLButtonElement | null>, label: RefObject<HTMLSpanElement | null>, enabled: boolean) {
+  const sim = useRef({ bx: 0, bv: 0, by: 0, byv: 0, lx: 0, lv: 0, ly: 0, lyv: 0, tx: 0, ty: 0 });
+  const [running, setRunning] = useState(false);
+  const runningRef = useRef(false);
+  useEffect(() => {
+    if (!enabled) return;
+    const fine = window.matchMedia?.('(hover: hover) and (pointer: fine)').matches;
+    if (!fine) return;
+    const onMove = (e: globalThis.PointerEvent) => {
+      const r = anchor.current?.getBoundingClientRect();
+      if (!r) return;
+      const dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+      const edge = Math.max(0, Math.hypot(Math.max(0, Math.abs(dx) - r.width / 2), Math.max(0, Math.abs(dy) - r.height / 2)));
+      const s = sim.current;
+      if (edge < FIELD) {
+        const w = 1 - Math.min(1, edge / FIELD), lim = r.height * 0.42;
+        s.tx = lim * Math.tanh((dx * 0.26 * w * w) / lim);
+        s.ty = lim * Math.tanh((dy * 0.26 * w * w) / lim);
+      } else { s.tx = 0; s.ty = 0; }
+      if ((s.tx || s.ty || s.bx || s.by) && !runningRef.current) { runningRef.current = true; setRunning(true); }
+    };
+    window.addEventListener('pointermove', onMove, { passive: true });
+    return () => {
+      window.removeEventListener('pointermove', onMove);
+      if (body.current) body.current.style.translate = '';
+      if (label.current) label.current.style.translate = '';
+    };
+  }, [enabled, anchor, body, label]);
+  useRafLoop(anchor, (dt) => {
+    const s = sim.current, c = s.tx || s.ty ? SPRING.settle : SPRING.release;
+    const n = Math.max(1, Math.ceil(dt * 240)), h = dt / n;
+    for (let i = 0; i < n; i++) {
+      s.bv += ((-c.stiffness * (s.bx - s.tx) - c.damping * s.bv) / c.mass) * h; s.bx += s.bv * h;
+      s.byv += ((-c.stiffness * (s.by - s.ty) - c.damping * s.byv) / c.mass) * h; s.by += s.byv * h;
+      s.lv += ((-c.stiffness * (s.lx - s.tx * 0.4) - c.damping * s.lv) / c.mass) * h; s.lx += s.lv * h;
+      s.lyv += ((-c.stiffness * (s.ly - s.ty * 0.4) - c.damping * s.lyv) / c.mass) * h; s.ly += s.lyv * h;
+    }
+    if (body.current) body.current.style.translate = `${s.bx.toFixed(2)}px ${s.by.toFixed(2)}px`;
+    if (label.current) label.current.style.translate = `${s.lx.toFixed(2)}px ${s.ly.toFixed(2)}px`;
+    const home = !s.tx && !s.ty && Math.abs(s.bx) + Math.abs(s.by) + Math.abs(s.lx) + Math.abs(s.ly) < 0.05 && Math.abs(s.bv) + Math.abs(s.byv) < 0.2;
+    if (home) {
+      Object.assign(s, { bx: 0, bv: 0, by: 0, byv: 0, lx: 0, lv: 0, ly: 0, lyv: 0 });
+      if (body.current) body.current.style.translate = '';
+      if (label.current) label.current.style.translate = '';
+      runningRef.current = false;
+      setRunning(false);
+    }
+  }, running && enabled);
+}
+
 /* ── The single primary action, repeated with the same label ─────────── */
-export function Cta({ label = 'Create a free inbox', note = 'Free up to 10,000 deliveries a month. No card.' }: { label?: string; note?: string }) {
+export function Cta({ label = 'Create a free inbox', note = 'Free up to 10,000 deliveries a month. No card.', magnetic = false, reduced = false }: { label?: string; note?: string; magnetic?: boolean; reduced?: boolean }) {
   const [said, setSaid] = useState(false);
+  const anchor = useRef<HTMLSpanElement>(null);
+  const body = useRef<HTMLButtonElement>(null);
+  const face = useRef<HTMLSpanElement>(null);
+  useMagnet(anchor, body, face, magnetic && !reduced);
   return (
     <div className={styles.ctaWrap}>
-      <button type="button" className={styles.primary} onClick={() => setSaid(true)}>{label}</button>
+      <span ref={anchor} className={styles.ctaAnchor}>
+        <button ref={body} type="button" className={styles.primary} onClick={() => setSaid(true)}><span ref={face} className={styles.ctaFace}>{label}</span></button>
+      </span>
       <p className={styles.ctaNote} aria-live="polite">{said ? 'Demo only: sign-up would start here with an email and a password, nothing else.' : note}</p>
     </div>
   );
@@ -133,8 +193,8 @@ function Capture({ reduced }: { reduced: boolean }) {
 }
 
 function Inspect() {
-  const ok = DELIVERIES[1].body.split('\n');
-  const bad = DELIVERIES[0].body.split('\n');
+  const ok = PASSED.body.split('\n');
+  const bad = FAILED.body.split('\n');
   return (
     <div className={styles.panelGrid}>
       <div className={styles.panelCopy}>
