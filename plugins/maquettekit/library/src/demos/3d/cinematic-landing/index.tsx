@@ -192,7 +192,7 @@ export default function CinematicLanding() {
                 </button>
                 <p className="mk-sr-only" role="status">{announced}</p>
               </div>
-              <p className={`mk-label ${styles.hint}`}>{live ? 'Drag the dial, or ← → with the stage focused · ' : ''}no sound — Pulse is fictional</p>
+              <p className={`mk-label ${styles.hint}`}>{live ? 'Drag the dial or use ← → · ' : ''}no sound, Pulse is fictional</p>
             </div>
           </article>
         </div>

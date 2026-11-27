@@ -7,7 +7,8 @@
  *  - light: the key orbits towards the pointer (and drifts slowly on its own while the light plays); the generated
  *    environment turns with it, and the same angle is written to CSS so the headline is lit from the same side.
  *  - hands: drag (or ←/→ on the focused canvas) turns the speaker on its plinth; it keeps the release velocity and
- *    springs back to the chapter's pose. In the dial chapter the same gesture turns the dial through 30 detents.
+ *    springs back to the chapter's pose on the heavy `glide` spring. In the dial chapter the same gesture turns the
+ *    dial through 30 detents; the small dial snaps into its notch on the quick `press` spring.
  * Everything settles and stops requesting frames; with the light paused the canvas renders on demand.
  */
 import { useFrame, useThree } from '@react-three/fiber';
@@ -33,8 +34,9 @@ const DIAL_PER_PX = 0.0085;
 const TURN_FREE = 0.6, TURN_LIMIT = 1.0;
 /** Dial end stops: volume 0 and 30. */
 const DIAL_MIN = -(VOLUME.max - VOLUME.start) * DETENT, DIAL_MAX = VOLUME.start * DETENT;
-const KNOB_LIGHT = { position: [0.55, 1.16, 0.02] as const };
-const SPOT_INTENSITY = 26;
+/** The ring's own light sits at ring level, inside the dial: it reaches the shell around it, never the dial's top. */
+const KNOB_LIGHT = { position: [0.55, 1.05, 0] as const };
+const SPOT_INTENSITY = 3.6;
 
 export interface PointerLight { x: number; y: number; inside: boolean }
 export interface DialApi { step(detents: number): void }
@@ -63,10 +65,10 @@ export interface DirectorProps {
   variantUrl: string;
 }
 
-const newShot = (): Shot => ({ az: 0, el: 0, dist: 1, fx: 0, fy: 0, fz: 0, fov: 30, sx: 0, sy: 0 });
-const SHOT_KEYS = ['az', 'el', 'dist', 'fx', 'fy', 'fz', 'fov', 'sx', 'sy'] as const;
+const newShot = (): Shot => ({ az: 0, el: 0, dist: 1, fx: 0, fy: 0, fz: 0, fov: 30, sx: 0, sy: 0, turn: 0 });
+const SHOT_KEYS = ['az', 'el', 'dist', 'fx', 'fy', 'fz', 'fov', 'sx', 'sy', 'turn'] as const;
 /** How close (per parameter) counts as arrived, so the demand loop can stop. */
-const SHOT_EPS: Record<(typeof SHOT_KEYS)[number], number> = { az: 0.01, el: 0.01, dist: 1e-3, fx: 1e-4, fy: 1e-4, fz: 1e-4, fov: 1e-3, sx: 1e-5, sy: 1e-5 };
+const SHOT_EPS: Record<(typeof SHOT_KEYS)[number], number> = { az: 0.01, el: 0.01, dist: 1e-3, fx: 1e-4, fy: 1e-4, fz: 1e-4, fov: 1e-3, sx: 1e-5, sy: 1e-5, turn: 0.01 };
 
 export function Director({
   progress, invalidateRef, pointer, dialRef, stacked, skip, playIntro, ambience, reduced,
@@ -85,6 +87,7 @@ export function Director({
   const player = useRef<AnimationPlayerHandle>(null);
   const ring = useRef<MeshStandardMaterial | null>(null);
   const knob = useRef<{ node: Object3D; base: number } | null>(null);
+  const spotTarget = useMemo(() => new Object3D(), []);
   const [loaded, setLoaded] = useState(false);
 
   const s = useRef({
@@ -98,7 +101,7 @@ export function Director({
     yaw: { x: 0, v: 0 } as Axis,
     dial: { x: 0, v: 0 } as Axis, dialTarget: 0, volume: VOLUME.start, flash: 0, held: 0,
     drag: null as null | { id: number; mode: 'turn' | 'dial'; x0: number; start: number; samples: { t: number; x: number }[] },
-    out: { angle: NaN, sx: NaN }, view: { w: 0, h: 0, sx: NaN, sy: NaN },
+    out: { angle: -999, sx: -999 }, view: { w: 0, h: 0, sx: -999, sy: -999 },
   });
   const live = useRef({ reduced, ambience, stacked, playIntro, loaded, onIntroDone, onVolume, onLight });
   live.current = { reduced, ambience, stacked, playIntro, loaded, onIntroDone, onVolume, onLight };
@@ -317,9 +320,10 @@ export function Director({
     const yaw = st.yaw;
     if (!st.drag || st.drag.mode !== 'turn') {
       if (L.reduced) { if (!st.held) { yaw.x = 0; yaw.v = 0; } }
-      else if (!atRest(yaw, 0)) { stepSpring(yaw, 0, SPRING.release, dt); busy = true; } else { yaw.x = 0; yaw.v = 0; }
+      else if (!atRest(yaw, 0)) { stepSpring(yaw, 0, SPRING.glide, dt); busy = true; } else { yaw.x = 0; yaw.v = 0; }
     }
-    if (turntable.current) turntable.current.rotation.y = yaw.x;
+    // The chapter's pose on the plinth (scrubbed with the camera) plus whatever the hand adds.
+    if (turntable.current) turntable.current.rotation.y = MathUtils.degToRad(st.cam.turn) + yaw.x;
 
     const dial = st.dial;
     let shown = dial.x;
@@ -344,11 +348,19 @@ export function Director({
     if (rig?.fill && NIGHT.fill) rig.fill.intensity = NIGHT.fill.intensity * keyIn * (1 - 0.6 * st.weights[2]);
     scene.environmentRotation.y = swing;
     scene.environmentIntensity = NIGHT.env.intensity * plan.env * (0.25 + 0.75 * keyIn);
-    if (spot.current) spot.current.intensity = SPOT_INTENSITY * plan.spot * keyIn;
+    if (spot.current) {
+      spot.current.intensity = SPOT_INTENSITY * plan.spot * keyIn;
+      // the spot finds the dial wherever the turntable has put it
+      if (knob.current && plan.spot > 0) {
+        knob.current.node.getWorldPosition(spotTarget.position);
+        spot.current.position.set(spotTarget.position.x + 1.1, spotTarget.position.y + 3.6, spotTarget.position.z + 1.9);
+        spotTarget.updateMatrixWorld();
+      }
+    }
     const breath = animated ? 0.5 + 0.5 * Math.sin(st.time * 2.2) : 0.55;
     const glow = ((1.15 + 0.95 * breath) * (0.7 + 0.6 * (st.volume / VOLUME.max)) * plan.ring + st.flash) * ringIn;
     if (ring.current) ring.current.emissiveIntensity = glow;
-    if (ringLight.current) ringLight.current.intensity = 1.6 * glow * plan.spot;
+    if (ringLight.current) ringLight.current.intensity = 0.42 * glow * plan.spot;
 
     // ── The same light, for the page ───────────────────────────────────────────────────────────────────
     const lx = 0.62 + 0.8 * (swing / LIGHT_SWING.az), ly = -0.8 + 0.3 * st.light.y;
@@ -382,7 +394,6 @@ export function Director({
   const stone = useMemo(buildStoneTextures, []);
   const contact = useMemo(buildContactShadow, []);
   useEffect(() => () => { plinth.dispose(); stone.map.dispose(); stone.roughness.dispose(); contact.dispose(); }, [plinth, stone, contact]);
-  const spotTarget = useMemo(() => new Object3D(), []);
 
   return (
     <>
@@ -392,14 +403,14 @@ export function Director({
       <spotLight ref={spot} position={[1.9, 4.9, 2.4]} angle={0.3} penumbra={0.85} decay={2} intensity={0} color="#ffe9d4" target={spotTarget} />
       {/* The plinth: a filleted drum whose sides fade into the dark; honed-stone top that takes the key's shadow. */}
       <mesh geometry={plinth} receiveShadow>
-        <meshStandardMaterial color="#2c2925" vertexColors map={stone.map} roughnessMap={stone.roughness} roughness={1} metalness={0} envMapIntensity={0.9} />
+        <meshStandardMaterial color="#4a443d" vertexColors transparent map={stone.map} roughnessMap={stone.roughness} roughness={1} metalness={0} envMapIntensity={0.9} />
       </mesh>
       <group ref={turntable}>
         <mesh rotation-x={-Math.PI / 2} position-y={0.004} renderOrder={1} raycast={() => null}>
           <planeGeometry args={SHADOW_PLANE} />
           <meshBasicMaterial map={contact} transparent depthWrite={false} toneMapped={false} />
         </mesh>
-        <pointLight ref={ringLight} position={KNOB_LIGHT.position} distance={1.8} decay={2} color={RING_LIGHT} intensity={0} />
+        <pointLight ref={ringLight} position={KNOB_LIGHT.position} distance={2.2} decay={2} color={RING_LIGHT} intensity={0} />
         <ModelBoundary resetKey={variantUrl} onError={onError}>
           <Suspense fallback={null}>
             <ModelRig url={variantUrl} onModel={onModel} onParts={onParts} overrides={overrides} player={player} ambient={ambience && !reduced} onError={onError} />

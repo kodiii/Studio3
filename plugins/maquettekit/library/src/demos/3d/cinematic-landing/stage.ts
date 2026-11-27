@@ -14,14 +14,17 @@ import type { LightingPreset } from '../../../three';
 
 export type V3 = [number, number, number];
 
-/** az/el in degrees (az 0 = in front of the speaker, positive = to its right); shift = fraction of the frame. */
-export interface Shot { az: number; el: number; dist: number; fx: number; fy: number; fz: number; fov: number; sx: number; sy: number }
-const shot = (az: number, el: number, dist: number, focus: V3, fov: number, shift: [number, number]): Shot =>
-  ({ az, el, dist, fx: focus[0], fy: focus[1], fz: focus[2], fov, sx: shift[0], sy: shift[1] });
+/**
+ * az/el in degrees (az 0 = in front of the speaker, positive = to its right); shift = fraction of the frame;
+ * turn = the speaker's own pose on its plinth (degrees), part of the shot like a turntable in a studio.
+ */
+export interface Shot { az: number; el: number; dist: number; fx: number; fy: number; fz: number; fov: number; sx: number; sy: number; turn: number }
+const shot = (az: number, el: number, dist: number, focus: V3, fov: number, shift: [number, number], turn = 0): Shot =>
+  ({ az, el, dist, fx: focus[0], fy: focus[1], fz: focus[2], fov, sx: shift[0], sy: shift[1], turn });
 
 export type Framing = 'wide' | 'tall';
 /** Shots are authored at these aspect ratios; narrower canvases pull back so the horizontal extent holds. */
-export const REFERENCE_ASPECT: Record<Framing, number> = { wide: 1.6, tall: 0.5 };
+export const REFERENCE_ASPECT: Record<Framing, number> = { wide: 1.68, tall: 0.5 };
 
 /**
  * One shot per chapter. Wide: copy left (01), right (02), left (03) — the speaker sits in the other half.
@@ -29,19 +32,20 @@ export const REFERENCE_ASPECT: Record<Framing, number> = { wide: 1.6, tall: 0.5 
  */
 export const SHOTS: Record<Framing, Shot[]> = {
   wide: [
-    shot(34, 11, 7.9, [0, 0.66, 0], 27, [0.225, -0.01]),
+    shot(34, 11, 7.9, [0, 0.66, 0], 27, [0.215, -0.01]),
     shot(-38, 5, 6.4, [-0.1, 0.58, 0.1], 27, [-0.255, 0.02]),
-    shot(132, 44, 4.3, [0.3, 1.0, -0.05], 28, [0.17, -0.06]),
+    // 03: the speaker turns half round on its plinth: the dial comes to the near end, the body runs away from the copy
+    shot(26, 40, 5.3, [-0.36, 0.98, 0.02], 28, [0.13, -0.02], -180),
   ],
   tall: [
     shot(30, 12, 11.6, [0, 0.66, 0], 31, [0, 0.215]),
     shot(-34, 6, 9.6, [-0.1, 0.58, 0.1], 31, [0, 0.215]),
-    shot(132, 44, 7.2, [0.3, 1.0, -0.05], 31, [0, 0.2]),
+    shot(26, 44, 7.8, [-0.3, 0.95, 0.02], 31, [0, 0.2], -180),
   ],
 };
 /** Where the opening move starts: low, far and dark, already on the speaker's side of the frame. */
 export const INTRO_FROM: Record<Framing, Shot> = {
-  wide: shot(-66, 2, 15.5, [0, 0.6, 0], 22, [0.225, -0.01]),
+  wide: shot(-66, 2, 15.5, [0, 0.6, 0], 22, [0.215, -0.01]),
   tall: shot(-60, 3, 20, [0, 0.6, 0], 26, [0, 0.215]),
 };
 
@@ -64,7 +68,8 @@ export const NIGHT: LightingPreset = {
     { color: '#ffeedd', intensity: 14, position: [4.8, 4.4, 3.4], size: [2.8, 2.0] },
     { color: '#dce7ff', intensity: 16, position: [-5.6, 2.8, -3.2], size: [0.8, 6.0] },
     { color: '#ffffff', intensity: 5, position: [0, 6.6, -1.2], size: [5.5, 1.1] },
-    { color: '#ff7a3a', intensity: 1.4, position: [-2.5, -1.6, 4.5], size: [7, 2] },
+    { color: '#f4f1ec', intensity: 2.6, position: [0.8, 3.2, 6.5], size: [6.5, 2.6] },
+    { color: '#ff7a3a', intensity: 0.35, position: [-2.5, -2.2, 4.5], size: [6, 1.4] },
   ] },
 };
 const K = NIGHT.key.position;
@@ -83,6 +88,7 @@ export const easeIn = (t: number): number => clamp01(t) ** 2.2;
 const mix = (a: number, b: number, t: number): number => a + (b - a) * t;
 
 function lerpShot(a: Shot, b: Shot, k: { az: number; el: number; dist: number; focus: number; fov: number; shift: number }, out: Shot): Shot {
+  out.turn = mix(a.turn, b.turn, k.focus);
   out.az = mix(a.az, b.az, k.az); out.el = mix(a.el, b.el, k.el); out.dist = mix(a.dist, b.dist, k.dist);
   out.fx = mix(a.fx, b.fx, k.focus); out.fy = mix(a.fy, b.fy, k.focus); out.fz = mix(a.fz, b.fz, k.focus);
   out.fov = mix(a.fov, b.fov, k.fov); out.sx = mix(a.sx, b.sx, k.shift); out.sy = mix(a.sy, b.sy, k.shift);
@@ -184,11 +190,12 @@ export function detented(angle: number, strength = 0.78): number {
 export const volumeAt = (angle: number): number => Math.min(VOLUME.max, Math.max(0, VOLUME.start + Math.round(-angle / DETENT)));
 
 /* ── The plinth and its contact shadow ───────────────────────────────────────────────────────────────── */
-export const PLINTH = { radius: 1.62, height: 0.62, fillet: 0.075 };
+export const PLINTH = { radius: 1.74, height: 0.7, fillet: 0.08 };
 
 /**
- * A low drum with a filleted top edge (LatheGeometry). Vertex colours fade the side into the dark from the fillet
- * down, so the plinth has a soft edge that dissolves into the stage instead of a hard rim. Planar UVs for the top.
+ * A low drum with a filleted top edge (LatheGeometry). Vertex colours (RGBA) darken the side and fade it out from the
+ * fillet down, so the plinth has a soft edge that dissolves into the stage instead of a hard rim. Planar UVs on the
+ * top, cylindrical UVs on the side (a whole number of repeats around, so there is no seam).
  */
 export function buildPlinthGeometry(): LatheGeometry {
   const { radius: R, height: H, fillet: f } = PLINTH;
@@ -196,16 +203,20 @@ export function buildPlinthGeometry(): LatheGeometry {
   for (let i = 1; i <= 8; i++) { const a = (i / 8) * (Math.PI / 2); pts.push(new Vector2(R - f + f * Math.sin(a), -f + f * Math.cos(a))); }
   for (let i = 1; i <= 4; i++) pts.push(new Vector2(R, -f - ((H - f) * i) / 4));
   const geo = new LatheGeometry(pts, 112);
-  const shade = pts.map((p) => (p.y > -f * 0.5 ? 1 : MathUtils.lerp(1, 0.08, smooth((-p.y - f * 0.5) / (H * 0.75)))));
+  const side = pts.map((p) => smooth((-p.y - f * 0.6) / (H - f)));
   const pos = geo.getAttribute('position');
-  const colors = new Float32Array(pos.count * 3);
+  const colors = new Float32Array(pos.count * 4);
   const uvs = new Float32Array(pos.count * 2);
+  const around = Math.round(Math.PI); // the top's texel density, a whole number of repeats around the side
   for (let v = 0; v < pos.count; v++) {
-    const s = shade[v % pts.length];
-    colors[v * 3] = s; colors[v * 3 + 1] = s; colors[v * 3 + 2] = s;
-    uvs[v * 2] = pos.getX(v) / (2 * R) + 0.5; uvs[v * 2 + 1] = pos.getZ(v) / (2 * R) + 0.5;
+    const k = side[v % pts.length];
+    const c = MathUtils.lerp(1, 0.3, k);
+    colors[v * 4] = c; colors[v * 4 + 1] = c; colors[v * 4 + 2] = c; colors[v * 4 + 3] = 1 - k;
+    const x = pos.getX(v), y = pos.getY(v), z = pos.getZ(v);
+    if (y > -f * 0.6) { uvs[v * 2] = x / (2 * R) + 0.5; uvs[v * 2 + 1] = z / (2 * R) + 0.5; }
+    else { uvs[v * 2] = ((Math.atan2(z, x) + Math.PI) / (2 * Math.PI)) * around; uvs[v * 2 + 1] = -y / (2 * R); }
   }
-  geo.setAttribute('color', new Float32BufferAttribute(colors, 3));
+  geo.setAttribute('color', new Float32BufferAttribute(colors, 4));
   geo.setAttribute('uv', new Float32BufferAttribute(uvs, 2));
   return geo;
 }

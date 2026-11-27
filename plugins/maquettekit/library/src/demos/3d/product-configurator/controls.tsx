@@ -31,9 +31,7 @@ export function OptionCards({ name, legend, value, options, onChange, columns = 
           <label key={o.id} className={styles.card}>
             <input type="radio" className="mk-sr-only" name={name} value={o.id} checked={value === o.id} onChange={() => onChange(o.id)} />
             {o.swatch ? (
-              <span aria-hidden="true" className={styles.swatch}>
-                {o.swatch.map((c, i) => <span key={i} style={{ background: c }} />)}
-              </span>
+              <span aria-hidden="true" className={styles.swatch} style={{ background: `linear-gradient(125deg, ${o.swatch[0]} 0 50%, ${o.swatch[1] ?? o.swatch[0]} 50% 100%)` }} />
             ) : null}
             <span className="grid min-w-0 flex-1 gap-0.5">
               <span className="flex items-baseline justify-between gap-2">

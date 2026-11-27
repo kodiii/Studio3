@@ -5088,36 +5088,43 @@
       "id": "cinematic-landing",
       "name": "Pulse Night Edition",
       "specialty": "3d",
-      "summary": "An art-directed launch page: the Pulse speaker on a black stage, an opening camera move you can skip, a slow key-light sweep, and a scroll-driven camera that walks through two chapters of editorial copy.",
+      "summary": "An art-directed launch page: the Pulse speaker on a stone plinth in a dark room, an opening camera move you can skip, one key light shared by the scene and the copy, and a scroll-driven camera through two chapters, in which you can turn the speaker and its dial by hand.",
       "highlights": [
-        "A choreographed opening: the camera arcs in on a centripetal Catmull-Rom path while the key light fades up — interrupted by Skip or by the first scroll.",
-        "Scroll progress through a pinned section drives the camera between three held poses with critically damped easing, with separate framings for portrait screens.",
-        "Ambient light: the key sweeps slowly and the status ring breathes (the LightPulse clip plus an emissive pulse on a cloned material), with a Pause control.",
-        "The headline is the split-line-reveal recipe; all copy is DOM text around the canvas, and the poster fallback carries the same copy."
+        "Lens-shifted framing: each chapter sets the camera, the light and the speaker’s pose on its plinth so the speaker always stands opposite the copy, with no keystoning. Measured contrast of every copy block over the scene at each held chapter: 5.8:1 or better for body text.",
+        "One light for page and canvas: the key light and the generated environment swing towards the pointer through critically damped smoothing, the camera sways ±3°, and the same angle drives the headline’s sheen and the lit edges and shadows of the controls.",
+        "Hands on the subject: drag the speaker (or press ←/→ on the focused stage) and it turns on its plinth, keeps the release velocity and swings back on the heavy `glide` spring; in the dial chapter the same gesture turns the dial through 30 detents that snap on the quick `press` spring and drive the ring’s glow.",
+        "A staged opening: the rim light draws the silhouette, then the key comes up, then the ring glows, while the camera arcs in. Between chapters the camera swings and pulls back (01→02) or cranes up while the speaker turns half round on its plinth (02→03).",
+        "A filleted stone plinth whose sides fade into the dark, a two-layer contact shadow, a real key-light shadow where the profile allows shadow maps, and fog for depth."
       ],
       "technology": [
         "r3f",
         "three",
-        "waapi"
+        "waapi",
+        "css"
       ],
       "uses": [
         "split-line-reveal"
+      ],
+      "adapts": [
+        "magnetic-button",
+        "press-depth-button"
       ],
       "collaborates": [
         "cinematic"
       ],
       "has3d": true,
       "accessibility": [
-        "All copy is real text outside the canvas; the canvas has a name and a description of the scene and of what scrolling does.",
-        "The opening move (5.2 s) has a Skip button; the continuous light animation has a Pause control (WCAG 2.2.2).",
-        "Section buttons jump to each chapter; normal keyboard scrolling drives the same camera moves.",
-        "Without WebGL, or if the model fails to load, a still render sits where the speaker would be and the copy is unchanged."
+        "All copy is real text outside the canvas; the canvas has a name and a description of the scene, of what scrolling does and of what dragging does.",
+        "The focusable stage is the keyboard twin of the drag: ←/→ turn the speaker, and in the Dial chapter they turn the dial one detent each. Two buttons (Turn the dial down/up) do the same without a pointer; the volume is announced once the dial comes to rest.",
+        "The opening move has a Skip button; the light’s slow drift and the ring’s breathing have a Pause control (WCAG 2.2.2). Section buttons jump to each chapter.",
+        "Every copy block sits on a directional scrim (or, when stacked, a dark glass card), so contrast holds whatever the camera frames behind it.",
+        "Without WebGL, or if the model fails to load, a still render sits opposite the copy and the copy and the volume buttons are unchanged."
       ],
-      "reducedMotion": "No opening move: the camera starts at its final pose and cuts to each chapter’s pose instead of gliding; the lights and the status ring hold still; the headline appears without its rise.",
+      "reducedMotion": "No opening move, no camera sway, no light drift or pointer light, no breathing ring: the camera and the speaker’s pose cut to each chapter. Dragging still turns the speaker and the dial under your hand, but they return or snap without springing; ←/→ hold the speaker turned while pressed.",
       "performance": [
-        "Continuous rendering only while the ambient light plays and the stage is on screen; paused or reduced, it renders on demand (scroll and camera settling request frames).",
-        "One model (the variant for the quality profile: 131k triangles on low-power), a plinth and a contact shadow — about 16 draw calls.",
-        "Scroll is read through a passive, rAF-batched listener into a ref; no React render per scroll event (only when the chapter changes)."
+        "Continuous rendering only while the light plays and the stage is on screen; paused or under reduced motion it renders on demand: scroll, pointer, drag and settling springs request frames and stop when everything is at rest.",
+        "One model (the variant for the quality profile: 131k triangles on low-power), the plinth and one contact-shadow quad: about 16 draw calls. The plinth’s stone and the contact shadow are drawn once on 2D canvases (256 px and 512 × 256 px) and disposed on unmount.",
+        "Scroll and pointer are read through passive listeners into refs; React renders only when the chapter or the volume changes. The shared light reaches CSS as two custom properties written only when they change."
       ],
       "path": "library/src/demos/3d/cinematic-landing",
       "files": [
@@ -5215,31 +5222,40 @@
       "id": "product-configurator",
       "name": "Pulse Configurator",
       "specialty": "3d",
-      "summary": "A product configurator for a fictional portable speaker: colourways, finishes, camera presets, exploded view, annotations and a price summary that all work with or without the canvas.",
+      "summary": "A product configurator for a fictional portable speaker in a soft-box studio: colourways and finishes laid on by a sweeping seam, a turntable with real inertia, camera presets, exploded view, annotations and a price summary that all work with or without the canvas.",
       "highlights": [
-        "One GLB, three optimised builds: the variant is chosen from the quality profile and its real size is shown.",
-        "Per-material overrides through PartController — originals are never mutated and are restored on unmount.",
-        "Exploded view driven by glTF node extras, critically damped and staggered; camera presets are interruptible.",
-        "Every option is a native radio/range/button and is mirrored in a text summary, so the configuration is complete without WebGL."
+        "The finish sweep: every option change is laid down by a lit seam that crosses the speaker, the old finish ahead of it and the new one behind (colour and roughness, patched into the PartController’s material clones; originals untouched). Reduced motion turns it into a short, even cross-fade.",
+        "Real inertia: the view follows the hand 1:1, then keeps the release velocity and eases out with friction (a flick coasts, a slow drag stops where you let go); ←/→ on the focused view give the same push.",
+        "One light for page and canvas: the studio (key upper right, fill, rim strip, floor bounce, generated environment reflections) turns with the camera like a turntable under fixed lights, so highlights glide over the finish as you orbit, and every control is lit from the same upper right. Neutral tone mapping keeps the swatches true.",
+        "A contact shadow rendered from the real geometry (depth from below, blurred into a tight contact layer and a wide soft one), re-rendered only when the geometry moves, so it follows the exploded parts; a key-light shadow map on profiles that allow it.",
+        "Alive at rest: left alone for a few seconds the view sways gently and the status ring breathes, until anything touches it; Pause motion stops both. The total counts between prices instead of swapping.",
+        "One GLB, three optimised builds chosen from the quality profile with the real size shown; every option is a native radio/range/button mirrored in a text summary, so the configuration is complete without WebGL."
       ],
       "technology": [
         "r3f",
-        "three"
+        "three",
+        "glsl",
+        "css"
       ],
       "uses": [],
+      "adapts": [
+        "orbit-inspect-controls",
+        "press-depth-button",
+        "number-ticker"
+      ],
       "has3d": true,
       "accessibility": [
-        "Colourways and finishes are radio groups with text names; colour is never the only signal.",
-        "Camera: pointer drag, toolbar buttons, and arrow / + / − / 0 keys on the focused view. Wheel zoom only when the view has focus.",
-        "Parts can be selected from a list as well as by clicking the model; the selected part is announced as text.",
-        "Annotations are real buttons over the canvas plus a mirrored list; the summary region is aria-live.",
+        "Colourways and finishes are radio groups with text names; colour is never the only signal. Every control has hover, focus-visible and pressed states with depth.",
+        "Camera: pointer drag or flick, toolbar buttons, and on the focused view ←/→ (spin with inertia), ↑/↓ (tilt), + / − and 0. Wheel zoom only when the view has focus; vertical touch swipes scroll the page.",
+        "The idle sway and the breathing ring have a Pause motion button (WCAG 2.2.2) and never run under reduced motion.",
+        "Parts can be selected from a list as well as by clicking the model; the selected part is announced as text. Annotations are real buttons over the canvas plus a mirrored list; the total is announced once, at its final value.",
         "Without WebGL the static render and the same controls and summary are shown."
       ],
-      "reducedMotion": "Camera presets and the exploded view cut instead of animating; the dial clip never auto-plays and only runs from its Play button.",
+      "reducedMotion": "No inertia after release, no idle sway, no breathing ring: drags still follow the hand but stop where you let go, ←/→ step the view, presets and the exploded view cut, the finish change is a 160 ms cross-fade, the total changes without counting, and the dial clip only runs from its Play button.",
       "performance": [
-        "Render on demand: the scene draws only while the camera, explode amount or a clip is changing.",
-        "Low-power devices load the 1.0 MB build (131k triangles) and use an analytic contact shadow instead of a shadow map.",
-        "Material clones are created lazily (only for materials that are overridden) and disposed with the controller."
+        "Render on demand: the scene draws only while the camera, a coast, the sweep, the explode amount or a clip is changing; with motion paused (or under reduced motion) an idle scene draws nothing. While the idle sway runs, hotspot occlusion raycasts are switched off.",
+        "The contact shadow costs one depth render of the model and six 512 × 304 blur passes, only on frames where the geometry changed (load, explode, strap); four small render targets, disposed on unmount.",
+        "Low-power devices load the 1.0 MB build (131k triangles) and skip the shadow map; material clones are created once (the swept and breathing materials are always owned) and disposed with the controller."
       ],
       "dataNote": "Product, brand, specifications and prices are fictional.",
       "path": "library/src/demos/3d/product-configurator",
@@ -5247,6 +5263,7 @@
         "index.tsx",
         "config.ts",
         "controls.tsx",
+        "scene.tsx",
         "styles.module.css",
         "meta.ts"
       ]
