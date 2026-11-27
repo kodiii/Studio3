@@ -5537,11 +5537,14 @@
       "summary": "Interactive exploration of 327 sample coffee lots from four fictional regions: facet filters with counts, a linked scatter, histogram and ranked dot plot, two-dimensional brushing, drill-down from region to farm with a breadcrumb, an A/B comparison mode and a shareable URL.",
       "highlights": [
         "One selection drives every view: facets and the drill path define what is in view; altitude and score brushes select within it; the scatter, histogram, dot plot, summary sentence and table all read the same set.",
-        "Brushing works three ways — drag a rectangle on the scatter, drag across the histogram, or move the keyboard-operable range handles (the brush-linked-range technique, rebuilt generically for any domain).",
-        "Drill-down from regions to cooperatives to farms to lots with a breadcrumb; within a level, rows keep identity and glide to their new rank with interpolated values (the bar-race-transition technique), drawn as dots and percentile whiskers because cup scores cluster far from zero.",
+        "Signature move — a brush you can throw: held, the window follows the hand 1:1 and rubber-bands past the ends of the axis; released, it keeps the hand’s velocity, glides with friction (the selection follows it), bounces off an end and lands on the snapped value on the spring.release token. Keyboard steps and changes made elsewhere spring the drawing on spring.press / spring.settle. The selection is always the snapped value; only the drawing springs.",
+        "Brushing works three ways — draw a rectangle on the scatter (live: the selection follows the hand, then the rectangle springs onto the snapped ranges), drag across the histogram, or move the keyboard-operable range handles (the brush-linked-range technique, rebuilt generically for any domain).",
+        "A halo with dashed axis guides and exact readouts glides from mark to mark on spring.press as the pointer or the keyboard cursor moves; the pinned lot is lifted off the paper (one light, top left: its shadow falls down and right) and named by a tag.",
+        "Drill-down uses the flip-grid-reorder technique adapted to a ranked list: the children emerge from the row you chose — from its slot and from its mean, so the aggregate visibly splits into its parts — staggered by rank, while the old rows leave as aria-hidden ghosts; drilling up folds them back. Within a level, rows glide to their new rank with interpolated values (the bar-race-transition technique).",
+        "One entrance, once: marks sweep in by altitude band and bars rise from the zero line by bin, all finished by 280 ms; filters never replay it.",
+        "Every control has hover, pressed and focus states lit from the same direction: hover lifts toward the light, press sinks at once, release springs back on a token spring rendered as CSS linear() (the press-depth-button technique).",
         "Comparison mode (by process, variety or region) re-encodes marks as filled A / hollow B, plots each group’s share per bin so different group sizes compare fairly, turns the dot plot into dumbbells and adds a reconciled A − B table.",
-        "Every filter, brush, comparison, sort and pinned lot lives in the URL hash (replaceState, no history spam), so a view can be shared or restored after reload.",
-        "The summary is computed from the selection and words the altitude–score relation as an association in sample data, never as a cause."
+        "Every filter, brush, comparison, sort and pinned lot lives in the URL hash (replaceState, no history spam). The summary is computed from the selection and words the altitude–score relation as an association in sample data, never as a cause."
       ],
       "technology": [
         "d3",
@@ -5551,21 +5554,25 @@
       "uses": [],
       "adapts": [
         "brush-linked-range",
-        "bar-race-transition"
+        "bar-race-transition",
+        "flip-grid-reorder",
+        "press-depth-button"
       ],
       "has3d": false,
       "accessibility": [
-        "Keyboard access to points: the focused scatter is a slider over the selected lots in altitude order (arrows, Page Up/Down, Home/End), Enter pins a lot, Escape hides the readout; the lots table is the full alternative.",
-        "Each brush is three role=\"slider\" controls with value text in metres or points; Escape on a handle clears that brush.",
-        "Facets are native checkboxes with counts; comparison uses native selects; the breadcrumb is a nav landmark with aria-current.",
+        "Keyboard access to points: the focused scatter is a slider over the selected lots in altitude order (arrows, Page Up/Down, Home/End), starting from the hovered or pinned lot; Enter pins a lot, Escape hides the readout; a mouse click no longer moves that keyboard cursor. The lots table is the full alternative.",
+        "Each brush is three role=\"slider\" controls with value text in metres or points; Escape on a handle clears that brush. Readouts and tooltips appear at once — only their position glides.",
+        "Facets are native checkboxes with counts; comparison uses native selects; the breadcrumb is a nav landmark with aria-current, and after a breadcrumb jump focus moves to the new current level.",
+        "Drilling from a row moves focus to the first row of the new level; ghost rows are aria-hidden. “Show 25 more” moves focus to the first newly shown row; a pinned lot beyond the shown rows gets a “Show it” control.",
         "Process is shape as well as colour (circle, square, triangle); comparison groups are filled versus hollow; the histogram and dot plot have a bin table and per-row text names.",
-        "A polite status message reports the selection count after changes settle (debounced), never during a drag."
+        "Tables grow in the page and only scroll sideways inside their labelled region, so the wheel and touch scroll always reach the page. A polite status message reports the selection count after changes settle (debounced), never during a drag."
       ],
-      "reducedMotion": "Dot-plot rows jump to their new rank and value instead of gliding; brushing, drilling and comparison are unchanged because they follow the hand directly.",
+      "reducedMotion": "No entrance, no glide, no rubber band, no springs: brush windows, the scatter rectangle and the halo are drawn exactly at their values; dot-plot rows cut to their rank and value, and a level change cross-fades the new rows in 160 ms. Hover, press and pin states apply instantly. Brushing, drilling and comparison work the same.",
       "performance": [
-        "327 lots render as SVG marks; a brush move filters and re-renders in well under a frame.",
-        "Selections are memoised from the facets, path and brush ranges; the row tween is one rAF loop over at most a dozen rows.",
-        "The URL is written 150 ms after the last change with replaceState."
+        "327 lots render as SVG marks in one keyed list (a lot keeps its node as it enters or leaves the selection); a brush move filters and re-renders in well under a frame.",
+        "Springs, glides and the halo run in short rAF loops that write positions straight to the DOM and stop as soon as everything is at rest; all loops are cancelled on unmount. Hover and press states are CSS transitions on token springs (springToLinear), no JavaScript per frame.",
+        "The drill choreography is one rAF loop over at most a dozen rows plus their ghosts; the entrance is 361 CSS animations that end by 280 ms and are never re-applied.",
+        "The URL is written 150 ms after the last change with replaceState; the lots table renders 25 rows at a time."
       ],
       "dataNote": "Sample data (seed 1730): lots, farms, cooperatives and regions are invented; scores come from a generator with an altitude trend, process and variety effects, a farm effect and noise. Correlations describe the generator, not coffee.",
       "path": "library/src/demos/data/data-exploration",
@@ -5587,11 +5594,11 @@
       "summary": "End-of-day analytics for a fictional multi-asset fund: alerts first, rolling KPI figures, a growth-of-£100 chart that morphs between ranges and follows a brushable three-year history, allocation drift against target bands, return attribution that reconciles, and a sortable positions table.",
       "highlights": [
         "One window drives everything: range presets morph the chart (values and y-domain interpolated at a shared resolution, as in line-chart-morph); dragging the three-year brush (the brush-linked-range pattern) re-derives the KPIs, allocation and attribution directly, without tweening under the hand.",
-        "KPI figures roll digit by digit (the number-ticker technique) only on discrete changes; each tile pairs its value with a comparison and a period, and deltas carry ▲/▼ and a sign, with the gain/loss colours switchable for markets that show rises in red.",
+        "KPI figures roll digit by digit (the number-ticker technique) only on discrete changes, on exact geometry: every digit cell is the same height with no gaps and reels move in whole cells, so no frame shows a half digit at rest; the ticker’s classes are prefixed so they cannot collide with the brush strip. Each tile pairs its value with a comparison and a period; deltas carry ▲/▼ and a sign, with the gain/loss colours switchable for markets that show rises in red.",
+        "Essential profile throughout: token durations × 0.7 with standard easing (range morph 252 ms, digit roll 168 ms, bars 168 ms); held arrow keys and drags cut instead of rolling; buttons, segments, rows, sort headers and brush handles have instant pressed states and one-tick releases; the chart readout is the only raised surface.",
         "Alerts are derived from rules run on the data (drift beyond a ±2 pp band, a move beyond 3× the 60-day standard deviation, a drawdown watch with open/clear thresholds) and sit at the top, by urgency, with severity as word, shape and colour.",
         "Return attribution lists each sleeve’s contribution plus fees and compounding, so the rows reconcile exactly to the fund’s return.",
-        "Selecting a position plots it, rebased, against the fund; selecting a sleeve filters the table — linked views without a separate mode.",
-        "The chart, overview and KPI patterns are local, data-driven adaptations of the line-chart-morph, brush-linked-range and number-ticker recipes, whose components ship their own sample datasets."
+        "Selecting a position plots it, rebased, against the fund; selecting a sleeve filters the table — linked views without a separate mode."
       ],
       "technology": [
         "d3",
@@ -5610,14 +5617,15 @@
         "The chart is a focusable slider: ←/→ step a trading day, Page Up/Down a week, Home/End jump, Esc hides the readout; aria-valuetext reads the date and every series.",
         "The brush window and both of its edges are role=\"slider\" controls with date values; presets are a native radio group.",
         "A computed text summary sits under the chart and is announced politely after each committed range change (not while dragging); “View as table” shows the same values.",
-        "Positions: sortable headers expose aria-sort; one row button is in the tab order and ↑/↓/Home/End move between rows; the wide table scrolls inside its own labelled region with a frozen first column.",
+        "Positions: sortable headers expose aria-sort; one row button is in the tab order and ↑/↓/Home/End move between rows; the wide table scrolls sideways inside its own labelled region with a frozen first column, and never holds the wheel — page scrolling continues over every table.",
+        "Acknowledging an alert moves focus to its “Acknowledged” confirmation instead of dropping it on the page.",
         "Nothing relies on colour alone: series differ by weight and dash, severities by word and shape, deltas by sign and arrow, out-of-band sleeves by an icon and text."
       ],
-      "reducedMotion": "Range changes cut to the new chart instead of morphing, KPI digits swap without rolling and allocation bars jump; crosshair, brush and table behave the same.",
+      "reducedMotion": "Range changes cut to the new chart instead of morphing, KPI digits swap without rolling, allocation and attribution bars jump, and pressed states apply without a release transition; crosshair, brush and table behave the same.",
       "performance": [
         "Every range is resampled once to 640 points, so a morph frame is one array lerp per series and three path strings; the rAF loop runs only during a morph.",
-        "Brush drags recompute the window statistics (≤ 785 days) synchronously — well under a frame — and never start a tween.",
-        "Digit columns animate with transform-only WAAPI and collapse back to one cell when they finish."
+        "Brush drags recompute the window statistics (≤ 785 days) synchronously — well under a frame — and never start a tween or a bar transition.",
+        "Digit reels animate with transform-only WAAPI and collapse back to one cell when they finish; press states are CSS transitions only."
       ],
       "dataNote": "Simulated: a seeded five-sleeve factor model (seed 366) with fees, quarterly rebalancing and a 60/40 composite built from the same sleeves; twelve invented instruments follow their sleeve plus noise. Weekdays only, UTC. Not a real fund, not real prices, not advice.",
       "path": "library/src/demos/data/financial-dashboard",
@@ -5640,8 +5648,9 @@
         "The stream is stateless: every sample is a pure function of seed, agent and wall-clock second, so history, catch-up after a background tab and live ticks all agree.",
         "Anomaly rules run on the stream as it arrives — latency z-score against a frozen 2-minute baseline, a 10-second error rate, throughput against its own average — and every event states the rule and the numbers.",
         "Selecting an agent swaps the fleet chart for that agent’s p95 with its expected band and anomalous spans; switching the 1/5/15-minute window morphs values and domain together (the line-chart-morph technique, adapted locally because the recipe component ships its own dataset).",
-        "Restrained live emphasis: one ring per received tick on the status lamp, no tweening of live values, no re-sorting, nothing that flashes; the log freezes under pointer or focus and offers “Show N new”.",
-        "Designed states: connecting (before the first sample), live, paused with “N s behind”, stale, and an operator-paused agent with no samples rather than zeros."
+        "Calm by design (Essential): KPI numbers jump on purpose (no tweening of live values), no re-sorting, nothing flashes; the only self-moving element is one token-timed ring per received tick on the status lamp, stopped by Pause.",
+        "Crisp controls: Pause, the window segments, agent cells and buttons have hover, instant pressed and focus states with one-tick releases (Essential tokens × 0.7); an agent cell keeps its status bar and its selection ring together.",
+        "Designed states: connecting (before the first sample), live, paused with “N s behind”, stale, and an operator-paused agent with no samples rather than zeros; the log freezes under pointer or focus and offers “Show N new”."
       ],
       "technology": [
         "d3",
@@ -5659,9 +5668,9 @@
         "One polite status region announces new anomalies only, summarised, at most once every 15 seconds — never every tick.",
         "Status is word + shape + colour (square healthy, triangle degraded, octagon failing, bars paused); anomalies also carry a text chip.",
         "Agent cells are buttons with their full readout as text; “View as table” lists every agent’s current values; the chart is an image with a computed summary that is also printed below it.",
-        "The event log is a focusable scroll region that holds still while focused or hovered."
+        "The event log is a focusable scroll region that holds still while focused or hovered; at either end of the log the wheel carries on to the page (no overscroll containment)."
       ],
-      "reducedMotion": "The live lamp stops ringing, window changes cut instead of morphing, and nothing else animates; values still update every second unless paused.",
+      "reducedMotion": "The live lamp stops ringing, window changes cut instead of morphing, and pressed states apply without a release transition; values still update every second unless paused.",
       "performance": [
         "One 1 s interval drives everything; a tick appends 11 samples, runs three O(120) rules per agent and re-renders once.",
         "Windows are resampled to 240 points (max-preserving for latency so spikes survive); sparklines draw 60 points each.",
@@ -5683,11 +5692,13 @@
       "specialty": "data",
       "summary": "A fictional plateau’s 384 snow-depth sensors as instanced 3D bars where height is the reading, with an equivalent keyboard-navigable 2D heatmap and a table, a 30-day playback on request, and copy on when the flat view is the more accurate one.",
       "highlights": [
-        "Depth carries the data: 384 bars in one instanced draw call, heights interpolated between days (values, not pixels), rendered on demand only while something changes.",
+        "Depth carries the data: 384 bars in one instanced draw call, heights and colours interpolated together between days (values, not pixels), rendered on demand only while something changes.",
+        "Real light without bending the encoding: one light high in the north-west (the top left of the overview, the same direction the page’s controls cast their shadows). Top faces show the exact colour of the reading; side faces carry the form — shaded by the light, darkened near the ground (contact occlusion), with a lit top edge — and a soft shadow falls to the south-east on the ground only, never on a bar.",
         "The 2D map is not a lesser fallback but the accurate view: an ARIA grid with column letters and row numbers, values printed in each cell where they fit, and the same pinned sensor as the 3D scene.",
         "A toggle with plain copy on when 2D is more accurate (perspective, occlusion, exaggeration) and what 3D is for (seeing drifts as a landform); the vertical exaggeration is stated in the legend.",
         "One sequential hue, light-to-dark on light pages and dark-to-light on dark ones; offline sensors are hatched “no reading” cells and flat tiles, never zeros.",
-        "Three-kit composition: StudioCanvas (quality, lazy mount, fallback to the 2D map), OrbitInspect for pointer and keyboard orbit, CameraRig for the overview, from-the-west and near-plan presets."
+        "Controls are keys under the same light: hover lifts them, pressing sinks them at once, release springs back on the press spring (CSS linear() from springToLinear).",
+        "Three-kit composition: StudioCanvas (quality, lazy mount, fallback to the 2D map), OrbitInspect for pointer and keyboard orbit with inertia, CameraRig for the overview, from-the-west and near-plan presets."
       ],
       "technology": [
         "r3f",
@@ -5696,21 +5707,24 @@
         "css"
       ],
       "uses": [],
+      "adapts": [
+        "press-depth-button"
+      ],
       "collaborates": [
         "3d"
       ],
       "has3d": true,
       "accessibility": [
         "The 2D map is a role=\"grid\" with row and column headers: arrow keys move, Home/End jump along a row, Enter pins a sensor; every cell’s name includes its value and grid reference.",
-        "The 3D scene is keyboard-operable through OrbitInspect (arrows rotate, + / − zoom, 0 resets) and carries a computed description; the table lists all 384 values for the chosen day.",
+        "The 3D scene is keyboard-operable through OrbitInspect (arrows rotate, + / − zoom, 0 resets) and carries a computed description; the table lists all 384 values for the chosen day and never holds the wheel.",
         "Playback is off until requested, can be paused, and is announced once when it ends; manual day steps announce the day’s mean and deepest sensor.",
         "Without WebGL the scene falls back to the same 2D map, with a note saying why."
       ],
-      "reducedMotion": "Bar heights cut to the new day instead of rising or falling and camera presets cut instead of flying; playback still steps one day per 0.9 s when you press Play.",
+      "reducedMotion": "Bar heights and colours cut to the new day instead of rising or falling, camera presets cut instead of flying, and control presses apply without a spring; playback still steps one day per 0.9 s when you press Play.",
       "performance": [
-        "One InstancedMesh (384 boxes) plus one ground plane and one outline: three draw calls; matrices and colours are rewritten only when the day, hover or theme changes.",
-        "frameloop=\"demand\": frames are requested only during a height tween or camera move; the canvas mounts lazily near the viewport.",
-        "The 2D map is plain HTML (384 cells) with colours from a cached 341-step ramp."
+        "Three draw calls at rest (ground, shadow, one InstancedMesh of 384 boxes; the outline adds one while a bar is highlighted). The bar lighting is a few lines injected into an unlit material, so no lights, shadow maps or environment are computed.",
+        "The cast shadow is a 102 × 70 canvas redrawn only when heights change and blurred for free by linear texture filtering.",
+        "frameloop=\"demand\": frames are requested only during a height tween or camera move; the canvas mounts lazily near the viewport. The 2D map is plain HTML (384 cells) with colours from a cached 341-step ramp."
       ],
       "dataNote": "Simulated (seed 912): storm totals with settling, a fixed wind-redistribution field, late-month melt and noise on a 24 × 16 grid over 30 days; three sensors go offline for a while. The plateau, survey and readings are invented; dates in UTC.",
       "path": "library/src/demos/data/spatial-data-viz",

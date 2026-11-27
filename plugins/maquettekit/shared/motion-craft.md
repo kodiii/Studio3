@@ -81,10 +81,10 @@ drag, live data, time of day, the content itself. Playback of a fixed clip is th
 
 | Driver | What it changes | Starting points in the catalogue |
 |---|---|---|
-| Pointer position | Tilt, highlight, field distortion, attraction | `magnetic-button`, `dot-grid-pointer-field`, `image-ripple-distortion`, `tilt-parallax-card` |
+| Pointer position | Tilt, highlight, field distortion, attraction, a light source | `magnetic-button`, `dot-grid-pointer-field`, `image-ripple-distortion`, `tilt-parallax-card`, `cursor-follower`, `liquid-glass-lens` |
 | Scroll position and velocity | Progress, camera, skew or stretch proportional to speed | `scroll-pin-chapters`, `scroll-camera-dolly`, `kinetic-marquee`, `horizontal-scroll-gallery` |
-| Gesture | Position, then momentum after release | `swipe-card-stack`, `drag-reorder-list`, `pull-to-reveal-sheet` |
-| Data and state | Values morph instead of swapping | `number-ticker`, `line-chart-morph`, `bar-race-transition`, `flip-grid-reorder` |
+| Gesture | Position, then momentum after release | `swipe-card-stack`, `drag-reorder-list`, `pull-to-reveal-sheet`, `liquid-glass-lens` |
+| Data and state | Values morph instead of swapping; designed animation plays per state | `number-ticker`, `line-chart-morph`, `bar-race-transition`, `flip-grid-reorder`, `lottie-micro-interactions`, `rive-state-machine` |
 | Time and procedure | Never the same frame twice, within a designed range | `shader-aurora-plane`, `particle-field-gpu`, `blob-morph`, `variable-weight-wave` |
 
 Confirm ids with `maquettekit catalog search`. Smooth continuous drivers (lerp or spring toward the target)

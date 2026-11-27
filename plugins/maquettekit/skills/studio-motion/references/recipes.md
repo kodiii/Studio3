@@ -1,5 +1,15 @@
 # Recipes — find, adapt, author
 
+> **Quick card** — the must-dos from this file; read on for the reasons and the detail.
+>
+> - Search before writing: `maquettekit catalog search <query>` with `--tech`, `--category`, `--no-deps`; confirm every id you cite.
+> - Read the recipe's `meta.ts` in full: `reducedMotion`, `accessibility` and `performance` are requirements you inherit.
+> - Adapt rather than rewrite; import a recipe's named component (`CursorFollower`, `LottieIcon`, `RiveCanvas`, `LiquidGlassLens`) when one exists.
+> - Copy `motion/` once per project and keep recipe imports pointing at it; keep tokens and springs, never magic numbers.
+> - Serve runtime files (Rive WASM, `.riv`, models) from your own origin, never a CDN.
+> - Keep cleanup, reduced motion and the keyboard path when you change a recipe; rerun its gates.
+> - Author a new recipe only when nothing fits, to the contract in §4.
+
 The Component & Effect Library ships each effect as real source with metadata, a reduced-motion path and cleanup.
 Adapting a recipe beats writing from scratch: its accessibility, reduced-motion and cleanup work is already done
 and tested. Copying mechanics (files, imports, tokens, params → props) is `studio-components`'
@@ -15,7 +25,7 @@ and tested. Copying mechanics (files, imports, tokens, params → props) is `stu
   dependencies, complexity, intensity and the reduced-motion behaviour; `catalog.json` is the machine form.
 - Read `meta.ts` in full before choosing: `reducedMotion`, `accessibility` and `performance` are requirements.
 
-## 2. All recipes (42, from the catalogue at the time of writing)
+## 2. All recipes (46, from the catalogue at the time of writing)
 
 New recipes keep landing: confirm an id with `maquettekit catalog search` before citing it.
 

@@ -221,7 +221,8 @@ export function Scatter({ lots, inSel, markOf, alt, score, onBrush, pinned, onPi
     if (!order.length) return;
     if (ev.key === 'Escape') { setCursor(null); return; }
     if ((ev.key === 'Enter' || ev.key === ' ') && cur) { ev.preventDefault(); onPin(cur.id === pinned ? null : cur.id); return; }
-    const c = cursor ?? 0;
+    // Arrow keys start from what the reader is looking at: the hovered or pinned lot, else the first.
+    const c = cursor ?? Math.max(0, order.findIndex((l) => l.id === (hover?.id ?? pinned)));
     const next = ev.key === 'ArrowRight' || ev.key === 'ArrowUp' ? c + 1 : ev.key === 'ArrowLeft' || ev.key === 'ArrowDown' ? c - 1
       : ev.key === 'PageUp' ? c + 10 : ev.key === 'PageDown' ? c - 10 : ev.key === 'Home' ? 0 : ev.key === 'End' ? order.length - 1 : null;
     if (next === null) return;
@@ -326,7 +327,8 @@ export function Scatter({ lots, inSel, markOf, alt, score, onBrush, pinned, onPi
         data-drawing={drawing || undefined}
         onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp}
         onPointerLeave={() => { if (!drag.current) setHover(null); }} onPointerCancel={onCancel}
-        onFocus={() => setCursor((c) => c ?? Math.max(0, order.findIndex((l) => l.id === pinned)))}
+        // Only keyboard focus starts the cursor; a mouse click focuses the plot too, and must leave the hovered mark in charge.
+        onFocus={(e) => { if (e.currentTarget.matches(':focus-visible')) setCursor((c) => c ?? Math.max(0, order.findIndex((l) => l.id === pinned))); }}
         onBlur={() => setCursor(null)}
         onKeyDown={onKey}
       />
