@@ -25,7 +25,14 @@ export default function KineticMarquee({ params }: EffectProps<Params>) {
   const readout = useRef<HTMLSpanElement>(null);
   const [copies, setCopies] = useState(2);
   const [paused, setPaused] = useState(false);
+  // Pause eases the rails to a stop, then the loop sleeps until Play (no frames while paused).
+  const [asleep, setAsleep] = useState(false);
   const sim = useRef({ xA: 0, xB: 0, wA: 0, wB: 0, impulse: 0, boost: 0, flow: 1, hover: false, focus: false, lastX: null as number | null, frame: 0 });
+  useEffect(() => {
+    if (paused) return;
+    sim.current.impulse = 0; // scrolling while asleep must not kick the rails on wake
+    setAsleep(false);
+  }, [paused]);
 
   // Measure one set per rail; render enough copies to cover the container plus one.
   useEffect(() => {
@@ -88,7 +95,13 @@ export default function KineticMarquee({ params }: EffectProps<Params>) {
       const label = `${velocity < 0 ? '−' : ''}${String(Math.round(Math.abs(velocity))).padStart(3, '0')}`;
       if (readout.current.textContent !== label) readout.current.textContent = label;
     }
-  }, !reduced);
+    if (paused && s.flow < 0.002 && Math.abs(s.boost) < 1) {
+      s.flow = 0;
+      s.impulse = 0;
+      if (readout.current) readout.current.textContent = '000';
+      setAsleep(true);
+    }
+  }, !reduced && !asleep);
 
   // Reduced motion: rails rest at their origin.
   useEffect(() => {

@@ -204,7 +204,7 @@ npm run dev          # http://localhost:3333
 
 The gallery is a Next.js app that runs the library's real source: a searchable, filterable recipe catalogue with live
 previews of all 51 recipes, parameters, device-width preview, reduced-motion and theme toggles, and a code viewer with
-copy; a page per studio with its demos (22 in total); and a dedicated 3D gallery (model viewer with camera presets, materials, lighting, animation
+copy; a page per studio with its demos (23 in total); and a dedicated 3D gallery (model viewer with camera presets, materials, lighting, animation
 playback, quality levels with the real variant sizes, renderer statistics and fallback preview).
 
 ### Deploy the gallery (Vercel)

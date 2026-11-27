@@ -36,7 +36,19 @@ semantic versioning. Plugin manifests (Claude Code and Codex) always carry the s
     The WASM and files are served from our origin. Native radios sit over the stars, rendering stops offscreen, and reduced
     motion shows still frames. Named export `RiveCanvas`.
 
+- **Flagship demo** `motion-studio` (Cinematic, 23 demos): Lead & Lag, the one-page site of a fictional motion studio
+  where the page is the portfolio. It composes the four new recipes with `kinetic-marquee` and `split-line-reveal`
+  under one lamp for DOM and WebGL and one signature move ("thrown, then landed"):
+  - a glass loupe thrown over the manifesto, drawn through the lens's `draw` callback in the page's tokens;
+  - a cursor that reads the page;
+  - Lottie controls for the night palette, which spreads from its switch as a View Transition;
+  - a reel with a dancing Rive mascot and a Rive star rating over native radios.
+
+  Every pointer interaction has a keyboard twin, and the page holds a reduced-motion form throughout.
+
 ### Changed
+- `kinetic-marquee`: Pause eases the rails to a stop, then the frame loop sleeps until Play (it used to keep running
+  at 60 fps while paused).
 - All 22 demos meet the craft floor for their profile. Every control has hover, focus and pressed states with depth and
   light from one direction. Each demo has a continuous driver and a hands-on interaction with a keyboard twin:
   - 3D: Pulse Night has a shared pointer light, a speaker you can turn and a detented dial; the configurator has release

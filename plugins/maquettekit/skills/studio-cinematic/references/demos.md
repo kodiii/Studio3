@@ -1,12 +1,22 @@
 # Cinematic Studio demos
 
-Four reference compositions live in the library at
+> **Quick card** — the must-dos from this file; read on for the reasons and the detail.
+>
+> - Pick by task: launch → `cinematic-landing`; long read → `scroll-narrative`; type-led → `kinetic-typography`; an object or a place → `immersive-3d-hero`; a studio or portfolio that shows motion craft → `motion-studio`.
+> - Read the demo's `meta.ts` and confirm ids with `maquettekit catalog show` before citing; open `demos/cinematic/cinematic-landing/` directly.
+> - Write the user's beat sheet and motion brief first; never inherit a demo's story, signature move or look.
+> - Rebuild only the two or three ideas the task needs, in the project's stack and tokens; install `uses` recipes as they are.
+> - Keep the static document underneath, every pause, skip and keyboard twin, and each reduced-motion form.
+> - Replace all fictional content with the user's, or keep visible `Sample` labels.
+> - Re-check pinning, `svh` heights and breakpoints in the real page's scroll container.
+
+Five reference compositions live in the library at
 `${CLAUDE_PLUGIN_ROOT}/library/src/demos/cinematic/<id>/` (fallback `../../library/src/demos/cinematic/<id>/`
 from this skill's folder). Each has a `meta.ts` (summary, highlights, recipes, accessibility, reduced-motion and
 performance notes) and an `index.tsx`, and meets the craft floor for its profile
 (`${CLAUDE_PLUGIN_ROOT}/shared/motion-craft.md` §1) as described below. Study them for staging, pacing and
 fallbacks; do not paste them into a user's project wholesale. All brands, copy and imagery are fictional, drawn with
-type, CSS, SVG or procedural geometry.
+type, CSS, SVG or procedural geometry; `motion-studio` also plays Rive's MIT-licensed example files.
 
 **The catalogue is the source of truth.** `uses` lists the recipes a demo imports; `adapts` lists recipes whose
 technique it rebuilds in its own files. Confirm before citing:
@@ -28,6 +38,7 @@ maquettekit catalog show scroll-narrative --source
 | `scroll-narrative` | Editorial scrollytelling: text in normal flow beside a sticky, scrubbed figure | Expressive | No | Long read, explainer, report, case study |
 | `kinetic-typography` | Type as the material, with one accessible copy per line and one pause | Immersive | No | Type-led brand piece, manifesto, title sequence |
 | `immersive-3d-hero` | One persistent scene carried through several beats by the page's scroll | Immersive | Yes | Story about an object or a place |
+| `motion-studio` | The page as the portfolio: the four newest recipes under one lamp and one signature move | Immersive | Yes | Studio, agency or portfolio site; a showcase of motion craft |
 
 ## 2. `cinematic-landing` — Larkwell, Opus 31
 
@@ -122,7 +133,43 @@ until everything settles); `Poster.tsx`, an SVG poster that paints first and is 
 WebGL; a drag that claims the pointer only once movement is clearly horizontal. Pair with `cinematic-3d.md` §3 and
 §6.
 
-## 6. Using a demo as a starting point
+## 6. `motion-studio` — Lead & Lag, a motion studio
+
+The one-page site of a fictional two-person motion studio (Noor leads, Teo lags), where the page is the portfolio.
+It composes the four newest recipes under one lamp and one signature move, and is the reference for the Immersive
+craft floor (`motion-craft.md` §1).
+
+- **Signature move:** "thrown, then landed". Whatever you move keeps the hand's velocity (`spring.release`),
+  stretches a little along its travel and lands with a squash while its shadow tightens: the glass loupe, the
+  archive film strip, the cursor ring, the reel's ball. Even the manifesto's full stop is a ball, drawn bouncing down
+  "Nothing stops dead" in onion-skin frames.
+- **Physical:** case cards lean toward the pointer with mass by size (the feature card 4° on `spring.glide`, the
+  others 7° on `spring.settle`); throws of the loupe and the film keep their speed and land on a frame, with
+  resistance past the ends.
+- **Lit:** one lamp for the DOM and the WebGL glass. At rest it is the lens's own upper-left light; on fine pointers
+  the visitor carries it, and one loop writes `--lx`/`--ly` so card, button, screen and rating shadows swing away
+  from it as the glass's highlight does.
+- **Alive:** the pointer drives the light, the cursor, card tilt and the mascot's gaze; scroll speed skews the
+  clients marquee and makes "Lag" in the wordmark trail; scroll position moves the process playhead, which draws
+  each step.
+- **Touchable:** throw the loupe (arrow keys, Shift for bigger steps, Home, and a Centre the glass button), throw
+  the film strip (arrow keys), scrub the reel (a labelled range input), rate the page (native radios over the Rive
+  stars), switch the night palette (a Lottie sun ⇄ moon whose View Transition spreads from the switch).
+- **Reduced motion:** no entrance, tilt, lamp tracking, wordmark lag or custom cursor; the palette switches at once;
+  the loupe follows the hand without momentum; the marquee is static. The reel and Birb's dance are content behind
+  explicit controls: they still play when pressed, with 160 ms cross-fades between shots.
+- **Recipes:** uses `liquid-glass-lens` (hero), `cursor-follower` (whole page), `lottie-micro-interactions`
+  (palette, menu, save, play), `rive-state-machine` (Birb and the rating), `kinetic-marquee` (clients) and
+  `split-line-reveal` (section titles). Adapts `tilt-parallax-card`, `press-depth-button`, `spotlight-border-card`
+  and `expanding-card-detail` (the case sheet).
+
+**Copy:** `light.ts` (one lamp for DOM and canvas, in a loop that sleeps when settled); `manifesto.ts` (the sheet
+under the glass, drawn through the lens's `draw` callback in the page's palette tokens, its diagrams plotting the
+real motion tokens; `ManifestoSvg.tsx` draws the same sheet as the poster and the no-WebGL fallback); `near.ts`
+(Rive and WebGL mount only near view, while their controls render at once). Pair with `motion-craft.md` §1–§6 and
+`studio-motion`'s `references/recipes.md`.
+
+## 7. Using a demo as a starting point
 
 1. Read `meta.ts` first: highlights, `uses`, `adapts`, accessibility and reduced-motion notes say what to keep.
 2. Write the user's own beat sheet (`playbook.md` §2) and motion brief (`motion-craft.md` §6); never inherit a demo's

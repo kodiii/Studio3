@@ -59,6 +59,7 @@ import { meta as d__3d_spatialData } from './demos/3d/spatial-data/meta';
 import { meta as d_cinematic_cinematicLanding } from './demos/cinematic/cinematic-landing/meta';
 import { meta as d_cinematic_immersive3dHero } from './demos/cinematic/immersive-3d-hero/meta';
 import { meta as d_cinematic_kineticTypography } from './demos/cinematic/kinetic-typography/meta';
+import { meta as d_cinematic_motionStudio } from './demos/cinematic/motion-studio/meta';
 import { meta as d_cinematic_scrollNarrative } from './demos/cinematic/scroll-narrative/meta';
 import { meta as d_data_dataExploration } from './demos/data/data-exploration/meta';
 import { meta as d_data_financialDashboard } from './demos/data/financial-dashboard/meta';
@@ -137,6 +138,7 @@ export const demoMetas: readonly DemoMeta[] = [
   d_cinematic_cinematicLanding,
   d_cinematic_immersive3dHero,
   d_cinematic_kineticTypography,
+  d_cinematic_motionStudio,
   d_cinematic_scrollNarrative,
   d_data_dataExploration,
   d_data_financialDashboard,

@@ -138,7 +138,7 @@ Long references open with a quick card: read it first, and the rest only when th
 | `references/scroll-choreography.md` | Any scroll-linked motion: pinning, scrubbing, parallax, masks, horizontal sections, GSAP and CSS rules |
 | `references/kinetic-typography.md` | Animated or oversized type: splitting, variable fonts, masks, timing |
 | `references/cinematic-3d.md` | 3D, WebGL backgrounds, particles or camera moves are requested, or at step 6 |
-| `references/demos.md` | You want a worked composition: `cinematic-landing`, `scroll-narrative`, `kinetic-typography`, `immersive-3d-hero` |
+| `references/demos.md` | You want a worked composition: `cinematic-landing`, `scroll-narrative`, `kinetic-typography`, `immersive-3d-hero`, `motion-studio` |
 | `${CLAUDE_PLUGIN_ROOT}/shared/design-principles.md` | Step 2 and the final self-critique |
 | `${CLAUDE_PLUGIN_ROOT}/shared/accessibility.md` | Motion policy, pause controls, focus under pinned layers |
 | `${CLAUDE_PLUGIN_ROOT}/shared/performance.md` | Before adding a library, video, image sequence or canvas |

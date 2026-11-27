@@ -11,6 +11,7 @@ export const demoLoaders: Readonly<Record<string, () => Promise<{ default: DemoC
   'cinematic/cinematic-landing': () => import('./demos/cinematic/cinematic-landing/index'),
   'cinematic/immersive-3d-hero': () => import('./demos/cinematic/immersive-3d-hero/index'),
   'cinematic/kinetic-typography': () => import('./demos/cinematic/kinetic-typography/index'),
+  'cinematic/motion-studio': () => import('./demos/cinematic/motion-studio/index'),
   'cinematic/scroll-narrative': () => import('./demos/cinematic/scroll-narrative/index'),
   'data/data-exploration': () => import('./demos/data/data-exploration/index'),
   'data/financial-dashboard': () => import('./demos/data/financial-dashboard/index'),
