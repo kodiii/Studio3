@@ -7,7 +7,7 @@
  * spring.glide) and flies back, faster, on close. The heart is the lottie-micro-interactions LottieIcon.
  */
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
-import { duration as D, spring, springToLinear, useRafLoop, useStudioMotion, type SpringConfig } from '../../../motion';
+import { duration as D, spring, springAtRest, springToLinear, stepSpring, useSettleLoop, useStudioMotion, type SpringConfig } from '../../../motion';
 import { ICONS, LottieIcon } from '../../../effects/lottie-micro-interactions';
 import { CASES, type CaseId, type CaseStudy } from './content';
 import { CaseArt } from './art';
@@ -22,8 +22,6 @@ const CH: readonly Channel[] = ['rx', 'ry', 'lift'];
 /** Tilt and lift on a token spring, one loop per card that runs only while the card is moving. */
 function useCardPhysics(card: React.RefObject<HTMLElement | null>, max: number, cfg: SpringConfig, off: boolean) {
   const sim = useRef({ x: { rx: 0, ry: 0, lift: 0 }, v: { rx: 0, ry: 0, lift: 0 }, t: { rx: 0, ry: 0, lift: 0 } });
-  const [running, setRunning] = useState(false);
-  const runningRef = useRef(false);
   const write = () => {
     const el = card.current;
     if (!el) return;
@@ -34,24 +32,21 @@ function useCardPhysics(card: React.RefObject<HTMLElement | null>, max: number, 
   };
   const aim = (t: Partial<Record<Channel, number>>) => {
     Object.assign(sim.current.t, t);
-    if (!runningRef.current) { runningRef.current = true; setRunning(true); }
+    wake();
   };
-  useRafLoop(card, (dt) => {
+  const wake = useSettleLoop(card, (dt) => {
     const q = sim.current;
-    const n = Math.max(1, Math.ceil(dt * 240));
-    const h = dt / n;
-    for (let i = 0; i < n; i++) for (const c of CH) {
-      q.v[c] += ((-cfg.stiffness * (q.x[c] - q.t[c]) - cfg.damping * q.v[c]) / cfg.mass) * h;
-      q.x[c] += q.v[c] * h;
+    let rest = true;
+    for (const c of CH) {
+      const a = { x: q.x[c], v: q.v[c] };
+      stepSpring(a, q.t[c], cfg, dt);
+      q.x[c] = a.x; q.v[c] = a.v;
+      if (!springAtRest(a, q.t[c], { restDelta: 0.002, restSpeed: 0.02 })) rest = false;
     }
+    if (rest) for (const c of CH) { q.x[c] = q.t[c]; q.v[c] = 0; }
     write();
-    if (CH.every((c) => Math.abs(q.x[c] - q.t[c]) < 0.002 && Math.abs(q.v[c]) < 0.02)) {
-      for (const c of CH) { q.x[c] = q.t[c]; q.v[c] = 0; }
-      write();
-      runningRef.current = false;
-      setRunning(false);
-    }
-  }, running && !off);
+    return rest;
+  }, !off);
   useEffect(() => {
     if (!off) return;
     const q = sim.current;

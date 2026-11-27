@@ -9,7 +9,7 @@
 import {
   CanvasTexture, Color, Float32BufferAttribute, LatheGeometry, MathUtils, RepeatWrapping, SRGBColorSpace, Vector2,
 } from 'three';
-import type { SpringConfig } from '../../../motion';
+import { springAtRest, type SpringState } from '../../../motion';
 import type { LightingPreset } from '../../../three';
 
 export type V3 = [number, number, number];
@@ -142,17 +142,9 @@ export function blendLight(w: readonly number[], out: Light): Light {
 }
 
 /* ── Weight: springs that keep the hand's velocity ───────────────────────────────────────────────────── */
-export interface Axis { x: number; v: number }
-/** Damped spring, semi-implicit Euler sub-stepped at ≤ 1/240 s so stiff tokens stay stable on slow frames. */
-export function stepSpring(a: Axis, target: number, c: SpringConfig, dt: number): void {
-  const n = Math.max(1, Math.ceil(dt * 240));
-  const h = dt / n;
-  for (let i = 0; i < n; i++) {
-    a.v += ((-c.stiffness * (a.x - target) - c.damping * a.v) / c.mass) * h;
-    a.x += a.v * h;
-  }
-}
-export const atRest = (a: Axis, target: number, eps = 1e-3): boolean => Math.abs(a.x - target) < eps && Math.abs(a.v) < eps * 4;
+/* Stepped with `stepSpring` from motion/; `atRest` is this stage's tolerance (velocity eps per 1/4 s). */
+export type Axis = SpringState;
+export const atRest = (a: Axis, target: number, eps = 1e-3): boolean => springAtRest(a, target, { restDelta: eps, restSpeed: eps * 4 });
 
 /** Critically damped follow (SmoothDamp); `vel` is mutated. */
 export function damp(cur: number, goal: number, vel: { v: number }, smoothTime: number, dt: number): number {

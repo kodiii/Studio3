@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { createCleanup, createSequence, cssEase, duration, easing, motionTokensCss, profileScale, spring, springToLinear, staggerDelay } from '../../../plugins/maquettekit/library/src/motion';
+import { createCleanup, createSequence, cssEase, duration, easing, motionTokensCss, profileScale, spring, springAtRest, springState, springToLinear, staggerDelay, stepSpring, useSettleLoop, type SpringConfig, type SpringRest, type SpringState } from '../../../plugins/maquettekit/library/src/motion';
+import { act, renderHook } from '@testing-library/react';
 import { resolveParams, type ParamSpec } from '../../../plugins/maquettekit/library/src/types';
 import { installDomShims, type AnimateCall } from './dom-shims';
 
@@ -217,5 +218,106 @@ describe('helpers', () => {
     c.add(() => order.push(3));
     c.run();
     expect(order).toEqual([3, 1]);
+  });
+});
+
+describe('stepSpring (1D spring stepper)', () => {
+  const run = (s: SpringState, target: number, cfg: SpringConfig, dt: number, seconds: number, rest?: SpringRest) => {
+    const path: number[] = [];
+    let atRest = false;
+    for (let t = 0; t < seconds && !atRest; t += dt) { atRest = stepSpring(s, target, cfg, dt, rest); path.push(s.x); }
+    return { path, atRest };
+  };
+
+  it('settles exactly on the target for every token and reports rest', () => {
+    for (const cfg of Object.values(spring)) {
+      const s = springState(0);
+      const { atRest, path } = run(s, 100, cfg, 1 / 60, 5);
+      expect(atRest).toBe(true);
+      expect(s.x).toBe(100);
+      expect(s.v).toBe(0);
+      expect(path.length).toBeGreaterThan(5);
+    }
+  });
+
+  it('returns false while moving and true (parked) once within the rest thresholds', () => {
+    const s = springState(0);
+    expect(stepSpring(s, 1, spring.settle, 1 / 60)).toBe(false);
+    expect(s.x).toBeGreaterThan(0);
+    const near = springState(1 - 5e-5, 1e-4);
+    expect(stepSpring(near, 1, spring.settle, 0)).toBe(true);
+    expect(near).toEqual({ x: 1, v: 0 });
+    // custom thresholds, e.g. pixels: half a pixel and 30 px/s
+    const px = springState(99.7, 12);
+    expect(springAtRest(px, 100, { restDelta: 0.5, restSpeed: 30 })).toBe(true);
+    expect(springAtRest(px, 100)).toBe(false);
+  });
+
+  it('keeps an initial velocity: a fast release overshoots, a still release does not', () => {
+    const still = run(springState(0), 100, spring.glide, 1 / 60, 5).path;
+    const thrown = run(springState(0, 3000), 100, spring.glide, 1 / 60, 5).path;
+    expect(Math.max(...still)).toBeLessThan(100.1); // glide is a touch under-damped (ζ ≈ 0.92)
+    expect(Math.max(...thrown)).toBeGreaterThan(110);
+    // velocity away from the target carries it backwards first
+    expect(Math.min(...run(springState(0, -800), 100, spring.release, 1 / 60, 5).path)).toBeLessThan(-5);
+  });
+
+  it('a retarget mid-flight keeps the velocity it already had (no restart from rest)', () => {
+    const s = springState(0);
+    for (let i = 0; i < 10; i++) stepSpring(s, 100, spring.settle, 1 / 60);
+    const v = s.v;
+    expect(v).toBeGreaterThan(0);
+    stepSpring(s, 0, spring.settle, 1 / 240);
+    expect(s.v).toBeGreaterThan(v * 0.5);
+  });
+
+  it('is stable and frame-rate independent at 1/30 s and 1/240 s steps', () => {
+    for (const cfg of Object.values(spring)) {
+      const at = (dt: number) => { const s = springState(0, 400); for (let t = 0; t < 0.5 - 1e-9; t += dt) stepSpring(s, 100, cfg, dt); return s.x; };
+      const slow = at(1 / 30), fast = at(1 / 240);
+      expect(Number.isFinite(slow)).toBe(true);
+      expect(Math.abs(slow - fast)).toBeLessThan(0.5);
+      // even a dropped frame (0.25 s) on the stiffest token stays bounded
+      const s = springState(0);
+      stepSpring(s, 100, cfg, 0.25);
+      expect(Math.abs(s.x)).toBeLessThan(200);
+      expect(run(springState(0), 100, cfg, 1 / 30, 6).atRest).toBe(true);
+      expect(run(springState(0), 100, cfg, 1 / 240, 6).atRest).toBe(true);
+    }
+  });
+
+  it('matches an unsplit semi-implicit Euler step at ≤ 1/240 s and does nothing for dt ≤ 0', () => {
+    const cfg = spring.press, s = springState(3, -2), h = 1 / 240;
+    const v = -2 + ((-cfg.stiffness * (3 - 10) - cfg.damping * -2) / cfg.mass) * h;
+    stepSpring(s, 10, cfg, h);
+    expect(s.v).toBeCloseTo(v, 12);
+    expect(s.x).toBeCloseTo(3 + v * h, 12);
+    const z = springState(3, 5);
+    expect(stepSpring(z, 10, cfg, 0)).toBe(false);
+    expect(z).toEqual({ x: 3, v: 5 });
+  });
+});
+
+describe('useSettleLoop', () => {
+  let shims: ReturnType<typeof installDomShims>;
+  beforeEach(() => { shims = installDomShims(); });
+  afterEach(() => shims.restore());
+
+  it('sleeps until woken, steps every frame, and stops itself once the step reports rest', async () => {
+    const el = document.createElement('div');
+    document.body.appendChild(el);
+    const s = springState(0);
+    let target = 0, calls = 0;
+    const { result } = renderHook(() => useSettleLoop({ current: el }, (dt) => { calls++; return stepSpring(s, target, spring.press, dt); }));
+    await act(async () => { await Promise.resolve(); shims.flushFrames(5); });
+    expect(calls).toBe(0);
+    target = 10;
+    await act(async () => { result.current(); await Promise.resolve(); });
+    for (let i = 0; i < 120 && s.x !== 10; i++) await act(async () => { shims.flushFrames(1); });
+    expect(s.x).toBe(10);
+    const settledAt = calls;
+    await act(async () => { shims.flushFrames(10); });
+    expect(calls).toBe(settledAt);
+    el.remove();
   });
 });

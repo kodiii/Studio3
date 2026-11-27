@@ -16,7 +16,7 @@ import {
   Quaternion, ShaderMaterial, SphereGeometry, Vector3, type DirectionalLight, type Group, type InstancedMesh, type Mesh, type PerspectiveCamera,
 } from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
-import { spring as SPRING, useStudioMotion, type SpringConfig } from '../../../motion';
+import { spring as SPRING, stepSpring, useStudioMotion } from '../../../motion';
 import { CameraRig, LightingRig, OrbitInspect, useQuality, type CameraRigHandle, type LightingPreset, type LightingRigHandle, type OrbitInspectHandle } from '../../../three';
 import { CLUSTERS, EDGES_LIST, NODES, PALETTE, layoutBounds, nodeRadius, relax, type ClusterId, type NodeKind } from './data';
 
@@ -47,13 +47,6 @@ const ATLAS_LIGHT: LightingPreset = {
 
 /* ── springs from the motion tokens ───────────────────────────────────────────────────────────────────────────── */
 interface Spring { x: number; v: number; to: number }
-function stepSpring(s: Spring, cfg: SpringConfig, dt: number): boolean {
-  const n = Math.max(1, Math.ceil(dt / (1 / 240)));
-  const h = dt / n;
-  for (let i = 0; i < n; i++) { s.v += ((-cfg.stiffness * (s.x - s.to) - cfg.damping * s.v) / cfg.mass) * h; s.x += s.v * h; }
-  if (Math.abs(s.x - s.to) < 1e-4 && Math.abs(s.v) < 1e-3) { s.x = s.to; s.v = 0; return false; }
-  return true;
-}
 
 /* ── links: a unit cylinder bent along a quadratic curve per instance ─────────────────────────────────────────── */
 const LINK_HEAD = /* glsl */ `
@@ -380,8 +373,8 @@ export const Atlas = memo(forwardRef<AtlasHandle, AtlasProps>(function Atlas({ m
         for (const b of anim.bumps) if (anim.flowT >= b.at && b.amount > 0) { for (const i of b.nodes) anim.scale[i].v += b.amount; b.amount = 0; }
         moving = true;
       }
-      for (const s of anim.scale) if (stepSpring(s, s.to > 1.3 ? SPRING.pop : SPRING.settle, dt)) moving = true;
-      if (stepSpring(anim.ring, SPRING.settle, dt)) moving = true;
+      for (const s of anim.scale) if (!stepSpring(s, s.to, s.to > 1.3 ? SPRING.pop : SPRING.settle, dt)) moving = true;
+      if (!stepSpring(anim.ring, anim.ring.to, SPRING.settle, dt)) moving = true;
       const k = 1 - Math.exp(-dt * 12);
       for (const e of EDGES_LIST) {
         const to = linkTarget(e), w = anim.width[e.index];

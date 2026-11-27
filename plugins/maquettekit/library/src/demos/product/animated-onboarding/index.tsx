@@ -1,7 +1,7 @@
 'use client';
 import { useCallback, useEffect, useId, useRef, useState, type CSSProperties, type FormEvent, type KeyboardEvent, type PointerEvent, type ReactNode, type RefObject } from 'react';
 import { flushSync } from 'react-dom';
-import { cssEase, duration as D, flip, spring as SPRING, stagger as STAGGER, useRafLoop, useStudioMotion } from '../../../motion';
+import { cssEase, duration as D, flip, spring as SPRING, springAtRest, stagger as STAGGER, stepSpring, useSettleLoop, useStudioMotion } from '../../../motion';
 import { POP, SETTLE, captureSources, liftOff } from './choreo';
 import {
   EMPTY, GOALS, INTEGRATIONS, ORDER, PREP_LIST, ROLES, STEPS,
@@ -30,21 +30,21 @@ function Bang() {
 /* ── The ticket hangs from a clip: landings, scroll velocity and a brushing pointer swing it on a spring ─── */
 function useSwing(ticket: RefObject<HTMLDivElement | null>, enabled: boolean) {
   const sim = useRef({ x: 0, v: 0 });
-  const [running, setRunning] = useState(false);
-  const runningRef = useRef(false);
+  const wake = useSettleLoop(ticket, (dt) => {
+    const s = sim.current;
+    stepSpring(s, 0, SPRING.release, dt);
+    s.x = Math.max(-4, Math.min(4, s.x));
+    // Checked after the clamp to the clip's ±4° (so not stepSpring's own rest flag).
+    const rest = springAtRest(s, 0, { restDelta: 0.004, restSpeed: 0.02 });
+    if (rest) { s.x = 0; s.v = 0; }
+    ticket.current?.style.setProperty('--swing', rest ? '0' : s.x.toFixed(3));
+    return rest;
+  }, enabled);
   const kick = useCallback((dv: number) => {
     if (!enabled) return;
     sim.current.v = Math.max(-90, Math.min(90, sim.current.v + dv));
-    if (!runningRef.current) { runningRef.current = true; setRunning(true); }
-  }, [enabled]);
-  useRafLoop(ticket, (dt) => {
-    const s = sim.current, c = SPRING.release;
-    const n = Math.max(1, Math.ceil(dt * 240)), h = dt / n;
-    for (let i = 0; i < n; i++) { s.v += ((-c.stiffness * s.x - c.damping * s.v) / c.mass) * h; s.x += s.v * h; }
-    s.x = Math.max(-4, Math.min(4, s.x));
-    ticket.current?.style.setProperty('--swing', s.x.toFixed(3));
-    if (Math.abs(s.x) < 0.004 && Math.abs(s.v) < 0.02) { s.x = 0; s.v = 0; ticket.current?.style.setProperty('--swing', '0'); runningRef.current = false; setRunning(false); }
-  }, running && enabled);
+    wake();
+  }, [enabled, wake]);
   // Scrolling the page sways the paper a little, in proportion to the scroll speed.
   useEffect(() => {
     if (!enabled) return;
@@ -543,9 +543,7 @@ function GoalsStep({ uid, headingRef, data, patch, reduced, onNext, onBack, onSk
     settle.current.el = dropped;
     const tick = (now: number) => {
       const dt = Math.min(0.05, (now - prev) / 1000); prev = now;
-      const c = SPRING.release, steps = Math.max(1, Math.ceil(dt * 240)), h = dt / steps;
-      for (let i = 0; i < steps; i++) { s.v += ((-c.stiffness * s.x - c.damping * s.v) / c.mass) * h; s.x += s.v * h; }
-      if (Math.abs(s.x) < 0.3 && Math.abs(s.v) < 4) { dropped.style.transform = ''; return; }
+      if (stepSpring(s, 0, SPRING.release, dt, { restDelta: 0.3, restSpeed: 4 })) { dropped.style.transform = ''; return; }
       dropped.style.transform = `translateY(${s.x.toFixed(2)}px)`;
       settle.current.raf = requestAnimationFrame(tick);
     };

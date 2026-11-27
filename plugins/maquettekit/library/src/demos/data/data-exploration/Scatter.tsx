@@ -13,7 +13,7 @@ import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type P
 import { scaleLinear } from 'd3';
 import { spring as SPRING, useElementSize, useIsomorphicLayoutEffect, useStudioMotion } from '../../../motion';
 import { ALT, SCORE, fmt, type Lot } from './data';
-import { createLoop, stepSpring } from './physics';
+import { createLoop, stepSpringPair } from './physics';
 import s from './styles.module.css';
 
 export type Mark = 'washed' | 'natural' | 'honey' | 'a' | 'b';
@@ -121,17 +121,17 @@ export function Scatter({ lots, inSel, markOf, alt, score, onBrush, pinned, onPi
     let moving = false;
     // Halo: position on `spring.press`, opacity on `spring.settle`.
     const st = hs.current;
-    [st.x, st.vx] = stepSpring(st.x, st.vx, st.tx, SPRING.press, dt);
-    [st.y, st.vy] = stepSpring(st.y, st.vy, st.ty, SPRING.press, dt);
-    [st.o, st.vo] = stepSpring(st.o, st.vo, st.to, SPRING.settle, dt);
+    [st.x, st.vx] = stepSpringPair(st.x, st.vx, st.tx, SPRING.press, dt);
+    [st.y, st.vy] = stepSpringPair(st.y, st.vy, st.ty, SPRING.press, dt);
+    [st.o, st.vo] = stepSpringPair(st.o, st.vo, st.to, SPRING.settle, dt);
     if (Math.abs(st.x - st.tx) > 0.05 || Math.abs(st.y - st.ty) > 0.05 || Math.abs(st.o - st.to) > 0.004 || Math.abs(st.vx) + Math.abs(st.vy) > 0.5) moving = true;
     else { st.x = st.tx; st.y = st.ty; st.o = st.to; st.vx = st.vy = st.vo = 0; }
     paintHalo();
     // Brush rectangle: edges on `spring.settle` (the same family as the range brushes, so they land together).
     const rc = rect.current;
     if (!live.current.drawing) {
-      for (let k = 0; k < 4; k++) [rc.p[k], rc.v[k]] = stepSpring(rc.p[k], rc.v[k], rc.goal[k], SPRING.settle, dt);
-      [rc.o, rc.vo] = stepSpring(rc.o, rc.vo, rc.go, SPRING.settle, dt);
+      for (let k = 0; k < 4; k++) [rc.p[k], rc.v[k]] = stepSpringPair(rc.p[k], rc.v[k], rc.goal[k], SPRING.settle, dt);
+      [rc.o, rc.vo] = stepSpringPair(rc.o, rc.vo, rc.go, SPRING.settle, dt);
       const still = rc.p.every((p, k) => Math.abs(p - rc.goal[k]) < 0.05 && Math.abs(rc.v[k]) < 0.5) && Math.abs(rc.o - rc.go) < 0.004;
       if (still) { rc.p = [...rc.goal]; rc.v = [0, 0, 0, 0]; rc.o = rc.go; rc.vo = 0; } else moving = true;
       paintRect();

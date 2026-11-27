@@ -1,10 +1,10 @@
 'use client';
 import { useCallback, useId, useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from 'react';
-import { spring as SPRING, useRafLoop, useStudioMotion, type SpringToken } from '../../motion';
+import { spring as SPRING, stepSpring, useRafLoop, useStudioMotion, type SpringToken } from '../../motion';
 import type { EffectProps } from '../../types';
 import { ARCHIVE, PROJECTS } from './art';
 import { CursorFollower, useFinePointer, type CursorState } from './cursor-follower';
-import { atRest, axis, clamp, rubberBand, stepAxis } from './physics';
+import { atRest, axis, clamp, rubberBand } from './physics';
 import styles from './styles.module.css';
 
 export { CursorFollower, useFinePointer } from './cursor-follower';
@@ -207,7 +207,7 @@ function ArchiveStrip({ reduced, headingId, hintId }: { reduced: boolean; headin
       x = c.target + (c.from - c.target) * u * u * u;
       done = c.t >= c.span;
     } else {
-      stepAxis(c.pos, c.target, SPRING.release, dt);
+      stepSpring(c.pos, c.target, SPRING.release, dt);
       x = c.pos.x;
       done = atRest(c.pos, c.target, 0.3);
     }

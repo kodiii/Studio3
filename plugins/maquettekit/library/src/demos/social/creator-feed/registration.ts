@@ -11,7 +11,7 @@
  * Reduced motion: the loop never starts and every plate sits exactly in register.
  */
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type RefObject } from 'react';
-import { spring, useRafLoop, useStudioMotion, type SpringConfig } from '../../../motion';
+import { spring, stepSpring, useRafLoop, useStudioMotion, type SpringConfig } from '../../../motion';
 
 export type Register = (el: HTMLElement | SVGElement) => () => void;
 export const RegistrationContext = createContext<Register | null>(null);
@@ -35,15 +35,9 @@ const DEAD = 40; // px/s of motion that still counts as still
 const FULL = 1400; // px/s that reaches MAX
 
 const step = (p: Plate, gx: number, gy: number, s: SpringConfig, dt: number) => {
-  // Semi-implicit Euler in small sub-steps: stable for the stiff `press` spring at any frame rate.
-  const n = Math.max(1, Math.ceil(dt / (1 / 240)));
-  const h = dt / n;
-  for (let i = 0; i < n; i++) {
-    p.vx += ((-s.stiffness * (p.x - gx) - s.damping * p.vx) / s.mass) * h;
-    p.vy += ((-s.stiffness * (p.y - gy) - s.damping * p.vy) / s.mass) * h;
-    p.x += p.vx * h;
-    p.y += p.vy * h;
-  }
+  const ax = { x: p.x, v: p.vx }, ay = { x: p.y, v: p.vy };
+  stepSpring(ax, gx, s, dt); stepSpring(ay, gy, s, dt);
+  p.x = ax.x; p.vx = ax.v; p.y = ay.x; p.vy = ay.v;
 };
 
 export function useRegistrationField(root: RefObject<HTMLElement | null>): Register {

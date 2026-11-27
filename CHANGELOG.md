@@ -5,6 +5,14 @@ semantic versioning. Plugin manifests (Claude Code and Codex) always carry the s
 
 ## [Unreleased]
 
+### Changed
+- One spring stepper for the library: `stepSpring` (with `springState`, `springAtRest`) in `motion/spring.ts`, and
+  `useSettleLoop` in `motion/hooks.ts` for "damp toward the input, then stop the loop at rest". The demos and recipes
+  that carried their own copy of the same semi-implicit integrator now use it, with no change in feel.
+  Kept local, with a comment saying why: the liquid-glass lens's edge glide (friction inside the band, a spring
+  only past an edge), the tilt-parallax card (tuned at 1/120 s steps) and the campaign needle (an angle wrapped
+  to ±π, one step per frame beside the 120 Hz rope).
+
 ### Added
 - **Motion craft** (`shared/motion-craft.md`): the affirmative bar the shared rules lacked. A craft floor per profile
   (designed, physical, lit, alive, touchable), animation principles mapped to motion tokens, realism (weight and

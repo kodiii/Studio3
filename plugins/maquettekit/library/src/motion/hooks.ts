@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react';
 
 export const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 
@@ -98,6 +98,19 @@ export function useRafLoop<T extends Element>(ref: RefObject<T | null>, tick: (d
     update();
     return () => { running = false; cancelAnimationFrame(raf); io?.disconnect(); document.removeEventListener('visibilitychange', update); };
   }, [ref, enabled]);
+}
+
+/**
+ * A `useRafLoop` that sleeps until woken: call the returned `wake()` when input moves a target, and the loop runs
+ * `step(dt, t)` every frame until it returns true (settled), then stops itself. Built for "damp toward the input,
+ * then stop once at rest" springs (`stepSpring` returns exactly that flag). Never runs while `enabled` is false.
+ */
+export function useSettleLoop<T extends Element>(ref: RefObject<T | null>, step: (dt: number, t: number) => boolean, enabled = true): () => void {
+  const [running, setRunning] = useState(false);
+  const awake = useRef(false);
+  const wake = useCallback(() => { if (!awake.current) { awake.current = true; setRunning(true); } }, []);
+  useRafLoop(ref, (dt, t) => { if (awake.current && step(dt, t)) { awake.current = false; setRunning(false); } }, running && enabled);
+  return wake;
 }
 
 /** Element size via ResizeObserver (content box, CSS px). */

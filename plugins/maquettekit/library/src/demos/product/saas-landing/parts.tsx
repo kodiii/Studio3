@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode, type RefObject } from 'react';
-import { spring as SPRING, useIsomorphicLayoutEffect, useRafLoop } from '../../../motion';
+import { spring as SPRING, springState, stepSpring, useIsomorphicLayoutEffect, useSettleLoop } from '../../../motion';
 import { FAILED, FAQ, INBOX_URL, OVERAGE, PASSED, PLANS, TARGETS, formatUsd, type Target } from './content';
 import { Json, StatusChip } from './Inbox';
 import { Ticker } from './Ticker';
@@ -57,9 +57,21 @@ export function useReveal(enabled: boolean) {
    the label floats a little further than the body. Springs from the tokens; the loop sleeps once both are home. */
 const FIELD = 76;
 function useMagnet(anchor: RefObject<HTMLSpanElement | null>, body: RefObject<HTMLButtonElement | null>, label: RefObject<HTMLSpanElement | null>, enabled: boolean) {
-  const sim = useRef({ bx: 0, bv: 0, by: 0, byv: 0, lx: 0, lv: 0, ly: 0, lyv: 0, tx: 0, ty: 0 });
-  const [running, setRunning] = useState(false);
-  const runningRef = useRef(false);
+  const sim = useRef({ bx: springState(), by: springState(), lx: springState(), ly: springState(), tx: 0, ty: 0 });
+  const wake = useSettleLoop(anchor, (dt) => {
+    const s = sim.current, c = s.tx || s.ty ? SPRING.settle : SPRING.release;
+    stepSpring(s.bx, s.tx, c, dt); stepSpring(s.by, s.ty, c, dt);
+    stepSpring(s.lx, s.tx * 0.4, c, dt); stepSpring(s.ly, s.ty * 0.4, c, dt);
+    if (body.current) body.current.style.translate = `${s.bx.x.toFixed(2)}px ${s.by.x.toFixed(2)}px`;
+    if (label.current) label.current.style.translate = `${s.lx.x.toFixed(2)}px ${s.ly.x.toFixed(2)}px`;
+    const home = !s.tx && !s.ty && Math.abs(s.bx.x) + Math.abs(s.by.x) + Math.abs(s.lx.x) + Math.abs(s.ly.x) < 0.05 && Math.abs(s.bx.v) + Math.abs(s.by.v) < 0.2;
+    if (home) {
+      for (const a of [s.bx, s.by, s.lx, s.ly]) { a.x = 0; a.v = 0; }
+      if (body.current) body.current.style.translate = '';
+      if (label.current) label.current.style.translate = '';
+    }
+    return home;
+  }, enabled);
   useEffect(() => {
     if (!enabled) return;
     const fine = window.matchMedia?.('(hover: hover) and (pointer: fine)').matches;
@@ -75,7 +87,7 @@ function useMagnet(anchor: RefObject<HTMLSpanElement | null>, body: RefObject<HT
         s.tx = lim * Math.tanh((dx * 0.26 * w * w) / lim);
         s.ty = lim * Math.tanh((dy * 0.26 * w * w) / lim);
       } else { s.tx = 0; s.ty = 0; }
-      if ((s.tx || s.ty || s.bx || s.by) && !runningRef.current) { runningRef.current = true; setRunning(true); }
+      if (s.tx || s.ty || s.bx.x || s.by.x) wake();
     };
     window.addEventListener('pointermove', onMove, { passive: true });
     return () => {
@@ -83,27 +95,7 @@ function useMagnet(anchor: RefObject<HTMLSpanElement | null>, body: RefObject<HT
       if (body.current) body.current.style.translate = '';
       if (label.current) label.current.style.translate = '';
     };
-  }, [enabled, anchor, body, label]);
-  useRafLoop(anchor, (dt) => {
-    const s = sim.current, c = s.tx || s.ty ? SPRING.settle : SPRING.release;
-    const n = Math.max(1, Math.ceil(dt * 240)), h = dt / n;
-    for (let i = 0; i < n; i++) {
-      s.bv += ((-c.stiffness * (s.bx - s.tx) - c.damping * s.bv) / c.mass) * h; s.bx += s.bv * h;
-      s.byv += ((-c.stiffness * (s.by - s.ty) - c.damping * s.byv) / c.mass) * h; s.by += s.byv * h;
-      s.lv += ((-c.stiffness * (s.lx - s.tx * 0.4) - c.damping * s.lv) / c.mass) * h; s.lx += s.lv * h;
-      s.lyv += ((-c.stiffness * (s.ly - s.ty * 0.4) - c.damping * s.lyv) / c.mass) * h; s.ly += s.lyv * h;
-    }
-    if (body.current) body.current.style.translate = `${s.bx.toFixed(2)}px ${s.by.toFixed(2)}px`;
-    if (label.current) label.current.style.translate = `${s.lx.toFixed(2)}px ${s.ly.toFixed(2)}px`;
-    const home = !s.tx && !s.ty && Math.abs(s.bx) + Math.abs(s.by) + Math.abs(s.lx) + Math.abs(s.ly) < 0.05 && Math.abs(s.bv) + Math.abs(s.byv) < 0.2;
-    if (home) {
-      Object.assign(s, { bx: 0, bv: 0, by: 0, byv: 0, lx: 0, lv: 0, ly: 0, lyv: 0 });
-      if (body.current) body.current.style.translate = '';
-      if (label.current) label.current.style.translate = '';
-      runningRef.current = false;
-      setRunning(false);
-    }
-  }, running && enabled);
+  }, [enabled, anchor, body, label, wake]);
 }
 
 /* ── The single primary action, repeated with the same label ─────────── */

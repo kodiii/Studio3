@@ -1,7 +1,7 @@
 'use client';
 import { useCallback, useEffect, useId, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent, type ReactNode } from 'react';
 import { flushSync } from 'react-dom';
-import { cssEase, duration as D, spring as SPRING, springToLinear, useElementSize, useIsomorphicLayoutEffect, useRafLoop } from '../../../motion';
+import { cssEase, duration as D, spring as SPRING, springToLinear, stepSpring, useElementSize, useIsomorphicLayoutEffect, useSettleLoop } from '../../../motion';
 import { DELIVERIES, FAILED, INBOX_URL, secondsOf, type Delivery } from './content';
 import styles from './styles.module.css';
 
@@ -49,8 +49,6 @@ function Timeline({ selected, onSelect, statusOf, reduced }: { selected: Deliver
   const sim = useRef({ x: reduced ? secondsOf(selected.at) : 0, v: 0, target: secondsOf(selected.at) });
   const drag = useRef<{ id: number } | null>(null);
   const last = useRef(selected.id);
-  const [running, setRunning] = useState(false);
-  const runningRef = useRef(false);
 
   const write = useCallback(() => {
     const el = head.current;
@@ -58,7 +56,14 @@ function Timeline({ selected, onSelect, statusOf, reduced }: { selected: Deliver
     el.style.transform = `translateX(${((sim.current.x / DAY) * size.width).toFixed(2)}px)`;
     if (label.current) label.current.textContent = hhmm(sim.current.x);
   }, [size.width]);
-  const wake = () => { if (!runningRef.current) { runningRef.current = true; setRunning(true); } };
+  // The playhead's spring: while held it chases the hand on `press`; let go, it lands on `release` and the loop sleeps.
+  const wake = useSettleLoop(track, (dt) => {
+    const s = sim.current, held = !!drag.current;
+    const settled = stepSpring(s, s.target, held ? SPRING.press : SPRING.release, dt, held ? undefined : { restDelta: 8, restSpeed: 30 });
+    write();
+    if (held) { const d = nearest(s.x); if (d.id !== last.current) { last.current = d.id; onSelect(d.id); } }
+    return !held && settled;
+  }, !reduced);
   useEffect(() => { write(); }, [write]);
 
   // The list (or the keyboard) chose a delivery: glide there.
@@ -71,16 +76,6 @@ function Timeline({ selected, onSelect, statusOf, reduced }: { selected: Deliver
   }, [selected.id, reduced]);
 
   const nearest = (sec: number) => BY_TIME.reduce((b, d) => (Math.abs(secondsOf(d.at) - sec) < Math.abs(secondsOf(b.at) - sec) ? d : b), BY_TIME[0]);
-
-  useRafLoop(track, (dt) => {
-    const s = sim.current, held = !!drag.current;
-    const c = held ? SPRING.press : SPRING.release;
-    const n = Math.max(1, Math.ceil(dt * 240)), h = dt / n;
-    for (let i = 0; i < n; i++) { s.v += ((-c.stiffness * (s.x - s.target) - c.damping * s.v) / c.mass) * h; s.x += s.v * h; }
-    write();
-    if (held) { const d = nearest(s.x); if (d.id !== last.current) { last.current = d.id; onSelect(d.id); } }
-    else if (Math.abs(s.x - s.target) < 8 && Math.abs(s.v) < 30) { s.x = s.target; s.v = 0; write(); runningRef.current = false; setRunning(false); }
-  }, running && !reduced);
 
   const timeAt = (clientX: number) => {
     const r = track.current?.getBoundingClientRect();

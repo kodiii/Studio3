@@ -56,7 +56,8 @@ Realism here means plausible, not photographic: things behave as if they had mas
 - Anything a finger or pointer moves is driven by a spring and keeps its release velocity
   (`spring.release`; Motion `drag`). A drag that snaps back on a fixed curve feels dead.
 - Larger things move slower and settle softer (`spring.glide`); small things are quick and tight (`spring.press`).
-- Use `springToLinear()` to give CSS and WAAPI transitions a real spring without a JavaScript loop.
+- Use `springToLinear()` to give CSS and WAAPI transitions a real spring without a JavaScript loop; for values the
+  hand drives every frame, step them with `stepSpring()` (and `useSettleLoop()` to sleep once settled).
 - Add resistance at limits (rubber-banding) instead of a hard stop; add friction to thrown content.
 
 **Light.**

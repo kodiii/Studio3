@@ -79,8 +79,8 @@ One dispatcher (`maquettekit.mjs`) and one directory per command. Rules shared b
 ## Library (`plugins/maquettekit/library/`)
 
 - `src/motion/` — tokens (durations, easings, springs, stagger, distance, experience-profile scaling,
-  `springToLinear`), `createSequence` (WAAPI timeline with labels, stagger, seek, reverse, cancel), `flip`,
-  `viewTransition`, hooks (`useInView`, `useScrollProgress`, `useRafLoop`, `useElementSize`) and `useStudioMotion`
+  `springToLinear`), `stepSpring` (a 1D spring stepped per frame that keeps its velocity), `createSequence` (WAAPI timeline with labels, stagger, seek, reverse, cancel), `flip`,
+  `viewTransition`, hooks (`useInView`, `useScrollProgress`, `useRafLoop`, `useSettleLoop`, `useElementSize`) and `useStudioMotion`
   (OS reduced-motion preference merged with an in-app override that can only add reduction).
 - `src/three/` — capability detection (WebGL, and WebGPU only when an adapter is acquired), quality profiles and
   adaptive DPR, disposal helpers and `ResourceTracker`, `StudioCanvas` (fallback, lazy mount, render-on-demand,

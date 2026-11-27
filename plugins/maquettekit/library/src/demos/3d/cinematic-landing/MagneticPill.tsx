@@ -8,8 +8,8 @@
  *    and reduced motion, where the button keeps its hover, focus and pressed states.
  */
 import { useEffect, useRef, useState, useSyncExternalStore, type KeyboardEvent, type ReactNode } from 'react';
-import { spring as SPRING, useRafLoop, useStudioMotion } from '../../../motion';
-import { stepSpring, type Axis } from './stage';
+import { spring as SPRING, stepSpring, useRafLoop, useStudioMotion } from '../../../motion';
+import type { Axis } from './stage';
 import styles from './styles.module.css';
 
 const FINE = '(hover: hover) and (pointer: fine)';

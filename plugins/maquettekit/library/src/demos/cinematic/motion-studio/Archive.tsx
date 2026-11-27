@@ -7,7 +7,7 @@
  * Reduced motion: the strip stops where you let go.
  */
 import { useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
-import { spring as SPRING, useRafLoop, useStudioMotion } from '../../../motion';
+import { spring as SPRING, stepSpring, useRafLoop, useStudioMotion } from '../../../motion';
 import { ARCHIVE } from './content';
 import { ArchiveArt } from './art';
 import s from './styles.module.css';
@@ -15,12 +15,6 @@ import s from './styles.module.css';
 interface Axis { x: number; v: number }
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 const rubberBand = (over: number, d: number, c = 0.55) => (d <= 0 || over === 0 ? 0 : Math.sign(over) * (1 - 1 / ((Math.abs(over) * c) / d + 1)) * d);
-function stepAxis(a: Axis, target: number, dt: number) {
-  const c = SPRING.release;
-  const n = Math.max(1, Math.ceil(dt * 240));
-  const h = dt / n;
-  for (let i = 0; i < n; i++) { a.v += ((-c.stiffness * (a.x - target) - c.damping * a.v) / c.mass) * h; a.x += a.v * h; }
-}
 /** Release velocity is projected this far ahead (s) to pick the frame the strip glides to. */
 const PROJECTION = 0.26;
 
@@ -62,9 +56,8 @@ export function Archive({ headingId, hintId }: { headingId: string; hintId: stri
       x = c.target + (c.from - c.target) * u * u * u;
       done = c.t >= c.span;
     } else {
-      stepAxis(c.pos, c.target, dt);
+      done = stepSpring(c.pos, c.target, SPRING.release, dt, { restDelta: 0.3, restSpeed: 3 });
       x = c.pos.x;
-      done = Math.abs(c.pos.x - c.target) < 0.3 && Math.abs(c.pos.v) < 3;
     }
     apply(done ? c.target : x, c.max, c.width);
     if (done) setCoasting(false);

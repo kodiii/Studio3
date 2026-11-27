@@ -9,7 +9,7 @@
  * - One light direction for the whole scene, eased with `spring.glide` toward the pointer.
  * Reduced motion: positions, shape and lift jump; no glide, rubber band, stretch or light animation.
  */
-import { duration, sec, spring, type SpringConfig } from '../../motion';
+import { duration, sec, spring, stepSpring, type SpringConfig } from '../../motion';
 
 export type ShapeId = 'pill' | 'circle' | 'squircle';
 export const SHAPE_IDS: readonly ShapeId[] = ['pill', 'circle', 'squircle'];
@@ -23,14 +23,8 @@ export const SHAPES: Record<ShapeId, { hx: number; hy: number; r: number; n: num
 
 interface Spring1 { x: number; v: number; to: number }
 const make = (x: number): Spring1 => ({ x, v: 0, to: x });
-const SUB = 1 / 240; // fixed sub-step: semi-implicit Euler stays stable for the stiffest token at any frame time
-function advance(s: Spring1, c: SpringConfig, dt: number): void {
-  for (let t = 0; t < dt; t += SUB) {
-    const h = Math.min(SUB, dt - t);
-    s.v += ((-c.stiffness * (s.x - s.to) - c.damping * s.v) / c.mass) * h;
-    s.x += s.v * h;
-  }
-}
+const SUB = 1 / 240; // glideAxis's sub-step (the same bound stepSpring uses)
+const advance = (s: Spring1, c: SpringConfig, dt: number): void => { stepSpring(s, s.to, c, dt); };
 const still = (s: Spring1, eps: number) => Math.abs(s.x - s.to) < eps && Math.abs(s.v) < eps * 8;
 const snap = (s: Spring1, x = s.to) => { s.x = x; s.to = x; s.v = 0; };
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
@@ -300,6 +294,7 @@ export class LensEngine {
   }
 
   /** Free glide: drag plus a little sliding friction (a clean stop, no long creep); past an edge a spring pulls back. */
+  // Kept local, not stepSpring: friction inside the band and a spring only past an edge, switched per sub-step.
   private glideAxis(s: Spring1, lo: number, hi: number, dt: number): void {
     const c = spring.settle;
     for (let t = 0; t < dt; t += SUB) {
