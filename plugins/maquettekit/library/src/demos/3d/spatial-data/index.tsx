@@ -1,5 +1,6 @@
 'use client';
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { spring as SPRING, springToLinear, useStudioMotion } from '../../../motion';
 import { StudioCanvas, useCanvasDiagnostics, formatCount } from '../../../three';
 import { Atlas, useLabelStore, type AtlasHandle, type ViewMode } from './Atlas';
 import { CLUSTERS, EDGES_LIST, KINDS, NODES, PALETTE, formatRpm, relax, type AtlasNode, type ClusterId, type NodeKind } from './data';
@@ -76,6 +77,15 @@ export default function SpatialData() {
   const uid = useId();
   const theme = useTheme();
   const labels = useLabelStore();
+  // One stable ref callback per label: inline callbacks would detach and re-attach on every render.
+  const labelRef = useMemo(() => {
+    const cache = new Map<string, (el: HTMLElement | null) => void>();
+    return (key: string) => {
+      let f = cache.get(key);
+      if (!f) { f = (el: HTMLElement | null) => labels.register(key, el); cache.set(key, f); }
+      return f;
+    };
+  }, [labels]);
   const atlas = useRef<AtlasHandle>(null);
   const tableBox = useRef<HTMLDivElement>(null);
   const fromScene = useRef(false);
@@ -86,6 +96,10 @@ export default function SpatialData() {
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<{ key: SortKey; dir: 1 | -1 }>({ key: 'rpm', dir: -1 });
   const diag = useCanvasDiagnostics(1000);
+  const { reduced } = useStudioMotion();
+  // Buttons release on a real spring (motion tokens) sampled into a CSS linear() curve.
+  const release = useMemo(() => springToLinear(SPRING.press), []);
+  const rootStyle = { '--release-ease': release.easing, '--release-dur': `${release.duration}ms` } as CSSProperties;
 
   const q = query.trim().toLowerCase();
   const matches = useMemo<ReadonlySet<number> | null>(() => (q ? new Set(NODES.filter((n) => n.id.includes(q) || n.role.toLowerCase().includes(q) || n.team.toLowerCase().includes(q)).map((n) => n.index)) : null), [q]);
@@ -126,9 +140,10 @@ export default function SpatialData() {
   const sortBy = (key: SortKey) => setSort((s) => (s.key === key ? { key, dir: s.dir === 1 ? -1 : 1 } : { key, dir: key === 'id' || key === 'cluster' || key === 'kind' ? 1 : -1 }));
   const describe = (n: AtlasNode) => `${n.id}, ${KINDS[n.kind].label.toLowerCase()} in ${clusterName(n.cluster)}: ${n.out.length} dependencies, ${n.in.length} callers`;
   const shownCount = NODES.filter((n) => visible.has(n.cluster)).length;
+  const busiest = useMemo(() => NODES.filter((n) => visible.has(n.cluster)).sort((a, b) => b.rpm - a.rpm).slice(0, 3), [visible]);
 
   return (
-    <div className={`${styles.root} bg-bg pb-20 text-ink`} data-atlas="">
+    <div className={`${styles.root} bg-bg pb-20 text-ink`} data-atlas="" style={rootStyle} data-reduced={reduced || undefined}>
       <header className="mx-auto max-w-[1360px] px-4 pt-6 @3xl:px-8 @3xl:pt-10">
         <p className="mk-label m-0 flex flex-wrap items-center gap-x-3 gap-y-1 text-muted">
           <span>Meridian platform</span><span aria-hidden="true">/</span><span>Service atlas</span>
@@ -168,7 +183,7 @@ export default function SpatialData() {
           <div className={styles.stage} data-mode={mode}>
             <StudioCanvas
               label="Service dependency map (sample data)"
-              description={`${shownCount} services shown as shapes grouped by cluster, with lines for calls. ${node ? `Selected: ${describe(node)}.` : 'Nothing selected.'} The table below lists the same data.`}
+              description={`${shownCount} services shown as shapes grouped by cluster, with curved links for calls. ${node ? `Selected: ${describe(node)}.` : 'Nothing selected.'} The table below lists the same data.`}
               flat
               camera={{ fov: 40, near: 0.1, far: 200, position: [9.5, 7.5, 15.5] }}
               style={{ position: 'absolute', inset: 0 }}
@@ -179,10 +194,10 @@ export default function SpatialData() {
             </StudioCanvas>
             <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
               {CLUSTERS.filter((c) => visible.has(c.id)).map((c) => (
-                <span key={c.id} ref={(el) => labels.register(`c:${c.id}`, el)} className={styles.clusterLabel} style={{ color: PALETTE[theme][c.id] }}>{c.name}</span>
+                <span key={c.id} ref={labelRef(`c:${c.id}`)} className={styles.clusterLabel} style={{ color: PALETTE[theme][c.id] }}>{c.name}</span>
               ))}
               {labelNodes.map((i) => (
-                <span key={i} ref={(el) => labels.register(`n:${i}`, el)} className={`${styles.nodeLabel} ${i === selected ? styles.nodeLabelOn : ''}`}>{NODES[i].id}</span>
+                <span key={i} ref={labelRef(`n:${i}`)} className={`${styles.nodeLabel} ${i === selected ? styles.nodeLabelOn : ''}`}>{NODES[i].id}</span>
               ))}
             </div>
             <p className="mk-label pointer-events-none absolute bottom-2 left-3 m-0 text-muted">Sample data · {mode === '3d' ? '3D force layout' : 'planar layout'}</p>
@@ -193,12 +208,12 @@ export default function SpatialData() {
         </section>
 
         <aside className="grid min-w-0 content-start gap-6" aria-label="Details and filters">
-          <section aria-labelledby={`${uid}detail`} className="rounded-[10px] border border-line-strong bg-surface p-4" data-detail="">
+          <section aria-labelledby={`${uid}detail`} className={`${styles.detail} rounded-[10px] border border-line-strong bg-surface p-4`} data-detail="">
             <h3 id={`${uid}detail`} className="mk-label m-0 text-muted">{node ? 'Selected service' : hoverNode ? 'Pointing at' : 'Selected service'}</h3>
             {node || hoverNode ? (() => {
               const n = (node ?? hoverNode)!;
               return (
-                <div aria-live="polite">
+                <div aria-live="polite" className={styles.detailBody}>
                   <p className="m-0 mt-2 flex items-center gap-2 font-display text-[1.45rem] font-bold tracking-[-0.03em]"><KindGlyph kind={n.kind} color={PALETTE[theme][n.cluster]} />{n.id}</p>
                   <p className="m-0 mt-1 text-[13.5px] leading-snug text-muted">{n.role}</p>
                   <dl className="m-0 mt-3 grid grid-cols-2 gap-x-4 border-t border-line text-[13px]">
@@ -207,7 +222,7 @@ export default function SpatialData() {
                     ))}
                   </dl>
                   {node ? (
-                    <div className="mt-3 grid gap-3">
+                    <div className={`${styles.detailLists} mt-3 grid content-start gap-3`}>
                       {([['Depends on', node.out], ['Called by', node.in]] as const).map(([title, list]) => (
                         <div key={title}>
                           <p className="mk-label m-0 mb-1.5 text-muted">{title} ({list.length})</p>
@@ -225,7 +240,22 @@ export default function SpatialData() {
                   ) : null}
                 </div>
               );
-            })() : <p className="m-0 mt-2 text-[13.5px] leading-snug text-muted">Nothing selected. Click a shape, or choose a service in the table.</p>}
+            })() : (
+              <div className="mt-2 grid gap-3">
+                <p className="m-0 text-[13.5px] leading-snug text-muted">Nothing selected. Click a shape, or choose a service in the table.</p>
+                <dl className="m-0 grid grid-cols-3 gap-2 border-t border-line pt-3">
+                  {([['Services', NODES.length], ['Links', EDGES_LIST.length], ['Clusters', CLUSTERS.length]] as const).map(([k, v]) => (
+                    <div key={k}><dt className="mk-label text-muted">{k}</dt><dd className="m-0 mt-1 font-display text-[1.6rem] font-bold leading-none tabular-nums">{v}</dd></div>
+                  ))}
+                </dl>
+                <div>
+                  <p className="mk-label m-0 mb-1.5 text-muted">Busiest, by calls / min (sample)</p>
+                  <ul className="m-0 flex list-none flex-wrap gap-1.5 p-0">
+                    {busiest.map((n) => <li key={n.id}><button type="button" className={styles.pill} onClick={() => setSelected(n.index)}>{n.id}</button></li>)}
+                  </ul>
+                </div>
+              </div>
+            )}
           </section>
 
           <section aria-labelledby={`${uid}filters`}>
@@ -249,7 +279,7 @@ export default function SpatialData() {
             <ul className="m-0 grid list-none grid-cols-2 gap-x-3 gap-y-1.5 p-0 text-[13px]">
               {(Object.keys(KINDS) as NodeKind[]).map((k) => <li key={k} className="flex items-center gap-2"><KindGlyph kind={k} />{KINDS[k].plural}</li>)}
             </ul>
-            <p className="m-0 mt-3 text-[12.5px] leading-snug text-muted">Size follows calls per minute. A line fades from the caller to the service it depends on.</p>
+            <p className="m-0 mt-3 text-[12.5px] leading-snug text-muted">Size follows calls per minute. A link fades from the caller to the service it depends on; selecting a service sends two pulses along its links in that direction. Link thickness and pulse speed carry no data.</p>
           </section>
 
           <section aria-labelledby={`${uid}why`} className="border-t border-line-strong pt-3">
@@ -303,7 +333,7 @@ export default function SpatialData() {
           </table>
         </div>
         <p className="m-0 mt-3 text-[12.5px] text-muted">
-          Renderer, last frame: {diag ? `${formatCount(diag.renderer.calls)} draw calls (one per shape type + one for every line), ${formatCount(diag.renderer.triangles)} triangles, ${formatCount(diag.frames)} frames drawn on demand` : 'not running (static map or table only)'}.
+          Renderer, last frame: {diag ? `${formatCount(diag.renderer.calls)} draw calls (one per node shape, one for all links, one for the contact shadows, one for the selection ring when shown), ${formatCount(diag.renderer.triangles)} triangles, ${formatCount(diag.frames)} frames drawn on demand` : 'not running (static map or table only)'}.
         </p>
       </section>
     </div>

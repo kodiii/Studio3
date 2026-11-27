@@ -591,11 +591,14 @@ const Simulation = forwardRef<WorldHandle, SimProps>(function Simulation(
       {bodies.map((b) => (
         <Toy key={b.id} spec={b} geometry={geometries[b.shape]} shadows={shadows} lacquer={lacquer} register={register} attach={attach} onGrab={onGrab} onHover={onHover} />
       ))}
-      <instancedMesh ref={shadowMesh} args={[shadowRes.geometry, shadowRes.material, SHADOW_CAPACITY]} frustumCulled={false} renderOrder={1} raycast={() => null} />
-      <mesh ref={ring} geometry={ringRes.geometry} material={ringRes.material} visible={false} renderOrder={2} raycast={() => null} />
+      <instancedMesh ref={shadowMesh} args={[shadowRes.geometry, shadowRes.material, SHADOW_CAPACITY]} frustumCulled={false} renderOrder={1} raycast={noRaycast} />
+      <mesh ref={ring} geometry={ringRes.geometry} material={ringRes.material} visible={false} renderOrder={2} raycast={noRaycast} />
     </>
   );
 });
+/** Stable (a new inline function per render would count as a prop change, and R3F draws a frame for each). */
+const noRaycast = () => null;
+
 const World = forwardRef<WorldHandle, WorldProps>(function World({ gravity, ...rest }, ref) {
   // `paused` on <Physics> stops Rapier's own stepper; Simulation steps the world itself (see above).
   return (
