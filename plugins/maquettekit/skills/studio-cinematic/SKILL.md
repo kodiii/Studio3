@@ -122,6 +122,10 @@ Validation; automated capture cannot judge pacing.
 - [ ] The first beat's text is visible without waiting for script (LCP is not hidden behind an intro).
 - [ ] Works on touch at 390 px with the mobile address bar showing and hiding; no jump on resize.
 - [ ] Keyboard users can reach every chapter and control; focus is never hidden by pinned layers.
+- [ ] Craft floor (Immersive, `shared/motion-craft.md` §1): the visitor can handle the subject — drag to turn,
+      scrub or throw it, on a spring that keeps its release velocity — and arrow keys plus a button do the same;
+      light and depth answer the pointer from one light direction; at least one layer follows the pointer or
+      scroll velocity instead of only playing back.
 - [ ] No fabricated facts, quotes, awards or figures in the narrative.
 
 ## Reference files

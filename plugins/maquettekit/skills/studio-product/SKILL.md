@@ -115,6 +115,10 @@ Each is a checkable statement. A build that fails one is not finished.
 - [ ] Exactly one primary action per view; secondary actions are visibly secondary.
 - [ ] Every interactive component implements rest, hover, focus-visible, active, disabled and, where async,
       loading, success and error.
+- [ ] Craft floor (Expressive, `shared/motion-craft.md` §1; repeated flows stay Essential): one direct-manipulation
+      interaction on the product itself (drag, scrub, swipe or reorder) on a spring that keeps its velocity, with
+      arrow keys and a button doing the same; controls press in and lift with two-layer shadows lit from one
+      direction; at least one element answers the pointer or the scroll continuously.
 - [ ] Every async surface has designed empty, loading, error and partial states.
 - [ ] Forms: visible labels, errors on blur or submit (never while first typing), messages that say how to fix,
       no data lost on error.

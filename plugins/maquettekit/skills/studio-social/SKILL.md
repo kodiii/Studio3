@@ -110,6 +110,9 @@ Each is a checkable statement. A build that fails one is not finished.
       content labelled as such; nothing ticks or looks live without a real source.
 - [ ] Every gesture (swipe, drag, long-press, double-tap, pinch, pull) has a visible single-pointer
       alternative and a keyboard path (2.5.1, 2.5.7, 2.1.1).
+- [ ] Craft floor (Expressive, `shared/motion-craft.md` §1): at least one gesture is physical (follows the finger,
+      keeps its release velocity, resists at the ends); reactions and controls press in with depth and lit
+      shadows; something answers the pointer or the scroll continuously.
 - [ ] Auto-advancing or autoplaying content (stories, video, carousels) can be paused, does not advance under
       reduced motion, and never plays sound without opt-in.
 - [ ] Feeds reach a natural end or "You're up to date" marker; autoplay-next is controllable; the footer is
