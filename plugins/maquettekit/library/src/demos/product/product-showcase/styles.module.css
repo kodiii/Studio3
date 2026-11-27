@@ -210,10 +210,9 @@
 .detailTitle span { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--mk-signal, #bf2f09); color: var(--mk-on-signal, #fff); font: 600 0.75rem/1 var(--mk-font-mono, ui-monospace, monospace); }
 .detailBody { margin: 6px 0 0; font-size: 0.875rem; line-height: 1.45; color: var(--mk-ink-muted, #5c5a52); }
 
-/* 3D viewer. `will-change: filter` composites the viewer in its own render surface: without it, headless Chromium's
-   compositor occlusion-culls the WebGL layer under the gallery's sticky header with the visible rect flipped
-   vertically, so a canvas scrolled partly under the header drew only a strip of the model. */
-.viewer { position: absolute; inset: 0; z-index: 2; opacity: 0; will-change: filter; transition: opacity var(--mk-duration-moderate, 360ms) var(--mk-ease-standard, ease); }
+/* 3D viewer. Its StudioCanvas is `isolate`d (own compositing surface): without that, headless Chromium drew only a
+   strip of the WebGL layer once the stage sat partly under the gallery's sticky header. */
+.viewer { position: absolute; inset: 0; z-index: 2; opacity: 0; transition: opacity var(--mk-duration-moderate, 360ms) var(--mk-ease-standard, ease); }
 .viewer[data-ready] { opacity: 1; }
 .viewerError { position: absolute; inset: 0; z-index: 4; display: grid; background: var(--mk-surface-2, #e9e5da); }
 

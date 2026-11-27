@@ -217,9 +217,11 @@ Three pieces share one store (`useHotspotStore()`):
 | `HotspotLayer` | DOM sibling of `StudioCanvas` inside the same `position: relative` box | Numbered marker buttons (30 px) and the open annotation card; `Escape` closes |
 | `HotspotList` | Anywhere in DOM, also shown in the fallback | The same annotations as an ordered list of buttons (44 px rows): the stable keyboard and screen-reader path |
 
-Occluded markers fade to 0.28 opacity but stay clickable; markers behind the camera hide. Keep the count small
-(each costs a raycast per frame) or pass `occlude={false}`. Selecting a hotspot may move the camera; announce the
-destination in text.
+Occluded markers fade to 0.28 opacity and turn inert (the list stays the stable path); markers behind the camera
+hide. Keep the count small: each costs a raycast per rendered frame. For a heavy model in a scene that moves
+continuously (inertia, idle sway, a playing clip), wrap the model in drei's `<Bvh>` inside its `<Suspense>` so the
+rays (and pointer picking) are cheap, or throttle the tests with `occludeInterval` (ms); `occlude={false}` turns it
+off. Selecting a hotspot may move the camera; announce the destination in text.
 
 ## 9. Showrooms and multi-object scenes
 

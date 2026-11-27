@@ -129,16 +129,6 @@ export function Director({
     invalidate();
   }, [ambience, reduced, invalidate, loaded]);
 
-  // The key light casts a real shadow on the plinth where the profile allows shadow maps.
-  useEffect(() => {
-    const key = lights.current?.key;
-    if (!key) return;
-    key.castShadow = quality.shadows;
-    key.shadow.radius = 5;
-    invalidate();
-    return () => { key.castShadow = false; };
-  }, [quality.shadows, invalidate]);
-
   // The environment turns with the key light; restore what was there before.
   useEffect(() => {
     const prev = scene.environmentRotation.y;
@@ -398,7 +388,8 @@ export function Director({
   return (
     <>
       <fog attach="fog" args={['#14110d', 10.5, 27]} />
-      <LightingRig ref={lights} preset={NIGHT} shadow="none" shadowRadius={1.7} />
+      {/* The key light casts a real shadow on the plinth (receiveShadow) where the profile allows shadow maps: no catcher plane. */}
+      <LightingRig ref={lights} preset={NIGHT} shadow={quality.shadows ? 'map' : 'none'} shadowCatcher={false} shadowSoftness={5} shadowRadius={1.7} />
       <primitive object={spotTarget} position={[0.55, 1.05, 0]} />
       <spotLight ref={spot} position={[1.9, 4.9, 2.4]} angle={0.3} penumbra={0.85} decay={2} intensity={0} color="#ffe9d4" target={spotTarget} />
       {/* The plinth: a filleted drum whose sides fade into the dark; honed-stone top that takes the key's shadow. */}

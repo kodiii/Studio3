@@ -53,7 +53,26 @@ test.describe('3D gallery (/3d)', () => {
     const d = await diag(page);
     expect(d?.frames).toBeGreaterThan(0);
     expect(d?.frameloop, 'the viewer renders on demand').toBe('demand');
+    await expect(page.locator(HOST), 'the wrapper reports the first drawn frame').toHaveAttribute('data-frame', 'drawn');
     expect(errors()).toEqual([]);
+  });
+
+  test('a preset picked while the viewer is scrolled away plays out when it comes back', async ({ page }) => {
+    await page.goto('/3d');
+    await modelReady(page);
+    await expect(cameraAt(page, 'hero')).toBeAttached({ timeout: 30_000 });
+    // Far enough below that the viewer leaves its 200 px observer margin and the loop stops ('never').
+    await page.evaluate(() => {
+      const stage = document.querySelector('[data-viewer-stage]')!;
+      document.body.style.paddingBottom = '4000px';
+      window.scrollTo(0, stage.getBoundingClientRect().bottom + window.scrollY + 800);
+    });
+    await expect.poll(async () => (await diag(page))?.frameloop, { timeout: 10_000 }).toBe('never');
+    // Pick the preset without scrolling it into view: its camera move is queued while nothing renders.
+    await radio(page, 'Top').evaluate((el) => (el as HTMLInputElement).click());
+    await page.waitForTimeout(500);
+    await page.locator(STAGE).evaluate((el) => el.scrollIntoView({ block: 'center' }));
+    await expect(cameraAt(page, 'top'), 'the move resumes without further input').toBeAttached({ timeout: 30_000 });
   });
 
   test('loads the manifest variant for each quality level; stats match the manifest', async ({ page }) => {

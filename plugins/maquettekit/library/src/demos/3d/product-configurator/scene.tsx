@@ -1,13 +1,13 @@
 'use client';
 /**
  * The configurator's studio, inside the canvas:
- *  - StudioLights: a soft-box studio (direct lights + generated environment) that turns with the camera, like a
- *    turntable under fixed lights, so highlights glide over the finish as you orbit and the page's light (upper
- *    right, shadows falling lower left) is the scene's light from every view. Neutral tone mapping keeps the
- *    swatches true.
- *  - Turntable: real inertia. OrbitInspect follows the hand 1:1 (no damping lag); on release the measured angular
- *    velocity carries on and eases out with friction. ←/→ give the same push. At rest, after a few idle seconds, the
- *    view sways gently (and the status ring breathes) until anything touches it; pausable, off under reduced motion.
+ *  - StudioLights: a soft-box studio (direct lights + generated environment) that turns with the camera
+ *    (LightingRig `followCamera`), like a turntable under fixed lights, so highlights glide over the finish as you
+ *    orbit and the page's light (upper right, shadows falling lower left) is the scene's light from every view.
+ *    Neutral tone mapping keeps the swatches true.
+ *  - Turntable: the idle sway. The inertia itself is OrbitInspect's (`inertia`, `push()`): the view follows the hand
+ *    1:1 and a release coasts out with friction. At rest, after a few idle seconds, the view sways gently (and the
+ *    status ring breathes) until anything touches it; pausable, off under reduced motion.
  *  - GroundShadow: a contact shadow rendered from the real geometry (depth from below, blurred twice: a tight
  *    contact layer and a wide soft one). It re-renders only when the geometry moves (load, explode, strap).
  *  - MaterialSweep: an option change is laid down by a lit seam that crosses the speaker; ahead of it the old finish,
@@ -17,12 +17,12 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, type MutableRefObject, type RefObject } from 'react';
 import {
   Box3, Color, Mesh, MeshDepthMaterial, NeutralToneMapping, OrthographicCamera, PlaneGeometry, Scene, ShaderMaterial, Sphere,
-  UniformsUtils, Vector3, WebGLRenderTarget, type Group, type MeshStandardMaterial, type Object3D,
+  UniformsUtils, Vector3, WebGLRenderTarget, type MeshStandardMaterial, type Object3D,
 } from 'three';
 import { HorizontalBlurShader } from 'three/examples/jsm/shaders/HorizontalBlurShader.js';
 import { VerticalBlurShader } from 'three/examples/jsm/shaders/VerticalBlurShader.js';
 import { duration, sec } from '../../../motion';
-import { LightingRig, useQuality, type CameraRigHandle, type LightingPreset } from '../../../three';
+import { LightingRig, useQuality, type CameraRigHandle, type LightingPreset, type OrbitInspectHandle } from '../../../three';
 
 /** Authored for a camera straight in front; the whole rig turns with the camera. Key upper right, fill left, rim behind. */
 export const STUDIO: LightingPreset = {
@@ -40,110 +40,55 @@ export const STUDIO: LightingPreset = {
   ] },
 };
 
-type Orbit = { target: Vector3; getAzimuthalAngle(): number; rotateLeft(a: number): void; update(dt?: number): boolean; addEventListener(t: string, f: () => void): void; removeEventListener(t: string, f: () => void): void };
-const asOrbit = (c: unknown): Orbit | null => (c && typeof (c as Orbit).getAzimuthalAngle === 'function' ? (c as Orbit) : null);
-
 export function StudioLights() {
   const quality = useQuality();
-  const group = useRef<Group>(null);
   const gl = useThree((s) => s.gl);
-  const scene = useThree((s) => s.scene);
-  const camera = useThree((s) => s.camera);
-  const controls = useThree((s) => s.controls);
   useEffect(() => { const prev = gl.toneMapping; gl.toneMapping = NeutralToneMapping; return () => { gl.toneMapping = prev; }; }, [gl]);
-  useEffect(() => { const prev = scene.environmentRotation.y; return () => { scene.environmentRotation.y = prev; }; }, [scene]);
-  // After the rig and the controls have placed the camera (priorities -2, -1), before the frame is drawn.
-  useFrame(() => {
-    const t = asOrbit(controls)?.target;
-    const az = Math.atan2(camera.position.x - (t?.x ?? 0), camera.position.z - (t?.z ?? 0));
-    if (group.current) group.current.rotation.y = az;
-    scene.environmentRotation.y = az;
-  }, -0.5);
-  return (
-    <group ref={group}>
-      <LightingRig preset={STUDIO} shadow={quality.shadows ? 'map' : 'none'} shadowRadius={1.5} shadowOpacity={0.3} />
-    </group>
-  );
+  return <LightingRig preset={STUDIO} followCamera shadow={quality.shadows ? 'map' : 'none'} shadowRadius={1.5} shadowOpacity={0.3} />;
 }
 
-/* ── Turntable: inertia, keyboard push, idle sway ──────────────────────────────────────────────────── */
+/* ── Turntable: idle sway (the inertia and the keyboard push are OrbitInspect's) ──────────────────── */
 export interface TurntableHandle {
-  /** A push from the keyboard (or a button): +1 turns the view to the right. */
-  push(dir: number): void;
-  /** Something else took the camera (a preset, zoom): drop any coast and restart the idle clock. */
+  /** Something else took the camera (a preset, zoom, a key): drop any coast and restart the idle clock. */
   touch(): void;
 }
-/** Friction: the coast decays with the time constant of the `slow` duration token (large thing, soft settle). */
-const FRICTION_TAU = sec(duration.slow);
 const SWAY = { amplitude: 0.2, period: 14, idle: 3, rampIn: 1.6 };
 
-export const Turntable = forwardRef<TurntableHandle, { reduced: boolean; motion: boolean; rig: RefObject<CameraRigHandle | null>; onSway?: (on: boolean) => void }>(
-  function Turntable({ reduced, motion, rig, onSway }, ref) {
-    const controls = useThree((s) => s.controls);
+type Orbit = { rotateLeft(a: number): void; update(dt?: number): boolean; addEventListener(t: string, f: () => void): void; removeEventListener(t: string, f: () => void): void };
+
+export const Turntable = forwardRef<TurntableHandle, { reduced: boolean; motion: boolean; rig: RefObject<CameraRigHandle | null>; orbit: RefObject<OrbitInspectHandle | null>; onSway?: (on: boolean) => void }>(
+  function Turntable({ reduced, motion, rig, orbit, onSway }, ref) {
+    const controls = useThree((s) => s.controls) as unknown as Orbit | null;
     const invalidate = useThree((s) => s.invalidate);
-    const s = useRef({ dragging: false, v: 0, samples: [] as { t: number; a: number }[], idle: 0, sway: 0, applied: 0, swaying: false });
+    const s = useRef({ dragging: false, idle: 0, sway: 0, applied: 0, swaying: false });
     const live = useRef({ reduced, motion, onSway });
     live.current = { reduced, motion, onSway };
 
     useImperativeHandle(ref, () => ({
-      push(dir) {
-        const o = asOrbit(controls);
-        const st = s.current;
-        st.idle = 0; st.applied = 0;
-        if (!o) return;
-        rig.current?.stop();
-        if (live.current.reduced) { o.rotateLeft(-dir * (Math.PI / 12)); o.update(); }
-        else st.v = Math.max(-5, Math.min(5, st.v + dir * 1.7));
-        invalidate();
-      },
-      touch() { const st = s.current; st.v = 0; st.idle = 0; st.applied = 0; },
-    }), [controls, invalidate, rig]);
+      touch() { const st = s.current; orbit.current?.stop(); st.idle = 0; st.applied = 0; invalidate(); },
+    }), [orbit, invalidate]);
 
     useEffect(() => {
-      const o = asOrbit(controls);
-      if (!o) return;
+      const o = controls;
+      if (!o?.addEventListener) return;
       const st = s.current;
-      const start = () => { st.dragging = true; st.v = 0; st.samples = []; st.idle = 0; st.applied = 0; };
-      const end = () => {
-        st.dragging = false;
-        const now = performance.now();
-        const last = st.samples[st.samples.length - 1];
-        let first = last;
-        for (let i = st.samples.length - 1; i >= 0; i--) { first = st.samples[i]; if (last && last.t - first.t >= 90) break; }
-        const dt = last && first ? (last.t - first.t) / 1000 : 0;
-        // A pointer that stopped before letting go throws nothing; a flick keeps its speed.
-        st.v = last && first && now - last.t < 80 && dt > 0.01 ? Math.max(-4.5, Math.min(4.5, (last.a - first.a) / dt)) : 0;
-        if (live.current.reduced) st.v = 0;
-        invalidate();
-      };
+      const start = () => { st.dragging = true; st.idle = 0; st.applied = 0; };
+      const end = () => { st.dragging = false; invalidate(); };
       o.addEventListener('start', start);
       o.addEventListener('end', end);
       return () => { o.removeEventListener('start', start); o.removeEventListener('end', end); };
     }, [controls, invalidate]);
 
     useFrame((_, rawDt) => {
-      const o = asOrbit(controls);
-      if (!o) return;
+      const o = controls;
+      if (!o?.rotateLeft) return;
       const st = s.current;
       const dt = Math.min(rawDt, 1 / 20);
       const L = live.current;
-      if (st.dragging) {
-        // unwrap so a drag across ±π measures the real travel
-        const a = o.getAzimuthalAngle();
-        const prev = st.samples[st.samples.length - 1];
-        const unwrapped = prev ? prev.a + Math.atan2(Math.sin(a - prev.a), Math.cos(a - prev.a)) : a;
-        st.samples.push({ t: performance.now(), a: unwrapped });
-        if (st.samples.length > 12) st.samples.shift();
-        return;
-      }
+      if (st.dragging) return;
       let busy = false;
-      if (Math.abs(st.v) > 0.02) {
-        o.rotateLeft(-st.v * dt);
-        o.update();
-        st.v *= Math.exp(-dt / FRICTION_TAU);
-        st.idle = 0;
-        busy = true;
-      } else st.v = 0;
+      // A release or a key push is still coasting (OrbitInspect requests those frames itself).
+      if (orbit.current?.coasting) { st.idle = 0; st.applied = 0; busy = true; }
       // Idle sway: a slow, eased back-and-forth around wherever the user left the view.
       const canSway = L.motion && !L.reduced && !rig.current?.moving;
       st.idle = canSway ? st.idle + dt : 0;

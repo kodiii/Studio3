@@ -71,6 +71,7 @@ export default function Viewer3D({ colourway, preset, active, onSelect, onLeaveP
         label={`Pulse speaker in ${colourway.name}, interactive 3D view`}
         description="Drag to turn the speaker, or focus the view and use the arrow keys to rotate and plus or minus to zoom. Numbered markers name the driver, the dial and the strap."
         lazy={false}
+        isolate
         onQualityChange={setLevel}
         onSceneError={setError}
         camera={{ fov: 30, near: 0.1, far: 80, position: PRESETS.hero.position }}
