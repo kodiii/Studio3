@@ -111,18 +111,18 @@ function Card({ c, saved, onSave, onOpen, reduced, fine }: {
             </button>
           </h3>
         </div>
-        <span className={s.saveWrap} data-save="" data-cursor="magnet">
-          <LottieIcon
-            animationData={HEART}
-            segments={ICONS.heart.segments}
-            grid={24}
-            size={22}
-            label={`Save ${c.client}`}
-            pressed={saved}
-            onToggle={(v) => onSave(c.id, v)}
-            className={s.save}
-          />
-        </span>
+        <LottieIcon
+          data-save=""
+          data-cursor="magnet"
+          animationData={HEART}
+          segments={ICONS.heart.segments}
+          grid={24}
+          size={22}
+          label={`Save ${c.client}`}
+          pressed={saved}
+          onToggle={(v) => onSave(c.id, v)}
+          className={s.save}
+        />
       </div>
     </article>
   );

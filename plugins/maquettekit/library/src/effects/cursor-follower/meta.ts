@@ -16,6 +16,8 @@ export const meta: EffectMeta = {
     '"Drag" affordance on carousels and timelines',
     'magnetic calls to action in a hero',
     'editorial long-reads with a text caret',
+    'Play / Pause labels over media that change under a resting pointer',
+    'always-dark bands that hand the follower their own colours (data-cursor-area)',
   ],
   dependencies: [],
   params: [
@@ -39,6 +41,8 @@ export const meta: EffectMeta = {
     'Target rects, the scope rect and the layer origin are cached when a target is entered and refreshed at the start of the next frame after scroll or resize; every frame reads before it writes, and nothing is measured after a write.',
     'Position, squash and stretch, press and presence are transforms and opacity. The outline morph writes the geometry of one SVG rect, only while a morph is moving, and identical values are never re-written.',
     'Listeners are passive and installed only on fine-pointer devices with motion allowed; unmount removes them and clears every translate written to a magnet.',
+    'One MutationObserver watches only the hovered target\'s data-cursor, data-cursor-label and disabled attributes, so a label that changes under a still pointer updates at once; it moves with the target and is disconnected on unmount. A ref handle\'s refresh() re-reads what is under the pointer for any other change.',
+    'A [data-cursor-area] section hands the follower its colours (its own --cursor-* properties, or the --mk-* tokens it redefines): its computed style is read once per area entered and written to the two layers as custom properties.',
   ],
   preview: { height: 1000 },
 };

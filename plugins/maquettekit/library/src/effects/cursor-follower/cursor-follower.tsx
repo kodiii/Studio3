@@ -6,15 +6,26 @@
  *   data-cursor-label="View"    the ring blooms into a filled disc showing the label
  *   data-cursor="text"          the ring narrows to a caret that lands between real characters
  *   data-cursor="none"          the follower steps aside (inputs, canvases with their own cursor)
- * The closest marked ancestor of the element under the pointer wins. The native cursor is never hidden.
+ * The closest marked ancestor of the element under the pointer wins, and changes to its attributes are seen at once
+ * (a "Play" label that becomes "Pause" under a resting pointer). Mark a section `data-cursor-area` to hand the
+ * follower that section's colours while the pointer is inside it: its own --cursor-* properties, or the --mk-* theme
+ * tokens it redefines (an always-dark band). The native cursor is never hidden.
  */
-import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode, type RefObject } from 'react';
+import { useEffect, useImperativeHandle, useLayoutEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode, type Ref, type RefObject } from 'react';
 import { spring as SPRING, useRafLoop, useStudioMotion, type SpringConfig, type SpringToken } from '../../motion';
 import { FollowerEngine, type CursorState, type FollowerOptions } from './engine';
 import { clamp } from './physics';
 import styles from './follower.module.css';
 
 export type { CursorState } from './engine';
+
+export interface CursorFollowerHandle {
+  /**
+   * Look again at what is under a resting pointer. Only needed when content changes without the pointer moving and
+   * without an attribute change on the hovered target (an element replaced, a marker added to a descendant).
+   */
+  refresh(): void;
+}
 
 export interface CursorFollowerProps {
   /** Element the follower lives in. Pass `'document'` to follow across the whole page (opt-in). */
@@ -40,6 +51,7 @@ export interface CursorFollowerProps {
   className?: string;
   /** Also accepts the theming custom properties: --cursor-ring, --cursor-dot, --cursor-fill, --cursor-on-fill, --cursor-halo, --cursor-z. */
   style?: CSSProperties;
+  ref?: Ref<CursorFollowerHandle>;
 }
 
 /* A follower only makes sense for a precise pointer that can hover. */
@@ -71,7 +83,7 @@ export function CursorFollower(props: CursorFollowerProps) {
 
 function FollowerLayers({
   scope, follow, size = 36, stretch = 0.55, blend = false, dot = true, magnetPull = 0.3, magnetPadding = 8,
-  renderLabel, onStateChange, className, style,
+  renderLabel, onStateChange, className, style, ref,
 }: CursorFollowerProps) {
   const ringLayer = useRef<HTMLDivElement>(null);
   const labelLayer = useRef<HTMLDivElement>(null);
@@ -128,6 +140,8 @@ function FollowerLayers({
       setActive(false);
     };
   }, [scope]);
+
+  useImperativeHandle(ref, () => ({ refresh: () => engine.current?.refresh() }), []);
 
   // Parameter changes animate to their new values when the follower is on screen.
   const followKey = typeof follow === 'string' || follow === undefined ? String(follow) : `${follow.stiffness}/${follow.damping}/${follow.mass}`;

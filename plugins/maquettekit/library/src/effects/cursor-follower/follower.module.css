@@ -1,14 +1,16 @@
 /*
  * Two fixed, click-through layers: the ring and dot (which may blend), then the label disc (which never does, so
  * its text stays legible). The engine clips both to the scope and moves everything with transforms.
- * Theme with --cursor-ring, --cursor-dot, --cursor-fill, --cursor-on-fill, --cursor-halo and --cursor-z.
+ * Theme with --cursor-ring, --cursor-dot, --cursor-fill, --cursor-on-fill, --cursor-halo and --cursor-z; a section
+ * marked data-cursor-area hands the follower its own colours while the pointer is inside it.
  */
 .layer {
-  --_ring: var(--cursor-ring, var(--mk-ink, #11110f));
-  --_dot: var(--cursor-dot, var(--mk-signal, #bf2f09));
-  --_fill: var(--cursor-fill, var(--mk-signal, #bf2f09));
-  --_on-fill: var(--cursor-on-fill, var(--mk-on-signal, #ffffff));
-  --_halo: var(--cursor-halo, var(--mk-surface, #fbf9f4));
+  /* --cursor-area-* are written by the engine while the pointer is inside a [data-cursor-area]. */
+  --_ring: var(--cursor-area-ring, var(--cursor-ring, var(--mk-ink, #11110f)));
+  --_dot: var(--cursor-area-dot, var(--cursor-dot, var(--mk-signal, #bf2f09)));
+  --_fill: var(--cursor-area-fill, var(--cursor-fill, var(--mk-signal, #bf2f09)));
+  --_on-fill: var(--cursor-area-on-fill, var(--cursor-on-fill, var(--mk-on-signal, #ffffff)));
+  --_halo: var(--cursor-area-halo, var(--cursor-halo, var(--mk-surface, #fbf9f4)));
   position: fixed;
   inset: 0;
   z-index: var(--cursor-z, 60);

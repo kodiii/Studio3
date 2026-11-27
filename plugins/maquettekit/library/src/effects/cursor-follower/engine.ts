@@ -49,6 +49,22 @@ interface Box { left: number; top: number; width: number; height: number }
 interface Magnet { el: HTMLElement | SVGElement; rect: Box; radius: number; x: Axis; y: Axis; engaged: boolean; written: string }
 
 export const CURSOR_SELECTOR = '[data-cursor], [data-cursor-label]';
+/** An area (a section, a band) whose own colours the follower takes while the pointer is inside it. */
+export const AREA_SELECTOR = '[data-cursor-area]';
+/** Target attributes that change what the follower shows; watched on the hovered target only. */
+const TARGET_ATTRS = ['data-cursor', 'data-cursor-label', 'disabled'];
+/**
+ * Colours an area hands to the follower: its own `--cursor-*` if set, else the theme token it redefines (an
+ * always-dark band usually redefines `--mk-ink` and friends). Written to the layers as `--cursor-area-*`, which
+ * win over `--cursor-*` and the scope's tokens, and removed when the pointer leaves the area.
+ */
+const AREA_COLOURS: readonly (readonly [string, string, string])[] = [
+  ['--cursor-area-ring', '--cursor-ring', '--mk-ink'],
+  ['--cursor-area-dot', '--cursor-dot', '--mk-signal'],
+  ['--cursor-area-fill', '--cursor-fill', '--mk-signal'],
+  ['--cursor-area-on-fill', '--cursor-on-fill', '--mk-on-signal'],
+  ['--cursor-area-halo', '--cursor-halo', '--mk-surface'],
+];
 const MODIFIERS = new Set(['Shift', 'Control', 'Alt', 'AltGraph', 'Meta', 'CapsLock', 'Fn', 'OS']);
 
 /* Springs — all Motion Lab tokens, some played faster (same damping ratio, so the same character). */
@@ -113,6 +129,8 @@ export class FollowerEngine {
   private foreign = false; // last pointer was touch or pen
   private pressed = false;
   private target: Element | null = null;
+  private area: Element | null = null;
+  private watch: MutationObserver | null = null;
   private kind: Kind = 'default';
   private visual: Exclude<Kind, 'none'> = 'default';
   private magnet: Magnet | null = null;
@@ -184,6 +202,7 @@ export class FollowerEngine {
       this.ro = new ResizeObserver(this.onGeometry);
       this.ro.observe(s);
     }
+    if (typeof MutationObserver !== 'undefined') this.watch = new MutationObserver(this.onTargetMutation);
   }
 
   detach(): void {
@@ -199,6 +218,10 @@ export class FollowerEngine {
     window.removeEventListener('blur', this.onBlur);
     this.ro?.disconnect();
     this.ro = null;
+    this.watch?.disconnect();
+    this.watch = null;
+    this.target = null;
+    this.setArea(null);
     // Hand every magnet back exactly as it was.
     for (const m of this.magnets.values()) m.el.style.translate = '';
     this.magnets.clear();
@@ -207,6 +230,16 @@ export class FollowerEngine {
 
   /** Options changed: animate toward the new values if anything is on screen. */
   nudge(): void { if (!this.idle) this.hooks.wake(); }
+
+  /**
+   * Look again at whatever is under a resting pointer: for content that changed without moving it (an element
+   * replaced, a marker added to a descendant). Attribute changes on the hovered target itself are seen on their own.
+   */
+  refresh(): void {
+    this.target = null;
+    this.geomDirty = true;
+    if (!this.idle || this.inside) this.hooks.wake();
+  }
 
   setLabelWidth(px: number): void {
     if (Math.abs(px - this.labelW) < 0.5) return;
@@ -273,6 +306,15 @@ export class FollowerEngine {
     this.hooks.wake();
   };
 
+  /** The hovered target's cursor attributes changed under a resting pointer (a Play label that became Pause). */
+  private readonly onTargetMutation = (): void => {
+    const t = this.target;
+    if (!t) return;
+    this.target = null; // force a fresh read of the same element (or the ancestor that now wins)
+    this.retarget(t);
+    this.hooks.wake();
+  };
+
   private goForeign(): void {
     if (this.foreign) return;
     this.foreign = true;
@@ -283,10 +325,18 @@ export class FollowerEngine {
   // ── Targets ───────────────────────────────────────────────────────────────────────────────────
   /** Resolve the contextual target under the pointer. Reads layout only when the target changes. */
   private retarget(el: Element | null): void {
-    let t = el && typeof el.closest === 'function' ? el.closest(CURSOR_SELECTOR) : null;
+    const closest = el && typeof el.closest === 'function';
+    let area = closest ? el.closest(AREA_SELECTOR) : null;
+    if (area && !this.n.scope.contains(area)) area = null;
+    if (area !== this.area) this.setArea(area);
+    let t = closest ? el.closest(CURSOR_SELECTOR) : null;
     if (t && !this.n.scope.contains(t)) t = null;
     if (t === this.target) return;
     this.target = t;
+    if (this.watch) {
+      this.watch.disconnect();
+      if (t) this.watch.observe(t, { attributes: true, attributeFilter: TARGET_ATTRS });
+    }
     const kind = kindOf(t);
     if (this.magnet && this.magnet.el !== t) { this.magnet.engaged = false; this.magnet = null; }
     this.textEl = null;
@@ -310,6 +360,25 @@ export class FollowerEngine {
       if (text !== this.labelText) { this.labelText = text; this.hooks.label(text); }
     }
     this.kind = kind;
+  }
+
+  /** Hand the follower an area's colours (or take them back). Reads style only when the area changes. */
+  private setArea(area: Element | null): void {
+    this.area = area;
+    const cs = area ? getComputedStyle(area) : null;
+    const base = cs ? getComputedStyle(this.n.scope) : null;
+    for (const [out, own, token] of AREA_COLOURS) {
+      let v = '';
+      if (cs && base) {
+        // A token counts only when the area redefines it, so an area never undoes the follower's own --cursor-* style.
+        const tv = cs.getPropertyValue(token).trim();
+        v = cs.getPropertyValue(own).trim() || (tv && tv !== base.getPropertyValue(token).trim() ? tv : '');
+      }
+      for (const layer of this.n.layers) {
+        if (v) layer.style.setProperty(out, v);
+        else layer.style.removeProperty(out);
+      }
+    }
   }
 
   /** The magnet's untransformed box: the translate we wrote is subtracted, so the pull never feeds back. */

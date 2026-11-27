@@ -8,8 +8,11 @@
  * - Colours come from CSS: fills and strokes tagged `lmi-fl|lmi-st` + `lmi-ink|tint|solid|on|knock` (see
  *   ./lottie-kit) follow the theme tokens live; untagged shapes keep the colours in the data.
  * - Reduced motion: no hover previews; state changes jump to the rest frame under a 160 ms cross-fade.
+ * - `ref` reaches the <button>, and `data-*` / `aria-*` props land on it (a cursor magnet, a View Transition origin,
+ *   aria-describedby); the state attributes the icon owns (aria-pressed / aria-expanded / aria-controls, its name and
+ *   data-state) always win.
  */
-import { createElement, useEffect, useImperativeHandle, useMemo, useRef, useState, type CSSProperties, type ReactNode, type Ref } from 'react';
+import { createElement, useEffect, useImperativeHandle, useMemo, useRef, useState, type AriaAttributes, type CSSProperties, type ReactNode, type Ref } from 'react';
 import type { LottiePlayer } from 'lottie-web/build/player/lottie_light';
 import { duration, useIsomorphicLayoutEffect, useStudioMotion } from '../../motion';
 import { renderFrame, type LottieAnimation, type SvgNode } from './lottie-kit';
@@ -39,7 +42,10 @@ export interface LottieIconHandle {
   release: () => void;
 }
 
-export interface LottieIconProps {
+/** `data-*` attributes, passed to the button. */
+type DataAttributes = { [key: `data-${string}`]: string | number | boolean | undefined };
+
+export interface LottieIconProps extends AriaAttributes, DataAttributes {
   /** Bodymovin JSON. It is copied before lottie-web sees it (the player mutates its input). Keep it referentially stable. */
   animationData: object;
   /** Frame ranges of the transitions and the hover wind-up. */
@@ -71,6 +77,15 @@ export interface LottieIconProps {
   /** Called with the frame on screen while the icon plays or is scrubbed. */
   onFrame?: (frame: number) => void;
   handle?: Ref<LottieIconHandle>;
+  /** The <button> element. */
+  ref?: Ref<HTMLButtonElement>;
+}
+
+/** Only `data-*` and `aria-*` keys reach the DOM from the rest props. */
+function passThrough(rest: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const k in rest) if (k.startsWith('data-') || k.startsWith('aria-')) out[k] = rest[k];
+  return out;
 }
 
 const ATTR: Record<string, string> = {
@@ -102,6 +117,7 @@ function crossfade(host: HTMLElement | null, live: Set<Animation>, apply: () => 
 export function LottieIcon({
   animationData, segments, label, pressed: controlled, defaultPressed = false, onToggle, kind = 'toggle', controls,
   size = 32, grid, speed = 1, hover = true, reduced: reducedProp, fallback = 'auto', className, style, children, onFrame, handle,
+  ref, ...rest
 }: LottieIconProps) {
   const motion = useStudioMotion();
   const reduced = reducedProp ?? motion.reduced;
@@ -211,6 +227,8 @@ export function LottieIcon({
 
   return (
     <button
+      {...passThrough(rest)}
+      ref={ref}
       type="button"
       className={className ? `${styles.button} ${className}` : styles.button}
       style={{ ...style, '--lmi-size': `${size}px`, '--lmi-bleed': bleed } as CSSProperties}

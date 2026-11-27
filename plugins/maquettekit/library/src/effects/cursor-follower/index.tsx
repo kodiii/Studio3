@@ -8,7 +8,7 @@ import { atRest, axis, clamp, rubberBand, stepAxis } from './physics';
 import styles from './styles.module.css';
 
 export { CursorFollower, useFinePointer } from './cursor-follower';
-export type { CursorFollowerProps, CursorState } from './cursor-follower';
+export type { CursorFollowerHandle, CursorFollowerProps, CursorState } from './cursor-follower';
 
 type Params = { follow: string; size: number; stretch: number; pull: number; blend: boolean; dot: boolean };
 
