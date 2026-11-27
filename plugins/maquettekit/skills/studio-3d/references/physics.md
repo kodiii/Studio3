@@ -8,8 +8,8 @@
 > - For a GLB, set `colliders={false}` and add a few primitive colliders; use trimesh only for fixed level geometry.
 > - Cap dynamic bodies at `density` × a measured number and enforce the cap in the UI.
 > - Give dragging button and arrow-key alternatives (WCAG 2.5.7), and disable orbit controls while dragging.
-> - Let the user start a playground; keep Pause and Reset visible; announce the settled state with `role="status"`.
-> - Remove decorative physics under reduced motion and show the settled state.
+> - Queue body changes from pointer, key and button handlers into `useBeforePhysicsStep`, and check `world.getRigidBody(rb.handle) === rb` first: refs keep freed bodies.
+> - Let the user start a playground; keep Pause and Reset visible; announce the settled state with `role="status"`; under reduced motion, remove decorative physics and show that state.
 
 A physics engine is a second simulation running next to the renderer: a WASM download, a fixed-rate loop, memory
 per body, and behaviour you cannot script exactly. Most "physical-feeling" motion is a damped spring.
@@ -151,52 +151,81 @@ automatic collider per mesh of a detailed model is slow and lumpy.
 
 ## 6. Kinematic dragging and throwing
 
-Switch the body to kinematic while held, move it with `setNextKinematicTranslation` along a drag plane, and hand the
-pointer's velocity back on release. Disable orbit controls during the drag: their DOM listener sees the same
-pointer.
+Switch the body to kinematic while held, move it with `setNextKinematicTranslation` toward the pointer's point on a
+drag plane, and hand the pointer's velocity back on release. Disable orbit controls during the drag: their DOM
+listener sees the same pointer.
+
+Two rules keep the engine sound. Both come from a crash the physics playground demo used to have when a thrown block
+left the world:
+
+1. **Check that a body still exists before every call:** `world.getRigidBody(rb.handle) === rb`.
+   `@react-three/rapier` 2.2 calls a function `ref` with the body when it is created but never with `null` when it
+   is removed, and an object ref keeps the old body too. A registry filled from refs therefore holds freed bodies.
+   A method called on one panics inside the WebAssembly engine ("unreachable"), and every later call then fails
+   with "recursive use of an object".
+2. **Queue changes that start in pointer, key or button handlers** and apply them in `useBeforePhysicsStep`,
+   checking the body again there. Changes land at one known point before each fixed step, in the order they were
+   asked for, and a body removed between the event and the step is skipped instead of touched.
 
 ```tsx
 'use client';
 import { useRef } from 'react';
 import { useThree, type ThreeEvent } from '@react-three/fiber';
-import { RigidBody, useRapier, type RapierRigidBody } from '@react-three/rapier';
+import { RigidBody, useBeforePhysicsStep, useRapier, type RapierRigidBody } from '@react-three/rapier';
 import { Plane, Vector3 } from 'three';
 
 export function DraggableCrate({ position }: { position: [number, number, number] }) {
-  const { rapier } = useRapier();
+  const { rapier, world } = useRapier();
   const controls = useThree((s) => s.controls) as { enabled: boolean } | null;
   const body = useRef<RapierRigidBody>(null);
-  const drag = useRef<{ plane: Plane; hit: Vector3; prev: Vector3; t: number; vel: Vector3 } | null>(null);
+  const queue = useRef<((rb: RapierRigidBody) => void)[]>([]);
+  const drag = useRef<{ plane: Plane; target: Vector3; samples: { p: Vector3; t: number }[] } | null>(null);
+
+  /** The body, if it is still in the world (rule 1). */
+  const alive = () => {
+    const b = body.current;
+    return b && world.getRigidBody(b.handle) === b ? b : null;
+  };
+
+  useBeforePhysicsStep(() => {
+    const b = alive();
+    if (!b) { queue.current.length = 0; return; }
+    for (const fn of queue.current.splice(0)) fn(b); // rule 2
+    if (drag.current && b.isKinematic()) b.setNextKinematicTranslation(drag.current.target);
+  });
 
   const down = (e: ThreeEvent<PointerEvent>) => {
-    const b = body.current;
+    const b = alive();
     if (!b) return;
     e.stopPropagation();
     (e.target as Element).setPointerCapture(e.pointerId);
     if (controls) controls.enabled = false;
     const at = new Vector3().copy(b.translation());
-    drag.current = { plane: new Plane(new Vector3(0, 1, 0), -at.y), hit: new Vector3(), prev: at, t: performance.now(), vel: new Vector3() };
-    b.setBodyType(rapier.RigidBodyType.KinematicPositionBased, true);
+    drag.current = { plane: new Plane(new Vector3(0, 1, 0), -at.y), target: at, samples: [{ p: at.clone(), t: performance.now() }] };
+    queue.current.push((rb) => rb.setBodyType(rapier.RigidBodyType.KinematicPositionBased, true));
   };
   const move = (e: ThreeEvent<PointerEvent>) => {
     const d = drag.current;
-    const b = body.current;
-    if (!d || !b || !e.ray.intersectPlane(d.plane, d.hit)) return;
-    const now = performance.now();
-    d.vel.subVectors(d.hit, d.prev).divideScalar(Math.max(1, now - d.t) / 1000);
-    d.prev.copy(d.hit);
-    d.t = now;
-    b.setNextKinematicTranslation(d.hit);
+    if (!d || !e.ray.intersectPlane(d.plane, d.target)) return;
+    d.samples.push({ p: d.target.clone(), t: performance.now() });
+    if (d.samples.length > 8) d.samples.shift();
   };
   const up = (e: ThreeEvent<PointerEvent>) => {
     const d = drag.current;
-    const b = body.current;
     drag.current = null;
     if (controls) controls.enabled = true;
     (e.target as Element).releasePointerCapture(e.pointerId);
-    if (!d || !b) return;
-    b.setBodyType(rapier.RigidBodyType.Dynamic, true);
-    b.setLinvel(d.vel.clampLength(0, 8), true); // cap the throw speed
+    if (!d) return;
+    // Throw velocity from the last 120 ms of samples, not from the last event alone.
+    const now = performance.now();
+    const s = d.samples.filter((x) => now - x.t < 120);
+    const v = new Vector3();
+    if (s.length > 1) v.subVectors(s[s.length - 1].p, s[0].p).divideScalar(Math.max(0.016, (s[s.length - 1].t - s[0].t) / 1000));
+    v.clampLength(0, 8); // cap the throw speed
+    queue.current.push((rb) => {
+      rb.setBodyType(rapier.RigidBodyType.Dynamic, true);
+      rb.setLinvel(v, true);
+    });
   };
   return (
     <RigidBody ref={body} position={position} colliders="cuboid" ccd>
@@ -210,7 +239,8 @@ export function DraggableCrate({ position }: { position: [number, number, number
 ```
 
 Dragging needs a single-pointer, non-drag alternative (WCAG 2.5.7): buttons that push, drop or move the selected
-body, and arrow keys on a focused DOM control that call `applyImpulse`.
+body, and arrow keys on a focused DOM control that queue an `applyImpulse` the same way. The physics playground demo
+(`library/src/demos/3d/physics-playground/World.tsx`) applies both rules to a registry of many bodies.
 
 ## 7. CCD, caps and stability
 

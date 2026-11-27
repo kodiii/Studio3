@@ -16,8 +16,8 @@ semantic versioning. Plugin manifests (Claude Code and Codex) always carry the s
   not, and a canvas counts when it redraws with the pointer beyond its own change at rest) and
   `motionUsefulness.scrollResponse` (three scroll steps; parallax or style change in two of them, so one-shot reveals
   do not count). Weights 0 Essential, 2/1 Expressive, 3/2 Immersive; half the routes responding scores fully.
-- Eval cases `judge-3d-earned` (a ceramic lamp whose glaze under changing light is the question: real-time 3D is the
-  right answer, with its obligations) and `build-product-hero` (a launch-page hero graded on the craft floor: continuous
+- Eval cases `judge-3d-earned` (a ceramic lamp with a PBR model, a material per glaze and a lamp-on state, whose glaze
+  under changing light is the question: real-time 3D is the right answer, with its obligations) and `build-product-hero` (a launch-page hero graded on the craft floor: continuous
   response, physical motion, light that responds, direct manipulation with a keyboard twin).
 - Library: categories `cursor` and `vector-animation`, technologies `rive` and `lottie`. `scripts/copy-runtime-assets.mjs`
   (run before the gallery's dev and build) serves the Rive runtime's WASM from the gallery's own origin.
@@ -53,6 +53,9 @@ semantic versioning. Plugin manifests (Claude Code and Codex) always carry the s
     light with exact data colours on their tops. The Essential dashboards stay calm, with crisp press states.
 - `studio-motion` writes a motion brief before choosing technology, picks the lightest technology that delivers the
   brief in full, and treats the craft floor and velocity-carrying gestures as non-negotiables. Steps renumbered.
+- `studio-product`, `studio-cinematic`, `studio-social` and `studio-motion` list the craft floor for their profile
+  among their non-negotiables: direct manipulation with a keyboard and button twin, springs that keep release
+  velocity, lit press and lift, and continuous response to pointer or scroll.
 - Profiles: "pick the lowest profile that achieves the brief" is now "pick the profile the surface deserves and
   deliver it in full". `studio-product`, `studio-cinematic`, `studio-social`, `studio-data` and `studio-3d` point their
   motion and art-direction steps at the craft floor. No gate changed.
@@ -63,9 +66,14 @@ semantic versioning. Plugin manifests (Claude Code and Codex) always carry the s
 - 3D criteria (`technology-selection.md` §2.1 and the studios' step 6): real light and material, handling the subject
   and a space the story moves through now justify real-time 3D; "only if earned" became "when it earns its place".
   A decorative object unrelated to the subject still never qualifies; the fallback and budget obligations are unchanged.
-  `product-3d.md` gains two value rows (material and light response; handling the object).
+  `product-3d.md` gains two value rows (material and light response; handling the object); material response needs
+  PBR materials rather than a scan with baked lighting, shown with lighting presets.
 
 ### Fixed
+- `studio-3d` `physics.md` §6 taught the pattern behind the physics playground crash: its drag example called
+  `setBodyType` and `setLinvel` from pointer handlers, through a ref that can still hold a freed body. The example now
+  queues changes into `useBeforePhysicsStep` and checks `world.getRigidBody(rb.handle) === rb` first, and takes the
+  throw velocity from the last 120 ms of samples.
 - Demos, found by an audit against the craft floor:
   - Throwing a block crashed the physics playground. Its registry kept bodies Rapier had freed (`@react-three/rapier` never
     calls a ref with `null`); event-driven changes now apply in `useBeforePhysicsStep`.

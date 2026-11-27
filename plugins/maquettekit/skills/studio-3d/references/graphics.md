@@ -168,8 +168,9 @@ export function makePulseMaterial(): MeshStandardNodeMaterial {
 ## 7. Instancing
 
 One draw call for many copies of the same geometry and material. Working references: the `spatial-data` demo
-(one instanced mesh per node shape, restyled by rewriting instance colours and matrices) and `scroll-camera-dolly`
-(instanced columns written once in a layout effect).
+(one instanced mesh per node shape, restyled by rewriting instance colours and matrices; every link is an instance of
+one open cylinder, bent along a curve in the vertex shader; contact shadows are instances of one plane with a
+per-instance opacity) and `scroll-camera-dolly` (instanced columns written once in a layout effect).
 
 - Write matrices with `setMatrixAt(i, object.matrix)` after `object.updateMatrix()`, colours with
   `setColorAt(i, colour)`, then set `instanceMatrix.needsUpdate` (and `instanceColor.needsUpdate`) and call
@@ -179,6 +180,8 @@ One draw call for many copies of the same geometry and material. Working referen
 - Derive the count from `useQuality().density`; layouts from deterministic sequences (golden-angle spirals,
   index hashes), never `Math.random()` in render.
 
+- Per-instance data beyond matrix and colour (curve control points, width, opacity): an `InstancedBufferAttribute`
+  on the geometry, read in the vertex shader (`onBeforeCompile` on a lit material, or a `ShaderMaterial`).
 - Changing `args` recreates the mesh; to vary the visible number, allocate the maximum and set `mesh.count`.
 - Different geometries sharing one material: `BatchedMesh`. Drei's `<Instances>`/`<Merged>` are declarative
   wrappers when per-instance React components are worth their cost.

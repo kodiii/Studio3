@@ -89,3 +89,30 @@ Not covered here:
   cap) and nothing else; on the fixed gallery it reports nothing.
 - Open models running in OpenCode or Antigravity: Haiku through Claude Code is the stand-in.
 - `--routing-rules` on Codex, OpenCode and Antigravity is tested for the files it writes, not in a live session.
+
+## Motion craft and 3D — 2026-11-27 (Claude Code 2.1, default model, routing hook on)
+
+Measured for the motion-craft work. "Before" is the plugin as it was when that work started (commit 42f0ef8, run
+from a separate checkout on the same cases), "after" is this tree, and "without" is no plugin. Two or three runs per
+case, so a one-run difference is noise.
+
+| Case | Before | After | Without the plugin |
+| - | - | - | - |
+| `build-product-hero` (2 runs; 4 after) | 0.79 — physical motion 1 / 2, direct manipulation 0 / 2; the same score as without the plugin | **1.00** — every grader in all 4 runs | 0.79 — physical motion 0 / 2, direct manipulation 1 / 2 |
+| `judge-3d-earned` (3 runs) | 0.83 — one run kept photos first, doubting that a model could show the glaze faithfully | **1.00** | 0.00 — every answer recommended 3D but left out an obligation, for example calling the 2.4 MB model small enough to ship as is |
+| `judge-3d-not-earned` (3 runs) | 1.00 | **1.00** — still no 3D on a SaaS pricing page | — |
+| `build-card-entrance`, `build-pricing-section`, `build-signup-form`, `project-landing-pricing`, `project-react-motion` (2 runs each) | 1.00 on each (baseline above) | **1.00** on each: the craft floor did not leak into forms, pricing or project edits | not re-run (baseline above) |
+
+How it got there:
+
+| Step | Measured effect |
+| - | - |
+| Profile table, 3D criteria and the motion brief aligned with the craft floor | Product hero 0.79 → 0.86: physical motion 2 / 2, direct manipulation still 0 / 2 |
+| The craft floor listed among the non-negotiables of `studio-product`, `studio-cinematic`, `studio-social` and `studio-motion` | Product hero 1.00 in 4 / 4 runs, direct manipulation included |
+| `judge-3d-earned` first described a photogrammetry scan | 0.00 before and 1 / 5 after. The failing answers said the scan's baked lighting cannot show the glaze in other light, which is right, so the case was unfair. It now describes a PBR model with a material per glaze and a lamp-on state, and `product-3d.md` says material response needs PBR materials and lighting presets |
+
+What the numbers say: before this work the plugin did not change how a motion-heavy build turned out (0.79 with and
+without it). Rules that describe the bar were not enough on their own; listing it as a non-negotiable was. On the 3D
+judgement a bare model also recommends 3D for the lamp: what the plugin adds is the obligations (a fallback, a lighter
+model, lazy loading, controls that neither trap scroll nor need a drag). The hero files are 20–25 k characters, which
+the runner flags as long for LLM judges; with the plugin every vote was unanimous, without it two votes split.
