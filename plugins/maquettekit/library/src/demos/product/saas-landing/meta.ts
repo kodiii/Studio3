@@ -15,7 +15,7 @@ export const meta: DemoMeta = {
   ],
   technology: ['waapi', 'css', 'svg'],
   uses: ['split-line-reveal'],
-  adapts: ['tilt-parallax-card', 'spotlight-border-card', 'magnetic-button', 'svg-path-draw', 'morph-submit-button', 'brush-linked-range', 'press-depth-button'],
+  adapts: ['tilt-parallax-card', 'spotlight-border-card', 'magnetic-button', 'svg-path-draw', 'morph-submit-button', 'brush-linked-range', 'press-depth-button', 'number-ticker', 'accordion-height-auto'],
   collaborates: ['motion-lab'],
   has3d: false,
   accessibility: [

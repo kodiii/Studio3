@@ -5932,7 +5932,9 @@
         "svg-path-draw",
         "morph-submit-button",
         "brush-linked-range",
-        "press-depth-button"
+        "press-depth-button",
+        "number-ticker",
+        "accordion-height-auto"
       ],
       "collaborates": [
         "motion-lab"
