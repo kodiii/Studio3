@@ -5329,10 +5329,11 @@
       "summary": "A five-beat launch page for a fictional organ builder's new chamber organ: a typographic hook, the room that shaped it, a pinned zoom through an arched window into the case, a playable specification and a still invitation to the first recital.",
       "highlights": [
         "Five beats with a colour script: paper → the dark oak case (beat 3) → paper. The arch is the recurring motif: hero window, zoom-through, closing outline.",
-        "Beat 3 is a CSS-sticky pinned scene with one scrubbed GSAP timeline: the arch mask grows from a window to full screen (a full-screen transition into the case), the façade layers dolly in and then part, with rest zones before and after.",
-        "Typographic full-bleed hook in condensed capitals that is painted at first paint; its lines leave through masks as it scrolls away, and the window beside it fills with light on load.",
-        "Dynamic navigation hides while reading down, returns on any upward scroll or keyboard focus, and marks the current section with aria-current.",
-        "SVG animation with meaning: sound rays draw across the hall section; pulling a stop raises its rank in a drawing to scale with a person."
+        "Light through the arch: the pointer is where the west window's light comes from. The warm glow leans toward it, light shafts between the ranks turn with it, each pipe's specular band slides across its cylinder (SVG gradientTransform), and the façade layers part in depth. Scroll speed is wind: the glow swells and the shafts brighten, then breathe out.",
+        "Pull a stop: drag a drawknob out against growing resistance until it clicks over its detent (the stop is drawn the moment it crosses), push it back the same way; release settles it on a spring.press token with the hand's velocity. A tap, Enter or Space still toggles it.",
+        "The drawn rank rises pipe by pipe, tallest first, landing with a spring.pop overshoot; it retires faster, in reverse order.",
+        "Beat 3 is a CSS-sticky pinned scene with one scrubbed GSAP timeline: the arch mask grows from a window to full screen, the façade layers dolly in and then part, with rest zones before and after. Pointer parallax uses the CSS translate property, so it composes with GSAP's transforms instead of fighting them.",
+        "One light direction for the DOM too: knob faces are domed from the upper left, and every control (knobs, links, the call to action) has a contact shadow and a soft shadow falling lower right that lift on hover, collapse when pressed and spring back on release."
       ],
       "technology": [
         "gsap",
@@ -5343,18 +5344,24 @@
       "uses": [
         "split-line-reveal"
       ],
+      "adapts": [
+        "parallax-depth-layers",
+        "press-depth-button"
+      ],
       "has3d": false,
       "accessibility": [
         "The page is a static document in beat order; every animated layer is decorative and aria-hidden, and the headline is real text in one copy.",
-        "Stops are toggle buttons (aria-pressed) with visible names; a polite live summary states which stops are drawn and how many pipes speak.",
+        "Stops are toggle buttons (aria-pressed) with visible names; dragging is an extra way in, never the only one: tap, Enter and Space toggle, and a polite live summary states which stops are drawn and how many pipes speak.",
+        "Stop rows keep touch-action: pan-y, so vertical swipes scroll the page and only a sideways drag pulls a knob; pointer light listens to mouse and pen only.",
         "A skip link passes the pinned sequence; navigation links and every control are reachable by keyboard and the hidden header reappears on focus.",
         "Text over the case interior sits on a solid panel; the call to action is a real link with its own focus ring."
       ],
-      "reducedMotion": "No pinning, mask growth, parallax or line exits: the case interior is shown as a still drawing with both captions in normal flow, the header never slides, sound rays are drawn from the start, stops change without easing and the room headline appears without its word reveal.",
+      "reducedMotion": "No pinning, mask growth, parallax, pointer light, wind or line exits: the case interior is a still drawing lit from the upper left with both captions in normal flow, the header never slides, sound rays are drawn from the start, stops change and ranks appear without easing, and controls press without springs.",
       "performance": [
         "Pinning is position: sticky; scroll work is a handful of scrubbed timelines animating transform, opacity and one mask size.",
-        "The scene is five SVG layers of plain shapes (about 60 pipes) with one gradient per layer; no filters or blur.",
-        "All tweens and triggers live in one useGSAP scope and are reverted on unmount; a ResizeObserver and fonts-ready listener refresh measurements."
+        "Pointer light and wind share one rAF loop that wakes on pointer or scroll input and sleeps once values settle; per frame it writes three custom properties per scene and six gradient transforms, skipping unchanged values.",
+        "The scene is SVG layers of plain shapes (about 60 pipes) with one gradient per layer; the shafts are one CSS gradient layer; no filters or blur.",
+        "Knob springs run in rAF only while a released knob settles; all tweens and triggers live in one useGSAP scope, and listeners, loops, a ResizeObserver and the fonts-ready listener are released on unmount."
       ],
       "path": "library/src/demos/cinematic/cinematic-landing",
       "files": [
@@ -5368,13 +5375,14 @@
       "id": "immersive-3d-hero",
       "name": "Kelda Ridge — night walks",
       "specialty": "cinematic",
-      "summary": "An immersive hero for a fictional guided night walk: one procedural WebGL landscape drawn as contour lines, an aurora sky and layered type, with the page's scroll carrying the camera from the lake, along the ridge and up to the sky before handing over to plain content.",
+      "summary": "An immersive hero for a fictional guided night walk: one procedural WebGL landscape drawn as contour lines, a dusk-to-aurora sky and layered type, with the page's scroll carrying the camera from the lake, along the ridge and up to the sky before handing over to plain content.",
       "highlights": [
-        "One persistent StudioCanvas behind four DOM slides: the page owns scroll progress (one ScrollTrigger on the window scroller) and the scene is a pure view of it — a damped camera on a Catmull-Rom path that requests frames only until it settles.",
-        "Rest zones are measured from the slides themselves, so each caption is read while the camera holds at its stop; viewpoint buttons reach every stop from the keyboard.",
-        "Procedural, theme-aware scene: a seeded height field shaded as iso-lines with fwidth anti-aliasing, a shader sky with aurora curtains, a star field and the walking route — colours come from the theme tokens and update live with the theme.",
-        "Poster first: an SVG ridgeline print in the same palette paints immediately and is the fallback without WebGL; quality scales terrain resolution and star count with the profile's density.",
-        "Layered DOM type (two weights at different depths) drifts apart as the hero leaves; nothing essential is drawn in the canvas."
+        "A colour script driven by scroll: the camera leaves the lake at dusk (afterglow behind the far fells), the stars come out along the ridge, and the aurora reaches full strength at the summit. The stage is always night, in both gallery themes, so the climax reads everywhere.",
+        "Aurora curtains with folds: a sinuous lower edge, pleats that glow where the ribbon turns edge-on, shimmering vertical rays and violet tops. Scrolling fast flares them (scroll velocity → brightness, attack fast, decay slow, soft-shouldered so nothing clips).",
+        "One light from the north sky: it rims north-facing slopes with aurora green, tints the lake's reflection, and in the DOM tints the top edges of the caption panels and controls while every shadow falls below.",
+        "Hands on the scene: the pointer aims a warm head-torch at the ground (a ray marched against the height field, lit in the terrain shader with a cone, falloff and facing); the camera sways ±1.5° with it and the layered title moves in depth with the sway.",
+        "Horizontal drag looks around ±20° with a rubber band past the limit; release keeps the throw's velocity and a spring.release token brings the view home. Look left / Look right buttons are the keyboard twin (a press glances, holding keeps looking).",
+        "One persistent StudioCanvas behind four DOM slides: the page owns scroll progress (one ScrollTrigger) and the scene damps toward it, requesting frames only until camera, look, torch and flare have settled. The SVG poster in the same palette paints first and cross-fades into the live scene."
       ],
       "technology": [
         "r3f",
@@ -5387,21 +5395,26 @@
       "uses": [
         "split-line-reveal"
       ],
+      "adapts": [
+        "shader-aurora-plane",
+        "press-depth-button"
+      ],
       "collaborates": [
         "3d"
       ],
       "has3d": true,
       "accessibility": [
-        "The canvas is labelled and described; every chapter is DOM text on a solid panel, in reading order, and the viewpoint buttons (aria-current) mirror the scroll camera.",
-        "Pause sky stops the only continuous animation (WCAG 2.2.2); Turn off 3D swaps the canvas for the poster at any time.",
-        "The canvas ignores pointer events, so scrolling and touch always belong to the page; no scroll-jacking.",
+        "The canvas is labelled and described (including the torch and the look-around); every chapter is DOM text on a solid panel in reading order, and the viewpoint buttons (aria-current) mirror the scroll camera.",
+        "Night-stage text uses fixed light-on-dark tokens checked against the brightest sky state; the hero copy sits on a scrim and the captions on 86 %-opaque panels.",
+        "The canvas ignores pointer events; the drag listens on the page with touch-action: pan-y pinch-zoom and only claims a pointer once the movement is clearly horizontal, so vertical swipes, the wheel and pinch zoom stay native.",
+        "Look left and Look right are real buttons (press glances, hold Space or Enter to keep looking); Pause sky stops the only continuous animation (WCAG 2.2.2) and Turn off 3D swaps the canvas for the poster at any time.",
         "The sample schedule is a real table with a caption that says the data is fictional."
       ],
-      "reducedMotion": "No scroll-driven travel and no sky animation: the scene sits in a static frame below the title, the viewpoint buttons cut the camera between the three stops (one rendered frame each, via the three-kit CameraRig) and the captions follow in normal flow.",
+      "reducedMotion": "No scroll-driven travel, entrance, sway, look-around or sky animation: the scene sits in a framed still below the title, the viewpoint buttons cut the camera between the three stops (and the colour script with it), the captions follow in normal flow and buttons change state without springs. The head-torch still answers the pointer, as light only.",
       "performance": [
-        "frameloop is \"always\" only while the sky plays and the canvas is on screen (StudioCanvas pauses offscreen); paused or reduced, it renders on demand when the camera moves.",
-        "Terrain segments = 220 × quality density (clamped 72–220) and stars = 2,600 × density; DPR follows the quality profile. One draw call each for terrain, sky, stars and route plus three cairns.",
-        "Geometries and materials are created imperatively and disposed on unmount; the ScrollTrigger, its ResizeObserver and font listener are reverted with the useGSAP scope."
+        "frameloop is \"always\" only while the sky plays and the canvas is on screen (StudioCanvas pauses offscreen); paused or reduced it renders on demand, and pointer, drag and scroll input request frames until things settle.",
+        "Terrain segments = 220 × quality density (clamped 72–220), stars = 2,600 × density; nine draw calls in all (sky, stars, far-fells ring, terrain, route, route halo, three cairns). The torch is one CPU ray march per rendered frame.",
+        "Geometries and materials are created imperatively and disposed on unmount; pointer listeners are removed on unmount; the ScrollTrigger, its ResizeObserver and font listener are reverted with the useGSAP scope."
       ],
       "dataNote": "The walk schedule (dates, meeting times, lengths and places) is fictional sample data written for this demo; the landscape is generated from a seeded noise function.",
       "path": "library/src/demos/cinematic/immersive-3d-hero",
@@ -5422,11 +5435,11 @@
       "specialty": "cinematic",
       "summary": "A kinetic type piece staged as a late-night shipping forecast for a fictional coast: every cue uses a different type technique, and one pause control stills them all.",
       "highlights": [
+        "The pointer is a desk lamp: a warm pool of light follows it across the page, and the display type casts a contact shadow and a soft shadow away from it, with a rim on its lit side (em-scaled, so the biggest type stands highest). At rest the lamp sits upper left.",
+        "The tuning dial is the thing you handle: drag the needle (or press anywhere on the scale) and it follows with weight; release keeps the throw's velocity, friction slows it and a detent catches it on 97.4 with a spring.pop overshoot. Off-station the presenter's line blurs and jitters with static and the signal meter drops. It is a real slider: arrows step 0.1 MHz (stepping toward the station drops into its detent), Page Up/Down 1 MHz, Home/End the band's ends.",
+        "Entrance: the radio tunes itself in. The needle is thrown from 89.1, slowed by the same friction and caught by the same detent as a hand-thrown needle, and the line comes into focus as it locks.",
         "Variable-font axis choreography: wind force drives weight, width and optical size of each sea area (wght 380–800, wdth 100–77, opsz 12–96), scrubbed by scroll; scroll velocity leans the list like a gust.",
-        "Composes four recipes with the piece's own copy: variable-weight-wave (pointer and keyboard), scramble-decode (tuning in), split-line-reveal (sea state) and kinetic-marquee (gale warnings, mirrored to the global pause).",
-        "Type on an SVG path: the area names run along a drawn coastline as a slow, pausable ticker that borrows speed from scrolling.",
-        "A tuning dial needle sweeps onto the station as the hero scrolls away; a timecode gutter sticks beside each cue like a transcript.",
-        "The gallery font only exposes Bricolage's wght axis, so the demo declares the local three-axis cut under its own family name, scoped to this page."
+        "Composes four recipes with the piece's own copy: variable-weight-wave (pointer and keyboard), scramble-decode (tuning in), split-line-reveal (sea state) and kinetic-marquee (gale warnings, mirrored to the global pause). Type on an SVG path: the area names run along a drawn coastline as a slow, pausable ticker that borrows speed from scrolling."
       ],
       "technology": [
         "gsap",
@@ -5440,23 +5453,28 @@
         "split-line-reveal",
         "kinetic-marquee"
       ],
+      "adapts": [
+        "press-depth-button"
+      ],
       "has3d": false,
       "accessibility": [
         "One accessible copy of every animated line: the recipes expose their sentence once (aria-label or visually hidden copy), the coastline is an image with a title and a description listing the areas, and a plain list of areas follows it.",
-        "A visible Pause motion toggle (aria-pressed) in the sticky bar stops the idle weight wave, the coastline ticker and the marquee (WCAG 2.2.2).",
-        "The weight-wave headline is focusable and responds to arrow keys; every pointer-reactive moment has a keyboard or scroll equivalent.",
+        "The dial is a focusable slider named Tuning with aria-valuenow and a value text that says whether the station is clear, faint or static; the static effect is blur and jitter only, so the line keeps its colour contrast.",
+        "A visible Pause motion toggle (aria-pressed) in the sticky bar stops the idle weight wave, the coastline ticker, the marquee and the static jitter (WCAG 2.2.2).",
+        "The weight-wave headline is focusable and responds to arrow keys; every pointer-reactive moment has a keyboard or scroll equivalent. The dial keeps touch-action: pan-y, so vertical swipes scroll the page.",
         "Wind force is stated in words in every row; the axis changes only reinforce it. Gale rows add weight and signal colour plus the word \"gale\"."
       ],
-      "reducedMotion": "Everything is still: rows sit at their force axes without scrubbing or skew, the coastline shows one static run of names, the dial rests on the station, recipes show their final states, and the pause control is replaced by a note.",
+      "reducedMotion": "Everything is still: the lamp stays upper left with fixed shadows, the dial rests on the station (keys and drags set it directly, with no glide or static), rows sit at their force axes without scrubbing or skew, the coastline shows one static run of names, recipes show their final states, and the pause control is replaced by a note.",
       "performance": [
-        "Axis changes are confined to six short, nowrap display lines (one reflow per frame while scrubbing), driven by one scrubbed timeline; the gust uses a single quickTo on the list.",
-        "The coastline ticker and recipes run on useRafLoop, so they stop offscreen, in hidden tabs and when paused.",
-        "All triggers are created inside useGSAP and reverted on unmount; one ResizeObserver and a fonts-ready listener refresh them."
+        "The lamp is one viewport-sized sticky layer whose gradient centre moves, plus two custom properties for the shadows; its rAF loop wakes on pointer or scroll input and sleeps once the lamp has settled.",
+        "The dial runs on useRafLoop (asleep offscreen and in hidden tabs) and writes one transform, a readout and two custom properties, only when they change; static jitter is re-rolled about 20 times a second while detuned.",
+        "Axis changes are confined to six short, nowrap display lines (one reflow per frame while scrubbing), driven by one scrubbed timeline; the gust uses a single quickTo on the list. All triggers are created inside useGSAP and reverted on unmount."
       ],
       "path": "library/src/demos/cinematic/kinetic-typography",
       "files": [
         "index.tsx",
         "Coastline.tsx",
+        "Dial.tsx",
         "styles.module.css",
         "Winds.tsx",
         "meta.ts"
@@ -5468,11 +5486,12 @@
       "specialty": "cinematic",
       "summary": "An editorial scroll story about how a fictional river carves, widens and furnishes its valley: stepped text in normal flow beside a sticky survey drawing that is scrubbed from stage to stage.",
       "highlights": [
-        "Sticky-graphic scrollytelling: the step text stays in the normal document flow, so it is also the reduced-motion and no-script version of the story.",
-        "The figure is a pure function of the stage t (0–4): meanders are a sine-generated curve whose angle grows, a neck cut-off leaves an oxbow lake, terraces and a channel scar appear — all redrawn from one scrubbed GSAP timeline with rest zones on every stage.",
-        "One ScrollTrigger (window scroller) owns the timeline; React state changes only when the current stage changes. The trigger refreshes after web fonts load and whenever the demo frame changes width.",
-        "A progress rail of named stage buttons (aria-current=\"step\") jumps to each stage and moves focus to its heading; a skip link passes the whole sequence.",
-        "At narrow widths the figure sticks above the text and the reading line moves below it."
+        "Sticky-graphic scrollytelling: the step text stays in the normal document flow, so it is also the reduced-motion and no-script version of the story. The figure is a pure function of the stage t (0–4), redrawn from one scrubbed GSAP timeline with rest zones on every stage.",
+        "Handle the figure: the section line A–A′ can be dragged (or the plan pressed to place it) and the inset redraws the valley's cross-section along it — the channel crossings (three across a loop at stage V), the oxbow lake as still water, the terraces. It follows the hand on a spring.press token, a flick keeps its velocity and glides to a soft stop, and the grip is a keyboard slider (arrows, Page Up/Down, Home/End).",
+        "An orchestrated entrance with a recurring move: the surveyor inks the title hill from its summit outward (stagger.base) while the river draws itself under \"Bend\"; the headline is there from the first paint.",
+        "Relief under a lamp: the pointer tilts the drawings like a relief model — every contour shifts by its own height (higher ground further, the river not at all); the plate casts a two-layer shadow from the upper-left light.",
+        "The river runs while you read: pale flecks travel downstream along the channel at a speed set by the scroll velocity, and stop when the reader does.",
+        "A progress rail of named stage buttons (aria-current=\"step\") jumps to each stage and moves focus to its heading; a skip link passes the whole sequence. At narrow widths the figure sticks above the text and the reading line moves below it."
       ],
       "technology": [
         "gsap",
@@ -5483,18 +5502,24 @@
       "uses": [
         "split-line-reveal"
       ],
+      "adapts": [
+        "svg-path-draw",
+        "parallax-depth-layers",
+        "press-depth-button"
+      ],
       "has3d": false,
       "accessibility": [
         "Every stage is a section with its own heading in reading order; the drawing has one text description and a visible caption naming the current stage.",
-        "Stage buttons have visible names that match their accessible names, carry aria-current and are at least 40 px tall; focus goes to the stage heading after a jump.",
-        "Nothing is conveyed by motion alone: each stage has its text, a \"look for\" note and a caption.",
+        "The section line's grip is a focusable slider (aria-valuenow 0–100) whose value text says what the line crosses (\"crosses the river twice and the oxbow lake\"); the inset label shows the same.",
+        "On touch the plan keeps touch-action: pan-y, so vertical swipes scroll the page; only the 44 px grip drags, and a tap on the plan places the line.",
+        "Stage buttons have visible names that match their accessible names, carry aria-current and are at least 40 px tall; focus goes to the stage heading after a jump. Nothing is conveyed by motion alone.",
         "Text uses theme tokens; the water colour passes 4.5:1 on all three surfaces in both themes."
       ],
-      "reducedMotion": "No sticky figure and no scrubbing: each stage gets its own still drawing next to its text, the rail follows the stage in view, buttons jump without smooth scrolling and the closing title appears without its word reveal.",
+      "reducedMotion": "No sticky figure, scrubbing, entrance, relief or current: each stage gets its own still plate next to its text (its section line still moves, set directly by key or drag with no glide), the rail follows the stage in view, buttons jump without smooth scrolling and the closing title appears without its word reveal.",
       "performance": [
-        "Scroll work is one scrubbed timeline; per frame the painter rewrites about twenty path attributes, skipping unchanged values. No layout reads inside the loop.",
-        "Geometry generation is O(n) apart from a small neck search (about 20k distance checks) and only runs while the stage changes.",
-        "useGSAP with revertOnUpdate kills the trigger and timeline on unmount or reduced-motion change; the ResizeObserver and font listener are released with it."
+        "Scroll work is one scrubbed timeline; per frame the painter rewrites about twenty path attributes, skipping unchanged values. Moving the section line recomputes only the cross-section (O(n) crossings on cached plan points) and rewrites eight attributes.",
+        "The section spring and the current run on useRafLoop (asleep offscreen and in hidden tabs); the relief loop wakes on pointer movement and sleeps once settled; the entrance is one createSequence cancelled on unmount.",
+        "useGSAP with revertOnUpdate kills the trigger and timeline on unmount or reduced-motion change; ResizeObservers and the font listener are released with it."
       ],
       "path": "library/src/demos/cinematic/scroll-narrative",
       "files": [

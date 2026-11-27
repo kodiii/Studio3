@@ -1,9 +1,9 @@
 'use client';
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
-import { useInView, useStudioMotion } from '../../../motion';
+import { spring, springToLinear, useInView, useStudioMotion } from '../../../motion';
 import { resolveParams, type EffectMeta, type ParamValues } from '../../../types';
 import VariableWeightWave from '../../../effects/variable-weight-wave';
 import { meta as waveMeta } from '../../../effects/variable-weight-wave/meta';
@@ -14,6 +14,7 @@ import { meta as splitMeta } from '../../../effects/split-line-reveal/meta';
 import KineticMarquee from '../../../effects/kinetic-marquee';
 import { meta as marqueeMeta } from '../../../effects/kinetic-marquee/meta';
 import { AREAS, Coastline } from './Coastline';
+import { Dial } from './Dial';
 import { ForceScale, Winds } from './Winds';
 import s from './styles.module.css';
 
@@ -22,9 +23,8 @@ if (typeof window !== 'undefined') gsap.registerPlugin(ScrollTrigger, useGSAP);
 /** Every recipe param from its meta (defaults), then this demo's overrides. */
 const recipe = <T,>(m: EffectMeta, overrides: ParamValues = {}): T => resolveParams(m.params, overrides) as unknown as T;
 
-const DIAL = { min: 87.5, max: 108, from: 89.1, station: 97.4 };
-const fx = (f: number): number => ((f - DIAL.min) / (DIAL.max - DIAL.min)) * 1000;
-const TICKS = Array.from({ length: 42 }, (_, i) => DIAL.min + i * 0.5);
+/** Default lamp: upper left. Shadows (--kt-sx/--kt-sy, −1…1) fall away from it. */
+const LAMP = { x: 0.22, y: 0.12 };
 
 /** Mounts a time-based recipe only once it is well inside the viewport, so its entrance is actually seen. */
 function OnView({ children, placeholder, className }: { children: ReactNode; placeholder: ReactNode; className?: string }) {
@@ -49,24 +49,14 @@ export default function KineticTypography() {
   const moving = !reduced && !paused;
   const root = useRef<HTMLDivElement>(null);
   const hero = useRef<HTMLElement>(null);
-  const needle = useRef<SVGGElement>(null);
-  const readout = useRef<SVGTextElement>(null);
+  const lamp = useRef<HTMLDivElement>(null);
   const marquee = useRef<HTMLDivElement>(null);
+  const press = useState(() => springToLinear(spring.press))[0];
 
-  // Tuning: the dial needle sweeps onto the station as the hero scrolls away (scrubbed, so it is reversible).
+  // Trigger refreshes for the wind list: every trigger on the page depends on fonts and on the frame width.
   useGSAP(() => {
     const el = root.current;
-    const h = hero.current;
-    const paint = (f: number) => {
-      needle.current?.setAttribute('transform', `translate(${fx(f).toFixed(1)} 0)`);
-      if (readout.current) readout.current.textContent = f.toFixed(1);
-    };
-    if (reduced || !el || !h) { paint(DIAL.station); return; }
-    const state = { f: DIAL.from };
-    paint(state.f);
-    gsap.to(state, { f: DIAL.station, ease: 'none', onUpdate: () => paint(state.f), scrollTrigger: { trigger: h, start: 'top top+=44', end: 'bottom 40%', scrub: 0.4 } });
-
-    // Every trigger on the page (here and in the wind list) depends on fonts and on the frame width.
+    if (reduced || !el) return;
     let width = el.clientWidth;
     let timer = 0;
     const ro = new ResizeObserver(() => {
@@ -78,8 +68,64 @@ export default function KineticTypography() {
     ro.observe(el);
     let alive = true;
     void document.fonts?.ready.then(() => { if (alive) ScrollTrigger.refresh(); });
-    return () => { alive = false; ro.disconnect(); window.clearTimeout(timer); paint(DIAL.station); };
+    return () => { alive = false; ro.disconnect(); window.clearTimeout(timer); };
   }, { scope: root, dependencies: [reduced], revertOnUpdate: true });
+
+  // The pointer is a desk lamp: a warm pool follows it and the display type's shadows swing away from it. Damped,
+  // one rAF loop that sleeps once settled; mouse and pen only (on touch the lamp stays upper left).
+  useEffect(() => {
+    const el = root.current;
+    const pool = lamp.current;
+    if (!el || !pool || reduced) return;
+    const st = { tx: -1, ty: -1, x: -1, y: -1, cx: -1, cy: -1, raf: 0, last: 0, key: '' };
+    const place = () => {
+      const r = pool.getBoundingClientRect();
+      if (st.cx < 0) return;
+      st.tx = st.cx - r.left;
+      st.ty = st.cy - r.top;
+      if (st.x < 0) { st.x = st.tx; st.y = st.ty; }
+    };
+    const tick = (now: number) => {
+      st.raf = 0;
+      const dt = Math.min(0.05, st.last ? (now - st.last) / 1000 : 0.016);
+      st.last = now;
+      const k = 1 - Math.exp(-dt * 7);
+      st.x += (st.tx - st.x) * k;
+      st.y += (st.ty - st.y) * k;
+      const w = Math.max(1, pool.clientWidth);
+      const h = Math.max(1, pool.clientHeight);
+      const sx = Math.max(-1, Math.min(1, (0.5 - st.x / w) * 2));
+      const sy = Math.max(-1, Math.min(1, (0.5 - st.y / h) * 2));
+      const key = `${st.x.toFixed(1)} ${st.y.toFixed(1)}`;
+      if (key !== st.key) {
+        st.key = key;
+        pool.style.setProperty('--kt-lamp-x', `${st.x.toFixed(1)}px`);
+        pool.style.setProperty('--kt-lamp-y', `${st.y.toFixed(1)}px`);
+        el.style.setProperty('--kt-sx', sx.toFixed(3));
+        el.style.setProperty('--kt-sy', sy.toFixed(3));
+      }
+      if (Math.abs(st.tx - st.x) + Math.abs(st.ty - st.y) > 0.3) st.raf = requestAnimationFrame(tick);
+      else st.last = 0;
+    };
+    const wake = () => { if (!st.raf) st.raf = requestAnimationFrame(tick); };
+    const onMove = (e: PointerEvent) => {
+      if (e.pointerType !== 'mouse' && e.pointerType !== 'pen') return;
+      st.cx = e.clientX;
+      st.cy = e.clientY;
+      place();
+      wake();
+    };
+    const onScroll = () => { place(); wake(); };
+    el.addEventListener('pointermove', onMove, { passive: true });
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      el.removeEventListener('pointermove', onMove);
+      window.removeEventListener('scroll', onScroll);
+      cancelAnimationFrame(st.raf);
+      ['--kt-sx', '--kt-sy'].forEach((p) => el.style.removeProperty(p));
+      ['--kt-lamp-x', '--kt-lamp-y'].forEach((p) => pool.style.removeProperty(p));
+    };
+  }, [reduced]);
 
   // One pause control for the whole piece: the marquee recipe keeps its own button, so mirror the state onto it.
   useEffect(() => {
@@ -88,7 +134,13 @@ export default function KineticTypography() {
   }, [paused, reduced]);
 
   return (
-    <div ref={root} className={s.root} data-paused={paused || undefined}>
+    <div
+      ref={root}
+      className={s.root}
+      data-paused={paused || undefined}
+      style={{ '--kt-sx': (0.5 - LAMP.x) * 2, '--kt-sy': (0.5 - LAMP.y) * 2, '--kt-press': press.easing, '--kt-press-dur': `${press.duration}ms` } as CSSProperties}
+    >
+      <div ref={lamp} className={s.lampPool} aria-hidden="true" />
       <div className={s.bar}>
         <p className={s.station}>
           <span className={s.lamp} aria-hidden="true" />
@@ -116,19 +168,8 @@ export default function KineticTypography() {
             <VariableWeightWave params={recipe(waveMeta, { text: 'The night forecast', minWeight: 250, maxWeight: 800, radius: 1.2, squeeze: true, idle: !paused })} />
           </div>
           <p className={s.voice}>Read slowly, for the boats that are still out.</p>
-          <svg className={s.dial} viewBox="-12 0 1024 70" aria-hidden="true" focusable="false">
-            <path className={s.dialRule} d="M0 40H1000" />
-            {TICKS.map((f) => {
-              const major = Number.isInteger(f) && f % 4 === 0;
-              return <path key={f} className={major ? s.tickMajor : s.tick} d={`M${fx(f).toFixed(1)} ${major ? 22 : 30}V40`} />;
-            })}
-            {TICKS.filter((f) => Number.isInteger(f) && f % 4 === 0).map((f) => <text key={f} className={s.dialNum} x={fx(f)} y="60">{f}</text>)}
-            <g ref={needle} className={s.needle} transform={`translate(${fx(DIAL.station).toFixed(1)} 0)`}>
-              <path d="M0 6V44" />
-              <circle cy="6" r="4" />
-              <text ref={readout} className={s.readout} x="10" y="14">{DIAL.station.toFixed(1)}</text>
-            </g>
-          </svg>
+          <Dial host={hero} reduced={reduced} paused={paused} />
+          <p className={s.dialHint} aria-hidden="true">{reduced ? 'Tuned to 97.4' : 'Drag the needle to tune · arrow keys on the dial'}</p>
         </div>
       </section>
 

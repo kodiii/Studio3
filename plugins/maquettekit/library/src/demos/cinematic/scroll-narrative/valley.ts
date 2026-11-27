@@ -94,7 +94,8 @@ function centreline(omega: number, phase: number): { pts: Pt[]; s: number[] } {
   return { pts: raw.map(([px, py]) => [W / 2 + (px - cx) * k, -30 + (py - y0) * k]), s: ss };
 }
 
-export interface ValleyGeometry {
+/** The plan at one stage, plus what a cross-section needs (kept so a moving section line never redraws the plan). */
+export interface PlanGeometry {
   channel: string; width: number;
   breach: string; breachWidth: number;
   oxbow: string; oxbowOpacity: number;
@@ -103,10 +104,83 @@ export interface ValleyGeometry {
   floor: string;
   contours: string[];
   terraces: string; terraceOpacity: number;
-  ground: string; water: string;
+  /** Section inputs: the live channel and the cut-off loop as polylines, the valley shape at this stage. */
+  chanPts: Pt[]; loopPts: Pt[]; floorW: number; depth: number; terr: number; sway: number;
+}
+export interface SectionGeometry {
+  /** y of the section line on the plan (viewBox units). */
+  y: number;
+  ground: string; water: string; still: string;
+  /** How many times the line crosses the live channel and the oxbow lake (for the label and the slider's text). */
+  crossings: number; lakes: number;
+}
+export type ValleyGeometry = PlanGeometry & SectionGeometry;
+
+/** The section line's range on the plan (it stays clear of the title and of the inset). */
+export const SECTION = { min: 84, max: 640, start: 612 } as const;
+
+/** Valley axis at plan height y for a given stage sway (shared by contours, floor and the section). */
+const axisAt = (y: number, sway: number): number => W / 2 + (14 * Math.sin(y / 170 + 0.8) + 8 * Math.sin(y / 63)) * sway;
+
+/** Where a polyline crosses the horizontal line at y. */
+function crossingsAt(pts: readonly Pt[], y: number): number[] {
+  const out: number[] = [];
+  for (let i = 1; i < pts.length; i++) {
+    const [x0, y0] = pts[i - 1];
+    const [x1, y1] = pts[i];
+    if ((y0 - y) * (y1 - y) <= 0 && y0 !== y1) out.push(x0 + ((y - y0) / (y1 - y0)) * (x1 - x0));
+  }
+  return out;
 }
 
-export function valley(tIn: number): ValleyGeometry {
+/** Cross-section A–A′ along plan height y, drawn in the inset's 260 × 110 box. */
+export function section(p: PlanGeometry, yIn: number): SectionGeometry {
+  const y = clamp(yIn, SECTION.min, SECTION.max);
+  const half = 120;
+  const bed = 96;
+  const k = (half * 2) / 552; // plan x 24…576 → section x 10…250
+  const toS = (x: number): number => 130 + (x - 300) * k;
+  const fw = Math.max(2, p.floorW * k);
+  const deep = 18 + p.depth * 64;
+  const ax = toS(axisAt(y, p.sway));
+  const STEPPED: readonly Pt[] = [[0, 0], [0.1, 0.17], [0.2, 0.18], [0.32, 0.36], [0.44, 0.37], [1, 1]];
+  const stepped = (u: number): number => {
+    for (let i = 1; i < STEPPED.length; i++) {
+      const [u1, l1] = STEPPED[i];
+      const [u0, l0] = STEPPED[i - 1];
+      if (u <= u1) return l0 + ((u - u0) / (u1 - u0)) * (l1 - l0);
+    }
+    return 1;
+  };
+  const prof: Pt[] = [];
+  for (let i = 0; i <= 64; i++) {
+    const sx = 10 + (i / 64) * half * 2;
+    const u = clamp((Math.abs(sx - ax) - fw) / (half - fw));
+    const lift = Math.pow(u, 0.78) * (1 - p.terr) + stepped(u) * p.terr;
+    prof.push([sx, bed - deep * lift]);
+  }
+  const ground = `${poly(prof)}L250 106L10 106Z`;
+  const ww = Math.max(5, p.width * 1.8);
+  const lens = (x: number, w: number): string => `M${f1(x - w)} ${f1(bed - 0.5)}Q${f1(x)} ${f1(bed + 6)} ${f1(x + w)} ${f1(bed - 0.5)}Z`;
+  const inBox = (x: number): boolean => x > 14 && x < 246;
+  const live = crossingsAt(p.chanPts, y).map(toS).filter(inBox);
+  const lakes = crossingsAt(p.loopPts, y).map(toS).filter(inBox);
+  return {
+    y,
+    ground,
+    water: live.map((x) => lens(x, ww)).join(''),
+    still: lakes.map((x) => lens(x, ww * 0.9)).join(''),
+    crossings: live.length,
+    lakes: lakes.length,
+  };
+}
+
+export function valley(tIn: number, sy: number = SECTION.start): ValleyGeometry {
+  const p = plan(tIn);
+  return { ...p, ...section(p, sy) };
+}
+
+export function plan(tIn: number): PlanGeometry {
   const t = clamp(tIn, 0, 4);
   const omega = key(OMEGA, t);
   const floorW = key(FLOOR, t);
@@ -160,6 +234,23 @@ export function valley(tIn: number): ValleyGeometry {
     shortcut = `C${f1(ax + Math.sin(ta) * k)} ${f1(ay + Math.cos(ta) * k)} ${f1(bx - Math.sin(tb) * k)} ${f1(by - Math.cos(tb) * k)} ${f1(bx)} ${f1(by)}`;
   }
   const channel = bypassed ? `${poly(pts.slice(0, ia + 1))}${shortcut}L${poly(pts.slice(ib)).slice(1)}` : poly(pts);
+  // The live channel as points (the shortcut sampled along its cubic), for cross-sections.
+  let chanPts: Pt[] = pts;
+  if (bypassed) {
+    const [ax, ay] = pts[ia];
+    const [bx, by] = pts[ib];
+    const ta = omega * Math.sin(2 * Math.PI * s[ia]);
+    const tb = omega * Math.sin(2 * Math.PI * s[ib]);
+    const kk = Math.hypot(bx - ax, by - ay) * 0.45 + 6;
+    const c1: Pt = [ax + Math.sin(ta) * kk, ay + Math.cos(ta) * kk];
+    const c2: Pt = [bx - Math.sin(tb) * kk, by - Math.cos(tb) * kk];
+    const bez: Pt[] = Array.from({ length: 13 }, (_, i) => {
+      const u = i / 12;
+      const v = 1 - u;
+      return [v * v * v * ax + 3 * v * v * u * c1[0] + 3 * v * u * u * c2[0] + u * u * u * bx, v * v * v * ay + 3 * v * v * u * c1[1] + 3 * v * u * u * c2[1] + u * u * u * by];
+    });
+    chanPts = [...pts.slice(0, ia + 1), ...bez, ...pts.slice(ib)];
+  }
   const breach = shortcut ? `M${f1(pts[ia][0])} ${f1(pts[ia][1])}${shortcut}` : '';
   const trim = Math.round((ib - ia) * 0.13 * oxbow);
   const loop = bypassed ? pts.slice(ia + trim, ib - trim + 1) : [];
@@ -184,7 +275,7 @@ export function valley(tIn: number): ValleyGeometry {
   }
 
   // Valley sides: contours follow a gently swaying valley axis outside the floor.
-  const axis = (y: number): number => W / 2 + (14 * Math.sin(y / 170 + 0.8) + 8 * Math.sin(y / 63)) * sway;
+  const axis = (y: number): number => axisAt(y, sway);
   const ys = Array.from({ length: 42 }, (_, i) => -20 + i * 20.5);
   const terraceBand = terr * 64;
   const contours: string[] = [];
@@ -199,32 +290,6 @@ export function valley(tIn: number): ValleyGeometry {
   const terraces = [-1, 1].flatMap((side) => [14, 46].map((o) => poly(ys.map((y): Pt => [axis(y) + side * (floorW + o * terr + 2 * Math.sin(y / 29 + o)), y])))).join('');
   const floor = `${poly(ys.map((y): Pt => [axis(y) - floorW, y]))}L${poly([...ys].reverse().map((y): Pt => [axis(y) + floorW, y])).slice(1)}Z`;
 
-  // Cross-section A–A′ in a 260×110 box: floor half-width and depth from the plan, terraces as steps.
-  const half = 120;
-  const bed = 96;
-  const fw = Math.max(2, (floorW / 300) * half);
-  const deep = 18 + depth * 64;
-  // Valley-side profile from the floor edge (u = 0) to the rim (u = 1); terraces flatten two short stretches.
-  const STEPPED: readonly Pt[] = [[0, 0], [0.1, 0.17], [0.2, 0.18], [0.32, 0.36], [0.44, 0.37], [1, 1]];
-  const stepped = (u: number): number => {
-    for (let i = 1; i < STEPPED.length; i++) {
-      const [u1, l1] = STEPPED[i];
-      const [u0, l0] = STEPPED[i - 1];
-      if (u <= u1) return l0 + ((u - u0) / (u1 - u0)) * (l1 - l0);
-    }
-    return 1;
-  };
-  const section: Pt[] = [];
-  for (let i = 0; i <= 64; i++) {
-    const dx = -half + (i / 64) * half * 2;
-    const u = clamp((Math.abs(dx) - fw) / (half - fw));
-    const lift = Math.pow(u, 0.78) * (1 - terr) + stepped(u) * terr;
-    section.push([130 + dx, bed - deep * lift]);
-  }
-  const ground = `${poly(section)}L250 106L10 106Z`;
-  const ww = Math.max(5, width * 1.8);
-  const water = `M${f1(130 - ww)} ${f1(bed - 0.5)}Q130 ${f1(bed + 6)} ${f1(130 + ww)} ${f1(bed - 0.5)}Z`;
-
   return {
     channel, width,
     breach, breachWidth: width * cut,
@@ -233,28 +298,44 @@ export function valley(tIn: number): ValleyGeometry {
     bars: barRuns.filter((r) => r.length > 1).map(poly).join(''), barsOpacity: bars,
     floor, contours,
     terraces, terraceOpacity: terr,
-    ground, water,
+    chanPts, loopPts: loop, floorW, depth, terr, sway,
   };
 }
 
-/** Writes a geometry into an SVG rendered by `ValleySvg` (no React render per frame). */
-export function createPainter(svg: SVGSVGElement): (g: ValleyGeometry) => void {
+/** Writes geometry into an SVG rendered by `ValleySvg` (no React render per frame). `plan` and `section` are separate so
+ *  a moving section line rewrites a handful of attributes, not the whole drawing. */
+export function createPainter(svg: SVGSVGElement): { plan: (g: PlanGeometry) => void; section: (c: SectionGeometry) => void } {
   const q = (k: string) => svg.querySelector<SVGElement>(`[data-k="${k}"]`);
   const el = {
-    chan: q('chan'), breach: q('breach'), oxbow: q('oxbow'), scar: q('scar'), bars: q('bars'), floor: q('floor'),
-    terr: q('terr'), ground: q('ground'), water: q('water'),
+    chan: q('chan'), flow: q('flow'), breach: q('breach'), oxbow: q('oxbow'), scar: q('scar'), bars: q('bars'), floor: q('floor'),
+    terr: q('terr'), ground: q('ground'), water: q('water'), still: q('still'), line: q('secline'), a: q('secA'), a2: q('secA2'),
+    knob: q('secknob'), label: q('seclabel'),
     contours: Array.from({ length: CONTOURS * 2 }, (_, i) => q(`c${i}`)),
   };
   const set = (e: SVGElement | null, a: string, v: string) => { if (e && e.getAttribute(a) !== v) e.setAttribute(a, v); };
-  return (g) => {
-    set(el.chan, 'd', g.channel); set(el.chan, 'stroke-width', g.width.toFixed(2));
-    set(el.breach, 'd', g.breach); set(el.breach, 'stroke-width', g.breachWidth.toFixed(2));
-    set(el.oxbow, 'd', g.oxbow); set(el.oxbow, 'opacity', g.oxbowOpacity.toFixed(3)); set(el.oxbow, 'stroke-width', (g.width + 1.5).toFixed(2));
-    set(el.scar, 'd', g.scar); set(el.scar, 'opacity', g.scarOpacity.toFixed(3));
-    set(el.bars, 'd', g.bars); set(el.bars, 'opacity', g.barsOpacity.toFixed(3));
-    set(el.floor, 'd', g.floor);
-    set(el.terr, 'd', g.terraces); set(el.terr, 'opacity', g.terraceOpacity.toFixed(3));
-    set(el.ground, 'd', g.ground); set(el.water, 'd', g.water);
-    el.contours.forEach((c, i) => set(c, 'd', g.contours[i] ?? ''));
+  return {
+    plan: (g) => {
+      set(el.chan, 'd', g.channel); set(el.chan, 'stroke-width', g.width.toFixed(2));
+      set(el.flow, 'd', g.channel); set(el.flow, 'stroke-width', (g.width * 0.34).toFixed(2));
+      set(el.breach, 'd', g.breach); set(el.breach, 'stroke-width', g.breachWidth.toFixed(2));
+      set(el.oxbow, 'd', g.oxbow); set(el.oxbow, 'opacity', g.oxbowOpacity.toFixed(3)); set(el.oxbow, 'stroke-width', (g.width + 1.5).toFixed(2));
+      set(el.scar, 'd', g.scar); set(el.scar, 'opacity', g.scarOpacity.toFixed(3));
+      set(el.bars, 'd', g.bars); set(el.bars, 'opacity', g.barsOpacity.toFixed(3));
+      set(el.floor, 'd', g.floor);
+      set(el.terr, 'd', g.terraces); set(el.terr, 'opacity', g.terraceOpacity.toFixed(3));
+      el.contours.forEach((c, i) => set(c, 'd', g.contours[i] ?? ''));
+    },
+    section: (c) => {
+      const y = c.y.toFixed(1);
+      set(el.ground, 'd', c.ground); set(el.water, 'd', c.water); set(el.still, 'd', c.still);
+      set(el.line, 'd', `M24 ${y}H576`);
+      set(el.a, 'y', (c.y - 8).toFixed(1)); set(el.a2, 'y', (c.y - 8).toFixed(1));
+      set(el.knob, 'transform', `translate(584 ${y})`);
+      if (el.label) { const t = sectionLabel(c); if (el.label.textContent !== t) el.label.textContent = t; }
+    },
   };
 }
+
+/** The inset's label: what the section line crosses. */
+export const sectionLabel = (c: SectionGeometry): string =>
+  `A–A′ · river ×${c.crossings}${c.lakes ? ' · oxbow' : ''}`;
