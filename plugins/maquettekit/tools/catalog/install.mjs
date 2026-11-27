@@ -17,6 +17,7 @@ import { createHash } from 'node:crypto';
 import { builtinModules } from 'node:module';
 import { PLUGIN_ROOT } from '../lib/resolve.mjs';
 import { UserError } from '../lib/log.mjs';
+import { findItem } from './lookup.mjs';
 
 const LIB_SRC = () => path.join(PLUGIN_ROOT, 'library', 'src');
 const EXTS = ['.ts', '.tsx', '.js', '.jsx', '.mjs'];
@@ -53,14 +54,6 @@ export function packageOf(spec) {
   return spec.startsWith('@') ? parts.slice(0, 2).join('/') : parts[0];
 }
 
-/** Find a catalogue item (effect or demo) by id. */
-function findItem(cat, id) {
-  const effect = cat.effects.find((e) => e.id === id);
-  if (effect) return { kind: 'effect', item: effect };
-  const demo = cat.demos.find((d) => d.id === id);
-  if (demo) return { kind: 'demo', item: demo };
-  return null;
-}
 
 /** Nearest package.json at or above dir. */
 function nearestPackageJson(dir) {
@@ -99,7 +92,7 @@ export function installItems(cat, ids, opts = {}) {
     const found = findItem(cat, id);
     if (!found) throw new UserError(`No effect or demo with id "${id}". Try: maquettekit catalog search ${id}`);
     const dir = path.join(PLUGIN_ROOT, found.item.path);
-    items.push({ id, kind: found.kind, name: found.item.name, dir });
+    items.push({ id: found.item.id, ...(found.kind === 'demo' ? { qualifiedId: found.id } : {}), kind: found.kind, name: found.item.name, dir });
     for (const f of found.item.files ?? fs.readdirSync(dir)) queue.push(path.join(dir, f));
   }
   // transitive closure of relative imports inside library/src
@@ -157,11 +150,11 @@ export function installItems(cat, ids, opts = {}) {
     const snippet = comp && it.kind === 'effect'
       ? `${imp}\nimport { meta } from './${modPath}/meta';\nimport { resolveParams } from './${typesPath}';\n// <${comp.name} params={resolveParams(meta.params, { /* overrides */ })} />`
       : imp;
-    return { id: it.id, kind: it.kind, component: comp?.name ?? null, importPath: `./${modPath}`, snippet };
+    return { id: it.qualifiedId ?? it.id, kind: it.kind, component: comp?.name ?? null, importPath: `./${modPath}`, snippet };
   });
   const result = {
     tool: 'maquettekit-catalog-install', version: opts.version ?? libPkg.version, into, project: projectDir, applied: false,
-    items: items.map(({ id, kind, name }) => ({ id, kind, name })), files: plan.map(({ rel, action }) => ({ path: rel, action })),
+    items: items.map(({ id, qualifiedId, kind, name }) => ({ id, ...(qualifiedId ? { qualifiedId } : {}), kind, name })), files: plan.map(({ rel, action }) => ({ path: rel, action })),
     counts: { create: plan.filter((p) => p.action === 'create').length, overwrite: plan.filter((p) => p.action === 'overwrite').length, identical: plan.filter((p) => p.action === 'identical').length, conflict: conflicts.length },
     dependencies: deps, installCommand, assetUrls: [...assetUrls].sort(), unresolved, usage,
     notes: [
@@ -179,7 +172,7 @@ export function installItems(cat, ids, opts = {}) {
   const manifestFile = path.join(into, 'maquettekit.install.json');
   let manifest = { tool: 'maquettekit', note: 'Written by "maquettekit catalog install". Lists installed items and the file hashes they were installed with.', items: {}, files: {} };
   try { manifest = { ...manifest, ...JSON.parse(fs.readFileSync(manifestFile, 'utf8')) }; } catch { /* first install */ }
-  for (const it of items) manifest.items[it.id] = { kind: it.kind, version: result.version, installedAt: new Date().toISOString() };
+  for (const it of items) manifest.items[it.qualifiedId ?? it.id] = { kind: it.kind, version: result.version, installedAt: new Date().toISOString() };
   for (const p of plan) manifest.files[p.rel] = p.hash;
   fs.writeFileSync(manifestFile, `${JSON.stringify(manifest, null, 2)}\n`);
   return { ...result, applied: true, manifest: manifestFile };

@@ -79,7 +79,7 @@ export async function exportWebComponents(cat, ids, opts = {}) {
   if (!ids.length) throw new UserError('catalog export needs at least one effect id');
   const effects = ids.map((id) => {
     const e = cat.effects.find((x) => x.id === id);
-    if (!e) throw new UserError(cat.demos.some((d) => d.id === id) ? `"${id}" is a demo (a full composition); install it into a React project with "catalog install ${id}" instead.` : `No effect with id "${id}". Try: maquettekit catalog search ${id}`);
+    if (!e) throw new UserError(cat.demos.some((d) => d.id === id || `${d.specialty}/${d.id}` === id) ? `"${id}" is a demo (a full composition); install it into a React project with "catalog install ${id}" instead.` : `No effect with id "${id}". Try: maquettekit catalog search ${id}`);
     return e;
   });
   const vite = await importDep('vite', 'bundling recipes as Web Components');

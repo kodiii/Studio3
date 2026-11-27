@@ -9,7 +9,7 @@
 > - Keep the page complete without WebGL: a still render, drawing or SVG map plus the same controls and text.
 > - Under reduced motion nothing moves on its own: no inertia, sway, intros or pulses; presets cut.
 > - With Rapier, queue body mutations into `useBeforePhysicsStep` and check a body still exists before touching it.
-> - `catalog show product-configurator` and `catalog show cinematic-landing` return these 3D demos, not the product or cinematic ones.
+> - `product-configurator` and `cinematic-landing` also exist outside 3D: name these as `3d/product-configurator` and `3d/cinematic-landing` in `catalog show` and `catalog install`.
 
 Full compositions in `${CLAUDE_PLUGIN_ROOT}/library/src/demos/3d/<id>/`, served by the gallery at `/demos/3d/<id>`
 (the `/3d` page lists them next to the model viewer). Everything below is read from each demo's `meta.ts` and
@@ -23,7 +23,8 @@ under reduced motion at 390 px, no horizontal overflow, and without WebGL a fall
 visible, no `<canvas>`).
 
 `product-configurator` and `cinematic-landing` also name demos in `studio-product` (a 2D bike configurator) and
-`studio-cinematic` (an SVG organ launch); `catalog show` and `catalog install` resolve both ids to the 3D ones here.
+`studio-cinematic` (an SVG organ launch), so the bare ids are refused as ambiguous: use `3d/product-configurator` and
+`3d/cinematic-landing` with `catalog show` and `catalog install`.
 
 ## product-configurator — "Pulse Configurator"
 

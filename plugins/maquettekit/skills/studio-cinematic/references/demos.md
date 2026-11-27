@@ -3,7 +3,7 @@
 > **Quick card** — the must-dos from this file; read on for the reasons and the detail.
 >
 > - Pick by task: launch → `cinematic-landing`; long read → `scroll-narrative`; type-led → `kinetic-typography`; an object or a place → `immersive-3d-hero`; a studio or portfolio that shows motion craft → `motion-studio`.
-> - Read the demo's `meta.ts` and confirm ids with `maquettekit catalog show` before citing; open `demos/cinematic/cinematic-landing/` directly.
+> - Read the demo's `meta.ts` and confirm ids with `maquettekit catalog show` before citing; name the launch demo `cinematic/cinematic-landing`.
 > - Write the user's beat sheet and motion brief first; never inherit a demo's story, signature move or look.
 > - Rebuild only the two or three ideas the task needs, in the project's stack and tokens; install `uses` recipes as they are.
 > - Keep the static document underneath, every pause, skip and keyboard twin, and each reduced-motion form.
@@ -27,8 +27,9 @@ maquettekit catalog show scroll-narrative
 maquettekit catalog show scroll-narrative --source
 ```
 
-`cinematic-landing` shares its id with a 3D demo, which `catalog show` and `catalog install` return; open
-`demos/cinematic/cinematic-landing/` directly.
+`cinematic-landing` shares its id with a 3D demo, so the bare id is refused as ambiguous: use the qualified id
+`cinematic/cinematic-landing` with `catalog show` and `catalog install`
+(`maquettekit catalog show cinematic/cinematic-landing`).
 
 ## 1. Overview
 

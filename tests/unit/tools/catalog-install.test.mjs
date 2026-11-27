@@ -37,7 +37,7 @@ describe('catalog install', () => {
     const items = [...cat.effects, ...cat.demos];
     expect(items.length).toBeGreaterThanOrEqual(69);
     for (const it of items) {
-      const r = installItems(cat, [it.id], { project: tmp, into: path.join(tmp, 'never-written') });
+      const r = installItems(cat, [it.specialty ? `${it.specialty}/${it.id}` : it.id], { project: tmp, into: path.join(tmp, 'never-written') });
       expect(r.unresolved, it.id).toEqual([]);
       for (const d of r.dependencies) expect(d.name, `${it.id}: ${d.name}`).toMatch(/^(@[\w.-]+\/)?[\w.-]+$/);
       expect(r.files.some((f) => f.path.endsWith('index.tsx')), it.id).toBe(true);
@@ -54,7 +54,7 @@ describe('catalog install', () => {
     expect(files.some((f) => f.startsWith('three/')), 'no 3D kit for 2D items').toBe(false);
     for (const f of files) expect(fs.existsSync(path.join(r.into, f)), f).toBe(true);
     const manifest = JSON.parse(fs.readFileSync(path.join(r.into, 'maquettekit.install.json'), 'utf8'));
-    expect(Object.keys(manifest.items).sort()).toEqual(['magnetic-button', 'saas-landing']);
+    expect(Object.keys(manifest.items).sort()).toEqual(['magnetic-button', 'product/saas-landing']);
     expect(Object.keys(manifest.files)).toEqual(expect.arrayContaining(files));
     expect(r.installCommand).toBeNull(); // react is already in package.json
     expect(r.usage[0].component).toBe('MagneticButton');
@@ -78,11 +78,19 @@ describe('catalog install', () => {
     expect(dry.applied).toBe(false);
     expect(fs.existsSync(path.join(tmp, 'dry', 'lib'))).toBe(false);
     expect(() => installItems(cat, ['no-such-recipe'], { project: dir })).toThrow(/No effect or demo/);
+    expect(() => installItems(cat, ['cinematic-landing'], { project: dir })).toThrow(/3d\/cinematic-landing, cinematic\/cinematic-landing/);
+    expect(() => installItems(cat, ['nope/cinematic-landing'], { project: dir })).toThrow(/No effect or demo/);
   });
 
+  it('installs a demo by qualified id from the right specialty', () => {
+    const r = installItems(cat, ['cinematic/cinematic-landing'], { project: app('qualified') });
+    expect(r.items).toEqual([expect.objectContaining({ id: 'cinematic-landing', qualifiedId: 'cinematic/cinematic-landing', kind: 'demo' })]);
+    expect(r.files.map((f) => f.path)).toContain('demos/cinematic/cinematic-landing/index.tsx');
+    expect(r.files.some((f) => f.path.startsWith('demos/3d/'))).toBe(false);
+  });
   it('reports missing npm packages with tested versions, @types for three/d3, and absolute asset URLs', () => {
     const dir = app('three-app');
-    const r = installItems(cat, ['cinematic-landing'], { project: dir });
+    const r = installItems(cat, ['3d/cinematic-landing'], { project: dir });
     const names = r.dependencies.filter((d) => !d.present).map((d) => d.name);
     expect(names).toEqual(expect.arrayContaining(['three', '@react-three/fiber', '@types/three']));
     expect(r.installCommand).toMatch(/^npm install .*three@\^0\.\d+/);
@@ -95,7 +103,7 @@ describe('catalog install', () => {
     const tsc = path.join(REPO, 'node_modules', '.bin', 'tsc');
     if (!fs.existsSync(tsc)) return;
     const pick = (tech) => cat.effects.find((e) => e.technology.includes(tech))?.id;
-    const ids = ['magnetic-button', 'saas-landing', 'product-configurator', pick('d3'), pick('gsap'), pick('glsl')].filter(Boolean);
+    const ids = ['magnetic-button', 'saas-landing', '3d/product-configurator', 'product/product-configurator', pick('d3'), pick('gsap'), pick('glsl')].filter(Boolean);
     const dir = app('typed');
     installItems(cat, /** @type {string[]} */ (ids), { project: dir, apply: true });
     const nm = path.join(REPO, 'node_modules');
