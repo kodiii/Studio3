@@ -1,21 +1,17 @@
 /**
  * Small, dependency-free motion physics for the explorer: springs driven by the motion-token presets
- * (`spring.*` = stiffness / damping / mass), an iOS-style rubber band for limits, a release-velocity tracker and
+ * (`spring.*` = stiffness / damping / mass, stepped by motion's `stepSpring`), an iOS-style rubber band for limits, a release-velocity tracker and
  * the token cubic-béziers as JS easing functions. Everything here is pure; loops are owned by the components and
  * cancelled on unmount.
  */
-import { easing as EASE, type EasingToken, type SpringConfig } from '../../../motion';
+import { easing as EASE, springState, stepSpring, type EasingToken, type SpringConfig } from '../../../motion';
 
-/** Advance a damped spring toward `to` by `dt` seconds (semi-implicit Euler, sub-stepped at 240 Hz). Returns [x, v]. */
-export function stepSpring(x: number, v: number, to: number, cfg: SpringConfig, dt: number): [number, number] {
-  const n = Math.max(1, Math.ceil(dt * 240));
-  const h = dt / n;
-  for (let i = 0; i < n; i++) {
-    const a = (-cfg.stiffness * (x - to) - cfg.damping * v) / cfg.mass;
-    v += a * h;
-    x += v * h;
-  }
-  return [x, v];
+const scratch = springState();
+/** motion's `stepSpring` for the explorer's flat state (x and v in separate fields): advances toward `to`, returns [x, v]. */
+export function stepSpringPair(x: number, v: number, to: number, cfg: SpringConfig, dt: number): [number, number] {
+  scratch.x = x; scratch.v = v;
+  stepSpring(scratch, to, cfg, dt);
+  return [scratch.x, scratch.v];
 }
 
 /** Rubber band: how far past a limit to draw a pull of `over`, given the band's reach `dim` (never reaches `dim`). */

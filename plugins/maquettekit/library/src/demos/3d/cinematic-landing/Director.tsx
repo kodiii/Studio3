@@ -14,7 +14,7 @@
 import { useFrame, useThree } from '@react-three/fiber';
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState, type MutableRefObject } from 'react';
 import { MathUtils, Object3D, type Group, type Mesh, type MeshStandardMaterial, type PerspectiveCamera, type PointLight, type SpotLight } from 'three';
-import { duration, sec, spring as SPRING } from '../../../motion';
+import { duration, sec, spring as SPRING, stepSpring } from '../../../motion';
 import {
   AnimationPlayer, LightingRig, Model, ModelBoundary, PartController, useQuality, useStudioCanvasHost,
   type AnimationPlayerHandle, type LightingRigHandle, type LoadedModel, type PartControllerCore,
@@ -22,7 +22,7 @@ import {
 import {
   DETENT, INTRO_FROM, KEY_ORBIT, LIGHT_SWING, NIGHT, REFERENCE_ASPECT, RING_LIGHT, SHADOW_PLANE, SWAY_DEG, VOLUME,
   atRest, blendLight, buildContactShadow, buildPlinthGeometry, buildStoneTextures, damp, detented, introShot,
-  releaseVelocity, shotForProgress, smooth, softLimit, stepSpring, volumeAt, type Axis, type Framing, type Light, type Shot,
+  releaseVelocity, shotForProgress, smooth, softLimit, volumeAt, type Axis, type Framing, type Light, type Shot,
 } from './stage';
 
 /** The opening move: 2.5 × the `epic` token (3.5 s), skippable, and it only starts once the speaker is on stage. */

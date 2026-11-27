@@ -72,6 +72,7 @@ export default function TiltParallaxCard({ params }: EffectProps<Params>) {
     const s = sim.current;
     const { stiffness: k, damping: d, mass: m } = spring[token];
     // Semi-implicit Euler in ≤ 1/120 s sub-steps: stable for every spring token.
+    // Kept local, not stepSpring: the card's tilt was tuned at 1/120 s steps (stepSpring's 1/240 s would damp it differently).
     const steps = Math.max(1, Math.ceil(dt * 120));
     const h = dt / steps;
     for (let i = 0; i < steps; i++) {

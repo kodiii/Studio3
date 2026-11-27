@@ -52,6 +52,13 @@ Motion-compatible `{ stiffness, damping, mass }`, named by role:
 without a JavaScript loop. `linear()` is a modern CSS feature: where older engines matter, check
 `CSS.supports('transition-timing-function', 'linear(0, 1)')` and fall back to `cssEase('emphasized')`.
 
+For a value the hand drives frame by frame (a drag, a pointer follow, a throw), step the spring yourself with
+`stepSpring(state, target, spring.release, dt)`: `state` is `{ x, v }` (`springState(x)`), it keeps its velocity
+between calls, sub-steps at ≤ 1/240 s and returns true once it is parked on the target (`{ restDelta, restSpeed }`
+override the thresholds; `springAtRest` checks without stepping). `useSettleLoop(ref, (dt) => stepSpring(...))`
+runs it on `useRafLoop` and returns `wake()`: call it when the target moves, and the loop stops itself at rest.
+Do not write another integrator in a recipe.
+
 ## 4. Stagger and distance
 
 | `stagger` | ms | `distance` | px |

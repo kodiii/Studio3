@@ -8,7 +8,7 @@ generator, the tests and the skills all depend on it.
 ```
 plugins/maquettekit/library/src/
   types.ts                  EffectMeta, DemoMeta, ParamSpec, EffectProps …
-  motion/                   Motion Lab engine: tokens, createSequence/flip/viewTransition, hooks, useStudioMotion
+  motion/                   Motion Lab engine: tokens, stepSpring, createSequence/flip/viewTransition, hooks, useStudioMotion
   three/                    three-kit: detectCapabilities, quality profiles, dispose helpers, StudioCanvas, createVanillaScene
   effects/<id>/             one folder per recipe
     meta.ts                 export const meta: EffectMeta   (pure data; ONLY `import type` — it is loaded by Node directly)
@@ -56,8 +56,8 @@ those into errors.
    interaction, names for controls, ≥24×24 px targets (44 px for primary touch targets), no information by colour or
    motion alone, decorative layers `aria-hidden`. Split/duplicated text keeps one accessible copy.
 8. **Performance.** Animate `transform`/`opacity` (and paint-only properties sparingly); no layout thrash in loops; rAF
-   loops go through `useRafLoop` (pauses offscreen/hidden); scroll work is passive + rAF-batched; canvas work respects
-   `devicePixelRatio` caps.
+   loops go through `useRafLoop` (pauses offscreen/hidden) and springs stepped per frame through `stepSpring`; scroll
+   work is passive + rAF-batched; canvas work respects `devicePixelRatio` caps.
 9. **3D recipes** render inside `StudioCanvas` (fallback content required, `frameloop="demand"` unless something is
    actually animating, quality from `useQuality()`), never create a second renderer, and dispose anything created
    imperatively. WebGPU only behind `detectWebGPU()` with a WebGL path.

@@ -4,7 +4,7 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
 import {
-  createSequence, duration, spring, springToLinear, stagger, useInView, useIsomorphicLayoutEffect, useRafLoop, useStudioMotion,
+  createSequence, duration, spring, springToLinear, stagger, stepSpring, useInView, useIsomorphicLayoutEffect, useRafLoop, useStudioMotion,
   type SpringConfig,
 } from '../../../motion';
 import { resolveParams, type EffectMeta, type ParamValues } from '../../../types';
@@ -141,12 +141,10 @@ function Plate({ t0, api, speed, labelId, flowing }: { t0: number; api?: Mutable
       }
     }
     if (st.mode === 'rest') return;
-    const n = Math.max(1, Math.ceil(dt / (1 / 240)));
     const step = (target: number, cfg: SpringConfig) => {
-      for (let i = 0; i < n; i++) {
-        st.v += ((-cfg.stiffness * (st.y - target) - cfg.damping * st.v) / cfg.mass) * (dt / n);
-        st.y += st.v * (dt / n);
-      }
+      const a = { x: st.y, v: st.v };
+      stepSpring(a, target, cfg, dt);
+      st.y = a.x; st.v = a.v;
     };
     if (st.mode === 'drag') step(st.target, spring.press);
     else if (st.mode === 'seek') {

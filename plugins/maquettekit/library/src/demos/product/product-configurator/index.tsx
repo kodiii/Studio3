@@ -1,6 +1,6 @@
 'use client';
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
-import { spring as SPRING, springToLinear, useStudioMotion } from '../../../motion';
+import { spring as SPRING, springAtRest, springToLinear, stepSpring, useStudioMotion } from '../../../motion';
 import {
   BARS, BASE_PRICE, DEFAULT_BUILD, EXTRAS, FENDER_MAX_TYRE, FRAMES, MODEL, PAINTS, SIZES, TYRES,
   barOf, codeOf, countBuilds, fendersFit, fitOf, formatDelta, formatPrice, frameOf, fromHash, interpolateFit, mm,
@@ -26,11 +26,13 @@ function useSpringFit(target: Fit, reduced: boolean): Fit {
     const c = SPRING.settle;
     const tick = (now: number) => {
       const dt = prev ? Math.min(0.05, (now - prev) / 1000) : 1 / 60; prev = now;
-      const st = cur.current, n = Math.max(1, Math.ceil(dt * 240)), h = dt / n;
+      const st = cur.current;
       let done = true;
       for (const k of Object.keys(target) as (keyof Fit)[]) {
-        for (let i = 0; i < n; i++) { st.v[k] += ((-c.stiffness * (st.x[k] - target[k]) - c.damping * st.v[k]) / c.mass) * h; st.x[k] += st.v[k] * h; }
-        if (Math.abs(st.x[k] - target[k]) > 0.05 || Math.abs(st.v[k]) > 0.2) done = false;
+        const a = { x: st.x[k], v: st.v[k] };
+        stepSpring(a, target[k], c, dt);
+        st.x[k] = a.x; st.v[k] = a.v;
+        if (!springAtRest(a, target[k], { restDelta: 0.05, restSpeed: 0.2 })) done = false;
       }
       if (done) { st.x = { ...target }; for (const k of Object.keys(st.v) as (keyof Fit)[]) st.v[k] = 0; }
       setFit({ ...st.x });

@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties, type PointerE
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
-import { gsapEase, spring, springToLinear, useInView, useStudioMotion } from '../../../motion';
+import { gsapEase, spring, springToLinear, stepSpring, useInView, useStudioMotion } from '../../../motion';
 import { resolveParams, type EffectMeta, type ParamValues } from '../../../types';
 import SplitLineReveal from '../../../effects/split-line-reveal';
 import { meta as splitMeta } from '../../../effects/split-line-reveal/meta';
@@ -73,12 +73,7 @@ function StopKnob({ st, on, onSet, reduced }: { st: Stop; on: boolean; onSet: (i
     const step = (now: number) => {
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
-      const n = Math.max(1, Math.ceil(dt / (1 / 240)));
-      for (let i = 0; i < n; i++) {
-        k.v += ((-spring.press.stiffness * (k.x - target) - spring.press.damping * k.v) / spring.press.mass) * (dt / n);
-        k.x += k.v * (dt / n);
-      }
-      if (Math.abs(k.x - target) < 0.02 && Math.abs(k.v) < 0.5) { k.x = target; k.v = 0; write(null); return; }
+      if (stepSpring(k, target, spring.press, dt, { restDelta: 0.02, restSpeed: 0.5 })) { write(null); return; }
       write(k.x);
       k.raf = requestAnimationFrame(step);
     };

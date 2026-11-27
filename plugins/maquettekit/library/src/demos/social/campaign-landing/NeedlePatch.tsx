@@ -173,6 +173,7 @@ export function NeedlePatch() {
   useRafLoop(wrap, (dt) => {
     const q = at(p.current);
     // Heading: a press spring towards the seam's (smoothed) tangent, by the shortest way round.
+    // Kept local, not stepSpring: an angular error wrapped to ±π, one step per frame alongside the 120 Hz rope.
     let diff = heading(p.current) - ang.current;
     diff = Math.atan2(Math.sin(diff), Math.cos(diff));
     const k = spring.press;

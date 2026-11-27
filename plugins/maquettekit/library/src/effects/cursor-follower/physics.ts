@@ -1,27 +1,16 @@
 /**
  * Small, allocation-free spring kit shared by the follower engine and the showcase strip.
- * Springs use the Motion Lab tokens (stiffness / damping / mass) and keep their velocity between frames, so a
- * retargeted value bends toward its new goal instead of restarting from rest.
+ * Springs use the Motion Lab tokens (stiffness / damping / mass) and are stepped with motion's `stepSpring`, which keeps
+ * their velocity between frames, so a retargeted value bends toward its new goal instead of restarting from rest.
  */
-import type { SpringConfig } from '../../motion';
+import { springAtRest, springState, type SpringConfig, type SpringState } from '../../motion';
 
-export interface Axis { x: number; v: number }
+export type Axis = SpringState;
 
-export const axis = (x = 0): Axis => ({ x, v: 0 });
-
-/** Damped spring toward `target`, semi-implicit Euler sub-stepped at ≤ 1/240 s: stable for stiff tokens on slow frames. */
-export function stepAxis(a: Axis, target: number, c: SpringConfig, dt: number): void {
-  if (dt <= 0) return;
-  const n = Math.max(1, Math.ceil(dt * 240));
-  const h = dt / n;
-  for (let i = 0; i < n; i++) {
-    a.v += ((-c.stiffness * (a.x - target) - c.damping * a.v) / c.mass) * h;
-    a.x += a.v * h;
-  }
-}
+export const axis = (x = 0): Axis => springState(x);
 
 /** At rest within `eps` of the target (velocity tolerance scales with it: eps per 1/10 s). */
-export const atRest = (a: Axis, target: number, eps: number): boolean => Math.abs(a.x - target) < eps && Math.abs(a.v) < eps * 10;
+export const atRest = (a: Axis, target: number, eps: number): boolean => springAtRest(a, target, { restDelta: eps, restSpeed: eps * 10 });
 
 /** Park an axis exactly on its target. */
 export const park = (a: Axis, target: number): void => { a.x = target; a.v = 0; };

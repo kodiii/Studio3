@@ -21,7 +21,7 @@ import {
   Color, InstancedBufferAttribute, Matrix4, Plane, PlaneGeometry, Quaternion, Raycaster, ShaderMaterial, Vector2, Vector3,
   type BufferGeometry, type Group, type InstancedMesh, type Mesh,
 } from 'three';
-import { spring as SPRING, type SpringConfig } from '../../../motion';
+import { spring as SPRING, stepSpring } from '../../../motion';
 import { useQuality } from '../../../three';
 import { BOUNDS, COLOURS, SHAPES, TABLE, type BodySpec, type ShapeId } from './bodies';
 import { KEY_LIGHT } from './Table';
@@ -64,20 +64,9 @@ const KEY_SHADOW = new Vector2(-KEY_LIGHT[0], -KEY_LIGHT[2]).multiplyScalar(1 / 
 const INTRO = { stagger: 0.11, fall: 0.42, height: 2.6 };
 interface IntroState { delay: Map<number, number>; clock: number }
 
-/* ── A tiny spring integrator driven by the motion tokens ───────────────────────────────────────────────────────── */
+/* ── Visual springs on the motion tokens (the bodies themselves are Rapier's); `to` is each one's target ────────── */
 interface Spring { x: number; v: number; to: number }
 const spring = (x: number): Spring => ({ x, v: 0, to: x });
-/** Advances `s` by `dt` (semi-implicit Euler, sub-stepped). Returns true while it is still moving. */
-function stepSpring(s: Spring, cfg: SpringConfig, dt: number): boolean {
-  const n = Math.max(1, Math.ceil(dt / (1 / 240)));
-  const h = dt / n;
-  for (let i = 0; i < n; i++) {
-    s.v += ((-cfg.stiffness * (s.x - s.to) - cfg.damping * s.v) / cfg.mass) * h;
-    s.x += s.v * h;
-  }
-  if (Math.abs(s.x - s.to) < 1e-4 && Math.abs(s.v) < 1e-3) { s.x = s.to; s.v = 0; return false; }
-  return true;
-}
 
 /** Distance from a shape's centre to its lowest point along the unit direction `a` (in the shape's local space). */
 function support(shape: ShapeId, a: Vector3): number {
@@ -374,9 +363,9 @@ const Simulation = forwardRef<WorldHandle, SimProps>(function Simulation(
       v.lift.to = hovered && !rm && !loadedFromAbove(v) ? 0.085 : 0;
       if (rm) { v.rim.x = v.rim.to; v.rim.v = 0; v.lift.x = v.lift.to; v.lift.v = 0; v.squash.x = 1; v.squash.v = 0; }
       else {
-        if (stepSpring(v.rim, SPRING.press, dt)) moving = true;
-        if (stepSpring(v.lift, SPRING.settle, dt)) moving = true;
-        if (stepSpring(v.squash, SPRING.pop, dt)) moving = true;
+        if (!stepSpring(v.rim, v.rim.to, SPRING.press, dt)) moving = true;
+        if (!stepSpring(v.lift, v.lift.to, SPRING.settle, dt)) moving = true;
+        if (!stepSpring(v.squash, v.squash.to, SPRING.pop, dt)) moving = true;
       }
       v.uniforms.uRim.value = Math.max(0, v.rim.x);
 
@@ -422,7 +411,7 @@ const Simulation = forwardRef<WorldHandle, SimProps>(function Simulation(
     // Selection ring under the selected body.
     const rv = sel != null ? visuals.get(sel) : undefined;
     ringRes.opacity.to = rv && rv.onTable ? 0.72 : 0;
-    if (rm) ringRes.opacity.x = ringRes.opacity.to; else if (stepSpring(ringRes.opacity, SPRING.press, dt)) moving = true;
+    if (rm) ringRes.opacity.x = ringRes.opacity.to; else if (!stepSpring(ringRes.opacity, ringRes.opacity.to, SPRING.press, dt)) moving = true;
     const rg = ring.current;
     if (rg) {
       (ringRes.material.uniforms.uOpacity as { value: number }).value = ringRes.opacity.x;

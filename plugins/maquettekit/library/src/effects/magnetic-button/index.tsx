@@ -1,6 +1,6 @@
 'use client';
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type PointerEvent } from 'react';
-import { spring as SPRING, useRafLoop, useStudioMotion, type SpringConfig, type SpringToken } from '../../motion';
+import { spring as SPRING, stepSpring, useRafLoop, useStudioMotion, type SpringToken } from '../../motion';
 import type { EffectProps } from '../../types';
 import styles from './styles.module.css';
 
@@ -21,15 +21,6 @@ interface Axis { x: number; v: number }
 interface Magnet { bx: Axis; by: Axis; lx: Axis; ly: Axis; engaged: boolean }
 const restingMagnet = (): Magnet => ({ bx: { x: 0, v: 0 }, by: { x: 0, v: 0 }, lx: { x: 0, v: 0 }, ly: { x: 0, v: 0 }, engaged: false });
 
-/** Damped spring, semi-implicit Euler sub-stepped at ≤ 1/240 s so stiff tokens stay stable on slow frames. */
-function stepAxis(a: Axis, target: number, c: SpringConfig, dt: number): void {
-  const n = Math.max(1, Math.ceil(dt * 240));
-  const h = dt / n;
-  for (let i = 0; i < n; i++) {
-    a.v += ((-c.stiffness * (a.x - target) - c.damping * a.v) / c.mass) * h;
-    a.x += a.v * h;
-  }
-}
 const settledAt = (a: Axis, target: number): boolean => Math.abs(a.x - target) < 0.02 && Math.abs(a.v) < 0.02;
 const smoothstep = (t: number): number => { const c = Math.min(1, Math.max(0, t)); return c * c * (3 - 2 * c); };
 const isToken = (v: string): v is SpringToken => v in SPRING;
@@ -133,10 +124,10 @@ export default function MagneticButton({ params }: EffectProps<Params>) {
       const lcap = Math.max(1, (r?.height ?? 56) * 0.12);
       const ltx = lcap * Math.tanh((tx * params.depth) / lcap);
       const lty = lcap * Math.tanh((ty * params.depth) / lcap);
-      stepAxis(m.bx, tx, cfg, dt);
-      stepAxis(m.by, ty, cfg, dt);
-      stepAxis(m.lx, ltx, cfg, dt);
-      stepAxis(m.ly, lty, cfg, dt);
+      stepSpring(m.bx, tx, cfg, dt);
+      stepSpring(m.by, ty, cfg, dt);
+      stepSpring(m.lx, ltx, cfg, dt);
+      stepSpring(m.ly, lty, cfg, dt);
       if (!(settledAt(m.bx, tx) && settledAt(m.by, ty) && settledAt(m.lx, ltx) && settledAt(m.ly, lty))) settled = false;
       if (tx !== 0 || ty !== 0) home = false;
       // Write pass (all reads happened above).

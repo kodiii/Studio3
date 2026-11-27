@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useRef, type KeyboardEvent, type PointerEvent as ReactPointerEvent, type RefObject } from 'react';
-import { spring, useRafLoop, type SpringConfig } from '../../../motion';
+import { spring, stepSpring, useRafLoop, type SpringConfig } from '../../../motion';
 import s from './styles.module.css';
 
 export const DIAL = { min: 87.5, max: 108, from: 89.1, station: 97.4 };
@@ -74,11 +74,9 @@ export function Dial({ host, reduced, paused }: { host: RefObject<HTMLElement | 
     if (dt <= 0) return;
     if (st.delay > 0) { st.delay -= dt; return; }
     const step = (target: number, cfg: SpringConfig) => {
-      const n = Math.max(1, Math.ceil(dt / (1 / 240)));
-      for (let i = 0; i < n; i++) {
-        st.v += ((-cfg.stiffness * (st.f - target) - cfg.damping * st.v) / cfg.mass) * (dt / n);
-        st.f += st.v * (dt / n);
-      }
+      const a = { x: st.f, v: st.v };
+      stepSpring(a, target, cfg, dt);
+      st.f = a.x; st.v = a.v;
     };
     if (st.mode === 'drag') step(st.target, spring.press);
     else if (st.mode === 'glide') {

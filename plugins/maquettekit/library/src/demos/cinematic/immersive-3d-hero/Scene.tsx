@@ -6,7 +6,7 @@ import {
   OctahedronGeometry, PlaneGeometry, Raycaster, ShaderMaterial, SphereGeometry, TubeGeometry, Vector2, Vector3,
   type PerspectiveCamera,
 } from 'three';
-import { spring } from '../../../motion';
+import { spring, stepSpring } from '../../../motion';
 import { CameraRig, useQuality, type CameraPose } from '../../../three';
 import { NIGHT, STOP_U } from './palette';
 import { SIZE, VIEWPOINTS, WATER, cameraPath, height, marchTerrain, routePoints, type StopId } from './terrain';
@@ -52,16 +52,6 @@ const UP = new Vector3(0, 1, 0);
 const PRESETS: Record<StopId, CameraPose> = Object.fromEntries(VIEWPOINTS.map((v) => [v.id, { position: v.position, target: v.target, fov: 42 }])) as Record<StopId, CameraPose>;
 const color = (hex: string) => ({ value: new Color(hex) });
 const smooth = (a: number, b: number, x: number): number => { const t = MathUtils.clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
-
-/** Semi-implicit spring step with a motion token (sub-stepped so a dropped frame cannot blow it up). */
-function stepSpring(s: { x: number; v: number }, target: number, cfg: { stiffness: number; damping: number; mass: number }, dt: number): void {
-  const n = Math.max(1, Math.ceil(dt / (1 / 240)));
-  const h = dt / n;
-  for (let i = 0; i < n; i++) {
-    s.v += ((-cfg.stiffness * (s.x - target) - cfg.damping * s.v) / cfg.mass) * h;
-    s.x += s.v * h;
-  }
-}
 
 interface Mats { terrain: ShaderMaterial; sky: ShaderMaterial; stars: ShaderMaterial; route: MeshBasicMaterial; halo: MeshBasicMaterial; fells: MeshBasicMaterial }
 

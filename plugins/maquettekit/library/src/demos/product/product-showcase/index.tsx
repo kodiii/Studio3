@@ -1,12 +1,12 @@
 'use client';
 import { Fragment, Suspense, lazy, useCallback, useEffect, useId, useRef, useState, type CSSProperties, type PointerEvent, type RefObject } from 'react';
 import {
-  createSequence, cssEase, duration as D, spring as SPRING, springToLinear, useIsomorphicLayoutEffect, useRafLoop, useScrollProgress, useStudioMotion,
+  createSequence, cssEase, duration as D, spring as SPRING, springToLinear, stepSpring, useIsomorphicLayoutEffect, useRafLoop, useScrollProgress, useStudioMotion,
 } from '../../../motion';
 import { detectCapabilities } from '../../../three/capabilities';
 import { BASE_PRICE, COLOURWAYS, DETAILS, POSTER, PRESETS, PRESET_ORDER, SPECS, colourOf, formatPrice, type ColourId, type PresetId } from './data';
 import { Loupe } from './Loupe';
-import { atRest, axis, clamp, stepAxis, type Axis } from './physics';
+import { atRest, axis, clamp, type Axis } from './physics';
 import { createRecolourer, type Recolourer } from './recolour';
 import type { ViewerHandle, ViewerStatus } from './Viewer3D';
 import styles from './styles.module.css';
@@ -81,7 +81,7 @@ function useStageLight(stage: RefObject<HTMLElement | null>, enabled: boolean) {
   useRafLoop(stage, (dt) => {
     let rest = true;
     for (const c of CHANNELS) {
-      stepAxis(sim.current[c], target.current[c], SPRING.settle, dt);
+      stepSpring(sim.current[c], target.current[c], SPRING.settle, dt);
       if (!atRest(sim.current[c], target.current[c], c === 'glow' ? 0.002 : 0.02)) rest = false;
     }
     write();

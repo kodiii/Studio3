@@ -6,8 +6,8 @@
  * button is held inside it the lean eases off, so the target never moves under a press. Scrolling drifts it a little
  * slower than the copy. All of it is custom properties on one element, written from a useRafLoop that sleeps.
  */
-import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from 'react';
-import { createSequence, spring as SPRING, springToLinear, useRafLoop, useScrollProgress } from '../../../motion';
+import { useEffect, useRef, type PointerEvent, type ReactNode } from 'react';
+import { createSequence, spring as SPRING, springAtRest, springToLinear, stepSpring, useScrollProgress, useSettleLoop } from '../../../motion';
 import styles from './styles.module.css';
 
 type Channel = 'rx' | 'ry' | 'gx' | 'gy' | 'glow' | 'lift';
@@ -20,8 +20,6 @@ export function HeroWindow({ reduced, children }: { reduced: boolean; children: 
   const visual = useRef<HTMLDivElement>(null);
   const scene = useRef<HTMLDivElement>(null);
   const sim = useRef({ x: { ...REST }, v: Object.fromEntries(CHANNELS.map((c) => [c, 0])) as Record<Channel, number>, t: { ...REST } });
-  const [running, setRunning] = useState(false);
-  const runningRef = useRef(false);
   const pressing = useRef(false);
   const last = useRef<{ px: number; py: number } | null>(null);
   const p0 = useRef<number | null>(null);
@@ -33,7 +31,7 @@ export function HeroWindow({ reduced, children }: { reduced: boolean; children: 
   };
   const aim = (t: Partial<Record<Channel, number>>) => {
     Object.assign(sim.current.t, t);
-    if (!runningRef.current) { runningRef.current = true; setRunning(true); }
+    wake();
   };
 
   useEffect(() => {
@@ -43,18 +41,19 @@ export function HeroWindow({ reduced, children }: { reduced: boolean; children: 
     write();
   }, [reduced]);
 
-  useRafLoop(scene, (dt) => {
-    const s = sim.current, c = SPRING.settle;
-    const n = Math.max(1, Math.ceil(dt * 240)), h = dt / n;
+  const wake = useSettleLoop(scene, (dt) => {
+    const s = sim.current;
     let rest = true;
     for (const k of CHANNELS) {
-      for (let i = 0; i < n; i++) { s.v[k] += ((-c.stiffness * (s.x[k] - s.t[k]) - c.damping * s.v[k]) / c.mass) * h; s.x[k] += s.v[k] * h; }
+      const a = { x: s.x[k], v: s.v[k] };
+      stepSpring(a, s.t[k], SPRING.settle, dt);
+      s.x[k] = a.x; s.v[k] = a.v;
       const eps = k === 'gx' || k === 'gy' ? 0.2 : 0.004;
-      if (Math.abs(s.x[k] - s.t[k]) > eps || Math.abs(s.v[k]) > eps * 4) rest = false;
+      if (!springAtRest(a, s.t[k], { restDelta: eps, restSpeed: eps * 4 })) rest = false;
     }
     write();
-    if (rest) { runningRef.current = false; setRunning(false); }
-  }, running && !reduced);
+    return rest;
+  }, !reduced);
 
   // Scroll: the window drifts up a little slower than the page (one layer, ≤ 48 px over the whole hero).
   useScrollProgress(visual, (p) => {

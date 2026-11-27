@@ -4,8 +4,8 @@
  * listeners collect and turns them into transforms. Every frame reads first (cached rects, caret position) and
  * writes after, so the loop never forces a layout after its own writes.
  */
-import { spring as SPRING, type SpringConfig } from '../../motion';
-import { atRest, axis, clamp, park, quicken, stepAxis, type Axis } from './physics';
+import { spring as SPRING, stepSpring, type SpringConfig } from '../../motion';
+import { atRest, axis, clamp, park, quicken, type Axis } from './physics';
 
 /** What the follower is showing. `hidden` while the pointer is outside the scope or the keyboard is in use. */
 export type CursorState = 'hidden' | 'default' | 'magnet' | 'text' | 'label';
@@ -414,21 +414,21 @@ export class FollowerEngine {
     const textT = fillT && fillAmt.x > 0.62 ? 1 : 0; // the label lands after its disc: overlap, not unison
 
     // Integrate.
-    stepAxis(rx, tx, o.follow, dt);
-    stepAxis(ry, ty, o.follow, dt);
-    stepAxis(dx, this.px, DOT, dt);
-    stepAxis(dy, this.py, DOT, dt);
-    stepAxis(w, tw, SHAPE, dt);
-    stepAxis(h, th, SHAPE, dt);
-    stepAxis(r, tr, SHAPE, dt);
-    stepAxis(presence, presenceT, visible ? ENTER : EXIT, dt);
-    stepAxis(press, pressT, pressT ? PRESS_IN : PRESS_OUT, dt);
-    stepAxis(freedom, freeT, SHAPE, dt);
-    stepAxis(stroke, strokeT, FADE, dt);
-    stepAxis(caretAmt, caretT, FADE, dt);
-    stepAxis(fillAmt, fillT, fillT ? BLOOM : EXIT, dt);
-    stepAxis(textAmt, textT, textT ? BLOOM : EXIT, dt);
-    stepAxis(dotAmt, dotT, FADE, dt);
+    stepSpring(rx, tx, o.follow, dt);
+    stepSpring(ry, ty, o.follow, dt);
+    stepSpring(dx, this.px, DOT, dt);
+    stepSpring(dy, this.py, DOT, dt);
+    stepSpring(w, tw, SHAPE, dt);
+    stepSpring(h, th, SHAPE, dt);
+    stepSpring(r, tr, SHAPE, dt);
+    stepSpring(presence, presenceT, visible ? ENTER : EXIT, dt);
+    stepSpring(press, pressT, pressT ? PRESS_IN : PRESS_OUT, dt);
+    stepSpring(freedom, freeT, SHAPE, dt);
+    stepSpring(stroke, strokeT, FADE, dt);
+    stepSpring(caretAmt, caretT, FADE, dt);
+    stepSpring(fillAmt, fillT, fillT ? BLOOM : EXIT, dt);
+    stepSpring(textAmt, textT, textT ? BLOOM : EXIT, dt);
+    stepSpring(dotAmt, dotT, FADE, dt);
     // Squash and stretch from the ring's own motion: speed stretches it along its travel, braking squashes it
     // against the travel (the soft body keeps going for a moment), and an underdamped spring lets it wobble round.
     const speed = Math.hypot(rx.v, ry.v);
@@ -441,7 +441,7 @@ export class FollowerEngine {
       + PUSH_WEIGHT * Math.tanh(Math.max(0, this.accel) / ACCEL_REF)
       + BRAKE_WEIGHT * Math.tanh(Math.min(0, this.accel) / ACCEL_REF);
     const jellyT = clamp(o.stretch * clamp01(freedom.x) * drive, MIN_STRETCH * o.stretch, MAX_STRETCH);
-    stepAxis(jelly, jellyT, JELLY, dt);
+    stepSpring(jelly, jellyT, JELLY, dt);
     if (speed > 30 && dt > 0) {
       const a = Math.atan2(ry.v, rx.v) * 2;
       const k = 1 - Math.exp(-dt * ORIENT_RATE * Math.min(1, speed / 400));
@@ -463,8 +463,8 @@ export class FollowerEngine {
         my = cap * Math.tanh(((this.py - (mm.rect.top + mm.rect.height / 2)) * o.pull) / cap);
       }
       const cfg = engaged ? TRACK : HOME;
-      stepAxis(mm.x, mx, cfg, dt);
-      stepAxis(mm.y, my, cfg, dt);
+      stepSpring(mm.x, mx, cfg, dt);
+      stepSpring(mm.y, my, cfg, dt);
       const still = atRest(mm.x, mx, 0.02) && atRest(mm.y, my, 0.02);
       if (!still) magnetsAtRest = false;
       const css = !engaged && still ? '' : `${f2(mm.x.x)}px ${f2(mm.y.x)}px`;

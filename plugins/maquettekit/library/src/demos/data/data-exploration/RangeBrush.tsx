@@ -15,7 +15,7 @@
 import { useEffect, useRef, type KeyboardEvent, type PointerEvent, type ReactNode } from 'react';
 import { scaleLinear, type ScaleLinear } from 'd3';
 import { spring as SPRING, useElementSize, useIsomorphicLayoutEffect, useStudioMotion, type SpringConfig } from '../../../motion';
-import { createLoop, createVelocity, rubber, stepSpring } from './physics';
+import { createLoop, createVelocity, rubber, stepSpringPair } from './physics';
 import s from './styles.module.css';
 
 type Part = 'start' | 'end' | 'window';
@@ -124,8 +124,8 @@ export function RangeBrush({ domain, step, big, value, onChange, label, format, 
     }
     if (phase.current === 'spring') {
       const [g0, g1] = goal.current;
-      [st.a, st.va] = stepSpring(st.a, st.va, g0, cfg.current, dt);
-      [st.b, st.vb] = stepSpring(st.b, st.vb, g1, cfg.current, dt);
+      [st.a, st.va] = stepSpringPair(st.a, st.va, g0, cfg.current, dt);
+      [st.b, st.vb] = stepSpringPair(st.b, st.vb, g1, cfg.current, dt);
       const eps = span * 1e-4, epsV = span * 1e-3;
       const done = Math.abs(st.a - g0) < eps && Math.abs(st.b - g1) < eps && Math.abs(st.va) < epsV && Math.abs(st.vb) < epsV;
       if (done) { st.a = g0; st.b = g1; st.va = 0; st.vb = 0; phase.current = 'rest'; }

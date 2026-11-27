@@ -7,9 +7,9 @@
  * Physics: one spring per axis plus the open/closed scale, integrated on a useRafLoop that sleeps at rest.
  */
 import { useEffect, useId, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
-import { spring as SPRING, useElementSize, useRafLoop } from '../../../motion';
+import { spring as SPRING, stepSpring, useElementSize, useRafLoop } from '../../../motion';
 import { DETAILS } from './data';
-import { atRest, axis, clamp, smoothstep, stepAxis } from './physics';
+import { atRest, axis, clamp, smoothstep } from './physics';
 import styles from './styles.module.css';
 
 /** Magnification of the lens. The render is 1024 px, so 2× at the stage's size stays close to native resolution. */
@@ -105,9 +105,9 @@ export function Loupe({ src, active, onActive, onEngage, reduced }: {
     const st = sim.current;
     const held = !!drag.current;
     const move = held ? SPRING.settle : SPRING.release;
-    stepAxis(st.u, st.tu, move, dt);
-    stepAxis(st.v, st.tv, move, dt);
-    stepAxis(st.s, st.ts, SPRING.pop, dt);
+    stepSpring(st.u, st.tu, move, dt);
+    stepSpring(st.v, st.tv, move, dt);
+    stepSpring(st.s, st.ts, SPRING.pop, dt);
     write();
     if (!held && atRest(st.u, st.tu, 0.0005) && atRest(st.v, st.tv, 0.0005) && atRest(st.s, st.ts, 0.002)) {
       st.u = axis(st.tu); st.v = axis(st.tv); st.s = axis(st.ts);
