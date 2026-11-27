@@ -56,9 +56,11 @@
   position: relative; aspect-ratio: 4 / 5; overflow: hidden; color: #c9c3b4;
   background: radial-gradient(circle at 50% 44%, #1d2944 0%, var(--sk-night) 64%);
 }
-/* The photo of the token tilts a few degrees towards the pointer and a glint (masked to the token) crosses it. */
+/* The photo of the token tilts a few degrees towards the pointer and a glint (masked to the token) crosses it.
+   It is rendered for exactly this box — a square 96% of the frame's width, centred where the 3D camera looks — so
+   it lines up with the first live frame (tokenScene.ts POSTER_WIDTH; re-render the poster if this changes). */
 .posterTilt {
-  position: absolute; top: 46%; left: 50%; width: min(74%, 380px);
+  position: absolute; top: 50%; left: 50%; width: 96%;
   transform: translate(-50%, -50%) perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
   transition: opacity var(--mk-duration-base) var(--mk-ease-standard); pointer-events: none;
 }

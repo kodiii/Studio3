@@ -82,6 +82,11 @@ semantic versioning. Plugin manifests (Claude Code and Codex) always carry the s
   PBR materials rather than a scan with baked lighting, shown with lighting presets.
 
 ### Fixed
+- 3D social post: the orbit-token model now has smooth normals with a 34° crease (`generate-sample-models.mjs`
+  `--only orbit-token`), so `TokenViewer` no longer recomputes them at runtime. The desktop variant drops from
+  113,184 to 64,228 bytes and from 14,368 to 6,150 vertices (5,280 triangles, unchanged). The poster is re-rendered
+  from the live view's scene (`tokenScene.ts`, `scripts/render-orbit-token-poster.mjs`) and sits in a box that
+  matches the canvas framing at every width, so the cross-fade no longer jumps.
 - `studio-3d` `physics.md` §6 taught the pattern behind the physics playground crash: its drag example called
   `setBodyType` and `setLinvel` from pointer handlers, through a ref that can still hold a freed body. The example now
   queues changes into `useBeforePhysicsStep` and checks `world.getRigidBody(rb.handle) === rb` first, and takes the

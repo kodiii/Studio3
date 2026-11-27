@@ -5,10 +5,10 @@
  *
  *   assets/models/pulse-speaker.source.glb   "Pulse" — a fictional portable speaker,
  *                                            deliberately heavy to demonstrate the optimizer
- *   assets/models/orbit-token.source.glb     a small faceted token for quick tests
+ *   assets/models/orbit-token.source.glb     a small brass token with smooth (creased) normals for quick tests
  *
  * Deterministic: seeded PRNG, no timestamps. Run from the repo root:
- *   node scripts/generate-sample-models.mjs [--out assets/models]
+ *   node scripts/generate-sample-models.mjs [--out assets/models] [--only orbit-token]
  *
  * The part/material/clip names are a contract documented in assets/models/README.md.
  */
@@ -17,11 +17,14 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Document, NodeIO } from '@gltf-transform/core';
 import * as THREE from 'three';
+import { toCreasedNormals } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import sharp from 'sharp';
 
 const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const outArg = process.argv.indexOf('--out');
 const OUT_DIR = path.resolve(REPO, outArg !== -1 ? process.argv[outArg + 1] : 'assets/models');
+const onlyArg = process.argv.indexOf('--only');
+const ONLY = onlyArg !== -1 ? process.argv[onlyArg + 1] : null;
 const SEED = 0x53747564; // "Stud"
 
 // ───────────────────────────── utilities ─────────────────────────────
@@ -203,6 +206,26 @@ function unindex(g, flat = false) {
     }
   }
   return { positions, normals, uvs, indices: null };
+}
+
+/**
+ * Non-indexed soup with crease-angle normals: faces meeting at less than `angle` share a smoothed
+ * normal, sharper edges stay crisp. @param {Geo} g @param {number} angle radians
+ */
+function creased(g, angle) {
+  // toCreasedNormals welds positions on a 0.01-unit grid, far too coarse for a model in metres:
+  // run it in millimetres (10 µm cells), then keep the original positions — normals are scale-invariant.
+  const MM = 1000;
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(g.positions.map((v) => v * MM), 3));
+  geo.setAttribute('normal', new THREE.BufferAttribute(g.normals, 3));
+  if (g.indices) geo.setIndex(new THREE.BufferAttribute(g.indices, 1));
+  const out = toCreasedNormals(geo, angle);
+  return {
+    positions: unindex(g).positions, // same vertex order as toCreasedNormals' non-indexed output
+    normals: new Float32Array(/** @type {any} */ (out.getAttribute('normal')).array),
+    uvs: null, indices: null,
+  };
 }
 
 /**
@@ -611,10 +634,11 @@ function buildOrbitToken() {
       parts.push(applyMatrix(fromThree(new THREE.OctahedronGeometry(0.0019, 1)), T(Math.cos(a) * 0.0235, Math.sin(a) * 0.0235, side * 0.0027)));
     }
   }
-  const g = unindex(merge(parts.map((p) => ({ ...p, uvs: null }))), true); // flat shaded → faceted
+  // Crease at 34°: the disc, rim, gem and orbit rings shade smoothly; the disc edge and the stud facets stay crisp.
+  const g = creased(merge(parts.map((p) => ({ ...p, uvs: null }))), (34 * Math.PI) / 180);
   const TokenMetal = doc.createMaterial('TokenMetal').setBaseColorFactor([0.86, 0.6, 0.22, 1]).setMetallicFactor(1).setRoughnessFactor(0.28);
   const Token = doc.createNode('Token').setTranslation([0, R + TUBE, 0]).setMesh(addMesh(doc, buffer, 'TokenGeo', g, TokenMetal))
-    .setExtras({ label: 'Orbit token', description: 'Faceted token; clip "Spin" rotates it once about +Y.', units: 'metres', up: '+Y', front: '+Z' });
+    .setExtras({ label: 'Orbit token', description: 'Brass token with faceted studs; clip "Spin" rotates it once about +Y.', units: 'metres', up: '+Y', front: '+Z' });
   const scene = doc.createScene('OrbitToken').addChild(Token);
   doc.getRoot().setDefaultScene(scene);
   const KEYS = 9; const times = new Float32Array(KEYS); const rot = new Float32Array(KEYS * 4);
@@ -634,6 +658,7 @@ function buildOrbitToken() {
 fs.mkdirSync(OUT_DIR, { recursive: true });
 const io = new NodeIO();
 for (const [file, build] of /** @type {[string, () => any][]} */ ([['pulse-speaker.source.glb', buildPulseSpeaker], ['orbit-token.source.glb', buildOrbitToken]])) {
+  if (ONLY && file !== `${ONLY}.source.glb`) continue;
   const { doc, stats } = await build();
   const bytes = await io.writeBinary(doc);
   fs.writeFileSync(path.join(OUT_DIR, file), bytes);

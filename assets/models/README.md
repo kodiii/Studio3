@@ -8,8 +8,13 @@ These `*.source.glb` files are **sources**: never edit or overwrite them. Delive
 ```bash
 node plugins/maquettekit/tools/maquettekit.mjs assets variants assets/models/pulse-speaker.source.glb --out apps/gallery/public/models --thumbnail
 node plugins/maquettekit/tools/maquettekit.mjs assets variants assets/models/orbit-token.source.glb  --out apps/gallery/public/models --profiles desktop --thumbnail
+node scripts/render-orbit-token-poster.mjs
 node plugins/maquettekit/tools/maquettekit.mjs assets manifest apps/gallery/public/models
 ```
+
+`render-orbit-token-poster.mjs` replaces the pipeline's neutral preview of the token with the 3D social post's
+poster, rendered with the live view's scene (`…/demos/social/3d-social-post/tokenScene.ts`) so the poster and the
+canvas line up. To regenerate one source only: `node scripts/generate-sample-models.mjs --only orbit-token`.
 
 Units are metres, +Y up, +Z front, centred on x/z = 0 and sitting on y = 0.
 
@@ -21,8 +26,8 @@ Units are metres, +Y up, +Z front, centred on x/z = 0 and sitting on y = 0.
 | `pulse-speaker.desktop.glb` | 2,002,280 | 263,328 | 133,937 | 4 × 2048² WebP |
 | `pulse-speaker.mobile.glb` | 1,470,832 | 197,496 | 101,416 | 4 × 1024² WebP |
 | `pulse-speaker.low-power.glb` | 1,013,712 | 131,664 | 68,723 | 4 × 512² WebP |
-| `assets/models/orbit-token.source.glb` (source) | 381,880 | 5,280 | 15,840 | none |
-| `orbit-token.desktop.glb` | 113,184 | 5,280 | 14,368 | none |
+| `assets/models/orbit-token.source.glb` (source) | 381,904 | 5,280 | 15,840 | none |
+| `orbit-token.desktop.glb` | 64,228 | 5,280 | 6,150 | none |
 
 Also there: `manifest.json` (all assets), `<id>.manifest.json`, `<id>.variants.report.{json,md}`,
 `<id>.png` (512 px transparent thumbnail) and `<id>.webp` (1024 px static fallback image).
@@ -125,10 +130,12 @@ No tangents are stored; the normal map relies on runtime-derived tangents (valid
 `LightPulse` animates scale, not emissive: `KHR_animation_pointer` is not supported by the installed
 glTF-Transform. There is no "Explode" clip — compute exploded views from the extras above.
 
-## orbit-token — small faceted token
+## orbit-token — small brass token
 
 Bounds: 0.063 × 0.063 × 0.0137 m, coin axis +Z, centre at y = 0.0315.
 
-- Node: `Token` (extras: `label`, `description`, `units`, `up`, `front`); mesh `TokenGeo`, flat-shaded, no UVs.
+- Node: `Token` (extras: `label`, `description`, `units`, `up`, `front`); mesh `TokenGeo`, no UVs. Normals are
+  smoothed with a 34° crease angle: the disc, rim, gem and orbit rings shade smoothly, the disc edges and the
+  stud facets stay crisp. Consumers need no runtime normal fix.
 - Material: `TokenMetal` (base `[0.86, 0.6, 0.22]`, metallic 1, roughness 0.28).
 - Clip: `Spin` — `Token` rotation, one full turn about +Y in 4.0 s (loopable, linear).

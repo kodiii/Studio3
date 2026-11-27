@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "generator": "Maquettekit Asset Pipeline",
-  "generatedAt": "2026-11-23T11:44:05.900Z",
+  "generatedAt": "2026-11-27T07:54:05.497Z",
   "notes": {
     "triangles": "Triangles rendered per frame, counting every instance of shared meshes. vertices = unique vertices uploaded.",
     "gpuTextureBytesEstimate": "Estimate: uncompressed RGBA8 with mip chain.",
@@ -13,18 +13,18 @@
       "id": "orbit-token",
       "source": {
         "file": "../../../../assets/models/orbit-token.source.glb",
-        "sha256": "658f9c26d1430e87036ce440b9994f6f18830a06ce78eb7775d653bfaa79b31b",
-        "bytes": 381880,
+        "sha256": "800c6c4c1e6421991f1e90a3490bb24118847d9cd35ca907b3d91c3d8f6f751a",
+        "bytes": 381904,
         "fromReport": "orbit-token.manifest.json"
       },
       "variants": [
         {
           "profile": "desktop",
           "file": "orbit-token.desktop.glb",
-          "bytes": 113184,
-          "sha256": "ad97feca2b41d341e9aa39aa2af267644b3b43a1a4ed957aaeb5bcd0253229ca",
+          "bytes": 64228,
+          "sha256": "268751f8d0b428bf9e9e31d2c0c3dc787a2545a9451cd7b69aa01025062d8805",
           "triangles": 5280,
-          "vertices": 14368,
+          "vertices": 6150,
           "drawCallsEstimate": 1,
           "textures": [],
           "gpuTextureBytesEstimate": 0,

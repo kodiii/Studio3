@@ -1,16 +1,16 @@
 # Variant report — orbit-token
 
 - Result: **all variants verified**
-- Source: `../../../../assets/models/orbit-token.source.glb` — 372.9 KB — sha256 `658f9c26d1430e87036ce440b9994f6f18830a06ce78eb7775d653bfaa79b31b` (unchanged by this run)
+- Source: `../../../../assets/models/orbit-token.source.glb` — 373.0 KB — sha256 `800c6c4c1e6421991f1e90a3490bb24118847d9cd35ca907b3d91c3d8f6f751a` (unchanged by this run)
 - Manifest: `orbit-token.manifest.json`
-- Thumbnail: ok — `orbit-token.png`, fallback `orbit-token.webp`
+- Thumbnail: ok — `orbit-token.png`, fallback `orbit-token.webp` — the 3D post's poster, rendered by `scripts/render-orbit-token-poster.mjs` with the live view's scene
 - Profiles are default starting points unless overridden by a budgets/profile file; they are not universal budgets.
-- Generated: 2026-11-23T11:44:05.270Z by Maquettekit Asset Pipeline
+- Generated: 2026-11-27T07:54:01.223Z by Maquettekit Asset Pipeline
 
 | Variant | File | Size | vs source | Triangles | Vertices | Textures (largest) | GPU texture memory (estimate) | Compression | Verified |
 | --- | --- | ---: | ---: | ---: | ---: | --- | ---: | --- | --- |
-| source | `../../../../assets/models/orbit-token.source.glb` | 372.9 KB | — | 5,280 | 15,840 | none | 0 B | as authored | — |
-| desktop | `orbit-token.desktop.glb` | 110.5 KB | -70.36% | 5,280 | 14,368 | none | 0 B | meshopt | yes |
+| source | `../../../../assets/models/orbit-token.source.glb` | 373.0 KB | — | 5,280 | 15,840 | none | 0 B | as authored | — |
+| desktop | `orbit-token.desktop.glb` | 62.7 KB | -83.18% | 5,280 | 6,150 | none | 0 B | meshopt | yes |
 
 ## desktop
 
@@ -26,6 +26,6 @@ Steps: dedup (ran) → prune (ran) → join (skipped: Not requested (--join). Jo
 - ✔ attributes — Vertex attributes (POSITION, NORMAL), 0 skin(s) and morph targets preserved.
 - ✔ bounds — Bounding box drift 0.0022% of the diagonal (tolerance 0.20%).
 - ✔ triangles — Rendered triangles unchanged (5280); no simplification ran.
-- ✔ source-untouched — Source SHA-256 unchanged (658f9c26d1430e87036ce440b9994f6f18830a06ce78eb7775d653bfaa79b31b).
+- ✔ source-untouched — Source SHA-256 unchanged (800c6c4c1e6421991f1e90a3490bb24118847d9cd35ca907b3d91c3d8f6f751a).
 
 Consumer requirements: `EXT_meshopt_compression` → MeshoptDecoder; `KHR_mesh_quantization`

@@ -56,7 +56,7 @@ export const VIEWER_MODELS: ViewerModel[] = [
   {
     id: 'orbit-token',
     name: 'Orbit token',
-    blurb: 'A faceted metal token with a single spin clip — a one-draw-call asset for testing lighting and materials.',
+    blurb: 'A smooth brass token with faceted studs and a single spin clip — a one-draw-call asset for testing lighting and materials.',
     manifestUrl: '/models/orbit-token.manifest.json',
     scale: 28,
     target: [0, 0.88, 0],

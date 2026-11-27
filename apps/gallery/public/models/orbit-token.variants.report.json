@@ -1,6 +1,6 @@
 {
   "generator": "Maquettekit Asset Pipeline",
-  "generatedAt": "2026-11-23T11:44:05.270Z",
+  "generatedAt": "2026-11-27T07:54:01.223Z",
   "tools": {
     "@gltf-transform/core": "4.5.1",
     "meshoptimizer": "1.3.0",
@@ -12,8 +12,8 @@
   "name": "orbit-token",
   "source": {
     "file": "../../../../assets/models/orbit-token.source.glb",
-    "sha256": "658f9c26d1430e87036ce440b9994f6f18830a06ce78eb7775d653bfaa79b31b",
-    "bytes": 381880
+    "sha256": "800c6c4c1e6421991f1e90a3490bb24118847d9cd35ca907b3d91c3d8f6f751a",
+    "bytes": 381904
   },
   "note": "Profiles are default starting points unless overridden by a budgets/profile file; they are not universal budgets.",
   "manifest": "orbit-token.manifest.json",
@@ -24,13 +24,15 @@
     "fallbackImage": "orbit-token.webp",
     "fallbackSize": 1024,
     "renderedFrom": "orbit-token.desktop.glb",
+    "renderedBy": "scripts/render-orbit-token-poster.mjs",
+    "note": "Poster for the 3D social post: rendered with the live view's environment, lights, camera and brass finish (tokenScene.ts), cropped to the poster box, not the pipeline's neutral preview.",
     "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
     "three": "187"
   },
   "variants": [
     {
       "generator": "Maquettekit Asset Pipeline",
-      "generatedAt": "2026-11-23T11:44:00.472Z",
+      "generatedAt": "2026-11-27T07:53:58.677Z",
       "tools": {
         "@gltf-transform/core": "4.5.1",
         "meshoptimizer": "1.3.0",
@@ -42,13 +44,13 @@
       "name": "orbit-token.desktop",
       "source": {
         "file": "../../../../assets/models/orbit-token.source.glb",
-        "sha256": "658f9c26d1430e87036ce440b9994f6f18830a06ce78eb7775d653bfaa79b31b",
-        "bytes": 381880
+        "sha256": "800c6c4c1e6421991f1e90a3490bb24118847d9cd35ca907b3d91c3d8f6f751a",
+        "bytes": 381904
       },
       "output": {
         "file": "orbit-token.desktop.glb",
-        "sha256": "ad97feca2b41d341e9aa39aa2af267644b3b43a1a4ed957aaeb5bcd0253229ca",
-        "bytes": 113184
+        "sha256": "268751f8d0b428bf9e9e31d2c0c3dc787a2545a9451cd7b69aa01025062d8805",
+        "bytes": 64228
       },
       "profile": {
         "name": "desktop",
@@ -79,10 +81,10 @@
       },
       "summary": {
         "bytes": {
-          "before": 381880,
-          "after": 113184,
-          "change": -268696,
-          "percent": -70.36
+          "before": 381904,
+          "after": 64228,
+          "change": -317676,
+          "percent": -83.18
         },
         "triangles": {
           "before": 5280,
@@ -98,9 +100,9 @@
         },
         "vertices": {
           "before": 15840,
-          "after": 14368,
-          "change": -1472,
-          "percent": -9.29
+          "after": 6150,
+          "change": -9690,
+          "percent": -61.17
         },
         "meshes": {
           "before": 1,
@@ -270,16 +272,16 @@
             "nodes": 1,
             "meshes": 1,
             "primitives": 1,
-            "vertices": 14368,
+            "vertices": 6150,
             "triangles": 5280,
             "accessors": 5,
-            "accessorBytes": 376692,
+            "accessorBytes": 179460,
             "materials": 1,
             "textures": 0,
             "textureBytes": 0,
             "animations": 1
           },
-          "ms": 13
+          "ms": 9
         },
         {
           "id": "simplify",
@@ -290,10 +292,10 @@
             "nodes": 1,
             "meshes": 1,
             "primitives": 1,
-            "vertices": 14368,
+            "vertices": 6150,
             "triangles": 5280,
             "accessors": 5,
-            "accessorBytes": 376692,
+            "accessorBytes": 179460,
             "materials": 1,
             "textures": 0,
             "textureBytes": 0,
@@ -303,10 +305,10 @@
             "nodes": 1,
             "meshes": 1,
             "primitives": 1,
-            "vertices": 14368,
+            "vertices": 6150,
             "triangles": 5280,
             "accessors": 5,
-            "accessorBytes": 376692,
+            "accessorBytes": 179460,
             "materials": 1,
             "textures": 0,
             "textureBytes": 0,
@@ -325,10 +327,10 @@
             "nodes": 1,
             "meshes": 1,
             "primitives": 1,
-            "vertices": 14368,
+            "vertices": 6150,
             "triangles": 5280,
             "accessors": 5,
-            "accessorBytes": 376692,
+            "accessorBytes": 179460,
             "materials": 1,
             "textures": 0,
             "textureBytes": 0,
@@ -338,16 +340,16 @@
             "nodes": 1,
             "meshes": 1,
             "primitives": 1,
-            "vertices": 14368,
+            "vertices": 6150,
             "triangles": 5280,
             "accessors": 5,
-            "accessorBytes": 376692,
+            "accessorBytes": 179460,
             "materials": 1,
             "textures": 0,
             "textureBytes": 0,
             "animations": 1
           },
-          "ms": 17
+          "ms": 5
         },
         {
           "id": "quantize",
@@ -370,10 +372,10 @@
             "nodes": 1,
             "meshes": 1,
             "primitives": 1,
-            "vertices": 14368,
+            "vertices": 6150,
             "triangles": 5280,
             "accessors": 5,
-            "accessorBytes": 376692,
+            "accessorBytes": 179460,
             "materials": 1,
             "textures": 0,
             "textureBytes": 0,
@@ -383,16 +385,16 @@
             "nodes": 2,
             "meshes": 1,
             "primitives": 1,
-            "vertices": 14368,
+            "vertices": 6150,
             "triangles": 5280,
             "accessors": 5,
-            "accessorBytes": 204276,
+            "accessorBytes": 105660,
             "materials": 1,
             "textures": 0,
             "textureBytes": 0,
             "animations": 1
           },
-          "ms": 48
+          "ms": 18
         },
         {
           "id": "textures",
@@ -403,10 +405,10 @@
             "nodes": 2,
             "meshes": 1,
             "primitives": 1,
-            "vertices": 14368,
+            "vertices": 6150,
             "triangles": 5280,
             "accessors": 5,
-            "accessorBytes": 204276,
+            "accessorBytes": 105660,
             "materials": 1,
             "textures": 0,
             "textureBytes": 0,
@@ -416,16 +418,16 @@
             "nodes": 2,
             "meshes": 1,
             "primitives": 1,
-            "vertices": 14368,
+            "vertices": 6150,
             "triangles": 5280,
             "accessors": 5,
-            "accessorBytes": 204276,
+            "accessorBytes": 105660,
             "materials": 1,
             "textures": 0,
             "textureBytes": 0,
             "animations": 1
           },
-          "ms": 11
+          "ms": 1
         },
         {
           "id": "compress",
@@ -440,10 +442,10 @@
             "nodes": 2,
             "meshes": 1,
             "primitives": 1,
-            "vertices": 14368,
+            "vertices": 6150,
             "triangles": 5280,
             "accessors": 5,
-            "accessorBytes": 204276,
+            "accessorBytes": 105660,
             "materials": 1,
             "textures": 0,
             "textureBytes": 0,
@@ -453,10 +455,10 @@
             "nodes": 2,
             "meshes": 1,
             "primitives": 1,
-            "vertices": 14368,
+            "vertices": 6150,
             "triangles": 5280,
             "accessors": 5,
-            "accessorBytes": 204276,
+            "accessorBytes": 105660,
             "materials": 1,
             "textures": 0,
             "textureBytes": 0,
@@ -469,16 +471,16 @@
           "title": "Write orbit-token.desktop.glb",
           "status": "ran",
           "detail": {
-            "bytes": 113184
+            "bytes": 64228
           },
           "before": {
             "nodes": 2,
             "meshes": 1,
             "primitives": 1,
-            "vertices": 14368,
+            "vertices": 6150,
             "triangles": 5280,
             "accessors": 5,
-            "accessorBytes": 204276,
+            "accessorBytes": 105660,
             "materials": 1,
             "textures": 0,
             "textureBytes": 0,
@@ -488,16 +490,16 @@
             "nodes": 2,
             "meshes": 1,
             "primitives": 1,
-            "vertices": 14368,
+            "vertices": 6150,
             "triangles": 5280,
             "accessors": 5,
-            "accessorBytes": 204276,
+            "accessorBytes": 105660,
             "materials": 1,
             "textures": 0,
             "textureBytes": 0,
             "animations": 1
           },
-          "ms": 64
+          "ms": 14
         }
       ],
       "notes": [],
@@ -544,7 +546,7 @@
           {
             "id": "source-untouched",
             "status": "pass",
-            "detail": "Source SHA-256 unchanged (658f9c26d1430e87036ce440b9994f6f18830a06ce78eb7775d653bfaa79b31b)."
+            "detail": "Source SHA-256 unchanged (800c6c4c1e6421991f1e90a3490bb24118847d9cd35ca907b3d91c3d8f6f751a)."
           }
         ]
       },
@@ -572,8 +574,8 @@
         }
       ],
       "sourcePreserving": {
-        "sourceSha256Before": "658f9c26d1430e87036ce440b9994f6f18830a06ce78eb7775d653bfaa79b31b",
-        "sourceSha256After": "658f9c26d1430e87036ce440b9994f6f18830a06ce78eb7775d653bfaa79b31b",
+        "sourceSha256Before": "800c6c4c1e6421991f1e90a3490bb24118847d9cd35ca907b3d91c3d8f6f751a",
+        "sourceSha256After": "800c6c4c1e6421991f1e90a3490bb24118847d9cd35ca907b3d91c3d8f6f751a",
         "unchanged": true,
         "howToRevert": "Outputs are derived files. Delete them and re-run the pipeline from the unchanged source."
       },
@@ -659,9 +661,9 @@
             "namedNodes": 1,
             "meshes": 1,
             "primitives": 1,
-            "vertices": 14368,
+            "vertices": 6150,
             "triangles": 5280,
-            "renderedVertices": 14368,
+            "renderedVertices": 6150,
             "renderedTriangles": 5280,
             "materials": 1,
             "textures": 0,
@@ -700,7 +702,7 @@
             {
               "name": "TokenGeo",
               "primitives": 1,
-              "vertices": 14368,
+              "vertices": 6150,
               "triangles": 5280,
               "instances": 1,
               "attributes": [
