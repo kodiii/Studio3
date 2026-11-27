@@ -5935,6 +5935,8 @@
       "highlights": [
         "Poster first: the post is complete as a photo with facts, caption, reactions and a “Download model (GLB)” link; the model (size shown on the button) loads only on request.",
         "One StudioCanvas for the whole feed, built from the three-kit: Model (orbit-token GLB), OrbitInspect, LightingRig and AnimationPlayer driving the model’s own Spin clip.",
+        "Real brass: a generated “observatory” environment (no HDRI download) gives the metal something to reflect — a warm softbox up and to the left (the page’s own light direction), a tall white strip, a cool strip behind, a soft warm wall behind the viewer and one small red head-torch that glints in the planet. The token’s faceted normals are re-computed with a 34° crease on a private copy (round surfaces smooth, studs and edges crisp) under a polished, clear-coated brass material; the token stands in a pool of light with a soft contact shadow and opens three-quarters round, like the photo.",
+        "Every control has depth: Interact, the view tools, Close 3D, the reactions and the RSVP chips lift towards the light on hover, press below rest in one frame and spring back; toggled ones sit pressed in. Before activation the photo tilts a few degrees towards the pointer and a glint, masked to the token, crosses the brass.",
         "The photo stays until the model reports loaded, then cross-fades; download progress is real bytes from the response stream.",
         "Close 3D, or scrolling a screen away, unmounts the canvas — the renderer is disposed and the cached model is evicted a second later.",
         "Other posts stay flat: a drawn meteor log and an event with an RSVP whose audience is stated and a real .ics calendar file."
@@ -5947,6 +5949,10 @@
         "css"
       ],
       "uses": [],
+      "adapts": [
+        "press-depth-button",
+        "tilt-parallax-card"
+      ],
       "collaborates": [
         "3d"
       ],
@@ -5958,10 +5964,12 @@
         "Without WebGL there is no Interact button: the photo is the fallback and says so, and the model download still works.",
         "Feed pattern with labelled articles; reactions are toggle buttons with text counts; the RSVP is a native radio group with a neutral “Not this time”."
       ],
-      "reducedMotion": "The token never spins on its own: the Spin button is the only way to start it, and the orbit has no damping tail (moves are direct). Reaction pops are removed; the poster cross-fade is near-instant.",
+      "reducedMotion": "The token never spins on its own: the Spin button is the only way to start it, and the orbit has no damping tail (moves are direct). The photo does not tilt or glint, controls change shadow and fill without moving, reaction pops are removed, and the poster cross-fade is near-instant.",
       "performance": [
         "Nothing 3D loads while scrolling: only the 2 kB manifest is fetched up front (for the honest file size and triangle count).",
         "frameloop=\"demand\": frames render only while the camera moves or the Spin clip plays.",
+        "The environment is one PMREM render of a handful of emissive panels, made once per open; the creased geometry and brass material are created on open and disposed on close, and the cached model is never mutated. The floor is one transparent quad and the contact shadow the kit’s blob quad (no shadow-map pass).",
+        "The photo’s tilt and glint are two CSS variables eased in a short rAF loop that sleeps when the pointer stops.",
         "The model is the 113 kB meshopt desktop build (5,280 triangles, no textures) — the only variant that exists for this asset.",
         "Headless verification uses software WebGL (SwiftShader); timings there say nothing about a real phone."
       ],
@@ -5979,23 +5987,33 @@
       "id": "campaign-landing",
       "name": "Campaign Landing",
       "specialty": "social",
-      "summary": "Mend March, a fictional city-wide repair challenge: a stitched-in kinetic hero, honest dates, a filterable gallery of last year’s mends, a pledge form with careful validation, a share-card generator and a café leaderboard clearly marked as sample data.",
+      "summary": "Mend March, a fictional city-wide repair challenge: a denim hero where you sew the saffron patch on yourself, honest dates, a gallery of last year’s mends you can turn over to see the “before”, a pledge whose key morphs while it saves, a share-card generator and a café leaderboard clearly marked as sample data.",
       "highlights": [
-        "Kinetic hero: the split-line-reveal headline rises in while a running stitch sews a saffron patch on, once, then the page is still.",
-        "Honest framing instead of pressure: real dates (1–31 March 2027) with no countdown, “no prizes, on purpose”, an opt-in gallery and a leaderboard that says nobody is behind.",
-        "Gallery filters reorder with FLIP (the motion module’s flip()): staying tiles glide, entering tiles scale in, DOM order stays the reading order, and the count is announced politely.",
-        "Pledge flow: errors on blur and on submit with aria-invalid / aria-describedby, focus to the first problem, no email, name optional, success state that takes focus.",
-        "Share card drawn on a 1080 px canvas from your pledge; Download PNG always works, “Share image…” appears only where navigator.canShare({ files }) says yes. Sharing never unlocks anything.",
-        "Leaderboard: bar-race pattern on one shared scale with Play/Pause and week buttons; an ordered list in rank order carries the same numbers."
+        "Signature — sew it yourself: drag the needle along the tailor’s-chalk line and the running stitch appears behind it (the svg-path-draw technique, driven by the pointer instead of a clock); drag back to unpick. The needle turns corners on a spring, settles into the nearest stitch when released, and its thread is a short verlet rope that trails and whips behind it; the last stitch ties it off and the patch settles onto the cloth. On first view the needle sews one side and hands over.",
+        "Every gesture has a twin: the needle is a slider (←/→ one stitch, Page Up/Down a side, Home/End), “Finish for me” plays the one-shot stitch from wherever you are, “Unpick” starts again.",
+        "Alive, lit from one top-left light: the denim has a twill weave, film grain and two indigo fields at different depths that follow the pointer (≤ 14 px), plus a work-lamp highlight that moves with it; the share card tilts towards the pointer and catches the light.",
+        "Gallery filters reorder with the flip-grid-reorder technique: staying photos glide (staggered, interruptible), leaving ones shrink and fade where they stood, new ones rise into the gap. Each photo lifts on hover, presses down, and turns over on a spring to its “before” side.",
+        "Pledge flow: errors on blur and on submit with aria-invalid / aria-describedby and focus to the first problem; the key collapses into a patch with a progress ring, draws a check, and a small burst of patches celebrates the person’s own pledge, once. No email, name optional, gallery opt-in.",
+        "Honest framing instead of pressure: real dates (1–31 March 2027) with no countdown, “no prizes, on purpose”, an opt-in gallery and a leaderboard (bar-race pattern on one shared scale, heavy rows on the glide spring) that says nobody is behind."
       ],
       "technology": [
         "waapi",
         "css",
         "svg",
-        "canvas2d"
+        "canvas2d",
+        "motion"
       ],
       "uses": [
         "split-line-reveal"
+      ],
+      "adapts": [
+        "svg-path-draw",
+        "flip-grid-reorder",
+        "morph-submit-button",
+        "grain-gradient-mesh",
+        "press-depth-button",
+        "tilt-parallax-card",
+        "reaction-burst"
       ],
       "collaborates": [
         "cinematic"
@@ -6003,18 +6021,19 @@
       "has3d": false,
       "accessibility": [
         "One h2 per section; the hero headline keeps a single accessible copy (split-line-reveal’s aria-label).",
-        "Filters are toggle buttons (aria-pressed); categories, thread colours and weeks are native radio groups styled as chips with visible focus.",
-        "Form errors are text (not colour alone), linked with aria-describedby and announced once as a polite summary.",
-        "The share-card canvas has a written equivalent that updates with its text; the leaderboard drawing is aria-hidden with a ranked list for assistive tech.",
-        "Focus rings switch to saffron on the denim hero so they keep contrast."
+        "The needle is a labelled slider with value text (“9 of 24 stitches sewn”, “Patch sewn on”) and a visible focus ring; dragging is never required — keys and the Finish/Unpick buttons do everything.",
+        "Gallery photos are toggle buttons (aria-pressed, “Show the before photo: …”) described by the side that is showing; filters are toggle buttons; categories, thread colours and weeks are native radio groups with visible focus.",
+        "Form errors are text (not colour alone), linked with aria-describedby and announced once as a polite summary; the submit key keeps focus and is aria-busy while saving, and the confirmation heading takes focus.",
+        "The share-card canvas has a written equivalent that updates with its text; the leaderboard drawing is aria-hidden with a ranked list for assistive tech. Focus rings switch to saffron on the denim hero."
       ],
-      "reducedMotion": "The headline appears at once and the patch is shown already stitched; filters swap tiles without gliding (entering tiles fade in 160 ms); the leaderboard swaps weeks without sliding or growing; the pledge check mark is drawn static.",
+      "reducedMotion": "No intro and no travel: the patch starts sewn, the needle and its thread jump to each new stitch and lie still, the denim does not follow the pointer and the share card stays flat. Gallery photos swap and cross-fade instead of gliding and turning (entering ones fade in 160 ms); the pledge key changes its label instead of morphing and there is no burst; keys change shadow and fill without moving; the leaderboard swaps weeks without sliding or growing. Dragging the needle still sews, because that motion is the person’s own.",
       "performance": [
-        "All motion is WAAPI or CSS transitions on transform, opacity and stroke-dashoffset; FLIP measures once per filter change.",
-        "The share card redraws only when its text or colour changes, and once more when webfonts are ready.",
-        "Every animation and timer is cancelled on unmount."
+        "The needle, its rope (16 points at a fixed 120 Hz) and the stitch mask are written straight into the SVG by one rAF loop that runs only while something moves and sleeps once the thread has settled.",
+        "The hero layers move with two CSS variables eased in one short rAF loop; the grain is one 128 px tile generated once. Lift shadows are opacity layers, so hovering a card never repaints a large shadow per frame.",
+        "All other motion is WAAPI, CSS transitions sampled from token springs, or Motion tweens on transform, opacity and stroke-dashoffset; FLIP measures once per filter change; every animation, timer and particle is cancelled or removed on unmount.",
+        "The share card redraws only when its text or colour changes, and once more when webfonts are ready."
       ],
-      "dataNote": "Sample content: the Mending Commons, its six cafés, every gallery entry and every leaderboard number (items per café per week of March 2026) are fictional. Pledges are not sent or stored.",
+      "dataNote": "Sample content: the Mending Commons, its six cafés, every gallery entry (before and after) and every leaderboard number (items per café per week of March 2026) are fictional. Pledges are not sent or stored.",
       "path": "library/src/demos/social/campaign-landing",
       "files": [
         "index.tsx",
@@ -6096,13 +6115,13 @@
       "id": "interactive-poll",
       "name": "Interactive Poll",
       "specialty": "social",
-      "summary": "A community radio station’s listener polls: a single-choice poll with animated results, a multiple-choice poll with honest percentages and clearly labelled simulated live votes you can pause, a no-timer quiz with explanations, and a ranking poll whose ballot is a drag-to-reorder running order.",
+      "summary": "A community radio station’s listener polls under a tuning dial you can really turn: a single-choice poll whose rows become result bars, a multiple-choice poll with honest percentages and clearly labelled simulated live votes you can pause, a no-timer quiz with explanations, and a ranking poll whose ballot is a drag-to-reorder running order.",
       "highlights": [
-        "Single choice composes poll-result-bars: results grow from zero on one scale, your vote is marked in words, the result is announced once, and you can change your vote.",
-        "Multiple choice states its promises up front (results after voting, a real closing time) and explains why “of respondents” percentages don’t add up to 100.",
-        "Simulated live tallies are labelled as generated in your browser, finite (40 votes), pausable, and start paused under reduced motion — nothing pretends to be real activity.",
-        "Quiz: one question at a time, no timer, the same button turns from Check answer into Next question so focus never jumps; feedback is words and a mark, not colour.",
-        "Ranking composes drag-reorder-list as the ballot (pointer drag or Space + arrows + Space); sending adds your order to the sample ballots and shows average positions next to yours."
+        "The FM dial is a real tuner: drag or click the band and the needle follows with a pull into each 0.2 MHz detent; throw it and a release spring carries the velocity into the nearest detent, with a magnetic catch on 98.2. A signal meter (the same lit segments as the results) and a readout answer continuously; off-station it says so and offers “Back to 98.2”. Keyboard: ←/→, Page Up/Down, Home/End.",
+        "Single choice adapts the poll-result-bars technique flat inside the station’s cue card (no card in a card): rows turn into bars in place on the heavy glide spring, staggered, with percentages counting up; largest-remainder rounding, “Your vote” in words, one polite announcement, change your vote.",
+        "Multiple choice states its promises up front (results after voting, a real closing time) and explains why “of respondents” percentages don’t add up to 100; result segments light in a sweep. Simulated live tallies are labelled as generated in your browser, finite (40 votes), pausable, and start paused under reduced motion.",
+        "Lit from one top-left light: cue cards carry a two-layer shadow; every option row and button lifts on hover, presses below rest and springs back, and a chosen option sits pressed in.",
+        "Quiz: one question at a time, no timer, the same button turns from Check answer into Next question so focus never jumps; feedback is words and a mark, not colour. Ranking composes drag-reorder-list as the ballot (pointer drag with lift and spring, or Space + arrows + Space)."
       ],
       "technology": [
         "css",
@@ -6111,22 +6130,26 @@
         "svg"
       ],
       "uses": [
-        "poll-result-bars",
         "drag-reorder-list"
+      ],
+      "adapts": [
+        "poll-result-bars",
+        "press-depth-button"
       ],
       "has3d": false,
       "accessibility": [
-        "Each poll is a fieldset with its question as the legend; options are native radios or checkboxes with 48 px rows.",
-        "After voting, focus moves to the results heading; “Change my answer” returns focus to the first option. Results are announced once, politely.",
-        "Meter bars are aria-hidden; each row carries its label, percentage and count as text, and your picks are tagged “Your pick”.",
+        "The tuning dial is a slider with value text (“98.2 megahertz, Quay FM” / “92.4 megahertz, no station”), a visible focus ring and full keyboard control; the settled position is announced politely, never every frame.",
+        "Each poll is a fieldset with its question as the legend; options are native radios or checkboxes with 48 px rows and a visible focus ring.",
+        "After voting, focus moves to “Change vote” or the results heading; changing the answer returns focus to the options. Results are announced once, politely; bars are aria-hidden and every row carries its label, percentage and tags as text.",
         "The ranking ballot has a full keyboard path (Space to pick up, ↑/↓ to move, Space to drop, Esc to cancel) and the results are an ordered list."
       ],
-      "reducedMotion": "Result bars appear at their final width and meter segments switch without fading; simulated live votes start paused (Resume is still available); the ranking rows swap without gliding.",
+      "reducedMotion": "The needle jumps to each detent (dragging still follows the pointer); result bars appear at their final width with a 160 ms fade and the numbers are shown at once; meter segments switch without a sweep; buttons and options change shadow and fill without moving; simulated live votes start paused (Resume is still available); the ranking rows swap without gliding.",
       "performance": [
-        "Meters are 24 plain elements per row toggled by data attributes; the simulation updates React state once per 1.4 s and stops itself after 40 votes.",
-        "No canvas or WebGL; the only animation library loaded is Motion, inside the composed reorder list."
+        "The dial writes the needle transform, the readout and 12 segment attributes directly while it moves; React only re-renders when the detent changes.",
+        "Result bars are transform-only WAAPI animations on full-width fills in clipped tracks; the count-up reads each bar’s progress in one rAF loop that runs only while bars move.",
+        "Meters are plain elements toggled by data attributes; the simulation updates React state once per 1.4 s and stops itself after 40 votes."
       ],
-      "dataNote": "Sample content: Quay FM, The Early Edit and every count are fictional — 640 sample respondents, 312 sample ballots, and live votes generated in the browser from a seeded random sequence. Nothing is sent anywhere.",
+      "dataNote": "Sample content: Quay FM, The Early Edit and every count are fictional — 1,269 sample votes on the reading-spot poll, 640 sample respondents, 312 sample ballots, and live votes generated in the browser from a seeded random sequence. The dial plays nothing. Nothing is sent anywhere.",
       "path": "library/src/demos/social/interactive-poll",
       "files": [
         "index.tsx",
@@ -6134,7 +6157,9 @@
         "MultiPoll.tsx",
         "Quiz.tsx",
         "Ranking.tsx",
+        "SinglePoll.tsx",
         "styles.module.css",
+        "Tuner.tsx",
         "meta.ts"
       ]
     },
@@ -6142,13 +6167,14 @@
       "id": "stories",
       "name": "Stories",
       "specialty": "social",
-      "summary": "Mobile-first stories for a fictional harbour town: a tray of accounts, a full-screen viewer with segmented progress, tap zones, hold to pause, swipes between accounts and down to close — every one mirrored by a button and a key — plus a story embedded in the page.",
+      "summary": "Mobile-first stories for a fictional harbour town: a tray of accounts that opens into a full-screen viewer with segmented progress, tap zones, hold to pause, swipes between accounts and down to close — every one mirrored by a button and a key — on a desktop stage that takes the colour of the story, plus a story embedded in the page.",
       "highlights": [
+        "Signature: the ring you press grows into the viewer (a circular reveal from the ring’s own position) and the viewer closes back into it, faster than it opened.",
+        "A desktop stage, not just a phone in a void: a device with a lit bezel, a room that takes the colour of the card on screen (a registered colour property, so it blends between cards), the neighbouring accounts waiting on either side as dimmed peek cards you can click, and the keys set out as keycaps under the phone.",
+        "The page itself is composed for wide screens: masthead, tray and the gesture guide on the left, the embedded story on a lit stage on the right. The guide is a set of designed hints — a pictogram of each gesture with its button and keycaps — instead of a table.",
         "The current progress segment’s animation is the clock (the story-progress-segments technique): pausing it pauses the story; it stops for the Pause button, a held press, reply focus and a hidden tab.",
-        "Gestures with twins: tap left/right ↔ Previous/Next card buttons and ←/→; swipe sideways ↔ account buttons and Shift+←/→; hold ↔ Pause and Space; swipe down ↔ Close and Esc. Tap zones mirror in right-to-left layouts.",
-        "Swipes follow the finger with resistance at the ends and commit past 30 % of the width or 0.5 px/ms; short of that the card springs back.",
-        "A natural end: after the last account the viewer says “You’re all caught up” and nothing else plays. Rings show “3 new” or “Seen” in words, not only by colour.",
-        "The story-progress-segments recipe is composed as an embedded single story (a newsletter embed), themed to the harbour red."
+        "Gestures with twins: tap left/right ↔ Previous/Next card buttons and ←/→; swipe sideways ↔ peek cards, account buttons and Shift+←/→; hold ↔ Pause and Space; swipe down ↔ Close and Esc. Swipes follow the finger with resistance at the ends and commit past 30 % or 0.5 px/ms; short of that the card springs back. Tap zones mirror in right-to-left layouts.",
+        "Every control has depth: rings lift and press, head buttons, card arrows, Send and the account buttons lift on hover and press in on a token spring. A natural end: after the last account the viewer says “You’re all caught up” and nothing else plays."
       ],
       "technology": [
         "waapi",
@@ -6158,17 +6184,23 @@
       "uses": [
         "story-progress-segments"
       ],
+      "adapts": [
+        "expanding-card-detail",
+        "press-depth-button"
+      ],
       "has3d": false,
       "accessibility": [
-        "The viewer is a modal dialog contained in the demo: the page behind is inert and does not scroll, focus starts on Pause and returns to the ring that opened it.",
+        "The viewer is a modal dialog contained in the demo: the page behind is inert and does not scroll, focus starts on Pause and returns to the ring that opened it; the dialog is described by the keyboard keys.",
         "Each card is a labelled group (“Card 2 of 3 from Ellery Bakery, 3 h ago”) with real text; drawings have their own descriptions. Manual moves are announced politely, automatic ones are not.",
+        "Peek cards are real buttons named “Previous account: …” / “Next account: …”; the gesture guide is a list of text with decorative pictograms.",
         "The reply field is labelled, pauses the story while focused, and states that replies are private.",
-        "All controls are 44 px; focus rings turn flag-yellow on the dark viewer so they keep contrast."
+        "All controls are 44 px or larger; focus rings turn flag-yellow on the dark viewer so they keep contrast."
       ],
-      "reducedMotion": "No clock at all: cards never advance on their own (the Pause button is not needed and is removed), progress shows position statically, account changes cross-fade in 160 ms instead of sliding, and the embedded story waits for its step buttons.",
+      "reducedMotion": "No clock at all: cards never advance on their own (the Pause button is not needed and is removed), progress shows position statically, the viewer opens and closes with a 160 ms fade instead of the reveal, account changes cross-fade in 160 ms instead of sliding, the stage changes colour without blending, controls change fill without moving, and the embedded story waits for its step buttons.",
       "performance": [
         "Cards are DOM and inline SVG — nothing to download or preload, so the progress never runs ahead of content.",
-        "One WAAPI animation per visible card drives the clock; transforms only for drags and transitions; everything is cancelled on close."
+        "One WAAPI animation per visible card drives the clock; the open and close reveal is one clip-path animation; transforms only for drags and transitions; everything is cancelled on close.",
+        "The stage colour is a single registered custom property transition; peek cards and controls animate transform and opacity only."
       ],
       "dataNote": "Sample content: Port Ellery, its accounts, notices, times and the “214 hours” figure are fictional. Replies are not sent anywhere.",
       "path": "library/src/demos/social/stories",
@@ -6176,6 +6208,7 @@
         "index.tsx",
         "art.tsx",
         "data.ts",
+        "Hints.tsx",
         "styles.module.css",
         "Viewer.tsx",
         "meta.ts"

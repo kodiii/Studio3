@@ -1,6 +1,6 @@
 'use client';
 /**
- * The denim the patch is sewn onto: two soft indigo fields that sit at different depths (pointer parallax, ≤ 14 px),
+ * The denim the patch is sewn onto: a twill weave across the whole hero, two soft indigo fields that sit at different depths (pointer parallax, ≤ 14 px),
  * a work-lamp highlight that follows the pointer across the cloth, and a film-grain tile over everything (the
  * grain-gradient-mesh technique: one 128 px tile generated once with canvas2d, blended with overlay). Nothing moves on
  * its own: the layers ease towards the pointer and stop when it does.
@@ -74,6 +74,7 @@ export function HeroBackdrop({ hero }: { hero: RefObject<HTMLElement | null> }) 
 
   return (
     <div ref={layer} className={styles.heroBackdrop} aria-hidden="true" style={{ '--hb-grain': grain ? `url(${grain})` : 'none' } as CSSProperties}>
+      <span className={styles.heroTwill} />
       <span className={`${styles.heroField} ${styles.heroFieldA}`} />
       <span className={`${styles.heroField} ${styles.heroFieldB}`} />
       <span className={styles.heroLamp} />

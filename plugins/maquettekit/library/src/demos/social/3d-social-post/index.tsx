@@ -1,11 +1,12 @@
 'use client';
-import { useId, useRef, useState, type KeyboardEvent } from 'react';
+import { useId, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
 import { spring, springToLinear, useStudioMotion } from '../../../motion';
 import { ClubMark, MeteorSky } from './art';
 import { TokenViewer } from './TokenViewer';
 import styles from './styles.module.css';
 
 const POP = springToLinear(spring.pop);
+const PRESS = springToLinear(spring.press);
 const ICS = [
   'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Saltmarsh Sky Club//Sample event//EN', 'BEGIN:VEVENT',
   'UID:session-12-2026@saltmarsh-sky.invalid', 'DTSTAMP:20261123T100000Z', 'DTSTART:20261212T193000Z', 'DTEND:20261212T220000Z',
@@ -62,6 +63,7 @@ function Byline({ id, when, iso, tag }: { id: string; when: string; iso: string;
 
 export default function SocialPost3D() {
   const uid = useId();
+  const { reduced } = useStudioMotion();
   const [rsvp, setRsvp] = useState<'going' | 'maybe' | 'no' | ''>('');
   const ids = { token: `${uid}-token`, event: `${uid}-event`, log: `${uid}-log` };
 
@@ -74,7 +76,7 @@ export default function SocialPost3D() {
   };
 
   return (
-    <div className={styles.root}>
+    <div className={styles.root} data-reduced={reduced || undefined} style={{ '--sk-press': PRESS.easing, '--sk-press-dur': `${PRESS.duration}ms` } as CSSProperties}>
       <div className={styles.page}>
         <header className={styles.club}>
           <ClubMark className={styles.clubMark} />

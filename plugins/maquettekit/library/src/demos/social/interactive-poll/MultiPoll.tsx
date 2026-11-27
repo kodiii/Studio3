@@ -5,7 +5,7 @@
  * After voting, simulated live votes arrive about every 1.4 s: clearly labelled, pausable, finite (40 votes),
  * and paused from the start under reduced motion.
  */
-import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useId, useRef, useState, type CSSProperties, type FormEvent } from 'react';
 import { useStudioMotion } from '../../../motion';
 import { CLOSES, SLOTS, SLOT_BASE, SLOT_ODDS, SLOT_RESPONDENTS, type SlotId } from './data';
 import styles from './styles.module.css';
@@ -101,7 +101,7 @@ export function MultiPoll() {
                   </span>
                   <span className={styles.meterValue}>{Math.round(share * 100)}% <span className={styles.muted}>({counts[s.id].toLocaleString('en-GB')})</span></span>
                   <span className={styles.meter} aria-hidden="true">
-                    {Array.from({ length: LEDS }, (_, i) => <i key={i} data-on={i < lit || undefined} data-peak={(i < lit && i >= LEDS - 3) || undefined} />)}
+                    {Array.from({ length: LEDS }, (_, i) => <i key={i} style={{ '--i': i } as CSSProperties} data-on={i < lit || undefined} data-peak={(i < lit && i >= LEDS - 3) || undefined} />)}
                   </span>
                 </li>
               );

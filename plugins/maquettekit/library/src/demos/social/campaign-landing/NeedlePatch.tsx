@@ -25,7 +25,7 @@ const SEAM = `M${SEAM_PTS.slice(0, 4).map(([x, y]) => `${x} ${y}`).join(' ')}Z`;
 const STITCHES = 24;
 const NEEDLE = 88; // user units, eye to tip
 const ROPE = 15; // segments
-const SEG = 7.2; // segment length (≈ 108 units of thread)
+const SEG = 10; // segment length (≈ 150 units of thread)
 const KNOT = 0.9; // segment length once tied off
 const POP = springToLinear(spring.pop);
 
@@ -70,7 +70,7 @@ function layRope(ex: number, ey: number, ang: number, seg: number): Pt[] {
   let x = ex, y = ey;
   for (let i = 0; i <= ROPE; i++) {
     pts.push({ x, y, px: x, py: y });
-    a += 0.11; // a gentle curl
+    a -= 0.09; // a gentle curl, falling away from the patch
     x += Math.cos(a) * seg; y += Math.sin(a) * seg;
   }
   return pts;
@@ -106,6 +106,7 @@ export function NeedlePatch() {
   const rope = useRef<Pt[]>(layRope(at(p.current).x, at(p.current).y, ang.current, seg.current));
   const drag = useRef<{ id: number; offset: number } | null>(null);
   const tween = useRef<{ stop: () => void } | null>(null);
+  const goal = useRef<number | null>(null); // where queued key presses are heading
   const anims = useRef(new Set<Animation>());
   const acc = useRef(0);
   const awake = useRef(false);
@@ -218,11 +219,11 @@ export function NeedlePatch() {
 
   const sewTo = useCallback((target: number, ms: number, delay = 0) => {
     tween.current?.stop();
-    if (reduced) { setProgress(target); return; }
+    if (reduced) { setProgress(target); goal.current = null; return; }
     const a = animate(p.current, target, { duration: ms / 1000, delay: delay / 1000, ease: [...easing.inOut], onUpdate: (v) => setProgress(v) });
     tween.current = a;
     wake();
-    void a.then(() => { if (tween.current === a) { tween.current = null; setHanded(true); wake(); } });
+    void a.then(() => { if (tween.current === a) { tween.current = null; goal.current = null; setHanded(true); wake(); } });
   }, [reduced, setProgress, wake]);
 
   // On first view the needle sews the top edge itself, then hands over.
@@ -242,6 +243,7 @@ export function NeedlePatch() {
     if (e.button !== 0) return;
     tween.current?.stop();
     tween.current = null;
+    goal.current = null;
     setHanded(true);
     const v = toSvg(e.clientX, e.clientY);
     const grab = project(v.x, v.y, Math.max(0, p.current - 0.04), Math.min(1, p.current + NEEDLE / TOTAL + 0.06));
@@ -255,22 +257,29 @@ export function NeedlePatch() {
     if (!d || d.id !== e.pointerId) return;
     const v = toSvg(e.clientX, e.clientY);
     const c = p.current + d.offset;
-    setProgress(project(v.x, v.y, Math.max(0, c - 0.1), Math.min(1, c + 0.1)) - d.offset);
+    const projected = project(v.x, v.y, Math.max(0, c - 0.1), Math.min(1, c + 0.1));
+    setProgress(projected - d.offset);
+    // The grab point slides down the shaft to the eye as you sew, so the last stitch is reachable.
+    d.offset *= 0.9;
   };
   const onUp = (e: PointerEvent<SVGRectElement>) => {
     if (drag.current?.id !== e.pointerId) return;
     drag.current = null;
     wrap.current?.removeAttribute('data-sewing');
+    // Let go and the needle settles into the nearest stitch.
+    const target = Math.round(p.current * STITCHES) / STITCHES;
+    if (Math.abs(target - p.current) > 0.0005) sewTo(target, D.fast);
     wake();
   };
   const onKey = (e: KeyboardEvent<SVGGElement>) => {
-    const n = Math.round(p.current * STITCHES);
+    const n = Math.round((goal.current ?? p.current) * STITCHES);
     const to = e.key === 'ArrowRight' || e.key === 'ArrowUp' ? n + 1 : e.key === 'ArrowLeft' || e.key === 'ArrowDown' ? n - 1
       : e.key === 'PageUp' ? n + STITCHES / 4 : e.key === 'PageDown' ? n - STITCHES / 4 : e.key === 'Home' ? 0 : e.key === 'End' ? STITCHES : null;
     if (to === null) return;
     e.preventDefault();
     setHanded(true);
     const target = Math.max(0, Math.min(STITCHES, to)) / STITCHES;
+    goal.current = target;
     sewTo(target, Math.max(D.fast, Math.abs(target - p.current) * D.epic));
   };
 
@@ -287,9 +296,6 @@ export function NeedlePatch() {
     <div ref={wrap} className={styles.heroArtWrap}>
       <svg ref={svg} viewBox="0 0 400 320" className={styles.heroArt} role="group" aria-label="Sew the patch on" aria-describedby={`${uid}-hint`}>
         <defs>
-          <pattern id={`${uid}-twill`} width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(-35)">
-            <path d="M0 5h10" stroke="#f3efe6" strokeOpacity="0.07" strokeWidth="3" />
-          </pattern>
           <pattern id={`${uid}-weave`} width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(-4)">
             <path d="M0 2.5h5M2.5 0v5" stroke="#7a4a0a" strokeOpacity="0.09" strokeWidth="1" />
           </pattern>
@@ -309,7 +315,6 @@ export function NeedlePatch() {
           </mask>
         </defs>
         <g aria-hidden="true">
-          <rect width="400" height="320" fill={`url(#${uid}-twill)`} />
           {/* The patch lies on the denim: a soft shadow down and to the right of the one top-left light. */}
           <path d={PATCH} transform="translate(5 7)" fill="#0b1122" opacity="0.5" filter={`url(#${uid}-soft)`} />
           <g ref={patch} className={styles.patch}>
@@ -325,7 +330,7 @@ export function NeedlePatch() {
             <path ref={glint} d={SEAM} fill="none" stroke="#fffaf0" strokeWidth="2.4" pathLength={1} strokeDasharray="0.12 0.88" strokeLinecap="round" opacity="0" />
           </g>
           <path ref={threadShadow} fill="none" stroke="#070b16" strokeOpacity="0.4" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
-          <path ref={thread} fill="none" stroke="#f3efe6" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+          <path ref={thread} fill="none" stroke="#f6efe0" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
           <g ref={needleShadow} opacity="0.45" filter={`url(#${uid}-softer)`}>
             <path d={`M0 -2.6L${NEEDLE - 16} -1.9L${NEEDLE} 0L${NEEDLE - 16} 1.9L0 2.6A2.6 2.6 0 0 1 0 -2.6Z`} fill="#070b16" />
           </g>

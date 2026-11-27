@@ -1,63 +1,36 @@
 'use client';
-import { useEffect, useId, useRef, useState } from 'react';
+import { useId, useRef, useState, type CSSProperties } from 'react';
 import SplitLineReveal from '../../../effects/split-line-reveal';
 import { meta as splitMeta } from '../../../effects/split-line-reveal/meta';
-import { duration as D, useStudioMotion } from '../../../motion';
+import { spring, springToLinear, useStudioMotion } from '../../../motion';
 import type { EffectMeta, ParamValues } from '../../../types';
 import { Gallery } from './Gallery';
+import { HeroBackdrop } from './HeroBackdrop';
+import { NeedlePatch } from './NeedlePatch';
 import { Leaderboard } from './Leaderboard';
 import { PledgeForm, type Pledge } from './PledgeForm';
 import { ShareCard } from './ShareCard';
 import styles from './styles.module.css';
 
 const defaults = (m: EffectMeta): ParamValues => Object.fromEntries(m.params.map((p) => [p.key, p.default]));
-const PATCH = 'M118 74 296 62 304 226 126 238Z';
-const SEAM = 'M134 88 282 78 288 212 140 222Z';
-
-/** The hero's patch is stitched on once: a solid mask stroke reveals the dashed running stitch. */
-function HeroPatch() {
-  const { reduced } = useStudioMotion();
-  const mask = useRef<SVGPathElement>(null);
-  const thread = useRef<SVGPathElement>(null);
-  const uid = useId().replace(/[^a-zA-Z0-9_-]/g, '');
-  useEffect(() => {
-    const m = mask.current, t = thread.current;
-    if (!m || !t || reduced || typeof m.animate !== 'function') return;
-    const a = m.animate([{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], { duration: D.cinematic * 2, delay: D.moderate, easing: 'cubic-bezier(0.65, 0, 0.35, 1)', fill: 'backwards' });
-    const b = t.animate([{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], { duration: D.slow, delay: D.moderate + D.cinematic * 2 - 120, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'backwards' });
-    return () => { a.cancel(); b.cancel(); };
-  }, [reduced]);
-  return (
-    <svg viewBox="0 0 400 320" className={styles.heroArt} aria-hidden="true" focusable="false">
-      <defs>
-        <pattern id={`${uid}-twill`} width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(-35)">
-          <path d="M0 5h10" stroke="#f3efe6" strokeOpacity="0.07" strokeWidth="3" />
-        </pattern>
-        <mask id={`${uid}-sew`} maskUnits="userSpaceOnUse" x="0" y="0" width="400" height="320">
-          <path ref={mask} d={SEAM} fill="none" stroke="#fff" strokeWidth="16" pathLength={1} strokeDasharray="1" strokeDashoffset="0" />
-        </mask>
-      </defs>
-      <rect width="400" height="320" fill={`url(#${uid}-twill)`} />
-      <path d="M60 280c40-90 70-120 120-150" fill="none" stroke="#f3efe6" strokeOpacity="0.16" strokeWidth="2" strokeDasharray="6 8" />
-      <path d={PATCH} fill="#f0b44c" />
-      <path d={PATCH} fill="none" stroke="#1e2a4a" strokeOpacity="0.25" strokeWidth="2" />
-      <path d={SEAM} fill="none" stroke="#1e2a4a" strokeWidth="5" strokeDasharray="14 10" strokeLinecap="round" mask={`url(#${uid}-sew)`} />
-      <path ref={thread} d="M140 222c-30 34-70 40-96 22" fill="none" stroke="#f3efe6" strokeWidth="2.5" strokeLinecap="round" pathLength={1} strokeDasharray="1" strokeDashoffset="0" />
-      <g transform="rotate(-38 40 236)">
-        <rect x="-8" y="232" width="96" height="6" rx="3" fill="#c9cfe0" />
-        <ellipse cx="2" cy="235" rx="5" ry="1.6" fill="#1e2a4a" />
-      </g>
-    </svg>
-  );
-}
-
+const PRESS = springToLinear(spring.press);
+const SETTLE = springToLinear(spring.settle);
+const GLIDE = springToLinear(spring.glide);
 export default function CampaignLanding() {
   const uid = useId();
+  const { reduced } = useStudioMotion();
+  const hero = useRef<HTMLElement>(null);
   const [pledge, setPledge] = useState<Pledge | null>(null);
   const a = (s: string) => `${uid}-${s}`;
+  const vars = {
+    '--mm-press': PRESS.easing, '--mm-press-dur': `${PRESS.duration}ms`,
+    '--mm-settle': SETTLE.easing, '--mm-settle-dur': `${SETTLE.duration}ms`,
+    '--mm-glide': GLIDE.easing, '--mm-glide-dur': `${GLIDE.duration}ms`,
+  } as CSSProperties;
   return (
-    <div className={styles.root}>
-      <section className={styles.hero} aria-labelledby={a('hero')}>
+    <div className={styles.root} style={vars} data-reduced={reduced || undefined}>
+      <section ref={hero} className={styles.hero} aria-labelledby={a('hero')}>
+        <HeroBackdrop hero={hero} />
         <div className={styles.heroInner}>
           <div className={styles.heroCopy}>
             <p className={styles.kicker}>The Mending Commons · fourth year · sample campaign</p>
@@ -78,7 +51,7 @@ export default function CampaignLanding() {
               <a href={`#${a('gallery')}`} className={styles.ghostOnDenim}>See last year’s mends</a>
             </div>
           </div>
-          <HeroPatch />
+          <NeedlePatch />
         </div>
       </section>
 

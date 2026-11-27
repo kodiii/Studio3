@@ -8,9 +8,14 @@
  *
  * Every gesture has a twin: tap left/right = Previous/Next card buttons and ←/→; swipe sideways = account buttons
  * and Shift+←/→; swipe down = Close and Esc; hold = Pause and Space.
+ *
+ * Desktop stage: the room around the phone takes the colour of the card on screen (a registered colour property, so
+ * it blends rather than switches), the neighbouring accounts wait on either side as dimmed peek cards you can click
+ * (the desktop twin of swiping sideways), and the keys are set out as keycaps under the phone. The viewer opens as a
+ * circle growing out of the ring you pressed and closes back into it, a little faster. Reduced motion: a 160 ms fade.
  */
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type FormEvent, type KeyboardEvent, type PointerEvent } from 'react';
-import { duration as D, spring, springToLinear, useStudioMotion } from '../../../motion';
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type FormEvent, type KeyboardEvent, type PointerEvent, type RefObject } from 'react';
+import { cssEase, duration as D, spring, springToLinear, useStudioMotion } from '../../../motion';
 import { CardArt, FlagMark } from './art';
 import { CREATORS, SEGMENT_MS } from './data';
 import styles from './styles.module.css';
@@ -18,9 +23,14 @@ import styles from './styles.module.css';
 const TAP_MS = 250;
 const SETTLE = springToLinear(spring.settle);
 type How = 'auto' | 'manual';
+const GLOW: Record<string, string> = { navy: '#2a3f73', red: '#c8262c', yellow: '#f2c230', blue: '#2456a6', paper: '#d9dde8' };
 
-export function Viewer({ start, onClose, onSeen }: { start: number; onClose: () => void; onSeen: (creatorId: string, card: number) => void }) {
+export function Viewer({ start, onClose, onSeen, origin }: { start: number; onClose: () => void; onSeen: (creatorId: string, card: number) => void; origin: RefObject<HTMLElement | null> }) {
   const { reduced } = useStudioMotion();
+  const keysId = useId();
+  const layer = useRef<HTMLDivElement>(null);
+  const phone = useRef<HTMLDivElement>(null);
+  const closing = useRef(false);
   const auto = !reduced;
   const [ci, setCi] = useState(start);
   const [si, setSi] = useState(0);
@@ -50,6 +60,40 @@ export function Viewer({ start, onClose, onSeen }: { start: number; onClose: () 
 
   const track = (a: Animation) => { anims.current.add(a); const done = () => anims.current.delete(a); a.finished.then(done, done); return a; };
   useEffect(() => { const set = anims.current; return () => { set.forEach((a) => a.cancel()); set.clear(); }; }, []);
+
+  /** The circle the phone grows out of / shrinks back into: the ring that opened the viewer, in phone coordinates. */
+  const ringCircle = () => {
+    const ph = phone.current?.getBoundingClientRect();
+    const ring = origin.current?.querySelector('[data-ring-art]') ?? origin.current;
+    const rr = ring?.getBoundingClientRect();
+    if (!ph || !rr || !rr.width) return null;
+    const cx = rr.left + rr.width / 2 - ph.left, cy = rr.top + rr.height / 2 - ph.top;
+    const far = Math.hypot(Math.max(cx, ph.width - cx), Math.max(cy, ph.height - cy));
+    return { from: `circle(${(rr.width / 2).toFixed(1)}px at ${cx.toFixed(1)}px ${cy.toFixed(1)}px)`, to: `circle(${far.toFixed(1)}px at ${cx.toFixed(1)}px ${cy.toFixed(1)}px)` };
+  };
+  useLayoutEffect(() => {
+    const ph = phone.current, ly = layer.current;
+    if (!ph || !ly || typeof ph.animate !== 'function') return;
+    if (reduced) { track(ly.animate([{ opacity: 0 }, { opacity: 1 }], { duration: D.fast, easing: 'linear' })); return; }
+    track(ly.animate([{ opacity: 0 }, { opacity: 1 }], { duration: D.moderate, easing: 'linear' }));
+    const c = ringCircle();
+    if (c) track(ph.animate([{ clipPath: c.from }, { clipPath: c.to }], { duration: D.slow, easing: cssEase('emphasized') }));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /** Close back into the ring (faster than the way in), then unmount. */
+  const requestClose = useCallback(() => {
+    if (closing.current) return;
+    closing.current = true;
+    const ph = phone.current, ly = layer.current;
+    if (!ph || !ly || typeof ph.animate !== 'function') { onClose(); return; }
+    const out = reduced
+      ? ly.animate([{ opacity: 1 }, { opacity: 0 }], { duration: D.fast, easing: 'linear', fill: 'forwards' })
+      : ly.animate([{ opacity: 1 }, { opacity: 0 }], { duration: D.moderate, easing: cssEase('exit'), fill: 'forwards' });
+    track(out);
+    const c = reduced ? null : ringCircle();
+    if (c) track(ph.animate([{ clipPath: c.to }, { clipPath: c.from }], { duration: D.moderate, easing: cssEase('exit'), fill: 'forwards' }));
+    out.finished.then(onClose, () => onClose());
+  }, [onClose, reduced]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── navigation ──
   const toCreator = useCallback((next: number, dir: 1 | -1, how: How, card = 0) => {
@@ -165,7 +209,7 @@ export function Viewer({ start, onClose, onSeen }: { start: number; onClose: () 
       else springBack();
       return;
     }
-    if (d.mode === 'y') { if (dy > d.h * 0.22 || dy / dt > 0.5) onClose(); else springBack(); return; }
+    if (d.mode === 'y') { if (dy > d.h * 0.22 || dy / dt > 0.5) requestClose(); else springBack(); return; }
     if (dt < TAP_MS) {
       const r = e.currentTarget.getBoundingClientRect();
       const x = e.clientX - r.left;
@@ -178,7 +222,7 @@ export function Viewer({ start, onClose, onSeen }: { start: number; onClose: () 
 
   const onKey = (e: KeyboardEvent<HTMLDivElement>) => {
     const t = e.target as HTMLElement;
-    if (e.key === 'Escape') { e.preventDefault(); onClose(); return; }
+    if (e.key === 'Escape') { e.preventDefault(); requestClose(); return; }
     if (t.closest('input, textarea')) return;
     if (e.key === 'ArrowRight') { e.preventDefault(); if (e.shiftKey) toCreator(ci + 1, 1, 'manual'); else if (!ended) nextCard('manual'); }
     else if (e.key === 'ArrowLeft') { e.preventDefault(); if (ended) { setEnded(false); return; } if (e.shiftKey) toCreator(ci - 1, -1, 'manual'); else prevCard(); }
@@ -195,8 +239,8 @@ export function Viewer({ start, onClose, onSeen }: { start: number; onClose: () 
   };
 
   // Esc closes even if focus has fallen out of the dialog (e.g. onto <body> after a control was disabled).
-  const closeRef = useRef(onClose);
-  closeRef.current = onClose;
+  const closeRef = useRef(requestClose);
+  closeRef.current = requestClose;
   useEffect(() => {
     const onDocKey = (e: globalThis.KeyboardEvent) => { if (e.key === 'Escape' && !e.defaultPrevented) closeRef.current(); };
     document.addEventListener('keydown', onDocKey);
@@ -208,13 +252,10 @@ export function Viewer({ start, onClose, onSeen }: { start: number; onClose: () 
   const state = ended ? 'End of stories' : !auto ? 'Moves only when you tap' : paused ? 'Paused' : holding ? 'Held' : typing ? 'Paused while you reply' : 'Playing';
 
   return (
-    <div className={styles.viewerLayer}>
-      <div className={styles.viewerPanel} role="dialog" aria-modal="true" aria-label={`Stories from Port Ellery — ${creator.name}`} onKeyDown={onKey}>
-        <button type="button" className={`${styles.sideBtn} ${styles.sidePrev}`} onClick={() => toCreator(ci - 1, -1, 'manual')} disabled={!prevName}>
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 5l-7 7 7 7" /></svg>
-          <span className="mk-sr-only">Previous account{prevName ? `: ${prevName}` : ''}</span>
-        </button>
-        <div className={styles.phone}>
+    <div ref={layer} className={styles.viewerLayer} style={{ '--pe-glow': ended ? GLOW.navy : GLOW[seg.field] } as CSSProperties}>
+      <div className={styles.viewerPanel} role="dialog" aria-modal="true" aria-label={`Stories from Port Ellery — ${creator.name}`} aria-describedby={keysId} onKeyDown={onKey}>
+        <Peek side="prev" index={ci - 1} onGo={() => toCreator(ci - 1, -1, 'manual')} />
+        <div ref={phone} className={styles.phone}>
           <div className={styles.top}>
             <div className={styles.segments} aria-hidden="true">
               {creator.segments.map((s, i) => (
@@ -234,7 +275,7 @@ export function Viewer({ start, onClose, onSeen }: { start: number; onClose: () 
                   <span className="mk-sr-only">Pause stories</span>
                 </button>
               ) : null}
-              <button type="button" className={styles.headBtn} onClick={onClose}>
+              <button type="button" className={styles.headBtn} onClick={requestClose}>
                 <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6 6 18" /></svg>
                 <span className="mk-sr-only">Close stories</span>
               </button>
@@ -249,7 +290,7 @@ export function Viewer({ start, onClose, onSeen }: { start: number; onClose: () 
                   <p>That’s every story Port Ellery posted in the last 24 hours. Nothing plays after this.</p>
                   <div className={styles.endActions}>
                     <button type="button" className={styles.lightBtn} onClick={() => { setEnded(false); toCreator(0, 1, 'manual'); }}>Watch again</button>
-                    <button type="button" className={styles.lightBtn} onClick={onClose}>Close</button>
+                    <button type="button" className={styles.lightBtn} onClick={requestClose}>Close</button>
                   </div>
                 </div>
               ) : (
@@ -294,12 +335,44 @@ export function Viewer({ start, onClose, onSeen }: { start: number; onClose: () 
             </div>
           </div>
         </div>
-        <button type="button" className={`${styles.sideBtn} ${styles.sideNext}`} onClick={() => toCreator(ci + 1, 1, 'manual')}>
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 5l7 7-7 7" /></svg>
-          <span className="mk-sr-only">{nextName ? `Next account: ${nextName}` : 'Finish stories'}</span>
-        </button>
+        <Peek side="next" index={ci + 1} ended={ended} onGo={() => toCreator(ci + 1, 1, 'manual')} />
+        <p id={keysId} className={styles.keys}>
+          <span><kbd>←</kbd> <kbd>→</kbd> card,</span>{' '}
+          <span><kbd>Shift</kbd> + <kbd>←</kbd> <kbd>→</kbd> account,</span>{' '}
+          {auto ? <><span><kbd>Space</kbd> pause,</span>{' '}</> : null}
+          <span><kbd>Esc</kbd> close</span>
+        </p>
         <p className="mk-sr-only" aria-live="polite">{say}</p>
       </div>
     </div>
+  );
+}
+
+/**
+ * A neighbouring account waiting beside the phone on wide screens: its first card, small and dimmed. It is the
+ * desktop twin of swiping sideways (the account buttons under the reply box do the same on phones).
+ */
+function Peek({ side, index, ended = false, onGo }: { side: 'prev' | 'next'; index: number; ended?: boolean; onGo: () => void }) {
+  const c = CREATORS[index];
+  if (!c && side === 'prev') return <span className={`${styles.peek} ${styles.peekPrev}`} aria-hidden="true" />;
+  if (ended && side === 'next') return <span className={`${styles.peek} ${styles.peekNext}`} aria-hidden="true" />;
+  const first = c?.segments[0];
+  return (
+    <button type="button" className={`${styles.peek} ${side === 'prev' ? styles.peekPrev : styles.peekNext}`} onClick={onGo}>
+      <span className={styles.peekCard} data-field={first ? first.field : 'navy'} aria-hidden="true">
+        {c ? (
+          <>
+            <span className={styles.peekHead}><FlagMark flag={c.flag} className={styles.peekFlag} /><span>{c.name}</span></span>
+            <span className={styles.peekBig}>{first?.big}</span>
+          </>
+        ) : (
+          <span className={styles.peekBig}>All caught up</span>
+        )}
+      </span>
+      <span className={styles.peekLabel}>
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d={side === 'prev' ? 'M15 5l-7 7 7 7' : 'M9 5l7 7-7 7'} /></svg>
+        <span>{side === 'prev' ? 'Previous account' : c ? 'Next account' : 'Finish stories'}{c ? <span className="mk-sr-only">: {c.name}</span> : null}</span>
+      </span>
+    </button>
   );
 }

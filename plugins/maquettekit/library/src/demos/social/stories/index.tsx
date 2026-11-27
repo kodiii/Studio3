@@ -1,17 +1,22 @@
 'use client';
-import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState, type CSSProperties } from 'react';
 import StoryProgressSegments from '../../../effects/story-progress-segments';
 import { meta as storyMeta } from '../../../effects/story-progress-segments/meta';
+import { spring, springToLinear, useStudioMotion } from '../../../motion';
 import type { EffectMeta, ParamValues } from '../../../types';
 import { FlagBanner, FlagMark } from './art';
 import { CREATORS } from './data';
+import { Hints } from './Hints';
 import { Viewer } from './Viewer';
 import styles from './styles.module.css';
 
 const defaults = (m: EffectMeta): ParamValues => Object.fromEntries(m.params.map((p) => [p.key, p.default]));
+const PRESS = springToLinear(spring.press);
+const POP = springToLinear(spring.pop);
 
 export default function Stories() {
   const uid = useId();
+  const { reduced } = useStudioMotion();
   const [open, setOpen] = useState<number | null>(null);
   const [seen, setSeen] = useState<Record<string, number>>({});
   const opener = useRef<HTMLElement | null>(null);
@@ -33,50 +38,50 @@ export default function Stories() {
     };
   }, [open]);
 
+  const vars = { '--pe-press': PRESS.easing, '--pe-press-dur': `${PRESS.duration}ms`, '--pe-pop': POP.easing, '--pe-pop-dur': `${POP.duration}ms` } as CSSProperties;
   return (
-    <div className={styles.root}>
+    <div className={styles.root} style={vars} data-reduced={reduced || undefined}>
       <div className={styles.page} inert={open !== null}>
-        <header className={styles.masthead}>
-          <FlagBanner className={styles.banner} />
-          <h2 className={styles.town}>Port Ellery</h2>
-          <p className={styles.tagline}>Stories from the harbour, the quay and the people who keep them running.</p>
-          <p className={styles.sample}><span className="mk-label">Sample content</span> A fictional town; every account and notice is invented.</p>
-        </header>
+        <div className={styles.lead}>
+          <header className={styles.masthead}>
+            <FlagBanner className={styles.banner} />
+            <h2 className={styles.town}>Port Ellery</h2>
+            <p className={styles.tagline}>Stories from the harbour, the quay and the people who keep them running.</p>
+            <p className={styles.sample}><span className="mk-label">Sample content</span> A fictional town; every account and notice is invented.</p>
+          </header>
 
-        <section aria-labelledby={`${uid}-tray`} className={styles.traySection}>
-          <div className={styles.trayHead}>
-            <h3 id={`${uid}-tray`} className={styles.h3}>Today’s stories</h3>
-            <p className={styles.small}>Up for 24 hours, then kept in each account’s archive.</p>
-          </div>
-          <ul className={styles.tray}>
-            {CREATORS.map((c, i) => {
-              const watched = seen[c.id] ?? -1;
-              const unseen = Math.max(0, c.segments.length - 1 - watched);
-              const done = watched >= c.segments.length - 1;
-              return (
-                <li key={c.id}>
-                  <button type="button" className={styles.ring} data-seen={done || undefined} onClick={(e) => show(i, e.currentTarget)}>
-                    <span className={styles.ringArt}><FlagMark flag={c.flag} className={styles.ringFlag} /></span>
-                    <span className={styles.ringName}>{c.name}</span>
-                    <span className={styles.ringState}>{done ? 'Seen' : `${watched < 0 ? c.segments.length : unseen} new`}</span>
-                    <span className="mk-sr-only">, {c.ago} ago</span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        </section>
+          <section aria-labelledby={`${uid}-tray`} className={styles.traySection}>
+            <div className={styles.trayHead}>
+              <h3 id={`${uid}-tray`} className={styles.h3}>Today’s stories</h3>
+              <p className={styles.small}>Up for 24 hours, then kept in each account’s archive.</p>
+            </div>
+            <ul className={styles.tray}>
+              {CREATORS.map((c, i) => {
+                const watched = seen[c.id] ?? -1;
+                const unseen = Math.max(0, c.segments.length - 1 - watched);
+                const done = watched >= c.segments.length - 1;
+                return (
+                  <li key={c.id}>
+                    <button type="button" className={styles.ring} data-seen={done || undefined} onClick={(e) => show(i, e.currentTarget)}>
+                      <span className={styles.ringArt} data-ring-art=""><FlagMark flag={c.flag} className={styles.ringFlag} /></span>
+                      <span className={styles.ringName}>{c.name}</span>
+                      <span className={styles.ringState}>{done ? 'Seen' : `${watched < 0 ? c.segments.length : unseen} new`}</span>
+                      <span className="mk-sr-only">, {c.ago} ago</span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
 
-        <section aria-labelledby={`${uid}-how`} className={styles.how}>
-          <h3 id={`${uid}-how`} className={styles.h3}>Every gesture has a button</h3>
-          <dl className={styles.legend}>
-            <div><dt>Tap the right or left of a card</dt><dd>Next / Previous card buttons, or → and ←</dd></div>
-            <div><dt>Press and hold</dt><dd>Pause button, or Space</dd></div>
-            <div><dt>Swipe sideways</dt><dd>Account buttons under the reply box, or Shift + → / ←</dd></div>
-            <div><dt>Swipe down</dt><dd>Close button, or Esc</dd></div>
-          </dl>
-          <p className={styles.small}>Cards move on by themselves every six seconds and stop while you hold, reply or switch tabs. With reduced motion they never move on their own.</p>
-        </section>
+          <section aria-labelledby={`${uid}-how`} className={styles.how}>
+            <div className={styles.howHead}>
+              <h3 id={`${uid}-how`} className={styles.h3}>Every gesture has a button</h3>
+              <p className={styles.small}>Cards move on every six seconds and stop while you hold, reply or switch tabs. With reduced motion they never move on their own.</p>
+            </div>
+            <Hints />
+          </section>
+        </div>
 
         <section aria-labelledby={`${uid}-embed`} className={styles.embedSection}>
           <div className={styles.embedCopy}>
@@ -94,7 +99,7 @@ export default function Stories() {
         </footer>
       </div>
 
-      {open !== null ? <Viewer start={open} onClose={close} onSeen={onSeen} /> : null}
+      {open !== null ? <Viewer start={open} onClose={close} onSeen={onSeen} origin={opener} /> : null}
     </div>
   );
 }
