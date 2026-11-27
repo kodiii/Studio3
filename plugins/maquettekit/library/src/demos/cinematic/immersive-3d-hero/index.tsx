@@ -74,7 +74,6 @@ export default function Immersive3DHero() {
   const live = useRef<{ st: ScrollTrigger; centers: () => readonly number[] } | null>(null);
   const [playing, setPlaying] = useState(true);
   const [off3d, setOff3d] = useState(false);
-  const [lit3d, setLit3d] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [active, setActive] = useState(0);
   const [stop, setStop] = useState<StopId>('lake');
@@ -268,8 +267,6 @@ export default function Immersive3DHero() {
             flat
             camera={{ fov: 42, near: 0.1, far: 500, position: [...VIEWPOINTS[0].position] }}
             style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}
-            onCreated={() => setLit3d(true)}
-            data-live={lit3d || undefined}
             fallback={
               <div className={s.fallback}>
                 <Poster />

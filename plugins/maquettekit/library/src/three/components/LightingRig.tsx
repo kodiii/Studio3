@@ -8,15 +8,18 @@
  * cube (three's MIN_SIZE), so `envResolution` values under 256 cost and look the same as 256.
  *
  * Shadows follow the profile: a real shadow map on a shadow-catcher plane when `profile.shadows` is on, otherwise
- * a cheap analytic contact blob (one transparent quad, no extra render pass).
+ * a cheap analytic contact blob (one transparent quad, no extra render pass). `shadowCatcher={false}` keeps the key
+ * light's shadow map but leaves out the plane, for scenes whose own geometry (a plinth, a floor) receives it.
+ * `followCamera` turns the whole rig — direct lights and the environment — about the vertical axis with the camera,
+ * like a turntable under fixed studio lights: the light always comes from the same side of the picture.
  * Everything created here (PMREM target, env scene, blob material) is disposed on preset change/unmount, and the
  * previous `scene.environment` / exposure are restored.
  */
-import { useThree } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
 import {
   BackSide, BoxGeometry, Color, DoubleSide, Mesh, MeshBasicMaterial, PlaneGeometry, PMREMGenerator, Scene,
-  type AmbientLight, type DirectionalLight, type ShaderMaterial,
+  type AmbientLight, type DirectionalLight, type Group, type ShaderMaterial, type Vector3,
 } from 'three';
 import { useQuality } from '../StudioCanvas';
 import type { Vec3 } from './OrbitInspect';
@@ -96,6 +99,20 @@ export interface LightingRigProps {
   /** Radius of the area that needs shadow coverage (≈ model footprint radius). */
   shadowRadius?: number;
   shadowOpacity?: number;
+  /**
+   * With a shadow map (`shadow="map"`, or `"auto"` on a profile with shadows): add the transparent catcher plane at
+   * `groundY`. Set false when the scene's own meshes (`receiveShadow`) take the key light's shadow. Default true.
+   */
+  shadowCatcher?: boolean;
+  /** Shadow-map blur radius (PCF soft shadows). Default 4. */
+  shadowSoftness?: number;
+  /**
+   * Turn the rig with the camera: each frame the direct lights and the environment rotate about the vertical axis
+   * to the camera's azimuth around the orbit target (the default R3F `controls`, e.g. OrbitInspect, else the
+   * origin). Presets are then authored for a camera straight in front (+Z). The shadow catcher and contact blob stay
+   * put. The previous `scene.environmentRotation.y` is restored on unmount. Default false.
+   */
+  followCamera?: boolean;
   /** Use the generated environment as the visible background too. */
   background?: boolean;
   /** Set false to keep the scene's existing environment. */
@@ -106,11 +123,15 @@ const BLOB_VERT = 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projec
 const BLOB_FRAG = 'varying vec2 vUv; uniform float uOpacity; void main(){ float d = length(vUv - 0.5) * 2.0; float a = smoothstep(1.0, 0.0, d); gl_FragColor = vec4(0.0, 0.0, 0.0, a * a * uOpacity); }';
 
 export const LightingRig = forwardRef<LightingRigHandle, LightingRigProps>(function LightingRig(
-  { preset = 'studio-soft', intensity = 1, shadow = 'auto', groundY = 0, shadowRadius = 2, shadowOpacity = 0.35, background = false, environment = true }, ref,
+  {
+    preset = 'studio-soft', intensity = 1, shadow = 'auto', groundY = 0, shadowRadius = 2, shadowOpacity = 0.35, shadowCatcher = true, shadowSoftness = 4,
+    followCamera = false, background = false, environment = true,
+  }, ref,
 ) {
   const gl = useThree((s) => s.gl);
   const scene = useThree((s) => s.scene);
   const invalidate = useThree((s) => s.invalidate);
+  const rig = useRef<Group>(null);
   const quality = useQuality();
   const p: LightingPreset = typeof preset === 'string' ? lightingPresets[preset] : preset;
   const key = useRef<DirectionalLight>(null), fill = useRef<DirectionalLight>(null), rim = useRef<DirectionalLight>(null), ambient = useRef<AmbientLight>(null);
@@ -169,20 +190,37 @@ export const LightingRig = forwardRef<LightingRigHandle, LightingRigProps>(funct
     if (u) u.value = v;
     invalidate();
   }, [blobUniforms, shadowOpacity, mode, invalidate]);
-  useEffect(() => { invalidate(); }, [mode, groundY, shadowRadius, invalidate]);
+  useEffect(() => { invalidate(); }, [mode, groundY, shadowRadius, shadowCatcher, shadowSoftness, invalidate]);
   const r = shadowRadius;
+
+  // Follow the camera's azimuth: after camera rigs (−2) and controls (−1) have placed the camera, before the draw.
+  useEffect(() => {
+    if (!followCamera) return;
+    const prev = scene.environmentRotation.y;
+    invalidate();
+    return () => { scene.environmentRotation.y = prev; rig.current?.rotation.set(0, 0, 0); invalidate(); };
+  }, [followCamera, scene, invalidate]);
+  useFrame(({ camera, controls }) => {
+    if (!followCamera) return;
+    const t = (controls as { target?: Vector3 } | null)?.target;
+    const az = Math.atan2(camera.position.x - (t?.x ?? 0), camera.position.z - (t?.z ?? 0));
+    if (rig.current) rig.current.rotation.y = az;
+    scene.environmentRotation.y = az;
+  }, -0.5);
 
   return (
     <group>
-      <ambientLight ref={ambient} color={p.ambient.color} intensity={p.ambient.intensity * intensity} />
-      <directionalLight
-        ref={key} color={p.key.color} intensity={p.key.intensity * intensity} position={p.key.position}
-        castShadow={mode === 'map'} shadow-mapSize={[quality.shadowMapSize, quality.shadowMapSize]} shadow-bias={-0.0004} shadow-normalBias={0.02} shadow-radius={4}
-        shadow-camera-left={-r * 1.6} shadow-camera-right={r * 1.6} shadow-camera-top={r * 1.6} shadow-camera-bottom={-r * 1.6} shadow-camera-near={0.1} shadow-camera-far={40}
-      />
-      {p.fill ? <directionalLight ref={fill} color={p.fill.color} intensity={p.fill.intensity * intensity} position={p.fill.position} /> : null}
-      {p.rim ? <directionalLight ref={rim} color={p.rim.color} intensity={p.rim.intensity * intensity} position={p.rim.position} /> : null}
-      {mode === 'map' ? (
+      <group ref={rig}>
+        <ambientLight ref={ambient} color={p.ambient.color} intensity={p.ambient.intensity * intensity} />
+        <directionalLight
+          ref={key} color={p.key.color} intensity={p.key.intensity * intensity} position={p.key.position}
+          castShadow={mode === 'map'} shadow-mapSize={[quality.shadowMapSize, quality.shadowMapSize]} shadow-bias={-0.0004} shadow-normalBias={0.02} shadow-radius={shadowSoftness}
+          shadow-camera-left={-r * 1.6} shadow-camera-right={r * 1.6} shadow-camera-top={r * 1.6} shadow-camera-bottom={-r * 1.6} shadow-camera-near={0.1} shadow-camera-far={40}
+        />
+        {p.fill ? <directionalLight ref={fill} color={p.fill.color} intensity={p.fill.intensity * intensity} position={p.fill.position} /> : null}
+        {p.rim ? <directionalLight ref={rim} color={p.rim.color} intensity={p.rim.intensity * intensity} position={p.rim.position} /> : null}
+      </group>
+      {mode === 'map' && shadowCatcher ? (
         <mesh rotation-x={-Math.PI / 2} position-y={groundY} receiveShadow>
           <planeGeometry args={[r * 8, r * 8]} />
           <shadowMaterial transparent opacity={shadowOpacity} depthWrite={false} />

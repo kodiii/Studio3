@@ -5271,7 +5271,7 @@
       ],
       "reducedMotion": "No inertia after release, no idle sway, no breathing ring: drags still follow the hand but stop where you let go, ←/→ step the view, presets and the exploded view cut, the finish change is a 160 ms cross-fade, the total changes without counting, and the dial clip only runs from its Play button.",
       "performance": [
-        "Render on demand: the scene draws only while the camera, a coast, the sweep, the explode amount or a clip is changing; with motion paused (or under reduced motion) an idle scene draws nothing. While the idle sway runs, hotspot occlusion raycasts are switched off.",
+        "Render on demand: the scene draws only while the camera, a coast, the sweep, the explode amount or a clip is changing; with motion paused (or under reduced motion) an idle scene draws nothing. The model sits in a BVH (drei `Bvh`), so hotspot occlusion rays and pointer picking stay cheap on every frame of a coast or the idle sway.",
         "The contact shadow costs one depth render of the model and six 512 × 304 blur passes, only on frames where the geometry changed (load, explode, strap); four small render targets, disposed on unmount.",
         "Low-power devices load the 1.0 MB build (131k triangles) and skip the shadow map; material clones are created once (the swept and breathing materials are always owned) and disposed with the controller."
       ],

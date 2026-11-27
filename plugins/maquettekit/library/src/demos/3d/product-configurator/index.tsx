@@ -1,4 +1,5 @@
 'use client';
+import { Bvh } from '@react-three/drei';
 import type { ThreeEvent } from '@react-three/fiber';
 import { Suspense, useCallback, useEffect, useId, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent } from 'react';
 import { duration, sec, spring as SPRING, springToLinear, useRafLoop, useStudioMotion } from '../../../motion';
@@ -141,23 +142,17 @@ export default function ProductConfigurator() {
 
   // The user taking the camera (drag, wheel, keys, zoom buttons) leaves the named preset.
   const leavePreset = useCallback(() => setPreset(null), []);
-  // ←/→ on the focused view push the turntable (it coasts and eases out, like a drag released); captured before
-  // OrbitInspect's own step so the keyboard twin feels like the hand. ↑/↓, +/−, 0 stay with OrbitInspect.
-  useEffect(() => {
-    const el = stage.current;
-    if (!el) return;
-    const onKey = (e: KeyboardEvent) => {
-      if ((e.target as Element).tagName !== 'CANVAS' || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
-      const dir = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
-      if (!dir) return;
-      e.preventDefault();
-      e.stopPropagation();
-      turntable.current?.push(dir);
-      setPreset(null);
-    };
-    el.addEventListener('keydown', onKey, { capture: true });
-    return () => el.removeEventListener('keydown', onKey, { capture: true });
-  }, []);
+  // ←/→ on the focused view push the view (it coasts and eases out, like a drag released) instead of OrbitInspect's
+  // step, so the keyboard twin feels like the hand; under reduced motion they step 15°. ↑/↓, +/−, 0 stay default.
+  const onOrbitKey = useCallback((e: KeyboardEvent, o: OrbitInspectHandle) => {
+    if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return false;
+    const dir = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+    if (!dir) return false;
+    rig.current?.stop();
+    if (reduced) o.rotate(-dir * (Math.PI / 12)); else o.push(dir * 1.7);
+    setPreset(null);
+    return true;
+  }, [reduced]);
   /** Every option change is laid down by the finish sweep (captured before the new values reach the materials). */
   const choose = (set: (id: string) => void) => (id: string) => { sweep.current?.begin(); turntable.current?.touch(); set(id); };
   const onStagePointerDown = (e: ReactPointerEvent<HTMLDivElement>) => { press.current = { x: e.clientX, y: e.clientY }; };
@@ -236,18 +231,21 @@ export default function ProductConfigurator() {
               }
             >
               <StudioLights />
-              {/* No damping lag: the view follows the hand 1:1, the Turntable adds the inertia after release. */}
-              <OrbitInspect ref={orbit} target={[0, 0.75, 0]} minDistance={2.4} maxDistance={11} damping={0} />
+              {/* No damping lag: the view follows the hand 1:1, then a release coasts out with friction (inertia). */}
+              <OrbitInspect ref={orbit} target={[0, 0.75, 0]} minDistance={2.4} maxDistance={11} damping={0} inertia onKeyDown={onOrbitKey} />
               <CameraRig ref={rig} presets={RIG_POSES} preset={rigPreset} smoothTime={0.55} onInterrupt={leavePreset} />
-              <Turntable ref={turntable} reduced={reduced} motion={motion} rig={rig} onSway={setAmbient} />
+              <Turntable ref={turntable} reduced={reduced} motion={motion} rig={rig} orbit={orbit} onSway={setAmbient} />
               <RingGlow material={ring} motion={motion && ambient} reduced={reduced} />
               {url ? (
                 <ModelBoundary resetKey={`${url}#${attempt}`} onError={setError}>
                   <Suspense fallback={null}>
-                    <Model key={attempt} src={url} scale={SCALE} castShadow onLoaded={onLoaded} onError={setError} onPointerMove={onPartMove} onPointerOut={() => setHover(null)} onClick={onPartClick} />
+                    {/* A BVH under the model: occlusion rays and pointer picking stay cheap while the view coasts or sways. */}
+                    <Bvh>
+                      <Model key={attempt} src={url} scale={SCALE} castShadow onLoaded={onLoaded} onError={setError} onPointerMove={onPartMove} onPointerOut={() => setHover(null)} onClick={onPartClick} />
+                    </Bvh>
                     <PartController root={loaded?.scene ?? null} overrides={overrides} hidden={hidden} explode={explode} highlight={hover} selected={selected} onReady={onPartsReady} />
                     <AnimationPlayer ref={player} root={loaded?.scene ?? null} clips={loaded?.animations ?? []} clip="KnobTurn" loop={false} onState={setAnim} />
-                    <HotspotAnchors store={store} hotspots={hotspots} root={loaded?.scene ?? null} occlude={!ambient} />
+                    <HotspotAnchors store={store} hotspots={hotspots} root={loaded?.scene ?? null} />
                     <GroundShadow root={loaded?.scene ?? null} version={shadowVersion} explodeAmount={explodeAmount} />
                     <MaterialSweep ref={sweep} root={loaded?.scene ?? null} ready={partsReady} reduced={reduced} />
                   </Suspense>

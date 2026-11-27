@@ -9,13 +9,15 @@
  *  - a keyboard path on the canvas element (arrows rotate, +/− zoom, 0 or Home reset, Shift+arrows pan); the focusable
  *    canvas is named after the StudioCanvas label, and the StudioCanvas wrapper becomes role="group" while it is on
  *  - the same operations on an imperative handle so DOM buttons can drive the camera
- *  - reduced motion: damping and auto-rotate are disabled (moves become cuts)
+ *  - optional release inertia (`inertia`): a flick keeps its measured azimuthal speed and coasts out with `friction`;
+ *    `push()` gives the same coast to keys and buttons, and `onKeyDown` lets a scene remap keys before the defaults
+ *  - reduced motion: damping, inertia and auto-rotate are disabled (moves become cuts)
  * It registers itself as R3F's default `controls`, which is how `CameraRig` finds the orbit target.
  */
 import { useFrame, useThree } from '@react-three/fiber';
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { useStudioMotion } from '../../motion';
+import { duration, sec, useStudioMotion } from '../../motion';
 import { useStudioCanvasHost } from '../StudioCanvas';
 
 export type Vec3 = [number, number, number];
@@ -31,8 +33,21 @@ export interface OrbitInspectHandle {
   reset(): void;
   /** Make the current pose the one `reset()` returns to. */
   saveHome(): void;
+  /**
+   * Add azimuthal speed (radians per second; positive turns the same way as ArrowRight) that coasts out with
+   * `friction`, like a released flick. Clamped to `maxInertia`. Works whether or not `inertia` is on. Under reduced
+   * motion the view cuts to where the coast would have come to rest.
+   */
+  push(velocity: number): void;
+  /** Drop any coast (release inertia or `push`). */
+  stop(): void;
+  /** True while a release or a `push` is still coasting. */
+  readonly coasting: boolean;
   readonly controls: OrbitControls | null;
 }
+
+/** Default coast decay: the speed falls by e every `slow` duration token (a large thing settling softly). */
+export const ORBIT_FRICTION = 1 / sec(duration.slow);
 
 export interface OrbitInspectProps {
   target?: Vec3;
@@ -63,6 +78,23 @@ export interface OrbitInspectProps {
   keyboard?: boolean;
   /** Radians per arrow-key press. */
   keyStep?: number;
+  /**
+   * Called for every keydown on the focused canvas before the default keys run. Return true to take the key: the
+   * default action is skipped, the event's default is prevented, and onStart/onEnd fire as for a built-in key.
+   * Example — ←/→ push a coast instead of stepping:
+   * `onKeyDown={(e, orbit) => { if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return false; orbit.push(e.key === 'ArrowRight' ? 1.7 : -1.7); return true; }}`
+   */
+  onKeyDown?: (event: KeyboardEvent, orbit: OrbitInspectHandle) => boolean | void;
+  /**
+   * Release inertia: when a drag ends, the measured azimuthal speed carries on and decays with `friction`. Meant
+   * for `damping={0}` (the view follows the hand 1:1 and the coast comes after); with damping on, damping already
+   * gives the release a tail and inertia is not applied. Off under reduced motion. Default false.
+   */
+  inertia?: boolean;
+  /** Coast decay rate, per second: the speed is multiplied by e^(−friction·dt). Higher stops sooner. Default ≈ 1.79 (`slow` token). */
+  friction?: number;
+  /** Speed cap for release inertia and `push`, radians per second. Default 4.5. */
+  maxInertia?: number;
   /** Register as the default R3F controls (needed by CameraRig). */
   makeDefault?: boolean;
   onStart?: () => void;
@@ -74,7 +106,8 @@ export const OrbitInspect = forwardRef<OrbitInspectHandle, OrbitInspectProps>(fu
   target, enabled = true, enableZoom = true, enablePan = false, minDistance = 0.5, maxDistance = 50,
   minPolarAngle = 0.1, maxPolarAngle = Math.PI / 2 - 0.02, minAzimuthAngle = -Infinity, maxAzimuthAngle = Infinity,
   damping = 0.1, rotateSpeed = 0.9, zoomSpeed = 0.9, autoRotate = false, autoRotateSpeed = 0.6,
-  wheel = 'focus', touchScroll = 'pan-y', keyboard = true, keyStep = Math.PI / 18, makeDefault = true, onStart, onEnd, onChange,
+  wheel = 'focus', touchScroll = 'pan-y', keyboard = true, keyStep = Math.PI / 18, makeDefault = true, onStart, onEnd, onChange, onKeyDown,
+  inertia = false, friction = ORBIT_FRICTION, maxInertia = 4.5,
 }, ref) {
   const camera = useThree((s) => s.camera);
   const gl = useThree((s) => s.gl);
@@ -84,16 +117,36 @@ export const OrbitInspect = forwardRef<OrbitInspectHandle, OrbitInspectProps>(fu
   const { reduced } = useStudioMotion();
   const studio = useStudioCanvasHost();
   const controls = useMemo(() => new OrbitControls(camera), [camera]);
-  const cb = useRef({ onStart, onEnd, onChange });
-  cb.current = { onStart, onEnd, onChange };
+  const cb = useRef({ onStart, onEnd, onChange, onKeyDown });
+  cb.current = { onStart, onEnd, onChange, onKeyDown };
   const spin = autoRotate && !reduced;
+  // Coast state: v in rad/s (positive = ArrowRight direction, i.e. growing azimuth); samples measure a drag's speed.
+  const coast = useRef({ v: 0, dragging: false, samples: [] as { t: number; a: number }[] });
+  const opts = useRef({ inertia, friction, maxInertia, reduced, damping });
+  opts.current = { inertia, friction, maxInertia, reduced, damping };
 
   const api = useMemo<OrbitInspectHandle>(() => ({
     rotate(az, polar = 0) { if (az) controls.rotateLeft(az); if (polar) controls.rotateUp(polar); controls.update(); invalidate(); },
     zoom(factor) { if (factor > 1) controls.dollyIn(1 / factor); else if (factor < 1) controls.dollyOut(factor); controls.update(); invalidate(); },
     pan(dx, dy) { if (controls.enablePan) { controls.pan(dx, dy); invalidate(); } },
-    reset() { controls.reset(); invalidate(); },
+    reset() { coast.current.v = 0; controls.reset(); invalidate(); },
     saveHome() { controls.saveState(); },
+    push(velocity) {
+      const o = opts.current, c = coast.current;
+      if (!velocity || !controls.enabled) return;
+      if (o.reduced) {
+        // A cut to where the coast would have stopped: ∫ v·e^(−f·t) dt = v / f.
+        const v = Math.max(-o.maxInertia, Math.min(o.maxInertia, velocity));
+        controls.rotateLeft(-v / Math.max(o.friction, 1e-3));
+        controls.update();
+        invalidate();
+        return;
+      }
+      c.v = Math.max(-o.maxInertia, Math.min(o.maxInertia, c.v + velocity));
+      invalidate();
+    },
+    stop() { coast.current.v = 0; },
+    get coasting() { return coast.current.v !== 0; },
     get controls() { return controls; },
   }), [controls, invalidate]);
   useImperativeHandle(ref, () => api, [api]);
@@ -116,9 +169,30 @@ export const OrbitInspect = forwardRef<OrbitInspectHandle, OrbitInspectProps>(fu
     const el = gl.domElement;
     controls.connect(el);
     el.style.touchAction = touchScroll === 'pan-y' ? 'pan-y' : 'none';
-    const change = () => { invalidate(); cb.current.onChange?.(); };
-    const start = () => cb.current.onStart?.();
-    const end = () => cb.current.onEnd?.();
+    const c = coast.current;
+    // Unwrapped azimuth samples while a drag is in progress (a drag across ±π still measures the real travel).
+    const sample = () => {
+      const a = controls.getAzimuthalAngle(), prev = c.samples[c.samples.length - 1];
+      c.samples.push({ t: performance.now(), a: prev ? prev.a + Math.atan2(Math.sin(a - prev.a), Math.cos(a - prev.a)) : a });
+      if (c.samples.length > 12) c.samples.shift();
+    };
+    const change = () => { if (c.dragging) sample(); invalidate(); cb.current.onChange?.(); };
+    const start = () => { c.dragging = true; c.v = 0; c.samples = []; sample(); cb.current.onStart?.(); };
+    const end = () => {
+      c.dragging = false;
+      const o = opts.current;
+      if (o.inertia && !o.reduced && !(o.damping > 0)) {
+        const now = performance.now(), last = c.samples[c.samples.length - 1];
+        let first = last;
+        for (let i = c.samples.length - 1; i >= 0; i--) { first = c.samples[i]; if (last.t - first.t >= 90) break; }
+        const dt = last && first ? (last.t - first.t) / 1000 : 0;
+        // A pointer that stopped before letting go throws nothing; a flick keeps its speed.
+        c.v = last && first && now - last.t < 80 && dt > 0.01 ? Math.max(-o.maxInertia, Math.min(o.maxInertia, (last.a - first.a) / dt)) : 0;
+        if (c.v) invalidate();
+      }
+      c.samples = [];
+      cb.current.onEnd?.();
+    };
     controls.addEventListener('change', change);
     controls.addEventListener('start', start);
     controls.addEventListener('end', end);
@@ -140,7 +214,9 @@ export const OrbitInspect = forwardRef<OrbitInspectHandle, OrbitInspectProps>(fu
     const ownLabel = `${name}. Arrow keys rotate, plus and minus zoom, 0 resets the view.`;
     const release = keyboard ? studio?.requestInteractive() : undefined;
     const key = (e: KeyboardEvent) => {
-      if (!controls.enabled || e.altKey || e.ctrlKey || e.metaKey) return;
+      if (!controls.enabled) return;
+      if (cb.current.onKeyDown?.(e, api)) { e.preventDefault(); cb.current.onStart?.(); cb.current.onEnd?.(); return; }
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
       let used = true;
       const pan = e.shiftKey && controls.enablePan;
       switch (e.key) {
@@ -189,11 +265,24 @@ export const OrbitInspect = forwardRef<OrbitInspectHandle, OrbitInspectProps>(fu
   }, [controls, makeDefault, set, get]);
 
   useEffect(() => () => controls.dispose(), [controls]);
+  // Reduced motion (or the controls being switched off) ends any coast at once.
+  useEffect(() => { if (reduced || !enabled) coast.current.v = 0; }, [reduced, enabled]);
 
   // Damping tail / auto-rotate: update() returns true while the camera is still moving → request the next frame.
-  useFrame((_, dt) => {
+  // A coast (release inertia, push) turns the view and decays with friction, requesting frames until it settles.
+  useFrame((_, rawDt) => {
     if (!controls.enabled) return;
-    if (controls.enableDamping || controls.autoRotate) { if (controls.update(dt) || controls.autoRotate) invalidate(); }
+    const c = coast.current;
+    if (c.v !== 0 && !c.dragging) {
+      const dt = Math.min(rawDt, 1 / 20);
+      controls.rotateLeft(-c.v * dt);
+      c.v *= Math.exp(-opts.current.friction * dt);
+      if (Math.abs(c.v) < 0.02) c.v = 0;
+      controls.update(dt);
+      invalidate();
+      return;
+    }
+    if (controls.enableDamping || controls.autoRotate) { if (controls.update(rawDt) || controls.autoRotate) invalidate(); }
   }, -1);
 
   return null;

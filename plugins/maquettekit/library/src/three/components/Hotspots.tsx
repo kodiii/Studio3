@@ -12,6 +12,15 @@
  *                        users (and for the no-WebGL fallback, where there is nothing to anchor to).
  * Occluded markers fade and turn inert (not clickable, out of the tab order and the accessibility tree — the list is
  * the stable path); a marker that holds focus stays operable until focus leaves it. Markers behind the camera are hidden.
+ *
+ * Occlusion cost: one ray per hotspot against a 100k+ triangle model on every rendered frame is expensive while the
+ * scene moves continuously (inertia, idle sway, a playing clip). Two remedies, usable together:
+ *  - a BVH: the rays go through each mesh's own `raycast`, so wrapping the model in drei's `<Bvh>` (three-mesh-bvh)
+ *    makes every occlusion test — and R3F pointer picking — logarithmic. Put `<Bvh>` inside the `<Suspense>` that
+ *    loads the model, so it mounts with the meshes:  `<Suspense><Bvh><Model … /></Bvh></Suspense>`.
+ *  - `occludeInterval`: re-test at most every N ms; the markers still follow the model every frame, and one trailing
+ *    frame is requested so the resting pose always gets a fresh test.
+ * A part hidden through any ancestor (PartController hides part groups) does not occlude.
  */
 import { addAfterEffect, useThree } from '@react-three/fiber';
 import { useEffect, useMemo, useRef, type CSSProperties, type ReactNode } from 'react';
@@ -43,9 +52,21 @@ export interface HotspotAnchorsProps {
   root?: Object3D | null;
   /** Fade markers hidden behind geometry and make them inert. One raycast per hotspot per rendered frame. */
   occlude?: boolean;
+  /**
+   * Minimum time between occlusion tests, in ms (0 = every rendered frame). Projection still runs every frame, and
+   * a trailing frame is requested so the last pose is always tested. Default 0. For heavy models prefer a BVH
+   * (see the file header); a throttle suits scenes that cannot add one.
+   */
+  occludeInterval?: number;
 }
 
-export function HotspotAnchors({ store, hotspots, root, occlude = true }: HotspotAnchorsProps) {
+/** Visible in the world, up to and including `root` (a hidden part group hides its meshes too). */
+function shown(o: Object3D, root: Object3D): boolean {
+  for (let n: Object3D | null = o; n; n = n.parent) { if (!n.visible) return false; if (n === root) return true; }
+  return true;
+}
+
+export function HotspotAnchors({ store, hotspots, root, occlude = true, occludeInterval = 0 }: HotspotAnchorsProps) {
   const invalidate = useThree((s) => s.invalidate);
   const get = useThree((s) => s.get);
   const tmp = useMemo(() => ({ world: new Vector3(), ndc: new Vector3(), dir: new Vector3(), box: new Box3(), ray: new Raycaster() }), []);
@@ -55,16 +76,31 @@ export function HotspotAnchors({ store, hotspots, root, occlude = true }: Hotspo
     return map;
   }, [root, hotspots]);
   useEffect(() => { invalidate(); }, [nodes, hotspots, invalidate]);
-  const live = useRef({ hotspots, nodes, root, occlude });
-  live.current = { hotspots, nodes, root, occlude };
+  const live = useRef({ hotspots, nodes, root, occlude, occludeInterval });
+  live.current = { hotspots, nodes, root, occlude, occludeInterval };
+  // Throttle state: last test time, the cached verdict per hotspot, and the trailing frame request.
+  const throttle = useRef({ last: -Infinity, hidden: new Map<string, boolean>(), timer: 0 });
+  useEffect(() => () => window.clearTimeout(throttle.current.timer), []);
+
+  /** True when geometry under root lies between the camera and the anchor (dist = camera → anchor). */
+  const blocked = (origin: Vector3, dir: Vector3, dist: number, root: Object3D): boolean => {
+    tmp.ray.set(origin, dir);
+    tmp.ray.far = dist - 0.02;
+    return tmp.ray.intersectObject(root, true).some((i) => i.distance < dist - 0.03 && shown(i.object, root));
+  };
 
   // Project AFTER the frame is rendered: by then every useFrame (camera rigs, controls, exploded parts) has run and
   // the matrices match the pixels. Projecting inside useFrame lags one frame, which a demand loop never corrects.
   useEffect(() => addAfterEffect(() => {
     const { camera, size } = get();
-    const { hotspots, nodes, root, occlude } = live.current;
+    const { hotspots, nodes, root, occlude, occludeInterval } = live.current;
     camera.updateMatrixWorld();
     root?.updateWorldMatrix(true, true);
+    const th = throttle.current;
+    const now = performance.now();
+    const test = occludeInterval <= 0 || now - th.last >= occludeInterval;
+    if (test) th.last = now;
+    else if (!th.timer) th.timer = window.setTimeout(() => { th.timer = 0; invalidate(); }, Math.max(0, occludeInterval - (now - th.last)) + 1);
     for (const h of hotspots) {
       const el = store.elements.get(h.id);
       if (!el) continue;
@@ -81,10 +117,11 @@ export function HotspotAnchors({ store, hotspots, root, occlude = true }: Hotspo
       const x = (tmp.ndc.x * 0.5 + 0.5) * size.width, y = (-tmp.ndc.y * 0.5 + 0.5) * size.height;
       let hiddenByGeometry = false;
       if (occlude && root) {
-        const dist = tmp.dir.copy(tmp.world).sub(camera.position).length();
-        tmp.ray.set(camera.position, tmp.dir.divideScalar(dist));
-        tmp.ray.far = dist - 0.02;
-        hiddenByGeometry = tmp.ray.intersectObject(root, true).some((i) => i.object.visible && i.distance < dist - 0.03);
+        if (test || !th.hidden.has(h.id)) {
+          const dist = tmp.dir.copy(tmp.world).sub(camera.position).length();
+          hiddenByGeometry = blocked(camera.position, tmp.dir.divideScalar(dist), dist, root);
+          th.hidden.set(h.id, hiddenByGeometry);
+        } else hiddenByGeometry = th.hidden.get(h.id) ?? false;
       }
       el.style.visibility = 'visible';
       el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0) translate(-50%, -50%)`;
@@ -96,7 +133,7 @@ export function HotspotAnchors({ store, hotspots, root, occlude = true }: Hotspo
       const inert = hiddenByGeometry && !el.contains(document.activeElement);
       if (el.inert !== inert) el.inert = inert;
     }
-  }), [get, store, tmp]);
+  }), [get, store, tmp, invalidate]); // eslint-disable-line react-hooks/exhaustive-deps
   return null;
 }
 

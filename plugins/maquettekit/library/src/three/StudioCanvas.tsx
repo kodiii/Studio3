@@ -11,6 +11,9 @@
  *  - an accessible name/description outside the canvas pixels: role="img" for a picture, role="group" when the
  *    scene is `interactive` (an image's children are presentational, so controls inside it would be hidden)
  *  - `window.__MAQUETTEKIT_3D__` diagnostics (real renderer.info values) for Visual Director
+ *  - `onFirstFrame` + `data-frame` on the wrapper, for cross-fading from a poster once real pixels exist
+ *  - a frame is requested whenever rendering resumes (back on screen, tab visible, unpaused), so work queued while
+ *    the loop was stopped (a camera glide started by a selection made offscreen) does not wait for the next input
  * R3F disposes the renderer and scene graph on unmount; anything created
  * imperatively must be disposed by the creator (see ./dispose).
  */
@@ -45,7 +48,20 @@ export interface StudioCanvasProps extends Omit<CanvasProps, 'fallback' | 'frame
    * make the canvas focusable (OrbitInspect with `keyboard`) switch this on by themselves. Default false.
    */
   interactive?: boolean;
+  /**
+   * Give the wrapper its own compositing surface (`will-change: filter`). Use it when the canvas can open partly
+   * under a sticky/fixed header: headless Chromium has been seen drawing only a strip of the WebGL layer there.
+   * Costs one extra composited layer and makes the wrapper a stacking context. Default false.
+   */
+  isolate?: boolean;
   onQualityChange?: (level: QualityLevel) => void;
+  /**
+   * Called once after the first frame of each mounted renderer has been drawn (again after a retry or after the
+   * fallback gave way to a fresh canvas). The wrapper mirrors it as `data-frame`: "pending" from the first render
+   * (lazy placeholder included) until that frame, then "drawn"; absent while the fallback shows. So CSS alone can
+   * cross-fade from a poster underneath: `[data-frame="pending"] { opacity: 0 }`.
+   */
+  onFirstFrame?: () => void;
   /** Called with the error that made the scene fall back (render error inside the canvas tree). */
   onSceneError?: (error: Error) => void;
   className?: string;
@@ -89,9 +105,10 @@ class Boundary extends Component<{ onError: (e: Error) => void; children: ReactN
   render() { return this.state.failed ? null : this.props.children; }
 }
 
-function Instrumentation({ quality, frameloop, adaptive, onContextLost, onDegrade }: { quality: QualityProfile; frameloop: 'always' | 'demand' | 'never'; adaptive: boolean; onContextLost: () => void; onDegrade?: () => void }) {
+function Instrumentation({ quality, frameloop, adaptive, onContextLost, onDegrade, onFirstFrame }: { quality: QualityProfile; frameloop: 'always' | 'demand' | 'never'; adaptive: boolean; onContextLost: () => void; onDegrade?: () => void; onFirstFrame: (renderer: object, drawn: boolean) => void }) {
   const gl = useThree((s) => s.gl);
   const setDpr = useThree((s) => s.setDpr);
+  const invalidate = useThree((s) => s.invalidate);
   const frames = useRef(0);
   // Kept in a ref: an inline callback must not tear down and recreate the diagnostics object on every parent render.
   const lostRef = useRef(onContextLost);
@@ -103,6 +120,10 @@ function Instrumentation({ quality, frameloop, adaptive, onContextLost, onDegrad
   const mode = useRef({ frameloop, level: quality.level });
   mode.current = { frameloop, level: quality.level };
   const diagRef = useRef<MaquettekitDiagnostics | null>(null);
+  const firstRef = useRef(onFirstFrame);
+  firstRef.current = onFirstFrame;
+  // After-effects are global to every R3F root on the page; this flag is set only by this root's own frame.
+  const ownFrame = useRef(false);
 
   useEffect(() => {
     const canvas = gl.domElement;
@@ -116,7 +137,9 @@ function Instrumentation({ quality, frameloop, adaptive, onContextLost, onDegrad
     };
     diagRef.current = diag;
     window.__MAQUETTEKIT_3D__ = diag;
+    let drawn = false;
     const off = addAfterEffect(() => {
+      if (!drawn && ownFrame.current) { drawn = true; firstRef.current(gl, true); }
       const info = gl.info;
       diag.renderer.calls = info.render.calls;
       diag.renderer.triangles = info.render.triangles;
@@ -130,6 +153,8 @@ function Instrumentation({ quality, frameloop, adaptive, onContextLost, onDegrad
     });
     return () => {
       off();
+      // R3F flushes a root's cleanups asynchronously: tagged with the renderer, so a late one cannot clear a newer canvas.
+      if (drawn) firstRef.current(gl, false);
       canvas.removeEventListener('webglcontextlost', lost);
       if (diagRef.current === diag) diagRef.current = null;
       // Count every renderer teardown exactly once, whatever the mount/unmount order: a newer canvas may already have
@@ -142,6 +167,14 @@ function Instrumentation({ quality, frameloop, adaptive, onContextLost, onDegrad
     const d = diagRef.current;
     if (d) { d.frameloop = frameloop; d.quality = quality.level; }
   }, [gl, frameloop, quality.level]);
+  // Resuming (back on screen, tab visible, unpaused): invalidate() calls made while the loop was 'never' were dropped,
+  // so ask for a frame explicitly instead of relying on the store change to do it.
+  const prevLoop = useRef(frameloop);
+  useEffect(() => {
+    const was = prevLoop.current;
+    prevLoop.current = frameloop;
+    if (was === 'never' && frameloop !== 'never') invalidate();
+  }, [frameloop, invalidate]);
 
   const adaptiveRef = useMemo(() => {
     const [min, max] = quality.dpr;
@@ -154,7 +187,7 @@ function Instrumentation({ quality, frameloop, adaptive, onContextLost, onDegrad
       },
     });
   }, [quality, setDpr]);
-  useFrame((_, dt) => { if (adaptive && frameloop === 'always') adaptiveRef.sample(dt * 1000); });
+  useFrame((_, dt) => { ownFrame.current = true; if (adaptive && frameloop === 'always') adaptiveRef.sample(dt * 1000); });
   return null;
 }
 
@@ -162,7 +195,8 @@ type Status = 'pending' | 'ready' | 'unsupported' | 'error' | 'lost';
 
 export function StudioCanvas({
   label, description, fallback, quality = 'auto', profiles = defaultQualityProfiles, frameloop = 'demand', paused = false,
-  lazy = true, adaptive = true, disabled = false, interactive = false, onQualityChange, onSceneError, className, style, children, gl, shadows, ...rest
+  lazy = true, adaptive = true, disabled = false, interactive = false, isolate = false, onQualityChange, onSceneError, onFirstFrame, className, style,
+  children, gl, shadows, ...rest
 }: StudioCanvasProps) {
   const host = useRef<HTMLDivElement>(null);
   const descId = useId();
@@ -173,6 +207,13 @@ export function StudioCanvas({
   const [attempt, setAttempt] = useState(0);
   const [degraded, setDegraded] = useState(0);
   const [claims, setClaims] = useState(0);
+  // The renderer whose first frame has been drawn (null: none yet).
+  const [drawnBy, setDrawnBy] = useState<object | null>(null);
+  const firstFrameRef = useRef(onFirstFrame);
+  firstFrameRef.current = onFirstFrame;
+  const onFrameState = useCallback((renderer: object, d: boolean) => {
+    if (d) { setDrawnBy(renderer); firstFrameRef.current?.(); } else setDrawnBy((cur) => (cur === renderer ? null : cur));
+  }, []);
 
   useEffect(() => {
     const c = detectCapabilities(attempt > 0);
@@ -215,6 +256,9 @@ export function StudioCanvas({
 
   const loop: 'always' | 'demand' | 'never' = paused || !visible ? 'never' : frameloop;
   const showFallback = disabled || status === 'unsupported' || status === 'error' || status === 'lost';
+  const mounted = !showFallback && status === 'ready' && near;
+  // A canvas that goes away (fallback, retry) is no longer drawn, whenever its own cleanup gets round to saying so.
+  useEffect(() => { if (!mounted) setDrawnBy(null); }, [mounted]);
   const reason = disabled ? '3D is turned off.' : status === 'unsupported' ? 'This device or browser cannot display interactive 3D: WebGL 2 is required.'
     : status === 'lost' ? 'The graphics context was lost.' : status === 'error' ? 'The 3D scene failed to load.' : '';
 
@@ -225,7 +269,8 @@ export function StudioCanvas({
       data-maquettekit-canvas=""
       data-status={disabled ? 'disabled' : status}
       data-quality={level}
-      style={{ position: 'relative', width: '100%', height: '100%', minHeight: 120, ...style }}
+      data-frame={showFallback ? undefined : drawnBy ? 'drawn' : 'pending'}
+      style={{ position: 'relative', width: '100%', height: '100%', minHeight: 120, ...(isolate ? { willChange: 'filter' } : null), ...style }}
     >
       {description ? <p id={descId} style={srOnly}>{description}</p> : null}
       {showFallback ? (
@@ -238,7 +283,7 @@ export function StudioCanvas({
             ) : null}
           </p>
         </div>
-      ) : status === 'ready' && near ? (
+      ) : mounted ? (
         <Boundary key={attempt} onError={(e) => { setStatus('error'); onSceneError?.(e); }}>
           <QualityCtx.Provider value={profile}>
             <Canvas
@@ -253,7 +298,7 @@ export function StudioCanvas({
             >
               <QualityCtx.Provider value={profile}>
                 <HostCtx.Provider value={hostApi}>
-                  <Instrumentation quality={profile} frameloop={loop} adaptive={adaptive} onContextLost={() => setStatus('lost')} onDegrade={onDegrade} />
+                  <Instrumentation quality={profile} frameloop={loop} adaptive={adaptive} onContextLost={() => setStatus('lost')} onDegrade={onDegrade} onFirstFrame={onFrameState} />
                   {children}
                 </HostCtx.Provider>
               </QualityCtx.Provider>

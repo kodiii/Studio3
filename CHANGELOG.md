@@ -6,6 +6,20 @@ semantic versioning. Plugin manifests (Claude Code and Codex) always carry the s
 ## [Unreleased]
 
 ### Added
+- **three-kit gaps closed** (found while upgrading the 3D demos), all opt-in with backward-compatible defaults:
+  - `StudioCanvas`: `onFirstFrame` and a `data-frame` (`pending` · `drawn`) wrapper attribute for cross-fading from a
+    poster; `isolate` (`will-change: filter`, its own compositing surface) for canvases that open partly under a sticky
+    header; an explicit frame request whenever rendering resumes (back on screen, tab visible, unpaused).
+  - `OrbitInspect`: release `inertia` with `friction` and `maxInertia`; `push(velocity)`, `stop()` and `coasting` on the
+    handle; an `onKeyDown(e, handle)` hook that runs before the default keys.
+  - `LightingRig`: `shadowCatcher={false}` (shadow map, no catcher plane, for scenes whose own meshes receive it),
+    `shadowSoftness`, and `followCamera` (lights and environment turn with the camera's azimuth).
+  - `HotspotAnchors`: `occludeInterval` throttle with a trailing re-test; parts hidden through an ancestor no longer
+    occlude; documented `<Bvh>` (drei) wrapping for heavy models.
+  The configurator, 3D cinematic landing, product showcase and immersive 3D hero now use these instead of their local
+  workarounds (a capture-phase key listener, a hand-rolled coast and light follower, occlusion switched off during the
+  idle sway, a castShadow toggle through the rig's handle, a CSS `will-change` on the viewer, CSS reaching into the
+  R3F container).
 - **Motion craft** (`shared/motion-craft.md`): the affirmative bar the shared rules lacked. A craft floor per profile
   (designed, physical, lit, alive, touchable), animation principles mapped to motion tokens, realism (weight and
   light), reactive drivers with catalogue starting points, direct manipulation, and a five-line motion brief.

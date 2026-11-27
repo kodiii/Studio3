@@ -46,9 +46,12 @@
 /* ── The journey: sticky stage behind scrolling slides ──────── */
 .stage { position: sticky; top: 44px; z-index: 0; height: calc(100svh - 44px); overflow: clip; background: var(--kr-night); }
 .poster { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
-/* Poster → live scene: the drawing comes alive with a cross-fade once the renderer exists. */
-.canvas canvas { opacity: 0; transition: opacity var(--mk-duration-slow, 560ms) var(--mk-ease-standard, ease); }
-.canvas [data-live] canvas { opacity: 1; }
+/* Poster → live scene: the drawing comes alive with a cross-fade once the first frame is drawn (StudioCanvas sets
+   data-frame="pending" until then; while its fallback shows — no WebGL, 3D off — the attribute is absent). */
+.canvas { transition: opacity var(--mk-duration-slow, 560ms) var(--mk-ease-standard, ease); }
+.canvas[data-frame='pending'] { opacity: 0; }
+/* Reduced motion: the state change is a short fade. */
+.root[data-mode='static'] .canvas { transition-duration: var(--mk-duration-fast, 160ms); }
 .scrim {
   position: absolute;
   inset: 0;
