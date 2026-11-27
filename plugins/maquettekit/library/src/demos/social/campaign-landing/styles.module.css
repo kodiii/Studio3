@@ -1,5 +1,8 @@
 /* Mend March — "visible mending": a denim field, one saffron patch, running-stitch rules instead of boxes,
-   heavy grotesque display type, plain text for everything people have to read. */
+   heavy grotesque display type, plain text for everything people have to read.
+   One light, from the top left: shadows fall down and to the right, highlights sit on top edges. Elevation is
+   two shadows — a tight contact one and a wide ambient one; lifting shrinks the first and grows the second,
+   pressing collapses both. Springs come in as CSS variables sampled from the motion tokens (index.tsx). */
 .root {
   --mm-denim: #1e2a4a;
   --mm-thread: #f3efe6;        /* 12.3:1 on denim */
@@ -7,21 +10,36 @@
   --mm-saffron: #f0b44c;       /* fills, and text on denim (7.6:1) */
   --mm-indigo: #34478a;        /* text-safe accent on the page (≥ 6.9:1) */
   --mm-stitch: rgb(52 71 138 / 0.45);
+  --mm-shadow: 24 28 46;
+  --mm-key-rest: 0 1px 1px rgb(var(--mm-shadow) / 0.2), 1px 3px 8px -3px rgb(var(--mm-shadow) / 0.28);
+  --mm-key-lift: 0 1px 1px rgb(var(--mm-shadow) / 0.1), 2px 8px 18px -6px rgb(var(--mm-shadow) / 0.38);
+  --mm-key-down: inset 0 1px 2px rgb(var(--mm-shadow) / 0.3), 0 0 1px rgb(var(--mm-shadow) / 0.3);
+  --mm-card-rest: 0 1px 1px rgb(var(--mm-shadow) / 0.06), 1px 4px 10px -4px rgb(var(--mm-shadow) / 0.12);
+  --mm-card-lift: 0 2px 2px rgb(var(--mm-shadow) / 0.05), 6px 22px 38px -14px rgb(var(--mm-shadow) / 0.34);
   min-height: 100dvh;
   background: var(--mk-bg);
   color: var(--mk-ink);
   font-family: var(--mk-font-text);
 }
-:global([data-theme='dark']) .root { --mm-indigo: #a9b8ec; --mm-stitch: rgb(169 184 236 / 0.4); }
+:global([data-theme='dark']) .root { --mm-indigo: #a9b8ec; --mm-stitch: rgb(169 184 236 / 0.4); --mm-shadow: 0 0 0; }
 
 /* ── Hero ───────────────────────────────────────────────────────────────── */
-.hero { position: relative; overflow: hidden; padding: 36px 16px 44px; background: var(--mm-denim); color: var(--mm-thread); }
+.hero { position: relative; isolation: isolate; overflow: hidden; padding: 36px 16px 44px; background: var(--mm-denim); color: var(--mm-thread); }
 .hero :focus-visible { outline-color: var(--mm-saffron); }
-.heroInner { display: grid; gap: 8px; max-width: 1120px; margin: 0 auto; }
+.heroInner { position: relative; z-index: 1; display: grid; gap: 18px; max-width: 1120px; margin: 0 auto; }
 @container (min-width: 56rem) {
   .hero { padding: 72px 32px 84px; }
-  .heroInner { grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.9fr); align-items: center; gap: 40px; }
+  .heroInner { grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.95fr); align-items: center; gap: 40px; }
 }
+/* The cloth: two indigo fields at different depths (pointer parallax), a lamp that follows the pointer, grain. */
+.heroBackdrop { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; --lx: 28%; --ly: 22%; --px: 0; --py: 0; }
+.heroTwill { position: absolute; inset: 0; background-image: repeating-linear-gradient(55deg, rgb(243 239 230 / 0.065) 0 3.5px, transparent 3.5px 11.5px); }
+.heroField { position: absolute; width: max(70cqi, 520px); aspect-ratio: 1; border-radius: 50%; background: radial-gradient(closest-side, var(--c), transparent); }
+.heroFieldA { --c: rgb(70 92 160 / 0.32); left: -16cqi; top: -34cqi; translate: calc(var(--px) * -16px) calc(var(--py) * -12px); }
+.heroFieldB { --c: rgb(6 10 24 / 0.6); right: -20cqi; bottom: -40cqi; translate: calc(var(--px) * 10px) calc(var(--py) * 8px); }
+.heroLamp { position: absolute; inset: 0; background: radial-gradient(44rem circle at var(--lx) var(--ly), rgb(255 236 200 / 0.12), rgb(255 236 200 / 0.03) 40%, transparent 64%); }
+.heroGrain { position: absolute; inset: 0; background-image: var(--hb-grain); background-size: 128px 128px; mix-blend-mode: overlay; opacity: 0.14; }
+
 .kicker { margin: 0 0 18px; font-family: var(--mk-font-mono); font-size: 0.6875rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mm-saffron); }
 .headline { --mk-ink: var(--mm-thread); }
 /* Size the composed recipe's heading for a campaign hero (its own clamp tops out at 9cqi). */
@@ -35,19 +53,55 @@
 .when dt { font-family: var(--mk-font-mono); font-size: 0.6875rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mm-thread-muted); }
 .when dd { margin: 0; font-family: var(--mk-font-display); font-size: 1.25rem; font-weight: 700; letter-spacing: -0.01em; }
 .heroCtas { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
-.heroArt { display: block; width: 100%; max-width: 460px; height: auto; justify-self: center; }
 
+/* The patch you sew yourself (NeedlePatch.tsx). */
+.heroArtWrap { display: grid; gap: 12px; justify-items: center; width: 100%; max-width: 480px; justify-self: center; }
+.heroArt { display: block; width: 100%; height: auto; overflow: visible; }
+.patch { transform-box: fill-box; transform-origin: 50% 50%; }
+.needle { cursor: grab; outline: none; }
+.needle:focus-visible { outline: 2px solid var(--mm-saffron); outline-offset: 8px; }
+.needleHit { cursor: grab; touch-action: none; pointer-events: all; }
+.heroArtWrap[data-sewing] .needleHit { cursor: grabbing; }
+.sewBar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; width: 100%; }
+.sewHint { display: flex; align-items: baseline; gap: 10px; margin: 0; font-size: 0.875rem; line-height: 1.4; color: var(--mm-thread-muted); }
+.sewCount { flex: none; font-family: var(--mk-font-mono); font-size: 0.75rem; letter-spacing: 0.06em; color: var(--mm-saffron); font-variant-numeric: tabular-nums; }
+.sewActions { display: flex; gap: 8px; }
+.denimKey {
+  min-height: 44px; padding: 0 16px; border: 1.5px solid rgb(243 239 230 / 0.55); border-radius: var(--mk-radius-s);
+  background: rgb(243 239 230 / 0.07); color: var(--mm-thread); font: inherit; font-size: 0.875rem; font-weight: 600; cursor: pointer;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12), 0 1px 1px rgb(0 0 0 / 0.35), 1px 4px 10px -4px rgb(0 0 0 / 0.6);
+}
+.denimKey[aria-disabled='true'] { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
+
+/* ── Keys: press depth everywhere ───────────────────────────────────────── */
 .primary, .ghostOnDenim, .ghost {
   display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 22px; box-sizing: border-box;
   border-radius: var(--mk-radius-s); font: inherit; font-size: 1rem; font-weight: 700; text-decoration: none; cursor: pointer;
 }
-.primary { border: 0; background: var(--mm-saffron); color: var(--mm-denim); }
-.primary:hover { background: #f5c46c; }
-.primary[aria-disabled='true'] { background: var(--mk-surface-2); color: var(--mk-ink-muted); cursor: progress; }
-.ghostOnDenim { border: 1.5px solid var(--mm-thread); color: var(--mm-thread); font-weight: 600; }
-.ghostOnDenim:hover { background: rgb(243 239 230 / 0.1); }
-.ghost { min-height: 44px; border: 1px solid var(--mk-line-strong); background: transparent; color: inherit; font-size: 0.9375rem; font-weight: 600; }
-.ghost:hover { background: var(--mk-surface-2); }
+.primary { border: 0; background: var(--mm-saffron); color: var(--mm-denim); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.4), inset 0 -2px 0 rgb(120 70 0 / 0.18), var(--mm-key-rest); }
+.hero .primary { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.4), inset 0 -2px 0 rgb(120 70 0 / 0.2), 0 1px 1px rgb(0 0 0 / 0.35), 1px 5px 14px -5px rgb(0 0 0 / 0.65); }
+.primary[aria-disabled='true'] { background: var(--mk-surface-2); color: var(--mk-ink-muted); cursor: progress; box-shadow: none; }
+.ghostOnDenim { border: 1.5px solid var(--mm-thread); color: var(--mm-thread); font-weight: 600; box-shadow: 0 1px 1px rgb(0 0 0 / 0.3), 1px 4px 10px -4px rgb(0 0 0 / 0.55); }
+.ghost { min-height: 44px; border: 1px solid var(--mk-line-strong); background: var(--mk-surface); color: inherit; font-size: 0.9375rem; font-weight: 600; box-shadow: var(--mm-key-rest); }
+
+.primary, .ghostOnDenim, .ghost, .denimKey, .chip, .playBtn, .choice, .thread, .week {
+  transition:
+    transform var(--mm-press-dur) var(--mm-press), box-shadow var(--mm-press-dur) var(--mm-press),
+    background-color var(--mk-duration-fast) var(--mk-ease-standard), color var(--mk-duration-fast) var(--mk-ease-standard),
+    border-color var(--mk-duration-fast) var(--mk-ease-standard);
+}
+@media (hover: hover) {
+  .primary:hover:not([aria-disabled='true']) { transform: translateY(-1px); background: #f5c46c; box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.4), inset 0 -2px 0 rgb(120 70 0 / 0.18), var(--mm-key-lift); }
+  .hero .primary:hover { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.4), inset 0 -2px 0 rgb(120 70 0 / 0.2), 0 1px 1px rgb(0 0 0 / 0.25), 2px 9px 20px -6px rgb(0 0 0 / 0.7); }
+  .ghostOnDenim:hover, .denimKey:hover:not([aria-disabled='true']) { transform: translateY(-1px); background: rgb(243 239 230 / 0.12); }
+  .ghost:hover, .chip:hover, .playBtn:hover, .choice:hover, .thread:hover, .week:hover { transform: translateY(-1px); box-shadow: var(--mm-key-lift); }
+  .ghost:hover, .chip:not([aria-pressed='true']):hover, .choice:not(:has(input:checked)):hover, .thread:not(:has(input:checked)):hover, .week:not(:has(input:checked)):hover { background: var(--mk-surface-2); }
+}
+.primary:active:not([aria-disabled='true']), .ghostOnDenim:active, .ghost:active, .denimKey:active:not([aria-disabled='true']),
+.chip:active, .playBtn:active, .choice:active, .thread:active, .week:active {
+  transform: translateY(1px) scale(0.98); box-shadow: var(--mm-key-down);
+  transition-duration: var(--mk-duration-instant); transition-timing-function: var(--mk-ease-standard);
+}
 
 /* ── Page ───────────────────────────────────────────────────────────────── */
 .page { max-width: 1120px; margin: 0 auto; padding: 0 16px 64px; }
@@ -64,7 +118,11 @@
 .steps li { position: relative; }
 .steps h3 { margin: 0 0 6px; font-family: var(--mk-font-display); font-size: 1.25rem; font-weight: 700; letter-spacing: -0.015em; }
 .steps p { margin: 0; max-width: 34ch; line-height: 1.55; color: var(--mk-ink-muted); }
-.stepNo { display: grid; place-items: center; width: 44px; height: 44px; margin-bottom: 12px; border-radius: 50%; background: var(--mm-denim); color: var(--mm-saffron); font-family: var(--mk-font-display); font-size: 1.25rem; font-weight: 800; }
+.stepNo {
+  display: grid; place-items: center; width: 44px; height: 44px; margin-bottom: 12px; border-radius: 50%; background: var(--mm-denim); color: var(--mm-saffron);
+  font-family: var(--mk-font-display); font-size: 1.25rem; font-weight: 800;
+  box-shadow: inset 0 0 0 4px var(--mm-denim), inset 0 0 0 5.5px rgb(240 180 76 / 0.55), var(--mm-key-rest);
+}
 @container (min-width: 48rem) {
   .steps { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; }
   .steps li:not(:last-child)::after {
@@ -75,50 +133,104 @@
 
 /* ── Gallery ────────────────────────────────────────────────────────────── */
 .filters { display: flex; flex-wrap: wrap; gap: 8px; }
-.chip { min-height: 44px; padding: 0 16px; border: 1px solid var(--mk-line-strong); border-radius: 999px; background: transparent; color: inherit; font: inherit; font-size: 0.875rem; font-weight: 500; }
-.chip:hover { background: var(--mk-surface-2); }
-.chip[aria-pressed='true'] { border-color: var(--mm-denim); background: var(--mm-denim); color: var(--mm-thread); }
+.chip {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px 0 16px; border: 1px solid var(--mk-line-strong); border-radius: 999px;
+  background: var(--mk-surface); color: inherit; font: inherit; font-size: 0.875rem; font-weight: 500; cursor: pointer; box-shadow: var(--mm-key-rest);
+}
+.chip[aria-pressed='true'] { border-color: var(--mm-denim); background: var(--mm-denim); color: var(--mm-thread); box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.45), 0 0 1px rgb(var(--mm-shadow) / 0.3); }
+.chipCount { font-family: var(--mk-font-mono); font-size: 0.6875rem; opacity: 0.75; font-variant-numeric: tabular-nums; }
 .count { margin: 12px 0 16px; font-size: 0.8125rem; color: var(--mk-ink-muted); }
-.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 0; padding: 0; list-style: none; }
+.grid { position: relative; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 0; padding: 0; list-style: none; }
 @container (min-width: 44rem) { .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; } }
 @container (min-width: 64rem) { .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-.tile { position: relative; display: grid; align-content: start; gap: 3px; padding: 8px 8px 12px; background: var(--mk-surface); border: 1px solid var(--mk-line); }
-.tile[hidden] { display: none; }
+.tile { position: relative; min-width: 0; }
+.tile[data-ghost] { pointer-events: none; z-index: 0; }
+/* A photo card you can pick up: it lifts towards the light, presses down, and turns over to the "before" side. */
+.tileCard {
+  position: relative; isolation: isolate; display: grid; align-content: start; gap: 3px; height: 100%; box-sizing: border-box; padding: 8px 8px 12px;
+  background: var(--mk-surface); border: 1px solid var(--mk-line); box-shadow: var(--mm-card-rest);
+  transition: transform var(--mm-settle-dur) var(--mm-settle);
+}
+.tileCard::before { content: ''; position: absolute; inset: -1px; z-index: -1; pointer-events: none; box-shadow: var(--mm-card-lift); opacity: 0; transition: opacity var(--mm-settle-dur) var(--mm-settle); }
+@media (hover: hover) {
+  .tileCard:hover { transform: translateY(-5px) rotate(-0.35deg); }
+  .tileCard:hover::before { opacity: 1; }
+}
+.tileCard:has(.tileArt:active) { transform: translateY(-1px) scale(0.985); transition-duration: var(--mk-duration-instant); }
+.tileArt {
+  position: relative; display: block; width: 100%; aspect-ratio: 1; margin: 0 0 8px; padding: 0; border: 0; border-radius: 0;
+  background: none; color: inherit; font: inherit; cursor: pointer; perspective: 900px;
+}
+.flipInner { position: absolute; inset: 0; transform-style: preserve-3d; transition: transform var(--mm-settle-dur) var(--mm-settle); }
+.tileArt[aria-pressed='true'] .flipInner { transform: rotateY(180deg); }
 /* The drawings sit on a linen ground in both themes, like a photo of the mend on a cloth. */
-.tileArt { box-sizing: border-box; aspect-ratio: 1; margin-bottom: 8px; padding: 12%; background: #e9e3d6; outline: 2px dashed rgb(52 71 138 / 0.45); outline-offset: -7px; }
-:global([data-theme='dark']) .tileArt { background: #d3cbba; }
+.face {
+  position: absolute; inset: 0; box-sizing: border-box; padding: 12%; background: #e9e3d6;
+  outline: 2px dashed rgb(52 71 138 / 0.45); outline-offset: -7px; backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  transition: opacity var(--mk-duration-fast) linear;
+}
+.faceBefore { transform: rotateY(180deg); background: #dcd5c5; }
+:global([data-theme='dark']) .face { background: #d3cbba; }
+:global([data-theme='dark']) .faceBefore { background: #c8c0ae; }
+.flipHint {
+  position: absolute; right: 12px; bottom: 12px; padding: 3px 8px; border-radius: 2px; background: var(--mm-denim); color: var(--mm-thread);
+  font-family: var(--mk-font-mono); font-size: 0.625rem; letter-spacing: 0.08em; text-transform: uppercase; box-shadow: 0 1px 2px rgb(0 0 0 / 0.25);
+}
 .tileTitle { margin: 0; padding-inline: 2px; font-size: 0.9375rem; font-weight: 600; line-height: 1.3; }
 .tileMeta { margin: 0; padding-inline: 2px; font-size: 0.8125rem; line-height: 1.4; color: var(--mk-ink-muted); }
-.tileTag { position: absolute; top: 14px; left: 14px; padding: 2px 7px; border: 1px solid var(--mk-line); background: var(--mk-surface); font-family: var(--mk-font-mono); font-size: 0.625rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.tileTag { position: absolute; top: 6px; left: 6px; padding: 2px 7px; border: 1px solid var(--mk-line); background: var(--mk-surface); color: var(--mk-ink); font-family: var(--mk-font-mono); font-size: 0.625rem; letter-spacing: 0.06em; text-transform: uppercase; }
 
 /* ── Pledge + share card ────────────────────────────────────────────────── */
 .pledgeGrid { display: grid; gap: 40px; }
 @container (min-width: 60rem) { .pledgeGrid { grid-template-columns: minmax(0, 1fr) minmax(0, 0.92fr); gap: 56px; align-items: start; } }
-.form, .done { display: grid; gap: 22px; padding: 20px; background: var(--mk-surface); border: 1px solid var(--mk-line); }
+.pledgeWrap { position: relative; }
+.form, .done { display: grid; gap: 22px; padding: 20px; background: var(--mk-surface); border: 1px solid var(--mk-line); box-shadow: var(--mm-card-rest); }
 .field { display: grid; gap: 6px; min-width: 0; margin: 0; padding: 0; border: 0; }
 .label { padding: 0; font-size: 0.9375rem; font-weight: 600; }
 .optional { font-weight: 400; color: var(--mk-ink-muted); }
 .input {
   box-sizing: border-box; width: 100%; min-height: 44px; padding: 0 12px;
   border: 1px solid var(--mk-line-strong); border-radius: var(--mk-radius-s); background: var(--mk-bg); color: inherit; font: inherit; font-size: 1rem;
+  box-shadow: inset 0 1px 2px rgb(var(--mm-shadow) / 0.12);
 }
 .input[aria-invalid='true'] { border-color: var(--mk-danger); box-shadow: inset 4px 0 0 var(--mk-danger); }
 .error { margin: 0; font-size: 0.875rem; font-weight: 500; color: var(--mk-danger); }
 .choices, .threads, .weeks { display: flex; flex-wrap: wrap; gap: 8px; }
 .choice, .thread, .week {
   position: relative; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; box-sizing: border-box;
-  border: 1px solid var(--mk-line-strong); border-radius: 999px; font-size: 0.875rem; cursor: pointer;
+  border: 1px solid var(--mk-line-strong); border-radius: 999px; background: var(--mk-surface); font-size: 0.875rem; cursor: pointer; box-shadow: var(--mm-key-rest);
 }
 .choice input, .thread input, .week input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
-.choice:has(input:checked), .week:has(input:checked) { border-color: var(--mm-denim); background: var(--mm-denim); color: var(--mm-thread); }
+.choice:has(input:checked), .week:has(input:checked) { border-color: var(--mm-denim); background: var(--mm-denim); color: var(--mm-thread); box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.45), 0 0 1px rgb(var(--mm-shadow) / 0.3); }
 .choice:has(input[aria-invalid='true']) { border-color: var(--mk-danger); }
 .choice:has(input:focus-visible), .thread:has(input:focus-visible), .week:has(input:focus-visible) { outline: 2px solid var(--mk-focus); outline-offset: 2px; }
 .check { display: flex; align-items: flex-start; gap: 10px; font-size: 0.9375rem; line-height: 1.45; cursor: pointer; }
 .check input { flex: none; width: 22px; height: 22px; margin: 0; accent-color: var(--mm-denim); }
 .submitRow { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+
+/* The submit key morphs (morph-submit-button technique): pill → patch with a progress ring → check. */
+.morphSlot { display: inline-grid; justify-items: center; }
+.morphSizer, .morphKey { grid-area: 1 / 1; }
+.morphSizer { display: grid; height: 0; overflow: hidden; visibility: hidden; padding: 0 22px; font-size: 1rem; font-weight: 700; }
+.morphSizer > span { grid-area: 1 / 1; white-space: nowrap; }
+.morphKey { position: relative; width: 100%; overflow: hidden; }
+.morphKey[aria-disabled='true'] { background: var(--mm-saffron); color: var(--mm-denim); cursor: progress; }
+.morphLabel { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; white-space: nowrap; pointer-events: none; }
+.morphRing, .morphMark { position: absolute; inset: 0; margin: auto; width: 26px; height: 26px; overflow: visible; pointer-events: none; }
+.morphRing { opacity: 0; }
+.morphTrack { fill: none; stroke: currentColor; stroke-opacity: 0.25; stroke-width: 2.4; }
+.morphArc { fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; }
+.morphCheck { fill: none; stroke: currentColor; stroke-width: 2.8; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1; opacity: 0; }
+/* A few patches thrown from the key for the person's own pledge (removed under reduced motion). */
+.burstLayer { position: absolute; inset: 0; z-index: 5; overflow: visible; pointer-events: none; }
+.burstPatch {
+  position: absolute; width: 14px; height: 12px; border-radius: 2px; background: var(--c);
+  outline: 1.5px dashed rgb(30 42 74 / 0.55); outline-offset: -3px; box-shadow: 1px 2px 3px rgb(0 0 0 / 0.22); will-change: transform, opacity;
+}
+
 .done { justify-items: start; gap: 12px; }
 .done p { margin: 0; max-width: 48ch; line-height: 1.55; }
-.doneMark { width: 56px; height: 56px; }
+.doneMark { width: 56px; height: 56px; filter: drop-shadow(1px 3px 3px rgb(var(--mm-shadow) / 0.3)); }
 .donePatch { fill: var(--mm-saffron); }
 .doneCheck { fill: none; stroke: var(--mm-denim); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 0; }
 .doneTitle { margin: 0; font-family: var(--mk-font-display); font-size: 1.75rem; font-weight: 800; line-height: 1.05; letter-spacing: -0.03em; }
@@ -131,24 +243,41 @@
 .threads { margin: 6px 0 0; padding: 0; border: 0; }
 .threads legend { margin-bottom: 8px; }
 .thread { padding-left: 10px; }
-.thread:has(input:checked) { border: 2px solid var(--mm-indigo); font-weight: 700; }
-.swatch { width: 18px; height: 18px; border: 1px solid var(--mk-line-strong); border-radius: 50%; }
+.thread:has(input:checked) { border: 2px solid var(--mm-indigo); font-weight: 700; box-shadow: inset 0 1px 2px rgb(var(--mm-shadow) / 0.25); }
+.swatch { width: 18px; height: 18px; border: 1px solid var(--mk-line-strong); border-radius: 50%; box-shadow: inset 1px 1px 0 rgb(255 255 255 / 0.4), inset -1px -1px 1px rgb(0 0 0 / 0.15); }
 .cardActions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
-.canvas { display: block; width: 100%; max-width: 440px; height: auto; aspect-ratio: 1; border: 1px solid var(--mk-line); }
+/* The share card is a printed card on the table: it tilts towards the pointer and catches the light. */
+.cardStage { width: 100%; max-width: 440px; perspective: 1100px; }
+.cardTilt {
+  position: relative; transform-style: preserve-3d; transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  box-shadow: 0 1px 2px rgb(var(--mm-shadow) / 0.18), 4px 18px 36px -12px rgb(var(--mm-shadow) / 0.45);
+}
+.cardGlare {
+  position: absolute; inset: 0; pointer-events: none; mix-blend-mode: soft-light; opacity: var(--glare, 0);
+  background: radial-gradient(28rem circle at var(--gx, 30%) var(--gy, 20%), rgb(255 255 255 / 0.55), transparent 55%);
+  transition: opacity var(--mk-duration-base) var(--mk-ease-standard);
+}
+.canvas { display: block; width: 100%; height: auto; aspect-ratio: 1; border: 1px solid var(--mk-line); }
 
 /* ── Leaderboard ────────────────────────────────────────────────────────── */
-.board { padding: 18px 16px 20px; background: var(--mk-surface); border: 1px solid var(--mk-line); }
+.board { padding: 18px 16px 20px; background: var(--mk-surface); border: 1px solid var(--mk-line); box-shadow: var(--mm-card-rest); }
 .boardControls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-bottom: 18px; }
-.playBtn { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border: 0; border-radius: var(--mk-radius-s); background: var(--mm-denim); color: var(--mm-thread); font: inherit; font-size: 0.9375rem; font-weight: 600; }
+.playBtn {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border: 0; border-radius: var(--mk-radius-s);
+  background: var(--mm-denim); color: var(--mm-thread); font: inherit; font-size: 0.9375rem; font-weight: 600; cursor: pointer;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.14), var(--mm-key-rest);
+}
+.playBtn[aria-pressed='true'] { box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.5), 0 0 1px rgb(var(--mm-shadow) / 0.3); }
 .playBtn svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; }
 .playBtn .solid { fill: currentColor; stroke: none; }
 .weeks { margin: 0; padding: 0; border: 0; gap: 6px; }
 .week { padding: 0 12px; font-size: 0.8125rem; }
 .race { position: relative; }
+/* Rows slide to their new rank on the heavy `glide` spring; bars grow on `settle` — mass differs by size. */
 .raceRow {
   position: absolute; top: 0; left: 0; right: 0; height: 48px; box-sizing: border-box;
   display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; grid-template-areas: 'rank name value' 'rank bar bar'; align-content: center; column-gap: 10px; row-gap: 5px;
-  transition: transform var(--mk-duration-slow) var(--mk-ease-emphasized);
+  transition: transform var(--mm-glide-dur) var(--mm-glide);
 }
 @container (min-width: 48rem) {
   .raceRow { grid-template-columns: 28px 13rem minmax(0, 1fr) 4ch; grid-template-areas: 'rank name bar value'; }
@@ -156,10 +285,23 @@
 .raceRank { grid-area: rank; font-family: var(--mk-font-mono); font-size: 0.75rem; color: var(--mk-ink-muted); text-align: right; }
 .raceName { grid-area: name; overflow: hidden; font-size: 0.875rem; font-weight: 500; white-space: nowrap; text-overflow: ellipsis; }
 .raceRow[data-lead] .raceName { font-weight: 700; }
-.raceTrack { position: relative; grid-area: bar; height: 12px; overflow: hidden; background: var(--mk-surface-2); }
-.raceBar { position: absolute; inset: 0; background: var(--mm-indigo); transform-origin: left center; transition: transform var(--mk-duration-slow) var(--mk-ease-emphasized); }
+.raceTrack { position: relative; grid-area: bar; height: 12px; overflow: hidden; border-radius: 1px; background: var(--mk-surface-2); box-shadow: inset 0 1px 2px rgb(var(--mm-shadow) / 0.15); }
+.raceBar { position: absolute; inset: 0; background: var(--mm-indigo); transform-origin: left center; transition: transform var(--mm-settle-dur) var(--mm-settle); }
 .raceRow[data-lead] .raceBar { background: var(--mm-saffron); }
 .raceValue { grid-area: value; font-family: var(--mk-font-mono); font-size: 0.875rem; font-variant-numeric: tabular-nums; text-align: right; }
 
 .footer { margin-top: 56px; padding-top: 18px; border-top: 2px dashed var(--mm-stitch); font-size: 0.875rem; line-height: 1.55; color: var(--mk-ink-muted); }
 .footer p { margin: 0 0 6px; max-width: 70ch; }
+
+/* ── Reduced motion: states change (shadow, fill, face) but nothing travels, turns or springs. ─────────── */
+.root[data-reduced] :is(.primary, .ghostOnDenim, .ghost, .denimKey, .chip, .playBtn, .choice, .thread, .week, .tileCard, .raceRow, .raceBar, .flipInner, .cardTilt) { transition: none; }
+.root[data-reduced] .tileCard::before { transition: none; }
+.root[data-reduced] :is(.primary, .ghostOnDenim, .ghost, .denimKey, .chip, .playBtn, .choice, .thread, .week, .tileCard):is(:hover, :active) { transform: none; }
+.root[data-reduced] .tileCard:has(.tileArt:active) { transform: none; }
+.root[data-reduced] .tileArt[aria-pressed='true'] .flipInner { transform: none; }
+.root[data-reduced] .faceBefore { transform: none; opacity: 0; }
+.root[data-reduced] .tileArt[aria-pressed='true'] .faceBefore { opacity: 1; }
+.root[data-reduced] .tileArt[aria-pressed='true'] .faceAfter { opacity: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .primary, .ghostOnDenim, .ghost, .denimKey, .chip, .playBtn, .choice, .thread, .week, .tileCard, .tileCard::before, .raceRow, .raceBar, .flipInner { transition: none; }
+}

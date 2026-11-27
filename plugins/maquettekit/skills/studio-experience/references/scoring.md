@@ -26,6 +26,7 @@ The exact formula, weights and thresholds are printed in every report — quote 
 | Low visual feedback, high usability | Works, but feels dead; add state feedback, not decoration |
 | Low cognitive load score with many CTAs/fonts/colours above the fold | Competing priorities; simplify hierarchy |
 | Motion usefulness low under Essential, fine under Expressive | Motion is decorative for a task-focused product — scale it down |
+| `pointerResponse` / `scrollResponse` at 0 under Expressive or Immersive | The surface is inert for its profile: only entrances and hover states. Add a continuous driver (craft floor, `shared/motion-craft.md` §1) |
 | Any failed gate | Fix before any other recommendation |
 
 ## What it is not

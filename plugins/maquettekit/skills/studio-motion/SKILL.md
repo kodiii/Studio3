@@ -23,7 +23,8 @@ up after itself.
 - Adding or reviewing transitions, feedback, entrances/exits, stagger, shared-element or route transitions.
 - Scroll-linked motion, pinned/scrubbed sequences (with `studio-cinematic` for the narrative), DOM motion that
   must stay in step with a 3D scene (with `studio-3d`).
-- Choosing between CSS, WAAPI, Motion and GSAP; defining or applying motion tokens and profiles.
+- Choosing between CSS, WAAPI, Motion and GSAP, or playing designer-made Lottie and Rive files; defining or applying
+  motion tokens and profiles.
 - Reduced-motion behaviour, animation jank, leaking timelines or listeners.
 
 ## Don't use when
@@ -101,6 +102,8 @@ mid-way (`motion-craft.md` §7). In the Maquettekit repository also run the reci
 
 - [ ] The surface meets the craft floor for its profile, or the report says which row is missing and why.
 - [ ] Anything dragged, swiped or thrown is spring-driven and keeps its release velocity.
+- [ ] Expressive and Immersive surfaces include at least one direct-manipulation interaction (drag, scrub, swipe,
+      throw) on the subject, with arrow keys and a button doing the same.
 - [ ] Every duration, easing, spring and stagger comes from tokens (or the design file), scaled by the profile.
 - [ ] The lightest technology that delivers the brief in full was chosen; no second animation library was added without a stated need;
       no element is animated by two owners.

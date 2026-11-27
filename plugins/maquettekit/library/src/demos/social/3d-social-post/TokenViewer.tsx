@@ -5,12 +5,23 @@
  * Every scene interaction has a DOM button; Close 3D, or scrolling the post well out of view, unmounts the canvas so
  * the renderer and (one second later) the cached model are released.
  * Without WebGL the poster itself is the fallback (data-maquettekit-fallback) and no Interact button is offered.
+ *
+ * Material and light: the brass is shown in a generated "observatory" environment (no HDRI download): a warm softbox
+ * up and to the left — the same top-left light as the page — a tall strip on the right, a cool strip behind, a warm
+ * floor bounce and one small red head-torch, so the metal has something to reflect. The token's faceted normals are
+ * re-computed with a crease angle on a private copy (round surfaces go smooth, edges and stud facets stay crisp) and
+ * it gets a polished brass finish with a light clear coat; both are disposed and the shared cache untouched. It
+ * stands on a lit floor with a soft contact shadow. Before activation the photo tilts towards the pointer and catches
+ * a glint (masked to the token). Reduced motion: no tilt or glint.
  */
-import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
-import { useStudioMotion } from '../../../motion';
+import { Suspense, useCallback, useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
+import { useThree } from '@react-three/fiber';
+import { AdditiveBlending, Color, MeshPhysicalMaterial, type BufferGeometry, type Material, type Mesh, type MeshStandardMaterial } from 'three';
+import { toCreasedNormals } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { useRafLoop, useStudioMotion } from '../../../motion';
 import {
   AnimationPlayer, LightingRig, Model, ModelBoundary, OrbitInspect, StudioCanvas, describeModelError, detectCapabilities, formatBytes, formatCount,
-  useModelManifest, useModelProgress, type AnimationPlayerHandle, type AnimationState, type LoadedModel, type OrbitInspectHandle,
+  useModelManifest, useModelProgress, type AnimationPlayerHandle, type AnimationState, type LightingPreset, type LoadedModel, type OrbitInspectHandle,
 } from '../../../three';
 import styles from './styles.module.css';
 
@@ -19,6 +30,64 @@ const GLB = '/models/orbit-token.desktop.glb';
 const POSTER = '/models/orbit-token.png';
 const ALT = 'The One Orbit token: a brass coin with a ringed planet at its centre and twelve faceted studs around the rim.';
 const STEP = Math.PI / 8;
+
+/** A generated environment for brass: bright shapes on a dark room, keyed from the top left like the page. */
+const OBSERVATORY: LightingPreset = {
+  label: 'Observatory brass', description: 'Warm softbox top left, a tall white strip right, a cool strip behind, a soft warm wall behind the viewer, a red head-torch.', exposure: 1.02,
+  ambient: { color: '#9fb0d8', intensity: 0.08 },
+  key: { color: '#fff1dc', intensity: 2.4, position: [-4, 6, 4] },
+  fill: { color: '#9db4ff', intensity: 0.35, position: [5, 2, 3] },
+  rim: { color: '#cfe0ff', intensity: 1.6, position: [3.5, 3, -5] },
+  env: { room: '#070a12', intensity: 1.15, panels: [
+    { color: '#fff2dc', intensity: 18, position: [-4.5, 5, 3], size: [5, 2.2] },
+    { color: '#ffffff', intensity: 24, position: [5.5, 2.5, 1.5], size: [0.9, 6] },
+    { color: '#bcd0ff', intensity: 10, position: [-5, 2.5, -3.5], size: [0.8, 5] },
+    { color: '#ffd9a0', intensity: 3, position: [0, -5, 2], size: [10, 3] },
+    { color: '#ffe6c2', intensity: 2.6, position: [0.5, 1.6, 7], size: [9, 4.5] },
+    { color: '#ff4a3a', intensity: 3.5, position: [-2.5, 0.6, 5], size: [0.28, 0.28] },
+  ] },
+};
+const CREASE = (34 * Math.PI) / 180;
+const BRASS = new Color(0.88, 0.68, 0.32); // linear working space
+
+/** Polished brass on a private copy of the token: creased normals + a physical material; everything is restored and disposed. */
+function BrassFinish({ model }: { model: LoadedModel | null }) {
+  const invalidate = useThree((st) => st.invalidate);
+  useEffect(() => {
+    if (!model) return;
+    const made: { mesh: Mesh; geo: BufferGeometry; mat: Material; prevGeo: BufferGeometry; prevMat: Material | Material[] }[] = [];
+    model.scene.traverse((o) => {
+      const mesh = o as Mesh;
+      if (!mesh.isMesh) return;
+      const geo = toCreasedNormals(mesh.geometry, CREASE);
+      const src = mesh.material as MeshStandardMaterial;
+      const mat = new MeshPhysicalMaterial({
+        color: BRASS, metalness: 1, roughness: 0.3, clearcoat: 0.4, clearcoatRoughness: 0.1, envMapIntensity: 1.25,
+        side: src.side,
+      });
+      made.push({ mesh, geo, mat, prevGeo: mesh.geometry, prevMat: mesh.material });
+      mesh.geometry = geo;
+      mesh.material = mat;
+    });
+    invalidate();
+    return () => {
+      for (const m of made) { m.mesh.geometry = m.prevGeo; m.mesh.material = m.prevMat; m.geo.dispose(); m.mat.dispose(); }
+    };
+  }, [model, invalidate]);
+  return null;
+}
+
+const FLOOR_VERT = 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }';
+const FLOOR_FRAG = 'varying vec2 vUv; void main(){ float d = length(vUv - 0.5) * 2.0; float a = smoothstep(1.0, 0.0, d); gl_FragColor = vec4(0.22, 0.3, 0.52, a * a * 0.55); }';
+/** A pool of light on the observing table, so the token stands somewhere. */
+function Floor() {
+  return (
+    <mesh rotation-x={-Math.PI / 2} position-y={-0.002} renderOrder={-2}>
+      <planeGeometry args={[4.2, 4.2]} />
+      <shaderMaterial vertexShader={FLOOR_VERT} fragmentShader={FLOOR_FRAG} transparent depthWrite={false} blending={AdditiveBlending} />
+    </mesh>
+  );
+}
 
 export function TokenViewer({ onActiveChange }: { onActiveChange?: (active: boolean) => void }) {
   const { reduced } = useStudioMotion();
@@ -37,6 +106,10 @@ export function TokenViewer({ onActiveChange }: { onActiveChange?: (active: bool
   const interact = useRef<HTMLButtonElement>(null);
   const focusAfter = useRef<'tools' | 'interact' | null>(null);
   const raf = useRef(0);
+  const tilt = useRef<HTMLDivElement>(null);
+  const want = useRef({ x: 0, y: 0, on: 0 });
+  const now = useRef({ x: 0, y: 0, on: 0 });
+  const [tilting, setTilting] = useState(false);
   const { manifest } = useModelManifest(MANIFEST);
   const variant = manifest?.variants.find((v) => v.file.endsWith('desktop.glb')) ?? manifest?.variants[0];
   const progress = useModelProgress(active ? GLB : null);
@@ -78,33 +151,64 @@ export function TokenViewer({ onActiveChange }: { onActiveChange?: (active: bool
     });
   };
 
+  // The photo tilts a few degrees towards the pointer and a glint crosses the brass (fine pointers, before 3D).
+  const onFrameMove = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (reduced || active || e.pointerType !== 'mouse') return;
+    const r = e.currentTarget.getBoundingClientRect();
+    want.current = { x: (e.clientX - r.left) / r.width - 0.5, y: (e.clientY - r.top) / r.height - 0.5, on: 1 };
+    setTilting(true);
+  };
+  const onFrameLeave = () => { want.current = { x: 0, y: 0, on: 0 }; setTilting(true); };
+  useRafLoop(tilt, (dt) => {
+    const k = 1 - Math.exp(-dt * 8);
+    const n = now.current, w = want.current;
+    n.x += (w.x - n.x) * k; n.y += (w.y - n.y) * k; n.on += (w.on - n.on) * k;
+    const el = tilt.current;
+    if (el) {
+      el.style.setProperty('--ry', `${(n.x * 10).toFixed(2)}deg`);
+      el.style.setProperty('--rx', `${(-n.y * 8).toFixed(2)}deg`);
+      el.style.setProperty('--gx', `${((n.x + 0.5) * 100).toFixed(1)}%`);
+      el.style.setProperty('--gy', `${((n.y + 0.5) * 100).toFixed(1)}%`);
+      el.style.setProperty('--glint', n.on.toFixed(3));
+    }
+    if (Math.abs(w.x - n.x) < 0.001 && Math.abs(w.y - n.y) < 0.001 && Math.abs(w.on - n.on) < 0.002) setTilting(false);
+  }, tilting && !reduced && !active);
+
   const live = active && !!model && !error;
+  // The view opens three-quarters round, like the photo: show its real azimuth from the first frame.
+  useEffect(() => { if (live) onOrbitChange(); }, [live]); // eslint-disable-line react-hooks/exhaustive-deps
   const sizeLabel = formatBytes(variant?.bytes ?? null);
   const loading = active && !model && !error;
   const received = progress.loaded ? `${formatBytes(progress.loaded)} of ${formatBytes(progress.total ?? variant?.bytes ?? null)}` : 'starting';
 
   return (
     <div className={styles.viewer}>
-      <div ref={frame} className={styles.frame} data-stage="ink" data-live={live || undefined} data-maquettekit-fallback={webgl === false ? '' : undefined}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={POSTER} alt={live ? '' : ALT} aria-hidden={live || undefined} className={styles.poster} decoding="async" />
+      <div ref={frame} className={styles.frame} data-stage="ink" data-live={live || undefined} data-maquettekit-fallback={webgl === false ? '' : undefined}
+        onPointerMove={onFrameMove} onPointerLeave={onFrameLeave}>
+        <div ref={tilt} className={styles.posterTilt} style={{ '--poster': `url(${POSTER})` } as CSSProperties}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={POSTER} alt={live ? '' : ALT} aria-hidden={live || undefined} className={styles.poster} decoding="async" />
+          <span className={styles.posterGlint} aria-hidden="true" />
+        </div>
         {active ? (
           <StudioCanvas
             label="One Orbit token, interactive 3D view"
             description={`${ALT} Drag sideways or use the arrow keys to turn it; plus and minus zoom; 0 resets.`}
             lazy={false}
-            camera={{ fov: 30, near: 0.05, far: 40, position: [0, 0.63, 3.4] }}
+            camera={{ fov: 30, near: 0.05, far: 40, position: [1.3, 0.98, 3.12] }}
             className={styles.canvas}
             style={{ position: 'absolute', inset: 0 }}
             onSceneError={setError}
             fallback={<p className={styles.frameNote}>{describeModelError(error) || 'Showing the photo instead.'}</p>}
           >
-            <LightingRig preset="studio-soft" shadow="none" />
+            <LightingRig preset={OBSERVATORY} shadow="blob" groundY={0} shadowRadius={0.62} shadowOpacity={0.6} />
+            <Floor />
             <OrbitInspect ref={orbit} target={[0, 0.63, 0]} minDistance={1.9} maxDistance={6} minPolarAngle={0.35} maxPolarAngle={Math.PI - 0.35} onChange={onOrbitChange} />
             <ModelBoundary resetKey={attempt} onError={setError}>
               <Suspense fallback={null}>
                 <Model src={GLB} scale={20} onLoaded={setModel} />
                 <AnimationPlayer ref={player} root={model?.scene ?? null} clips={model?.animations ?? []} clip="Spin" loop onState={setAnim} />
+                <BrassFinish model={model} />
               </Suspense>
             </ModelBoundary>
           </StudioCanvas>
@@ -152,7 +256,7 @@ export function TokenViewer({ onActiveChange }: { onActiveChange?: (active: bool
           <button type="button" className={styles.tool} onClick={() => orbit.current?.zoom(1.2)}>
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 12h12M12 6v12" /></svg><span className="mk-sr-only">Zoom in</span>
           </button>
-          <button type="button" className={styles.tool} onClick={() => { orbit.current?.reset(); setAz(0); }}>
+          <button type="button" className={styles.tool} onClick={() => { orbit.current?.reset(); requestAnimationFrame(onOrbitChange); }}>
             <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="7" /><circle cx="12" cy="12" r="1.5" /></svg><span className="mk-sr-only">Reset view</span>
           </button>
           <button type="button" className={styles.tool} aria-pressed={anim.playing} onClick={() => player.current?.toggle()}>

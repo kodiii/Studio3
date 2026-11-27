@@ -1,4 +1,11 @@
-/* Blockwerk — a toy workshop: warm paper, wood, muted primaries. */
+/* Blockwerk — a toy workshop: warm paper, lacquered wood, one window light from the upper left.
+   Every shadow on the page falls down and to the right, like the shadows the blocks cast on the table. */
+.root {
+  --shade: 46 28 10; /* warm shadow colour, as an rgb triplet */
+}
+:global([data-theme='dark']) .root { --shade: 0 0 0; }
+
+/* ── The stage: a window-lit workshop wall behind the bench ───────────────────────────────────────────── */
 .stage {
   position: relative;
   overflow: hidden;
@@ -7,65 +14,193 @@
   max-height: 64svh;
   border: 1px solid var(--mk-line-strong, #11110f);
   border-radius: var(--mk-radius-m, 10px);
-  background: radial-gradient(110% 80% at 50% 30%, #fbf6ec 0%, #ece3d2 62%, #dccfb8 100%);
+  background:
+    radial-gradient(62% 52% at 10% 4%, rgb(255 249 236 / 0.95) 0%, rgb(255 249 236 / 0) 72%),
+    radial-gradient(130% 100% at 26% 16%, #f5ead8 0%, #e6d7bd 52%, #cdb898 100%);
+  box-shadow:
+    inset 1px 1px 0 rgb(255 255 255 / 0.55),
+    2px 3px 0 -1px rgb(var(--shade) / 0.12),
+    10px 22px 48px -24px rgb(var(--shade) / 0.5);
   touch-action: none;
   user-select: none;
 }
-:global([data-theme='dark']) .stage { background: radial-gradient(110% 80% at 50% 30%, #34302a 0%, #23211d 62%, #171613 100%); }
+:global([data-theme='dark']) .stage {
+  background:
+    radial-gradient(62% 52% at 10% 4%, rgb(255 222 170 / 0.15) 0%, rgb(255 222 170 / 0) 72%),
+    radial-gradient(130% 100% at 26% 16%, #3a3229 0%, #27221c 55%, #141210 100%);
+  box-shadow: inset 1px 1px 0 rgb(255 255 255 / 0.06), 10px 22px 48px -24px rgb(0 0 0 / 0.75);
+}
 @container (width >= 44rem) { .stage { aspect-ratio: 4 / 3; max-height: 78svh; } }
-.stage canvas { cursor: grab; }
-.stage canvas:active { cursor: grabbing; }
+
+.stageLabel {
+  padding: 4px 8px;
+  border-radius: 999px;
+  color: var(--mk-ink, #11110f);
+  background: rgb(255 250 240 / 0.78);
+  box-shadow: 1px 2px 6px -2px rgb(var(--shade) / 0.3);
+}
+:global([data-theme='dark']) .stageLabel { background: rgb(20 17 14 / 0.72); }
+
+.card {
+  border: 1px solid var(--mk-line, #11110f24);
+  border-radius: 9px;
+  background: var(--mk-surface, #fbf9f4);
+  box-shadow: inset 1px 1px 0 rgb(255 255 255 / 0.5), 2px 3px 0 -1px rgb(var(--shade) / 0.1), 6px 14px 30px -16px rgb(var(--shade) / 0.5);
+}
 
 .panel {
   display: grid;
   align-content: start;
   gap: 16px;
   min-width: 0;
-  padding: 16px;
+  padding: 18px;
   border: 1px solid var(--mk-line-strong, #11110f);
   border-radius: var(--mk-radius-m, 10px);
   background: var(--mk-surface, #fbf9f4);
+  box-shadow:
+    inset 1px 1px 0 rgb(255 255 255 / 0.6),
+    1px 2px 0 rgb(var(--shade) / 0.07),
+    8px 18px 40px -22px rgb(var(--shade) / 0.38);
 }
-.choice, .seg {
+:global([data-theme='dark']) .panel { box-shadow: inset 1px 1px 0 rgb(255 255 255 / 0.05), 8px 18px 40px -22px rgb(0 0 0 / 0.7); }
+
+/* ── Keycaps (press-depth-button, adapted): a face on a side band, a tight contact shadow under the band and a
+   wide soft shadow under that. Hover lifts the face and widens the soft shadow; pressing drives the face down
+   and collapses it; letting go springs back on a linear() curve sampled from the `pop` spring token. ────── */
+.key {
+  --d: 5px;
+  --face: var(--mk-surface, #fbf9f4);
+  --side: color-mix(in oklab, var(--mk-surface-2, #e9e5da) 62%, #6b5034);
+  --text: var(--mk-ink, #11110f);
+  --edge: var(--mk-line, #11110f24);
+  --lip: rgb(255 255 255 / 0.75);
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  flex: none;
+  min-width: 2.75rem;
+  margin: 0;
+  padding: 0 0 var(--d);
+  border: 0;
+  border-radius: 11px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 13.5px;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.key[data-size='s'] { --d: 4px; border-radius: 9px; font-size: 13px; }
+.key[data-size='l'] { --d: 7px; border-radius: 999px; font-size: 16px; }
+.key[data-tone='ink'] {
+  --face: var(--mk-ink, #11110f);
+  --side: color-mix(in oklab, var(--mk-ink, #11110f) 72%, #8a6540);
+  --text: var(--mk-bg, #f3f0e8);
+  --edge: transparent;
+  --lip: rgb(255 255 255 / 0.2);
+}
+.key[data-tone='signal'] {
+  --face: var(--mk-signal, #bf2f09);
+  --side: color-mix(in oklab, var(--mk-signal, #bf2f09) 58%, #000);
+  --text: var(--mk-on-signal, #ffffff);
+  --edge: transparent;
+  --lip: rgb(255 255 255 / 0.3);
+}
+:global([data-theme='dark']) .key[data-tone='paper'] {
+  --face: var(--mk-surface-2, #22221e);
+  --side: color-mix(in oklab, var(--mk-surface-2, #22221e) 55%, #000);
+  --lip: rgb(255 255 255 / 0.1);
+}
+
+.keyShadow {
+  position: absolute;
+  z-index: -1;
+  inset: auto 3% calc(var(--d) * -0.45) 8%;
+  height: 72%;
+  border-radius: 42%;
+  background: rgb(var(--shade) / 0.3);
+  filter: blur(7px);
+  transform: translate(3px, 3px);
+  transition:
+    transform var(--release-dur, 600ms) var(--release-ease, ease),
+    opacity var(--release-dur, 600ms) var(--release-ease, ease);
+}
+:global([data-theme='dark']) .keyShadow { background: rgb(0 0 0 / 0.55); }
+.keySide {
+  position: absolute;
+  inset: var(--d) 0 0;
+  border-radius: inherit;
+  background: var(--side);
+  box-shadow: inset 0 0 0 1px var(--edge), 1px 1.5px 1px rgb(var(--shade) / 0.3);
+}
+.keyFace {
+  position: relative;
   display: grid;
   place-items: center;
-  min-height: 38px;
-  padding: 0 8px;
-  border: 1px solid var(--mk-line, #11110f24);
-  border-radius: var(--mk-radius-s, 4px);
-  font-size: 13px;
-  background: var(--mk-bg, #f3f0e8);
-  cursor: pointer;
+  min-height: 2.625rem;
+  padding: 0 1rem;
+  border-radius: inherit;
+  /* lit from the upper left: a slightly brighter top-left corner and a 1px lip on the lit edges */
+  background: linear-gradient(155deg, color-mix(in oklab, var(--face) 90%, #fff) 0%, var(--face) 55%);
+  box-shadow: inset 0 0 0 1px var(--edge), inset 1px 1px 0 var(--lip);
+  font-weight: 550;
+  white-space: nowrap;
+  transform: translateY(0);
+  transition: transform var(--release-dur, 600ms) var(--release-ease, ease);
 }
-.seg { padding: 0 14px; border-radius: 0; margin-left: -1px; }
-.seg:first-of-type { border-radius: 999px 0 0 999px; margin-left: 0; }
-.seg:last-of-type { border-radius: 0 999px 999px 0; }
-.choice:hover, .seg:hover { border-color: var(--mk-line-strong, #11110f); }
-.choice:has(input:checked), .seg:has(input:checked) { background: var(--mk-ink, #11110f); color: var(--mk-bg, #f3f0e8); border-color: var(--mk-ink, #11110f); }
-.choice:has(input:focus-visible), .seg:has(input:focus-visible), .item:has(input:focus-visible) { outline: 2px solid var(--mk-focus, #1d4ed8); outline-offset: 2px; position: relative; z-index: 1; }
-fieldset:disabled .choice, fieldset:disabled .seg, fieldset:disabled .item { cursor: not-allowed; color: var(--mk-ink-muted, #5c5a52); }
+.key[data-size='s'] .keyFace { min-height: 2.125rem; padding: 0 0.75rem; }
+.key[data-size='l'] .keyFace { min-height: 3.75rem; padding: 0 1.9rem; }
 
-.btn, .btnStrong {
-  min-height: 38px;
-  padding: 0 14px;
-  border: 1px solid var(--mk-line-strong, #11110f);
-  border-radius: 999px;
-  background: var(--mk-surface, #fbf9f4);
-  color: var(--mk-ink, #11110f);
-  font-size: 13.5px;
+@media (hover: hover) {
+  .key:hover:not(:disabled):not(:has(input:disabled)) .keyFace { transform: translateY(-1.5px); }
+  .key:hover:not(:disabled):not(:has(input:disabled)) .keyShadow { transform: translate(5px, 6px) scale(1.05); opacity: 0.8; }
 }
-.btnStrong { background: var(--mk-ink, #11110f); color: var(--mk-bg, #f3f0e8); }
-.btn:hover:not(:disabled) { background: var(--mk-surface-2, #e9e5da); }
-.btn:disabled, .btnStrong:disabled { background: transparent; color: var(--mk-ink-muted, #5c5a52); border-color: var(--mk-line, #11110f24); cursor: not-allowed; }
-.run {
-  padding: 14px 26px;
-  border: 0;
-  border-radius: 999px;
-  background: var(--mk-ink, #11110f);
-  color: var(--mk-bg, #f3f0e8);
-  font: 600 16px/1.3 var(--mk-font-text, system-ui, sans-serif);
-  box-shadow: 0 10px 30px rgb(0 0 0 / 0.25);
+.key:active:not(:disabled):not(:has(input:disabled)) .keyFace {
+  transform: translateY(calc(var(--d) * 0.82));
+  transition: transform var(--mk-duration-instant, 90ms) var(--mk-ease-standard, ease);
 }
+.key:active:not(:disabled):not(:has(input:disabled)) .keyShadow {
+  transform: translate(1px, 1px) scale(0.92, 0.45);
+  opacity: 0.5;
+  transition:
+    transform var(--mk-duration-instant, 90ms) var(--mk-ease-standard, ease),
+    opacity var(--mk-duration-instant, 90ms) var(--mk-ease-standard, ease);
+}
+
+/* Latching keys (radio choices): the chosen one stays pressed in, with an ink face. */
+.key[data-latch]:has(input:checked) {
+  --face: var(--mk-ink, #11110f);
+  --side: color-mix(in oklab, var(--mk-ink, #11110f) 72%, #8a6540);
+  --text: var(--mk-bg, #f3f0e8);
+  --edge: transparent;
+  --lip: rgb(255 255 255 / 0.16);
+}
+.key[data-latch]:has(input:checked) .keyFace { transform: translateY(calc(var(--d) * 0.55)); }
+.key[data-latch]:has(input:checked) .keyShadow { transform: translate(1.5px, 2px) scale(0.95, 0.65); opacity: 0.7; }
+.key[data-latch]:has(input:checked) .glyph { filter: drop-shadow(0 0 0.5px rgb(255 255 255 / 0.5)); }
+
+.key:focus-visible, .key:has(input:focus-visible) { outline: 2px solid var(--mk-focus, #1d4ed8); outline-offset: 3px; }
+
+/* Disabled: sunk flush with the base, flat and quiet; it rises when it unlocks. */
+.key:disabled, .key:has(input:disabled) {
+  cursor: not-allowed;
+  --face: color-mix(in oklab, var(--mk-surface-2, #e9e5da) 65%, var(--mk-surface, #fbf9f4));
+  --text: var(--mk-ink-muted, #5c5a52);
+  --edge: var(--mk-line, #11110f24);
+  --lip: transparent;
+}
+.key:disabled .keyFace, .key:has(input:disabled) .keyFace { transform: translateY(calc(var(--d) * 0.9)); }
+.key:disabled .keyShadow, .key:has(input:disabled) .keyShadow { opacity: 0; }
+.key:has(input:disabled) .glyph { opacity: 0.55; }
+.glyph { display: block; }
+
+/* Reduced motion: every state is applied at once, no spring and no shadow travel. */
+.root[data-reduced] .keyFace, .root[data-reduced] .keyShadow { transition: none; }
+@media (prefers-reduced-motion: reduce) { .keyFace, .keyShadow { transition: none; } }
+
+/* ── Panel bits ────────────────────────────────────────────────────────────────────────────────────────── */
 .range { width: 100%; min-height: 24px; accent-color: var(--mk-ink, #11110f); }
 .progress { display: block; width: 100%; height: 3px; accent-color: var(--mk-ink, #11110f); }
 
@@ -85,6 +220,15 @@ fieldset:disabled .choice, fieldset:disabled .seg, fieldset:disabled .item { cur
   font-size: 13px;
   cursor: pointer;
 }
+.item:hover { background: color-mix(in oklab, var(--mk-surface-2, #e9e5da) 55%, transparent); }
 .item:has(input:checked) { background: var(--mk-ink, #11110f); color: var(--mk-bg, #f3f0e8); }
 .item:has(input:checked) :global(.text-muted) { color: inherit; }
-.chip { width: 12px; height: 12px; border-radius: 2px; flex: none; box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.2); }
+.item:has(input:focus-visible) { outline: 2px solid var(--mk-focus, #1d4ed8); outline-offset: -2px; }
+fieldset:disabled .item { cursor: not-allowed; color: var(--mk-ink-muted, #5c5a52); }
+.chip {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  flex: none;
+  box-shadow: inset 1px 1px 0 rgb(255 255 255 / 0.35), inset 0 0 0 1px rgb(0 0 0 / 0.2), 1px 1px 1px rgb(var(--shade) / 0.3);
+}

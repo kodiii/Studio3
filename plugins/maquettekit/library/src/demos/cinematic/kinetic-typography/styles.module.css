@@ -3,6 +3,8 @@
  * mono for the broadcast data, Instrument Serif for the presenter's voice and Bricolage Grotesque with all
  * three axes for everything that moves. The display family must be loaded with its standard axes
  * (wght + wdth + opsz) — in the gallery, @fontsource-variable/bricolage-grotesque/standard.css.
+ * One light: a desk lamp that follows the pointer (upper left at rest). Display type casts a contact and a soft
+ * shadow away from it (--kt-sx/--kt-sy) with a rim on its lit side; the lamp's pool warms the paper under it.
  */
 .root {
   --kt-pad: clamp(16px, 4cqi, 56px);
@@ -13,6 +15,39 @@
   color: var(--mk-ink, #11110f);
   font-family: var(--mk-font-text, ui-sans-serif, system-ui, sans-serif);
   font-synthesis: none;
+  --kt-sx: 0.56;
+  --kt-sy: 0.76;
+  --kt-rim: rgb(255 255 255 / 0.75);
+  --kt-contact: rgb(17 17 15 / 0.2);
+  --kt-soft: rgb(17 17 15 / 0.13);
+  --kt-pool: rgb(255 250 238 / 0.95);
+  --kt-vignette: rgb(17 17 15 / 0.07);
+}
+:global([data-theme='dark']) .root {
+  --kt-rim: rgb(255 236 214 / 0.13);
+  --kt-contact: rgb(0 0 0 / 0.8);
+  --kt-soft: rgb(0 0 0 / 0.55);
+  --kt-pool: rgb(255 176 104 / 0.13);
+  --kt-vignette: rgb(0 0 0 / 0.25);
+}
+
+/* The lamp's pool of light: a viewport-sized sticky layer whose gradient centre follows the lamp (repainted only while
+   the lamp moves). Beyond the pool the vignette's last stop simply continues, so there is no edge anywhere. */
+.lampPool {
+  position: sticky;
+  top: 0;
+  z-index: 0;
+  height: 100svh;
+  margin-bottom: -100svh;
+  pointer-events: none;
+  background: radial-gradient(75vmax circle at var(--kt-lamp-x, 22%) var(--kt-lamp-y, 12%), var(--kt-pool) 0%, transparent 30%, transparent 46%, var(--kt-vignette) 100%);
+}
+/* Lit display type: rim toward the lamp, contact and soft shadows away from it (em-scaled, so big type stands higher). */
+.wave h2, .windArea, .state h2, .stateHold, .endLine, .voice {
+  text-shadow:
+    calc(var(--kt-sx) * -0.012em) calc(var(--kt-sy) * -0.012em) 0 var(--kt-rim),
+    calc(var(--kt-sx) * 0.022em) calc(var(--kt-sy) * 0.022em) 0 var(--kt-contact),
+    calc(var(--kt-sx) * 0.09em) calc(var(--kt-sy) * 0.11em) 0.13em var(--kt-soft);
 }
 
 /* ── On-air bar ─────────────────────────────────────────────── */
@@ -62,12 +97,20 @@
   text-transform: uppercase;
   cursor: pointer;
 }
+.pause {
+  box-shadow: calc(var(--kt-sx) * 1px) calc(var(--kt-sy) * 1px) 1px var(--kt-contact), calc(var(--kt-sx) * 4px) calc(var(--kt-sy) * 6px) 14px -6px var(--kt-soft);
+  transition: translate var(--kt-press-dur, 300ms) var(--kt-press, ease), background-color var(--mk-duration-fast, 160ms) var(--mk-ease-standard, ease),
+    color var(--mk-duration-fast, 160ms) var(--mk-ease-standard, ease), box-shadow var(--mk-duration-fast, 160ms) var(--mk-ease-standard, ease);
+}
+.pause:hover { translate: 0 -1px; box-shadow: calc(var(--kt-sx) * 1px) calc(var(--kt-sy) * 2px) 2px var(--kt-contact), calc(var(--kt-sx) * 6px) calc(var(--kt-sy) * 10px) 20px -8px var(--kt-soft); }
 .pause:hover, .pause[aria-pressed='true'] { background: var(--mk-ink, #11110f); color: var(--mk-bg, #f3f0e8); }
+.pause:active { translate: 0 1px; box-shadow: inset 1px 2px 3px rgb(0 0 0 / 0.3); transition-duration: var(--mk-duration-instant, 90ms); }
 .pause:focus-visible { outline: 2px solid var(--mk-focus, #1d4ed8); outline-offset: 3px; }
 
 /* ── Transcript cues: timecode gutter + body ────────────────── */
 .cue {
   position: relative;
+  z-index: 1;
   display: grid;
   gap: 14px;
   padding: clamp(64px, 10cqi, 150px) var(--kt-pad);
@@ -127,14 +170,41 @@
   line-height: 1.08;
   text-align: end;
   text-wrap: balance;
+  /* Reception: off-station the line blurs and jitters (--kt-noise and --kt-jit come from the dial). */
+  filter: blur(calc(var(--kt-noise, 0) * 2.4px));
+  translate: calc(var(--kt-jit, 0) * var(--kt-noise, 0) * 6px) 0;
 }
-.dial { display: block; width: 100%; height: auto; margin-top: clamp(8px, 2cqi, 24px); }
+/* The dial: grab the needle (or anywhere on the scale) and tune. */
+.dialWrap { position: relative; margin-top: clamp(8px, 2cqi, 24px); touch-action: pan-y; cursor: grab; user-select: none; -webkit-tap-highlight-color: transparent; }
+.dialWrap:active { cursor: grabbing; }
+.dial { display: block; width: 100%; height: auto; overflow: visible; }
+.dialHandle {
+  position: absolute;
+  top: -6px;
+  bottom: 8px;
+  width: 44px;
+  margin-left: -22px;
+  border-radius: var(--mk-radius-m, 10px);
+}
+.dialHandle:focus-visible { outline: 2px solid var(--mk-focus, #1d4ed8); outline-offset: 2px; }
+.dialHint { margin: 0; font-family: var(--mk-font-mono, ui-monospace, monospace); font-size: 0.6875rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--mk-ink-muted, #5c5a52); }
+.stationMark { stroke: var(--mk-signal, #bf2f09); stroke-width: 2; }
+.needleShadow { translate: calc(var(--kt-sx) * 2.5px) calc(var(--kt-sy) * 3px); opacity: 0.28; }
+.needleShadow path { stroke: var(--mk-ink, #11110f); stroke-width: 2.4; }
+.needleShadow circle { fill: var(--mk-ink, #11110f); }
+.meter rect { fill: var(--mk-ink, #11110f); opacity: 0.16; transition: opacity var(--mk-duration-fast, 160ms) linear; }
+.dialWrap[data-bars='1'] [data-bar='0'],
+.dialWrap[data-bars='2'] :is([data-bar='0'], [data-bar='1']),
+.dialWrap[data-bars='3'] :is([data-bar='0'], [data-bar='1'], [data-bar='2']),
+.dialWrap[data-bars='4'] :is([data-bar='0'], [data-bar='1'], [data-bar='2'], [data-bar='3']),
+.dialWrap[data-bars='5'] rect { fill: var(--mk-signal, #bf2f09); opacity: 1; }
 .dialRule { stroke: var(--mk-ink, #11110f); stroke-width: 1; }
 .tick { stroke: var(--mk-ink-muted, #5c5a52); stroke-width: 1; }
 .tickMajor { stroke: var(--mk-ink, #11110f); stroke-width: 1.4; }
 .dialNum { font-family: var(--mk-font-mono, ui-monospace, monospace); font-size: 12px; text-anchor: middle; fill: var(--mk-ink-muted, #5c5a52); }
-.needle path { stroke: var(--mk-signal, #bf2f09); stroke-width: 2.2; }
-.needle circle { fill: var(--mk-signal, #bf2f09); }
+.needle path { stroke: var(--mk-signal, #bf2f09); stroke-width: 2.4; }
+.needle circle { fill: var(--mk-signal, #bf2f09); stroke: color-mix(in oklab, var(--mk-signal, #bf2f09) 60%, #fff); stroke-width: 1; }
+.dialWrap:hover .needle circle { r: 6.5px; }
 .readout { font-family: var(--mk-font-mono, ui-monospace, monospace); font-size: 14px; font-weight: 600; fill: var(--mk-signal, #bf2f09); }
 
 /* Tuning in: the scramble-decode recipe, left-aligned and wider */
@@ -219,3 +289,9 @@
 }
 .next { margin: 0; font-family: var(--mk-font-mono, ui-monospace, monospace); font-size: 0.8125rem; letter-spacing: 0.06em; text-transform: uppercase; }
 .fine { max-width: 60ch; margin: 0; padding-top: 14px; border-top: 1px solid var(--mk-line, #11110f24); font-size: 0.8125rem; line-height: 1.55; color: var(--mk-ink-muted, #5c5a52); }
+
+/* Reduced motion: still type, still light (upper left), no static on the line. */
+@media (prefers-reduced-motion: reduce) {
+  .voice { filter: none; translate: none; }
+  .pause { transition: none; }
+}

@@ -145,9 +145,12 @@ describe('experience-lab: scoring math (pure)', () => {
     expect(tr.map((x) => x.weight)).toEqual([0, 1, 2]);
     expect(tr[0].excluded).toBe(true);
     // same evidence, different overall per profile
-    const mixed = doc({ 'motionUsefulness.longestAnimation': { value: 800 }, 'cognitiveLoad.fontSizes': { value: 14 }, 'spatialInteractionClarity.instructions': { value: 0 } });
+    // (an inert surface costs nothing in Essential, more in Expressive, most in Immersive)
+    const mixed = doc({ 'motionUsefulness.longestAnimation': { value: 800 }, 'cognitiveLoad.fontSizes': { value: 14 }, 'spatialInteractionClarity.instructions': { value: 0 }, 'motionUsefulness.pointerResponse': { value: 0 } });
     const scores = PROFILE_IDS.map((p) => scoreExperience({ profile: p, signals: mixed }));
     expect(new Set(scores.map((s) => s.overall.rawScore)).size).toBe(3);
+    expect(row(scores[0], 'motionUsefulness.pointerResponse').excluded).toBe(true);
+    expect(row(scores[2], 'motionUsefulness.pointerResponse').weight).toBeGreaterThan(row(scores[1], 'motionUsefulness.pointerResponse').weight);
     // Immersive requires spatial clarity: missing instructions fail its profile gate; other profiles have no such gate
     expect(gate(scores[2], 'spatialClarity')).toMatchObject({ status: 'fail', scope: 'profile' });
     expect(gate(scores[1], 'spatialClarity')).toBeUndefined();
@@ -301,6 +304,12 @@ describe('experience-lab: measured runs on the xl fixtures', () => {
     expect(raw(poor, 'motionUsefulness.reducedMotion')).toBeGreaterThan(0);
     expect(raw(good, 'motionUsefulness.reducedMotion')).toBe(0);
     expect(raw(poor, 'keyboardSupport.popupKeyboard')).toBeLessThan(1); // fake menu opens on click only
+    // liveliness: the good home page's band follows the pointer and the scroll; the poor site answers neither
+    expect(raw(good, 'motionUsefulness.pointerResponse')).toBeCloseTo(1 / 3, 2); // home only; form and scene need not
+    expect(raw(poor, 'motionUsefulness.pointerResponse')).toBe(0);
+    expect(raw(good, 'motionUsefulness.scrollResponse')).toBe(1);
+    expect(row(poor, 'motionUsefulness.scrollResponse').raw ?? 0).toBe(0);
+    expect(row(good, 'motionUsefulness.pointerResponse').normalised).toBeGreaterThan(row(poor, 'motionUsefulness.pointerResponse').normalised);
   });
 
   bit('writes signals.json, experience.json/md and screenshots; Part A (measured) precedes Part B (agent)', () => {
@@ -329,5 +338,52 @@ describe('experience-lab: measured runs on the xl fixtures', () => {
     expect(gate(r, 'spatialClarity').status).toBe('fail');
     expect(r.recommendations.some((x) => x.signal === 'motionUsefulness.purpose' && x.evidence[0].includes('decorative'))).toBe(true);
     expect(r.dimensions.motionUsefulness.evidenceMix.agentWeight).toBeGreaterThan(0);
+  });
+});
+
+describe('experience-lab: liveliness probe tells continuous response from hover states and one-shot reveals', () => {
+  const page = (body, script = '') => `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>t</title><style>
+    body { margin: 0; font: 16px system-ui; } main { padding: 40px; min-height: 260vh; }
+    .card { width: 240px; height: 160px; margin: 24px; background: #dbeafe; display: inline-block; transition: transform 150ms; }
+    .card:hover { transform: scale(1.05); } .reveal { opacity: 0; transition: opacity 200ms; } .reveal.in { opacity: 1; }
+  </style></head><body><main>${body}</main><script>${script}</script></body></html>`;
+  const write = (name, html) => { const f = path.join(tmp, name); fs.writeFileSync(f, html); return 'file://' + f; };
+  const tracking = write('lively-tracking.html', page(
+    '<div class="card" id="hoverable"></div><div class="card" id="tracker"></div><div class="card" id="depth"></div>' + '<p>text</p>'.repeat(40),
+    `const t = document.getElementById('tracker'); const d = document.getElementById('depth');
+     addEventListener('pointermove', (e) => { t.style.transform = 'translate(' + (e.clientX / 40).toFixed(1) + 'px,' + (e.clientY / 40).toFixed(1) + 'px)'; });
+     addEventListener('scroll', () => { d.style.transform = 'translateY(' + (scrollY * 0.3).toFixed(1) + 'px)'; }, { passive: true });`));
+  const inert = write('lively-inert.html', page(
+    '<div class="card" id="a"></div><div class="card" id="b"></div><div class="card" id="c"></div>' + '<p class="reveal">reveal</p>' + '<p>text</p>'.repeat(40),
+    `const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } })); document.querySelectorAll('.reveal').forEach((el) => io.observe(el));`));
+
+  /** @type {any} */ let lively; /** @type {any} */ let flat;
+  beforeAll(async () => {
+    if (!browserProbe.ok) return;
+    const { probeLiveliness } = await import('../../../plugins/maquettekit/tools/experience-lab/probes/interact.mjs');
+    const { installPageHelpers } = await import('../../../plugins/maquettekit/tools/visual-director/page/helpers.mjs');
+    const { newContext } = await import('../../../plugins/maquettekit/tools/lib/browser.mjs');
+    const browser = await launchBrowser();
+    try {
+      for (const [url, set] of /** @type {const} */ ([[tracking, (r) => { lively = r; }], [inert, (r) => { flat = r; }]])) {
+        const ctx = await newContext(browser, 'laptop');
+        await ctx.addInitScript(installPageHelpers);
+        const p = await ctx.newPage();
+        await p.goto(url);
+        await p.waitForTimeout(300);
+        set(await probeLiveliness(p));
+        await ctx.close();
+      }
+    } finally { await browser.close(); }
+  }, LONG);
+
+  bit('a pointer-tracking element and a parallax layer respond; hover states and a reveal do not', () => {
+    expect(lively.pointer).toMatchObject({ status: 'measured', responds: true });
+    expect(lively.pointer.elements.join(' ')).toContain('tracker');
+    expect(lively.pointer.elements.join(' ')).not.toContain('hoverable');
+    expect(lively.scroll).toMatchObject({ status: 'measured', responds: true });
+    expect(lively.scroll.elements.join(' ')).toContain('depth');
+    expect(flat.pointer).toMatchObject({ status: 'measured', responds: false });
+    expect(flat.scroll).toMatchObject({ status: 'measured', responds: false });
   });
 });

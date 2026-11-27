@@ -36,8 +36,10 @@
     "@react-three/drei": "^10.7.9",
     "@react-three/fiber": "^9.8.2",
     "@react-three/rapier": "^2.2.0",
+    "@rive-app/canvas-lite": "^2.55.1",
     "d3": "^7.9.2",
     "gsap": "^3.15.1",
+    "lottie-web": "^5.13.0",
     "motion": "^14.14.0",
     "three": "^0.187.0"
   },

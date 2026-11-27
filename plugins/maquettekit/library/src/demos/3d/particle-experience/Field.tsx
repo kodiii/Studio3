@@ -54,13 +54,14 @@ export const Field = forwardRef<FieldHandle, FieldProps>(function Field({ count,
     uniforms: {
       uTime: { value: 0 }, uFrom: { value: form }, uTo: { value: form }, uProgress: { value: 1 }, uIntensity: { value: intensity },
       uSize: { value: 2 }, uPixelRatio: { value: 1 }, uPointer: { value: new Vector3(0, 0, 99) }, uPointerStrength: { value: 0 },
-      uPulse: { value: new Vector2(0, 0) }, uColorA: { value: new Color('#f3e7d3') }, uColorB: { value: new Color('#ff6a33') }, uAccentShare: { value: 0.14 },
+      uPulse: { value: new Vector2(0, 0) }, uColorA: { value: new Color('#f6e9d4') }, uColorB: { value: new Color('#ff6a33') }, uAccentShare: { value: 0.14 },
+      uColorFar: { value: new Color('#6f7f9e') }, uFocus: { value: 6.6 },
     },
   }), []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => () => material.dispose(), [material]);
 
   // Mutable simulation state: never React state (no per-frame re-renders).
-  const sim = useRef({ from: form, to: form, progress: 1, hold: 0, time: 0, pulse: -1, pointerAt: -1e9, inside: false, strength: 0, spin: 0 });
+  const sim = useRef({ from: form, to: form, progress: 1, hold: 0, time: 0, pulse: -1, pointerAt: -1e9, inside: false, strength: 0, spin: 0, tiltX: 0, tiltY: 0 });
   const live = useRef({ animate, autoCycle, onAdvance, flow });
   live.current = { animate, autoCycle, onAdvance, flow };
 
@@ -87,7 +88,8 @@ export const Field = forwardRef<FieldHandle, FieldProps>(function Field({ count,
   useEffect(() => {
     const el = gl.domElement;
     const prevTouch = el.style.touchAction;
-    el.style.touchAction = 'none'; // the field reacts to touch drags; the page scrolls outside the stage
+    // Sideways drags push the field; vertical swipes still scroll the page (the hero is tall: never trap scrolling).
+    el.style.touchAction = 'pan-y';
     const move = () => { sim.current.pointerAt = performance.now(); sim.current.inside = true; invalidate(); };
     const leave = () => { sim.current.inside = false; invalidate(); };
     el.addEventListener('pointermove', move);
@@ -118,7 +120,16 @@ export const Field = forwardRef<FieldHandle, FieldProps>(function Field({ count,
       s.strength += (want - s.strength) * Math.min(1, dt * (want ? 6 : 2.5));
       if (Math.abs(want - s.strength) > 0.002) busy = true;
     }
-    if (points.current) points.current.rotation.y = s.spin;
+    if (on) {
+      // Parallax: the whole field turns a little towards the pointer and drifts back when it leaves (smoothed).
+      const k = 1 - Math.exp(-dt * 3.2);
+      const px = s.inside ? state.pointer.x : 0, py = s.inside ? state.pointer.y : 0;
+      s.tiltX += (-py * 0.2 - s.tiltX) * k;
+      s.tiltY += (px * 0.32 - s.tiltY) * k;
+      if (Math.abs(-py * 0.2 - s.tiltX) + Math.abs(px * 0.32 - s.tiltY) > 1e-3) busy = true;
+    }
+    if (points.current) { points.current.rotation.x = s.tiltX; points.current.rotation.y = s.spin + s.tiltY; }
+    u.uFocus.value = state.camera.position.length();
     // pointer → a point on the plane through the field's centre, facing the camera, in the field's local space
     if (s.strength > 0.001 && points.current) {
       tmp.ray.setFromCamera(state.pointer, state.camera);

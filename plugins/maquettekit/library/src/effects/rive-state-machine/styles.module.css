@@ -1,0 +1,556 @@
+/* Rive State Machine — a small stage and a scorecard, set like a cue sheet: mono indices and input read-outs,
+   hairline rules, ink controls. Light comes from above: panels carry a top highlight, a tight contact shadow and a
+   wide soft one; the stage has a spotlight on its back wall and a light pool on the floor. */
+
+.root {
+  container-type: inline-size;
+  box-sizing: border-box;
+  align-self: stretch;
+  justify-self: stretch;
+  width: 100%;
+  padding: clamp(0.75rem, 3.5cqi, 2rem);
+  color: var(--mk-ink, #11110f);
+  font-family: var(--mk-font-text, ui-sans-serif, system-ui, sans-serif);
+}
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(0.875rem, 2.4cqi, 1.25rem);
+  width: 100%;
+  max-width: 62rem;
+  margin-inline: auto;
+}
+.grid[data-scene='character'] { max-width: 34rem; }
+.grid[data-scene='rating'] { max-width: 30rem; }
+@container (min-width: 680px) {
+  .grid[data-scene='both'] { grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr); }
+}
+
+/* ── Panels ───────────────────────────────────────────────────────────── */
+.panel {
+  container-type: inline-size;
+  position: relative;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-auto-rows: auto;
+  gap: 0.75rem;
+  min-width: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--mk-line, #11110f24);
+  border-radius: var(--mk-radius-l, 18px);
+  background: var(--mk-surface, #fbf9f4);
+  box-shadow: 0 1px 2px rgb(17 17 15 / 0.07), 0 22px 44px -30px rgb(17 17 15 / 0.42);
+  box-shadow:
+    inset 0 1px 0 light-dark(rgb(255 255 255 / 0.9), rgb(255 255 255 / 0.05)),
+    0 1px 2px rgb(17 17 15 / 0.07),
+    0 22px 44px -30px rgb(17 17 15 / 0.42);
+}
+.head {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-width: 0;
+  padding: 0.125rem 0.25rem 0;
+}
+.index, .status, .cues, .credit, .loadingNote {
+  font-family: var(--mk-font-mono, ui-monospace, monospace);
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+}
+.index { color: var(--mk-ink-muted, #5c5a52); }
+.title {
+  margin: 0;
+  font-family: var(--mk-font-display, ui-sans-serif, system-ui, sans-serif);
+  font-size: 1.0625rem;
+  font-weight: 650;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-left: auto;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--mk-ink-muted, #5c5a52);
+}
+.dot {
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.45;
+  transition: background-color var(--mk-duration-base, 240ms) var(--mk-ease-standard, ease), box-shadow var(--mk-duration-base, 240ms) var(--mk-ease-standard, ease);
+}
+.status[data-live] { color: var(--mk-ink, #11110f); }
+.status[data-live] .dot {
+  opacity: 1;
+  background: var(--mk-accent, #bf2f09);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--mk-accent, #bf2f09) 20%, transparent);
+}
+
+/* ── Stage ────────────────────────────────────────────────────────────── */
+.stage {
+  --wall: color-mix(in oklab, var(--mk-ink, #11110f) 3.5%, var(--mk-surface, #fbf9f4));
+  --floor: color-mix(in oklab, var(--mk-ink, #11110f) 9%, var(--mk-surface, #fbf9f4));
+  --glow: rgb(255 255 255 / 0.9);
+  --glow: light-dark(rgb(255 255 255 / 0.92), rgb(176 222 255 / 0.12));
+  --rule: color-mix(in oklab, var(--mk-ink, #11110f) 9%, transparent);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: clamp(16rem, 74cqi, 25rem);
+  border-radius: calc(var(--mk-radius-l, 18px) - 0.375rem);
+  /* A cyclorama: the wall curves into the floor without a seam; the corners fall off into a soft vignette. */
+  background:
+    radial-gradient(135% 105% at 50% 36%, transparent 58%, color-mix(in oklab, var(--mk-ink, #11110f) 7%, transparent) 100%),
+    linear-gradient(to bottom, var(--wall) 0%, var(--wall) 54%, var(--floor) 82%, color-mix(in oklab, var(--floor) 93%, var(--mk-ink, #11110f)) 100%);
+  box-shadow: inset 0 0 0 1px var(--mk-line, #11110f24);
+}
+.wall {
+  position: absolute;
+  inset: -14% -14% 18%;
+  z-index: -2;
+  background: radial-gradient(40% 56% at 50% 50%, var(--glow), transparent 72%);
+  transition: transform var(--mk-duration-cinematic, 900ms) var(--mk-ease-enter, cubic-bezier(0.05, 0.7, 0.1, 1));
+}
+.stage[data-reactive] .wall { will-change: transform; }
+/* The light pool Birb stands in; its own contact shadow is part of the artwork. */
+.floor {
+  position: absolute;
+  inset: 60% 0 0;
+  z-index: -1;
+  background: radial-gradient(36% 44% at 50% 72%, var(--glow), transparent 76%);
+}
+.stage[data-backdrop='grid'] .wall {
+  background:
+    radial-gradient(40% 56% at 50% 50%, var(--glow), transparent 72%),
+    linear-gradient(var(--rule) 1px, transparent 1px) 50% 0 / 100% 1.75rem,
+    linear-gradient(90deg, var(--rule) 1px, transparent 1px) 50% 0 / 1.75rem 100%;
+}
+.stage[data-backdrop='grid'] { background: var(--wall); }
+.stage[data-backdrop='grid'] .floor {
+  inset: 70% 0 0;
+  overflow: hidden;
+  background: radial-gradient(36% 60% at 50% 62%, var(--glow), transparent 76%), var(--floor);
+  box-shadow: 0 -1px 0 var(--rule);
+}
+.stage[data-backdrop='grid'] .floor::before {
+  content: '';
+  position: absolute;
+  inset: 0 -80% -60%;
+  background:
+    linear-gradient(var(--rule) 1px, transparent 1px) 0 0 / 100% 1.5rem,
+    linear-gradient(90deg, var(--rule) 1px, transparent 1px) 50% 0 / 2.25rem 100%;
+  transform: perspective(14rem) rotateX(62deg);
+  transform-origin: 50% 0;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 45%);
+  mask-image: linear-gradient(to bottom, transparent, #000 45%);
+}
+/* No backdrop: the artwork is transparent, so Birb and its own shadow stand on the panel. */
+.stage[data-backdrop='none'] { background: transparent; box-shadow: inset 0 0 0 1px var(--mk-line, #11110f24); }
+.stage[data-backdrop='none'] .wall, .stage[data-backdrop='none'] .floor { display: none; }
+
+.birdBox {
+  position: absolute;
+  left: 50%;
+  bottom: 3%;
+  height: 92%;
+  aspect-ratio: 1;
+  max-width: 100%;
+  translate: -50% 0;
+}
+.fill { width: 100%; height: 100%; }
+.loadingNote { color: var(--mk-ink-muted, #5c5a52); align-self: end; margin-bottom: 18%; }
+.birdFallback {
+  display: grid;
+  justify-items: center;
+  gap: 0.5rem;
+  max-width: 17rem;
+  padding: 1rem;
+  text-align: center;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--mk-ink-muted, #5c5a52);
+}
+.birdFallback p { margin: 0; }
+.fbShadow { fill: var(--mk-ink, #11110f); opacity: 0.08; }
+.fbBody { fill: none; stroke: var(--mk-ink-muted, #5c5a52); stroke-width: 2; stroke-dasharray: 5 5; }
+.fbEye { fill: var(--mk-ink-muted, #5c5a52); }
+
+.playButton {
+  position: absolute;
+  top: 0.625rem;
+  right: 0.625rem;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border: 1px solid color-mix(in oklab, var(--mk-ink, #11110f) 20%, transparent);
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--mk-surface, #fbf9f4) 88%, transparent);
+  color: var(--mk-ink, #11110f);
+  cursor: pointer;
+  box-shadow: 0 1px 1px rgb(17 17 15 / 0.08), 0 6px 14px -8px rgb(17 17 15 / 0.35);
+  transition:
+    transform var(--rs-spring-ms, 360ms) var(--rs-spring, var(--mk-ease-emphasized, ease)),
+    background-color var(--mk-duration-fast, 160ms) var(--mk-ease-standard, ease);
+}
+.playButton:hover { background: var(--mk-surface, #fbf9f4); }
+.playButton:active { transform: scale(0.92); transition-duration: var(--mk-duration-instant, 90ms); }
+.playButton:focus-visible { outline: 2px solid var(--mk-focus, #1d4ed8); outline-offset: 2px; }
+
+/* ── Controls ─────────────────────────────────────────────────────────── */
+.controls { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  min-height: 2.75rem;
+  padding: 0 1.125rem 0 0.9rem;
+  border: 1px solid var(--mk-line-strong, #11110f);
+  border-radius: 999px;
+  background: var(--mk-surface, #fbf9f4);
+  color: var(--mk-ink, #11110f);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  /* Lifted: tight contact shadow + wide soft one. Pressed: the soft one collapses into the contact one. */
+  box-shadow: 0 1px 0 rgb(17 17 15 / 0.1), 0 8px 16px -12px rgb(17 17 15 / 0.55);
+  transition:
+    transform var(--rs-spring-ms, 360ms) var(--rs-spring, var(--mk-ease-emphasized, ease)),
+    box-shadow var(--mk-duration-base, 240ms) var(--mk-ease-standard, ease),
+    background-color var(--mk-duration-base, 240ms) var(--mk-ease-standard, ease),
+    color var(--mk-duration-base, 240ms) var(--mk-ease-standard, ease);
+}
+.button:hover { box-shadow: 0 1px 0 rgb(17 17 15 / 0.1), 0 12px 22px -12px rgb(17 17 15 / 0.6); }
+.button:active {
+  transform: scale(0.96);
+  box-shadow: 0 0 0 rgb(17 17 15 / 0.1), 0 2px 4px -2px rgb(17 17 15 / 0.45);
+  transition-duration: var(--mk-duration-instant, 90ms);
+}
+.button:focus-visible { outline: 2px solid var(--mk-focus, #1d4ed8); outline-offset: 3px; }
+.button[aria-pressed='true'] {
+  border-color: var(--mk-ink, #11110f);
+  background: var(--mk-ink, #11110f);
+  color: var(--mk-surface, #fbf9f4);
+}
+.lookIcon { transition: transform var(--rs-spring-ms, 360ms) var(--rs-spring, var(--mk-ease-emphasized, ease)); }
+.button[data-kind='look']:active .lookIcon { transform: translateY(-3px); transition-duration: var(--mk-duration-instant, 90ms); }
+
+/* Equaliser: three bars, still until Birb dances. */
+.eq { display: inline-flex; align-items: flex-end; gap: 2px; width: 14px; height: 14px; }
+.eq i { width: 3px; height: 100%; border-radius: 1px; background: currentColor; transform: scaleY(0.4); transform-origin: 50% 100%; }
+.eq i:nth-child(2) { transform: scaleY(0.75); }
+.eq i:nth-child(3) { transform: scaleY(0.55); }
+
+/* ── Input read-outs (the cue list) ───────────────────────────────────── */
+.cues {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem 1.125rem;
+  margin: 0;
+  padding: 0.6rem 0.25rem 0;
+  list-style: none;
+  border-top: 1px solid var(--mk-line, #11110f24);
+}
+.cue { display: inline-flex; align-items: baseline; gap: 0.5rem; min-width: 0; }
+.cueKey { color: var(--mk-ink-muted, #5c5a52); }
+.cueValue {
+  padding-bottom: 3px;
+  font-weight: 600;
+  color: var(--mk-ink, #11110f);
+  background: linear-gradient(var(--mk-accent, #bf2f09), var(--mk-accent, #bf2f09)) no-repeat 0% 100% / 0% 2px;
+}
+.hint {
+  margin: 0;
+  padding: 0 0.25rem 0.125rem;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--mk-ink-muted, #5c5a52);
+  text-wrap: pretty;
+}
+
+/* ── Rating ───────────────────────────────────────────────────────────── */
+.rateBody { display: grid; align-content: center; gap: 1rem; min-width: 0; padding: 0.75rem 0.25rem 0.25rem; }
+.fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
+.prompt {
+  display: block;
+  margin: 0 0 0.875rem;
+  padding: 0;
+  font-family: var(--mk-font-display, ui-sans-serif, system-ui, sans-serif);
+  font-size: clamp(1.375rem, 7.5cqi, 1.875rem);
+  font-weight: 700;
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+.band {
+  --band-hue: #ff0a6a;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  aspect-ratio: 500 / 170;
+  border-radius: var(--mk-radius-m, 10px);
+  box-shadow: 0 1px 1px rgb(17 17 15 / 0.1), 0 16px 30px -20px color-mix(in oklab, var(--band-hue) 75%, transparent);
+}
+.band::after { /* a hairline inner edge and a highlight along the top, from the same overhead light */
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.08), inset 0 1px 0 rgb(255 255 255 / 0.28);
+  pointer-events: none;
+}
+/* The artboard's own gradient (sampled), cropped like the canvas: a square as wide as the band, centred. */
+.bandArt {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #ff2fd3, #ff003f) 50% 50% / 100% 294.12%;
+  transition: opacity var(--mk-duration-moderate, 360ms) var(--mk-ease-standard, ease);
+}
+.band[data-ready] .bandArt { opacity: 0; }
+.bandStar {
+  position: absolute;
+  top: 47.06%;
+  left: calc(15% + (var(--at, 1) - 0.5) * 14%);
+  width: 10.4%;
+  translate: -50% -50%;
+  fill: #6e0228;
+  stroke: #c3157e;
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+}
+.bandStar[data-on] { fill: #fff8fb; }
+.bandCanvas, .ghost { position: absolute; inset: 0; width: 100%; height: 100%; }
+.ghost { opacity: 0; pointer-events: none; }
+.band[data-failed] .bandCanvas { display: none; }
+/* Accent treatment: keep the artwork's lights and darks (luminosity blend), take the hue from the theme token. */
+.band[data-tint='accent'] { --band-hue: var(--mk-accent, #bf2f09); background: var(--mk-accent, #bf2f09); }
+.band[data-tint='accent'] :is(.bandArt, .bandCanvas, .ghost) { mix-blend-mode: luminosity; }
+
+.burst {
+  position: absolute;
+  top: 47.06%;
+  left: calc(15% + (var(--at, 1) - 0.5) * 14%);
+  z-index: 1;
+  width: 12%;
+  aspect-ratio: 1;
+  border: 2px solid rgb(255 255 255 / 0.95);
+  border-radius: 50%;
+  opacity: 0;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.slots {
+  position: absolute;
+  inset: 0 15%;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  touch-action: pan-y;
+}
+.slot { position: relative; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.radio {
+  position: absolute;
+  top: 47%;
+  left: 50%;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  appearance: none;
+}
+.ring {
+  position: absolute;
+  top: 47.06%;
+  left: 50%;
+  width: 84%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  translate: -50% -50%;
+  pointer-events: none;
+}
+/* Double ring: white then focus colour, visible on every part of the gradient and in both themes. */
+.radio:focus-visible + .ring { box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--mk-focus, #1d4ed8); }
+
+.result {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.25rem 0.875rem;
+  min-width: 0;
+}
+.score {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  margin: 0;
+  overflow: hidden;
+  font-family: var(--mk-font-display, ui-sans-serif, system-ui, sans-serif);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+.scoreNum {
+  display: inline-block;
+  min-width: 0.62em;
+  font-size: clamp(2.25rem, 11cqi, 3rem);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+.scoreOf { font-size: 0.9375rem; letter-spacing: 0; color: var(--mk-ink-muted, #5c5a52); }
+.score[data-preview] .scoreNum { color: var(--mk-ink-muted, #5c5a52); }
+.score[data-empty] .scoreNum { font-weight: 300; color: var(--mk-ink-muted, #5c5a52); }
+.word { min-width: 0; margin: 0; font-size: 0.9375rem; font-weight: 550; line-height: 1.3; }
+.tag {
+  display: inline-block;
+  margin-right: 0.5rem;
+  padding: 0.125rem 0.375rem;
+  border: 1px solid var(--mk-line-strong, #11110f);
+  border-radius: var(--mk-radius-s, 4px);
+  font-family: var(--mk-font-mono, ui-monospace, monospace);
+  font-size: 0.625rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  vertical-align: 0.12em;
+}
+.textButton {
+  min-height: 2.75rem;
+  padding: 0 0.75rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--mk-ink, #11110f);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in oklab, var(--mk-ink, #11110f) 40%, transparent);
+  text-underline-offset: 0.25em;
+  cursor: pointer;
+  transition: background-color var(--mk-duration-fast, 160ms) var(--mk-ease-standard, ease);
+}
+.textButton:hover { background: color-mix(in oklab, var(--mk-ink, #11110f) 6%, transparent); }
+.textButton:focus-visible { outline: 2px solid var(--mk-focus, #1d4ed8); outline-offset: 2px; }
+.textButton[aria-disabled='true'] { cursor: default; color: var(--mk-ink-muted, #5c5a52); text-decoration-color: transparent; background: transparent; }
+
+.breakdown {
+  display: grid;
+  gap: 0.55rem;
+  min-width: 0;
+  padding-top: 0.875rem;
+  border-top: 1px dashed var(--mk-line, #11110f24);
+}
+.breakdownHead {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.25rem 1rem;
+  margin: 0;
+  font-family: var(--mk-font-mono, ui-monospace, monospace);
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  color: var(--mk-ink-muted, #5c5a52);
+}
+.breakdownMean strong { font-weight: 600; color: var(--mk-ink, #11110f); }
+.bars { display: grid; gap: 0.3rem; margin: 0; padding: 0; list-style: none; }
+.bar {
+  display: grid;
+  grid-template-columns: 1ch minmax(0, 1fr) 3ch;
+  align-items: center;
+  gap: 0.625rem;
+  font-family: var(--mk-font-mono, ui-monospace, monospace);
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--mk-ink-muted, #5c5a52);
+}
+.barTrack {
+  height: 0.375rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--mk-ink, #11110f) 8%, transparent);
+}
+.barFill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: color-mix(in oklab, var(--mk-ink, #11110f) 42%, var(--mk-surface, #fbf9f4));
+  transform-origin: 0 50%;
+  transition:
+    transform var(--rs-settle-ms, 560ms) var(--rs-settle, var(--mk-ease-emphasized, ease)),
+    background-color var(--mk-duration-base, 240ms) var(--mk-ease-standard, ease);
+}
+.barKey { text-align: center; }
+.barCount { text-align: right; }
+.bar[data-mine] { color: var(--mk-ink, #11110f); font-weight: 600; }
+.bar[data-mine] .barFill { background: var(--mk-accent, #bf2f09); }
+
+.credit {
+  margin: clamp(0.875rem, 2.4cqi, 1.25rem) auto 0;
+  max-width: 62rem;
+  text-align: center;
+  text-transform: uppercase;
+  color: var(--mk-ink-muted, #5c5a52);
+}
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── Motion (full motion only) ────────────────────────────────────────── */
+@media (prefers-reduced-motion: no-preference) {
+  /* Entrance: the panel lands, then its rows follow in order. */
+  .root:not([data-reduced]) .panel {
+    animation: rs-lift var(--mk-duration-slow, 560ms) var(--mk-ease-emphasized, cubic-bezier(0.16, 1, 0.3, 1)) both;
+    animation-delay: calc(var(--i, 0) * var(--mk-stagger-loose, 90ms));
+  }
+  .root:not([data-reduced]) .panel > :not(.srOnly) {
+    animation: rs-rise var(--mk-duration-moderate, 360ms) var(--mk-ease-enter, cubic-bezier(0.05, 0.7, 0.1, 1)) both;
+    animation-delay: calc(var(--i, 0) * var(--mk-stagger-loose, 90ms) + var(--mk-stagger-dramatic, 140ms) + var(--row, 0) * var(--mk-stagger-base, 48ms));
+  }
+  .root:not([data-reduced]) .panel > :nth-child(2) { --row: 1; }
+  .root:not([data-reduced]) .panel > :nth-child(3) { --row: 2; }
+  .root:not([data-reduced]) .panel > :nth-child(4) { --row: 3; }
+  .root:not([data-reduced]) .panel > :nth-child(5) { --row: 4; }
+  /* The score ticks to its new value. */
+  .root:not([data-reduced]) .scoreNum { animation: rs-tick var(--mk-duration-moderate, 360ms) var(--mk-ease-emphasized, ease) both; }
+  /* The equaliser bounces while Birb dances. */
+  .root:not([data-reduced]) .eq[data-on] i { animation: rs-eq var(--mk-duration-moderate, 360ms) var(--mk-ease-inOut, ease-in-out) infinite alternate; }
+  .root:not([data-reduced]) .eq[data-on] i:nth-child(2) { animation-delay: calc(var(--mk-duration-moderate, 360ms) * -0.66); }
+  .root:not([data-reduced]) .eq[data-on] i:nth-child(3) { animation-delay: calc(var(--mk-duration-moderate, 360ms) * -0.33); }
+}
+@keyframes rs-lift { from { opacity: 0; transform: translateY(18px) scale(0.985); } }
+@keyframes rs-rise { from { opacity: 0; transform: translateY(10px); } }
+@keyframes rs-tick { from { opacity: 0; transform: translateY(42%); } }
+@keyframes rs-eq { from { transform: scaleY(0.3); } to { transform: scaleY(1); } }
+
+.root[data-reduced] :is(.button, .playButton, .lookIcon, .dot, .wall, .bandArt, .textButton, .barFill) { transition-duration: 0ms; }
+.root[data-reduced] :is(.button, .playButton):active { transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  :is(.button, .playButton, .lookIcon, .wall, .barFill) { transition-duration: 0ms; }
+  :is(.button, .playButton):active { transform: none; }
+}

@@ -680,6 +680,118 @@
       ]
     },
     {
+      "id": "cursor-follower",
+      "name": "Cursor Follower",
+      "description": "A dot and a spring ring that trail the native cursor inside one container and read what is under it. The ring keeps its velocity, smears into an ellipse along its direction of travel and wobbles round when the pointer stops; over a magnetic button it wraps the button's own outline and pulls it gently toward the pointer, over a card it blooms into a filled \"View\" disc, and over a paragraph it narrows to a caret that lands between real letters.",
+      "category": "cursor",
+      "specialties": [
+        "cinematic",
+        "product"
+      ],
+      "technology": [
+        "css",
+        "svg"
+      ],
+      "interaction": [
+        "pointer",
+        "hover",
+        "press"
+      ],
+      "complexity": 3,
+      "intensity": "bold",
+      "applications": [
+        "portfolio and studio sites",
+        "\"View\" labels on case-study cards",
+        "\"Drag\" affordance on carousels and timelines",
+        "magnetic calls to action in a hero",
+        "editorial long-reads with a text caret"
+      ],
+      "dependencies": [],
+      "params": [
+        {
+          "key": "follow",
+          "label": "Follow spring",
+          "type": "select",
+          "default": "release",
+          "options": [
+            "press",
+            "settle",
+            "release",
+            "pop",
+            "glide"
+          ]
+        },
+        {
+          "key": "size",
+          "label": "Ring size",
+          "type": "number",
+          "default": 36,
+          "min": 20,
+          "max": 72,
+          "step": 2,
+          "unit": "px"
+        },
+        {
+          "key": "stretch",
+          "label": "Squash and stretch",
+          "type": "number",
+          "default": 0.55,
+          "min": 0,
+          "max": 1,
+          "step": 0.05
+        },
+        {
+          "key": "pull",
+          "label": "Magnet pull",
+          "type": "number",
+          "default": 0.3,
+          "min": 0,
+          "max": 0.6,
+          "step": 0.05
+        },
+        {
+          "key": "blend",
+          "label": "Invert (difference blend)",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "key": "dot",
+          "label": "Show dot",
+          "type": "boolean",
+          "default": true
+        }
+      ],
+      "accessibility": [
+        "The native cursor is never hidden. The follower is two aria-hidden, pointer-events: none layers, so clicks, hover states and text selection reach the page untouched.",
+        "Fine pointers only, (hover: hover) and (pointer: fine): coarse devices render nothing, and a touch or pen event on a hybrid laptop hides the follower until the mouse moves again. The showcase works fully without it.",
+        "Any non-modifier key hides the follower so it never sits over a focus ring; focus styles are left alone, and moving the mouse brings it back.",
+        "\"View\" and \"Drag\" repeat what the content already says: each card is a named button, and the archive is a labelled, focusable region that scrolls with the arrow keys, by touch and by mouse drag.",
+        "A magnet moves toward the pointer, never away, with its travel capped so the hit area stays under the cursor; it uses the CSS translate property, so the element's own transform, press state and focus ring keep working."
+      ],
+      "reducedMotion": "The follower is decoration, so it is not rendered at all and magnets stay put. The native cursor, hover and focus states and the draggable archive work as usual; the archive stops where you let go, with no momentum or rubber band.",
+      "performance": [
+        "One useRafLoop runs only while something moves and goes back to sleep once every spring is at rest; it also pauses offscreen and in hidden tabs.",
+        "Target rects, the scope rect and the layer origin are cached when a target is entered and refreshed at the start of the next frame after scroll or resize; every frame reads before it writes, and nothing is measured after a write.",
+        "Position, squash and stretch, press and presence are transforms and opacity. The outline morph writes the geometry of one SVG rect, only while a morph is moving, and identical values are never re-written.",
+        "Listeners are passive and installed only on fine-pointer devices with motion allowed; unmount removes them and clears every translate written to a magnet."
+      ],
+      "preview": {
+        "height": 1000
+      },
+      "path": "library/src/effects/cursor-follower",
+      "files": [
+        "index.tsx",
+        "art.tsx",
+        "cursor-follower.tsx",
+        "engine.ts",
+        "follower.module.css",
+        "physics.ts",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
       "id": "dot-grid-pointer-field",
       "name": "Dot Grid Pointer Field",
       "description": "A canvas grid of dots that leans away from the pointer, swells and warms to the accent colour, then springs back; a click sends a ripple ring through the field. The loop runs only while something is moving and stops the moment every spring has settled.",
@@ -1876,7 +1988,7 @@
       ],
       "reducedMotion": "No loop runs: both rails are static, skew is removed and the pause control is replaced by a \"motion off\" note.",
       "performance": [
-        "One rAF loop (useRafLoop, paused offscreen) writes one transform per rail; nothing is laid out per frame.",
+        "One rAF loop (useRafLoop, paused offscreen) writes one transform per rail; nothing is laid out per frame. Pause eases the rails to a stop, then the loop sleeps until Play.",
         "Scroll and pointer listeners are passive and only accumulate a delta that the loop consumes.",
         "Copies are created from a ResizeObserver measurement: just enough to cover the container plus one."
       ],
@@ -2158,6 +2270,233 @@
       "files": [
         "index.tsx",
         "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "liquid-glass-lens",
+      "name": "Liquid Glass Lens",
+      "description": "A thick glass lens you drag and throw across an editorial page drawn in the theme's own colours and type. A GLSL pass refracts the page through a flat-topped, round-edged SDF lens (pill, circle or squircle): the centre stays sharp while the rim bends the page, splits it into spectral colour and catches one light that follows your pointer, and the glass casts a soft shadow away from that light.",
+      "category": "shaders",
+      "specialties": [
+        "cinematic",
+        "product",
+        "3d"
+      ],
+      "technology": [
+        "glsl",
+        "three",
+        "r3f",
+        "canvas2d"
+      ],
+      "interaction": [
+        "drag",
+        "pointer",
+        "keyboard"
+      ],
+      "complexity": 3,
+      "intensity": "bold",
+      "applications": [
+        "hero over a headline or key visual",
+        "product detail loupe over packaging or a label",
+        "image inspection: drag a magnifier-style glass across a chart, map or scan",
+        "glass control surface (tab bar, toolbar) prototype over live content"
+      ],
+      "dependencies": [
+        {
+          "name": "three",
+          "version": "^0.187.0"
+        },
+        {
+          "name": "@react-three/fiber",
+          "version": "^9.8.2"
+        }
+      ],
+      "params": [
+        {
+          "key": "refraction",
+          "label": "Refraction strength",
+          "type": "number",
+          "default": 1,
+          "min": 0,
+          "max": 1.5,
+          "step": 0.05
+        },
+        {
+          "key": "dispersion",
+          "label": "Dispersion",
+          "type": "number",
+          "default": 0.45,
+          "min": 0,
+          "max": 1,
+          "step": 0.05
+        },
+        {
+          "key": "frost",
+          "label": "Frost",
+          "type": "number",
+          "default": 0,
+          "min": 0,
+          "max": 1,
+          "step": 0.05
+        },
+        {
+          "key": "shape",
+          "label": "Shape",
+          "type": "select",
+          "default": "pill",
+          "options": [
+            "pill",
+            "circle",
+            "squircle"
+          ]
+        },
+        {
+          "key": "light",
+          "label": "Light follows pointer",
+          "type": "boolean",
+          "default": true
+        }
+      ],
+      "accessibility": [
+        "The lens is a focusable control named \"Glass lens\" with visible focus: arrow keys move it, Shift with an arrow moves it four times further, Home centres it; its new position is announced in a polite live region.",
+        "Shape is chosen with real buttons (aria-pressed) and a Centre button repeats the Home key, so nothing depends on dragging.",
+        "The page under the glass is decorative sample content; the canvas carries a name and a description of what it shows.",
+        "Without WebGL the same page is drawn as SVG under a CSS glass panel that is dragged and keyed the same way."
+      ],
+      "reducedMotion": "The lens follows the pointer or keys directly: no momentum, rubber band, stretch or lift animation, shape changes snap, and the light stays at its resting angle. Everything stays operable.",
+      "performance": [
+        "frameloop=\"demand\": frames render only while the lens is held, gliding or settling, or while the light eases after the pointer; at rest nothing renders.",
+        "One full-frame quad and one draw call. Pixels away from the lens and its shadow take a single texture read; the lens itself takes 6, 9 or 12 spectral taps by quality level.",
+        "The page texture is drawn once at the drawing-buffer size (CSS size × the profile's DPR cap), with mipmaps for frost; it is redrawn only on theme, font or resize changes (debounced) and disposed each time.",
+        "The lens physics runs in the R3F frame loop (or a rAF loop that pauses offscreen in the fallback) and stops when everything has settled."
+      ],
+      "preview": {
+        "height": 620
+      },
+      "path": "library/src/effects/liquid-glass-lens",
+      "files": [
+        "index.tsx",
+        "composition.ts",
+        "engine.ts",
+        "fallback.tsx",
+        "scene.tsx",
+        "shader.ts",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "lottie-micro-interactions",
+      "name": "Lottie Micro-interactions",
+      "description": "Six hand-animated icons authored as original Lottie data in typed code: menu crosses to close on a spring, play splits into pause, an ink drop falls into the bookmark, the bell rings with a lagging clapper, the heart bursts, the sun folds into a moon. Hover previews each wind-up, a click commits from that exact frame and can reverse at any frame, and colours come from theme tokens through CSS.",
+      "category": "vector-animation",
+      "specialties": [
+        "product",
+        "social"
+      ],
+      "technology": [
+        "lottie",
+        "svg",
+        "css"
+      ],
+      "interaction": [
+        "hover",
+        "press",
+        "keyboard",
+        "drag"
+      ],
+      "complexity": 3,
+      "intensity": "moderate",
+      "applications": [
+        "app bar menu and theme toggles",
+        "media player play / pause",
+        "like and save actions in a feed",
+        "notification opt-in bell",
+        "replacing static icon sets with animated ones that share one data format with After Effects exports"
+      ],
+      "dependencies": [
+        {
+          "name": "lottie-web",
+          "version": "^5.13.0"
+        }
+      ],
+      "params": [
+        {
+          "key": "size",
+          "label": "Icon size",
+          "type": "number",
+          "default": 28,
+          "min": 20,
+          "max": 40,
+          "step": 2,
+          "unit": "px"
+        },
+        {
+          "key": "weight",
+          "label": "Stroke weight",
+          "type": "number",
+          "default": 2,
+          "min": 1.5,
+          "max": 2.5,
+          "step": 0.25,
+          "unit": "u"
+        },
+        {
+          "key": "tint",
+          "label": "Colour",
+          "type": "select",
+          "default": "duotone",
+          "options": [
+            "duotone",
+            "accent",
+            "ink"
+          ]
+        },
+        {
+          "key": "speed",
+          "label": "Speed",
+          "type": "number",
+          "default": 1,
+          "min": 0.5,
+          "max": 2,
+          "step": 0.1,
+          "unit": "×"
+        },
+        {
+          "key": "hover",
+          "label": "Hover / focus preview",
+          "type": "boolean",
+          "default": true
+        }
+      ],
+      "accessibility": [
+        "Every icon is a real button with a constant accessible name: toggles expose aria-pressed (Play, Like, Save, New-episode alerts, Night mode); the queue button is a disclosure with aria-expanded and aria-controls, and its panel leaves the accessibility tree when closed.",
+        "State never relies on colour or motion alone: the shapes differ (lines vs cross, outline vs filled, slashed vs ringing bell, sun vs moon), the like count and \"Playing / Paused\" are real text, and the animated drawing is aria-hidden.",
+        "Keyboard: Enter and Space toggle; focus-visible previews the same wind-up as hover; each timeline lane is a labelled native slider (arrow keys step one frame, leaving the lane plays the icon home).",
+        "Targets are at least 44 px; focus rings use --mk-focus; colours map to tokens, and forced-colors mode redraws the icons in system colours."
+      ],
+      "reducedMotion": "Hover and focus previews are off and nothing travels: a state change jumps the Lottie to the final frame of its segment (goToAndStop) under a 160 ms cross-fade, the queue opens without sliding and the cover swaps sun for moon with a fade. Scrubbing still works because it is direct manipulation.",
+      "performance": [
+        "lottie-web’s light SVG player is imported lazily, once, and shared; each icon owns one instance that is destroyed on unmount (StrictMode-safe).",
+        "lottie-web only ticks while an instance plays, so an idle toolbar runs no animation frame; the timeline playheads are written straight to the DOM from enterFrame events, with no React render per frame.",
+        "Until the player has painted, and wherever it cannot run, each icon shows a static SVG of its rest frame rendered from the same data, so the swap is invisible and nothing is lost if lottie fails.",
+        "Colours are CSS on the rendered SVG, so theme or palette changes restyle every icon with no data rebuild; only the stroke-weight param rebuilds the data, and each icon keeps its frame across the rebuild."
+      ],
+      "preview": {
+        "height": 560
+      },
+      "path": "library/src/effects/lottie-micro-interactions",
+      "files": [
+        "index.tsx",
+        "icons.ts",
+        "lottie-kit.ts",
+        "LottieIcon.module.css",
+        "LottieIcon.tsx",
+        "player.ts",
+        "segments.ts",
+        "styles.module.css",
+        "Timeline.tsx",
         "meta.ts"
       ]
     },
@@ -3379,6 +3718,110 @@
       "path": "library/src/effects/reaction-burst",
       "files": [
         "index.tsx",
+        "styles.module.css",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "rive-state-machine",
+      "name": "Rive State Machine",
+      "description": "Two Rive state machines driven only by DOM controls. Birb idles on a lit stage, looks up when the pointer (or a tap) comes in above its head and dances on a real toggle button; a native five-star radio group previews on hover, focus or drag and commits into a second machine. A reusable RiveCanvas loads the runtime lazily from your own origin, sizes itself to its element and stops drawing offscreen.",
+      "category": "vector-animation",
+      "specialties": [
+        "product",
+        "social"
+      ],
+      "technology": [
+        "rive",
+        "css"
+      ],
+      "interaction": [
+        "pointer",
+        "hover",
+        "press",
+        "keyboard",
+        "data"
+      ],
+      "complexity": 3,
+      "intensity": "bold",
+      "applications": [
+        "mascot or onboarding character that reacts to the user",
+        "animated rating, feedback or survey control",
+        "empty, success and error states with a character",
+        "interactive product illustration in a hero"
+      ],
+      "dependencies": [
+        {
+          "name": "@rive-app/canvas-lite",
+          "version": "^2.55.1"
+        }
+      ],
+      "params": [
+        {
+          "key": "scene",
+          "label": "Scene",
+          "type": "select",
+          "default": "both",
+          "options": [
+            "both",
+            "character",
+            "rating"
+          ]
+        },
+        {
+          "key": "pointer",
+          "label": "Pointer reactions",
+          "type": "boolean",
+          "default": true
+        },
+        {
+          "key": "backdrop",
+          "label": "Stage backdrop",
+          "type": "select",
+          "default": "spotlight",
+          "options": [
+            "spotlight",
+            "grid",
+            "none"
+          ]
+        },
+        {
+          "key": "tint",
+          "label": "Rating colour",
+          "type": "select",
+          "default": "artwork",
+          "options": [
+            "artwork",
+            "accent"
+          ]
+        }
+      ],
+      "accessibility": [
+        "The canvases are aria-hidden; meaning lives in the DOM: the stage is a labelled image whose name follows the state machine (idle, looking up, dancing) and every input has a native control.",
+        "Dance is a toggle button with aria-pressed, Look up is a plain button, so keyboard users get every reaction the pointer gets; a polite status line announces the look-up and pause changes the canvas cannot speak.",
+        "The rating is a native fieldset of five radio buttons laid over the drawn stars: arrow keys move and commit, hover and focus preview, the committed value is announced politely, and a double focus ring stays visible on the gradient.",
+        "The idle loop runs longer than five seconds, so the stage has a visible Pause/Play button (WCAG 2.2.2).",
+        "If the runtime or a file cannot load, the controls keep working: the rating falls back to drawn DOM stars and the stage says what is missing.",
+        "The breakdown under the stars is labelled sample data; every bar also has its count as text, and the visitor’s own row is marked by weight as well as colour."
+      ],
+      "reducedMotion": "Nothing plays on its own: Birb holds a still idle frame and pointer reactions are off. Dance, Look up and Play are explicit controls, so they still animate and Birb settles back to a still frame afterwards. Rating changes jump straight to the final frame of each state (state machine stopped, the matching animation scrubbed to its end) with a 160 ms cross-fade.",
+      "performance": [
+        "The Rive runtime is a dynamic import inside an effect, so other pages never download it. Its JavaScript (about 129 KB gzipped as published, less once minified) and WASM (about 374 KB gzipped) load once per page, from your own origin: the WASM and fallback URLs are props, and Rive’s asset CDN is off.",
+        "Each canvas sizes its drawing buffer from a ResizeObserver with the device pixel ratio capped at 2, and redraws on DPR changes.",
+        "Rendering stops while a canvas is offscreen or the tab is hidden, and the rating state machine settles: once its stars have landed no frames are drawn until the input changes.",
+        "The .riv bytes are fetched once and shared by every instance; each Rive instance is released with cleanup() on unmount, and loads that finish after unmount are dropped, so StrictMode double mounts and Replay leave nothing behind."
+      ],
+      "preview": {
+        "height": 620
+      },
+      "path": "library/src/effects/rive-state-machine",
+      "files": [
+        "index.tsx",
+        "BirdStage.tsx",
+        "cue.ts",
+        "RatingStars.tsx",
+        "rive-canvas.module.css",
+        "RiveCanvas.tsx",
         "styles.module.css",
         "meta.ts"
       ]
@@ -4645,41 +5088,50 @@
       "id": "cinematic-landing",
       "name": "Pulse Night Edition",
       "specialty": "3d",
-      "summary": "An art-directed launch page: the Pulse speaker on a black stage, an opening camera move you can skip, a slow key-light sweep, and a scroll-driven camera that walks through two chapters of editorial copy.",
+      "summary": "An art-directed launch page: the Pulse speaker on a stone plinth in a dark room, an opening camera move you can skip, one key light shared by the scene and the copy, and a scroll-driven camera through two chapters, in which you can turn the speaker and its dial by hand.",
       "highlights": [
-        "A choreographed opening: the camera arcs in on a centripetal Catmull-Rom path while the key light fades up — interrupted by Skip or by the first scroll.",
-        "Scroll progress through a pinned section drives the camera between three held poses with critically damped easing, with separate framings for portrait screens.",
-        "Ambient light: the key sweeps slowly and the status ring breathes (the LightPulse clip plus an emissive pulse on a cloned material), with a Pause control.",
-        "The headline is the split-line-reveal recipe; all copy is DOM text around the canvas, and the poster fallback carries the same copy."
+        "Lens-shifted framing: each chapter sets the camera, the light and the speaker’s pose on its plinth so the speaker always stands opposite the copy, with no keystoning. Measured contrast of every copy block over the scene at each held chapter: 5.8:1 or better for body text.",
+        "One light for page and canvas: the key light and the generated environment swing towards the pointer through critically damped smoothing, the camera sways ±3°, and the same angle drives the headline’s sheen and the lit edges and shadows of the controls.",
+        "Hands on the subject: drag the speaker (or press ←/→ on the focused stage) and it turns on its plinth, keeps the release velocity and swings back on the heavy `glide` spring; in the dial chapter the same gesture turns the dial through 30 detents that snap on the quick `press` spring and drive the ring’s glow.",
+        "A staged opening: the rim light draws the silhouette, then the key comes up, then the ring glows, while the camera arcs in. Between chapters the camera swings and pulls back (01→02) or cranes up while the speaker turns half round on its plinth (02→03).",
+        "A filleted stone plinth whose sides fade into the dark, a two-layer contact shadow, a real key-light shadow where the profile allows shadow maps, and fog for depth."
       ],
       "technology": [
         "r3f",
         "three",
-        "waapi"
+        "waapi",
+        "css"
       ],
       "uses": [
         "split-line-reveal"
+      ],
+      "adapts": [
+        "magnetic-button",
+        "press-depth-button"
       ],
       "collaborates": [
         "cinematic"
       ],
       "has3d": true,
       "accessibility": [
-        "All copy is real text outside the canvas; the canvas has a name and a description of the scene and of what scrolling does.",
-        "The opening move (5.2 s) has a Skip button; the continuous light animation has a Pause control (WCAG 2.2.2).",
-        "Section buttons jump to each chapter; normal keyboard scrolling drives the same camera moves.",
-        "Without WebGL, or if the model fails to load, a still render sits where the speaker would be and the copy is unchanged."
+        "All copy is real text outside the canvas; the canvas has a name and a description of the scene, of what scrolling does and of what dragging does.",
+        "The focusable stage is the keyboard twin of the drag: ←/→ turn the speaker, and in the Dial chapter they turn the dial one detent each. Two buttons (Turn the dial down/up) do the same without a pointer; the volume is announced once the dial comes to rest.",
+        "The opening move has a Skip button; the light’s slow drift and the ring’s breathing have a Pause control (WCAG 2.2.2). Section buttons jump to each chapter.",
+        "Every copy block sits on a directional scrim (or, when stacked, a dark glass card), so contrast holds whatever the camera frames behind it.",
+        "Without WebGL, or if the model fails to load, a still render sits opposite the copy and the copy and the volume buttons are unchanged."
       ],
-      "reducedMotion": "No opening move: the camera starts at its final pose and cuts to each chapter’s pose instead of gliding; the lights and the status ring hold still; the headline appears without its rise.",
+      "reducedMotion": "No opening move, no camera sway, no light drift or pointer light, no breathing ring: the camera and the speaker’s pose cut to each chapter. Dragging still turns the speaker and the dial under your hand, but they return or snap without springing; ←/→ hold the speaker turned while pressed.",
       "performance": [
-        "Continuous rendering only while the ambient light plays and the stage is on screen; paused or reduced, it renders on demand (scroll and camera settling request frames).",
-        "One model (the variant for the quality profile: 131k triangles on low-power), a plinth and a contact shadow — about 16 draw calls.",
-        "Scroll is read through a passive, rAF-batched listener into a ref; no React render per scroll event (only when the chapter changes)."
+        "Continuous rendering only while the light plays and the stage is on screen; paused or under reduced motion it renders on demand: scroll, pointer, drag and settling springs request frames and stop when everything is at rest.",
+        "One model (the variant for the quality profile: 131k triangles on low-power), the plinth and one contact-shadow quad: about 16 draw calls. The plinth’s stone and the contact shadow are drawn once on 2D canvases (256 px and 512 × 256 px) and disposed on unmount.",
+        "Scroll and pointer are read through passive listeners into refs; React renders only when the chapter or the volume changes. The shared light reaches CSS as two custom properties written only when they change."
       ],
       "path": "library/src/demos/3d/cinematic-landing",
       "files": [
         "index.tsx",
         "Director.tsx",
+        "MagneticPill.tsx",
+        "stage.ts",
         "styles.module.css",
         "meta.ts"
       ]
@@ -4688,12 +5140,13 @@
       "id": "particle-experience",
       "name": "Drift — a particle study",
       "specialty": "3d",
-      "summary": "GPU-driven particles that form and re-form a sphere, a torus and an abstract glyph, pushed around by a pointer or a finger, with live renderer readouts that are measured, never invented.",
+      "summary": "A full-bleed field of glowing GPU particles that forms and re-forms a sphere, a torus and an abstract glyph, turns towards the pointer and is pushed around by a pointer or a finger, with live renderer readouts that are measured, never invented.",
       "highlights": [
-        "All motion happens in the vertex shader: each particle stores its point on three forms plus a seed; the CPU only updates uniforms.",
-        "Morphs are staggered per particle and bloom outwards mid-flight; a pointer, a touch drag or the Pulse button disturbs the field.",
-        "The requested count is scaled by the quality profile (density 1 / 0.6 / 0.3) and the quality can be switched live, rebuilding the canvas.",
-        "The readout is renderer.info from the last frame; the only timing shown is the rAF interval, measured on this device and labelled as such."
+        "The field is the hero: edge to edge, with the title, the live status, Pause and the form keys laid over it, and an ember nebula plus a soft light that follows the pointer behind the canvas.",
+        "Glow and depth come from the shader, not a postprocessing pass: each point is a white-hot core in a soft halo (additive blending turns overlaps into bloom), points behind the focus plane dim and cool, and points away from it spread into wider, fainter discs.",
+        "All motion happens in the vertex shader: each particle stores its point on three forms plus a seed; morphs are staggered per particle and bloom outwards mid-flight, a pointer, a sideways touch drag or the Pulse key disturbs the field, and the whole field turns a little towards the pointer.",
+        "The controls are keys lit from above by the field (press-depth-button, adapted): they lift on hover, press in, latch on the chosen form and spring back on a linear() curve sampled from a spring token; the panel keeps one height while the forms cycle.",
+        "The requested count is scaled by the quality profile (density 1 / 0.6 / 0.3) and the quality can be switched live; the readout is renderer.info from the last frame and the rAF interval, labelled as measured on this device."
       ],
       "technology": [
         "r3f",
@@ -4701,18 +5154,21 @@
         "glsl"
       ],
       "uses": [],
+      "adapts": [
+        "press-depth-button"
+      ],
       "has3d": true,
       "accessibility": [
-        "Every control is a native radio, checkbox, range, select or button with a visible label; the current form is also stated in text.",
-        "The pointer disturbance has a keyboard equivalent: the Pulse button sends the same kind of push through the field.",
-        "The continuous animation has a Pause control (WCAG 2.2.2); the canvas has a text description that follows the form and count.",
+        "Every control is a native radio, checkbox, range, select or button with a visible label; the current form is also stated in text, and the form description reserves the height of the longest one so nothing jumps when the form changes.",
+        "The pointer disturbance has a keyboard equivalent: the Pulse key sends the same kind of push through the field. Touch drags only claim sideways movement, so vertical swipes keep scrolling the page.",
+        "The continuous animation has a Pause control next to it (WCAG 2.2.2); the canvas has a text description that follows the form and count.",
         "Without WebGL a still SVG drawing of the sphere form replaces the canvas."
       ],
-      "reducedMotion": "The field is a still frame rendered on demand: no flow, no automatic cycling, forms cut instead of morphing, and the pointer push and Pulse are off. Intensity, count, flow (which picks the frozen phase) and form still redraw the still.",
+      "reducedMotion": "The field is a still frame rendered on demand: no flow, no automatic cycling, no turning towards the pointer and no pointer light; forms cut instead of morphing, and the pointer push and Pulse are off. Intensity, count, flow (which picks the frozen phase) and form still redraw the still; the keys change state without their spring.",
       "performance": [
-        "One draw call for the whole field; additive blending with depth writes off, so there is no sorting.",
+        "One draw call for the whole field; additive blending with depth writes off, so there is no sorting. Sprites are drawn 2.3× wider to hold the halo, which the low profile’s density offsets.",
         "Count = requested × profile density; DPR is capped per profile. In headless SwiftShader the low profile renders 7,200 points.",
-        "Continuous loop only while the field animates and is on screen (StudioCanvas pauses offscreen); paused or reduced motion switches to render-on-demand.",
+        "Continuous loop only while the field animates and is on screen (StudioCanvas pauses offscreen); paused or reduced motion switches to render-on-demand. The pointer light is two CSS variables written outside React.",
         "Form buffers are generated once per count (seeded, deterministic) and the geometry is disposed when the count changes."
       ],
       "path": "library/src/demos/3d/particle-experience",
@@ -4729,37 +5185,45 @@
       "id": "physics-playground",
       "name": "Blockwerk Play Table",
       "specialty": "3d",
-      "summary": "Rigid-body physics with Rapier: drag, throw and stack wooden blocks, tilt gravity, and watch the render loop go idle once everything is asleep — with a full keyboard path through a body list.",
+      "summary": "Rigid-body physics with Rapier on a lit wooden workbench: lacquered blocks drop in, lift when you point at them, and can be picked up, thrown, stacked and tilted — with a full keyboard path through a body list and a render loop that goes idle once everything is asleep.",
       "highlights": [
-        "The Rapier chunk (WebAssembly included) is code-split with React.lazy and only fetched once the canvas starts; loading and failure states are shown.",
-        "Fixed 1/60 s timestep on a clamped clock, sleeping bodies, a 40-body cap that recycles the oldest, and removal of anything that falls out of the world.",
-        "Render on demand: Rapier requests frames only while a body is awake, so a settled table draws nothing — the page shows the frame counter stopping.",
-        "Drag is kinematic: the grabbed block follows the pointer on a camera-facing plane and is thrown with the pointer’s recent velocity on release."
+        "Thrown blocks are safe: every body mutation that starts in a pointer or button event is queued and applied in useBeforePhysicsStep, and every read checks that the body still exists (@react-three/rapier 2.2 never calls a ref with null when a body is removed — a stale handle used to panic Rapier as soon as a thrown block left the world).",
+        "Real materials instead of flat toy colours: bevelled blocks and planks with procedural wood grain in object space (end grain on the ends, long grain on the sides), lacquer on the high profile, lit by one window light from the upper left plus a generated environment — no downloads.",
+        "A motion language on springs from the motion tokens: blocks drop in lowest first and squash on landing (what they land on gives a little too), real landings squash by impact speed, the pointed-at block lifts and rim-lights while its shadow spreads, and a grabbed block rises before it follows the hand and keeps its velocity and spin when thrown.",
+        "One light direction for the page: table shadows (shadow maps where the profile allows, two-layer contact shadows everywhere) and every DOM shadow fall down and to the right; the keycap controls press in, latch and spring back on a linear() curve sampled from a spring token.",
+        "The Rapier chunk (WebAssembly included) is code-split with React.lazy; the workbench is drawn before it arrives. Fixed 1/60 s timestep on a clamped clock, sleeping bodies, a 40-body cap that recycles the oldest."
       ],
       "technology": [
         "r3f",
         "three",
-        "rapier"
+        "rapier",
+        "glsl"
       ],
       "uses": [],
+      "adapts": [
+        "press-depth-button"
+      ],
       "has3d": true,
       "accessibility": [
         "Every pointer action has a keyboard path: choose a body in the list (a native radio group), then Nudge left/right/away/toward, Lift, Drop or Remove.",
-        "Body state (resting, moving, held) is text in the list; additions, removals and recycling are announced in a polite live region.",
-        "Gravity direction is a radio group with names, strength a labelled slider with its value in m/s².",
+        "Body state (resting, moving, held) is text in the list; additions, removals and recycling are announced in a polite live region; the selected body also gets a ring on the table, not only a colour.",
+        "Toy box, gravity and camera choices are native radios styled as keys; every key has hover, pressed, latched, disabled and focus-visible states and is at least 38 px tall.",
+        "The drop-in never blocks input: the first press on the table or any control lands every block, and a Skip intro button is shown while it plays.",
         "Without WebGL a drawing of the starting arrangement is shown and the physics engine is never downloaded."
       ],
-      "reducedMotion": "The simulation starts paused and only runs after an explicit “Run simulation” press (the motion is the content). Camera views cut instead of gliding.",
+      "reducedMotion": "No drop-in (blocks are simply placed), no landing squash, hover lift or spring release on the keys — states change at once. The simulation starts paused and only runs after an explicit “Run simulation” press (the motion is the content). Camera views cut instead of gliding.",
       "performance": [
-        "One draw call per body (shared geometry per shape, one material per colour) plus the table; at most 40 bodies.",
-        "Shadow maps only on profiles that allow them; otherwise one instanced quad per body draws contact shadows in a single call.",
-        "The loop is idle whenever all bodies sleep or the simulation is paused; frame deltas are clamped to 50 ms so a resumed loop never fast-forwards."
+        "One draw call per body (one shared bevelled geometry per shape, one wood material per body so grain and rim light vary) plus the workbench; at most 40 bodies.",
+        "Contact shadows for all bodies are one instanced draw call (a tight contact layer and a wide soft layer each); shadow maps and lacquer (clearcoat) only on profiles that allow them.",
+        "Render on demand: Rapier requests frames only while a body is awake, the springs only while they move — a settled table draws nothing. Frame deltas are clamped to 50 ms so a resumed loop never fast-forwards."
       ],
       "path": "library/src/demos/3d/physics-playground",
       "files": [
         "index.tsx",
         "bodies.ts",
         "styles.module.css",
+        "Table.tsx",
+        "wood.ts",
         "World.tsx",
         "meta.ts"
       ]
@@ -4768,31 +5232,40 @@
       "id": "product-configurator",
       "name": "Pulse Configurator",
       "specialty": "3d",
-      "summary": "A product configurator for a fictional portable speaker: colourways, finishes, camera presets, exploded view, annotations and a price summary that all work with or without the canvas.",
+      "summary": "A product configurator for a fictional portable speaker in a soft-box studio: colourways and finishes laid on by a sweeping seam, a turntable with real inertia, camera presets, exploded view, annotations and a price summary that all work with or without the canvas.",
       "highlights": [
-        "One GLB, three optimised builds: the variant is chosen from the quality profile and its real size is shown.",
-        "Per-material overrides through PartController — originals are never mutated and are restored on unmount.",
-        "Exploded view driven by glTF node extras, critically damped and staggered; camera presets are interruptible.",
-        "Every option is a native radio/range/button and is mirrored in a text summary, so the configuration is complete without WebGL."
+        "The finish sweep: every option change is laid down by a lit seam that crosses the speaker, the old finish ahead of it and the new one behind (colour and roughness, patched into the PartController’s material clones; originals untouched). Reduced motion turns it into a short, even cross-fade.",
+        "Real inertia: the view follows the hand 1:1, then keeps the release velocity and eases out with friction (a flick coasts, a slow drag stops where you let go); ←/→ on the focused view give the same push.",
+        "One light for page and canvas: the studio (key upper right, fill, rim strip, floor bounce, generated environment reflections) turns with the camera like a turntable under fixed lights, so highlights glide over the finish as you orbit, and every control is lit from the same upper right. Neutral tone mapping keeps the swatches true.",
+        "A contact shadow rendered from the real geometry (depth from below, blurred into a tight contact layer and a wide soft one), re-rendered only when the geometry moves, so it follows the exploded parts; a key-light shadow map on profiles that allow it.",
+        "Alive at rest: left alone for a few seconds the view sways gently and the status ring breathes, until anything touches it; Pause motion stops both. The total counts between prices instead of swapping.",
+        "One GLB, three optimised builds chosen from the quality profile with the real size shown; every option is a native radio/range/button mirrored in a text summary, so the configuration is complete without WebGL."
       ],
       "technology": [
         "r3f",
-        "three"
+        "three",
+        "glsl",
+        "css"
       ],
       "uses": [],
+      "adapts": [
+        "orbit-inspect-controls",
+        "press-depth-button",
+        "number-ticker"
+      ],
       "has3d": true,
       "accessibility": [
-        "Colourways and finishes are radio groups with text names; colour is never the only signal.",
-        "Camera: pointer drag, toolbar buttons, and arrow / + / − / 0 keys on the focused view. Wheel zoom only when the view has focus.",
-        "Parts can be selected from a list as well as by clicking the model; the selected part is announced as text.",
-        "Annotations are real buttons over the canvas plus a mirrored list; the summary region is aria-live.",
+        "Colourways and finishes are radio groups with text names; colour is never the only signal. Every control has hover, focus-visible and pressed states with depth.",
+        "Camera: pointer drag or flick, toolbar buttons, and on the focused view ←/→ (spin with inertia), ↑/↓ (tilt), + / − and 0. Wheel zoom only when the view has focus; vertical touch swipes scroll the page.",
+        "The idle sway and the breathing ring have a Pause motion button (WCAG 2.2.2) and never run under reduced motion.",
+        "Parts can be selected from a list as well as by clicking the model; the selected part is announced as text. Annotations are real buttons over the canvas plus a mirrored list; the total is announced once, at its final value.",
         "Without WebGL the static render and the same controls and summary are shown."
       ],
-      "reducedMotion": "Camera presets and the exploded view cut instead of animating; the dial clip never auto-plays and only runs from its Play button.",
+      "reducedMotion": "No inertia after release, no idle sway, no breathing ring: drags still follow the hand but stop where you let go, ←/→ step the view, presets and the exploded view cut, the finish change is a 160 ms cross-fade, the total changes without counting, and the dial clip only runs from its Play button.",
       "performance": [
-        "Render on demand: the scene draws only while the camera, explode amount or a clip is changing.",
-        "Low-power devices load the 1.0 MB build (131k triangles) and use an analytic contact shadow instead of a shadow map.",
-        "Material clones are created lazily (only for materials that are overridden) and disposed with the controller."
+        "Render on demand: the scene draws only while the camera, a coast, the sweep, the explode amount or a clip is changing; with motion paused (or under reduced motion) an idle scene draws nothing. While the idle sway runs, hotspot occlusion raycasts are switched off.",
+        "The contact shadow costs one depth render of the model and six 512 × 304 blur passes, only on frames where the geometry changed (load, explode, strap); four small render targets, disposed on unmount.",
+        "Low-power devices load the 1.0 MB build (131k triangles) and skip the shadow map; material clones are created once (the swept and breathing materials are always owned) and disposed with the controller."
       ],
       "dataNote": "Product, brand, specifications and prices are fictional.",
       "path": "library/src/demos/3d/product-configurator",
@@ -4800,6 +5273,7 @@
         "index.tsx",
         "config.ts",
         "controls.tsx",
+        "scene.tsx",
         "styles.module.css",
         "meta.ts"
       ]
@@ -4808,16 +5282,18 @@
       "id": "spatial-data",
       "name": "Meridian Service Atlas",
       "specialty": "3d",
-      "summary": "A seeded, fictional map of 43 services in five clusters: instanced nodes and one line batch in 3D, a flat 2D layout for honest comparisons, and a sortable table that stays in sync with the scene.",
+      "summary": "A seeded, fictional map of 43 services in five clusters, lit like objects on a map table: glazed instanced nodes, weighted curved links, fog and contact shadows for depth, a flat 2D layout for honest comparisons, and a sortable table that stays in sync with the scene.",
       "highlights": [
-        "Layout is a small, deterministic force relaxation written for the demo (repulsion, springs, cluster gravity) — the same atlas on every load.",
-        "One draw call per node type (instanced spheres, cylinders, octahedra, cubes) and a single LineSegments for all 74 links.",
-        "Selecting a node in the scene, the details panel or the table selects it everywhere: neighbours light up, the camera frames it, the row is highlighted.",
-        "A 2D layout morphs in on demand, with copy on why the flat view is the accurate one for comparing sizes and distances."
+        "Layout is a small, deterministic force relaxation written for the demo (repulsion, springs, cluster gravity) — the same atlas on every load; node size, link direction and every figure mean exactly what they did before the visual pass.",
+        "Depth cues without postprocessing: fog that fades distant nodes into the paper, contact shadows projected along the key light (pooled on a floor under the 3D graph, true drop shadows on the paper behind the 2D map), glazed env-lit nodes with a fresnel rim, and a key light that stays at the upper left of the view like every DOM shadow on the page.",
+        "Links with weight: one instanced tube bent along a quadratic curve in the vertex shader (arcs in 3D, a sideways bow in 2D), fading from caller to callee; incident links thicken on hover and selection.",
+        "Selection answers physically: the node pops on a spring, a halo settles round it, two pulses run along each incident link from caller to callee and the node at the far end bumps when one arrives — then the scene is still again in about 2.5 s.",
+        "The scene keeps answering the pointer: the graph turns a few degrees towards it and the key light drifts with it (3D only). Selecting in the scene, the details card or the table selects everywhere."
       ],
       "technology": [
         "r3f",
-        "three"
+        "three",
+        "glsl"
       ],
       "uses": [],
       "collaborates": [
@@ -4826,17 +5302,17 @@
       "has3d": true,
       "accessibility": [
         "The sortable table is the complete equivalent of the map: every service, its cluster, type, simulated figures and link count; header buttons expose aria-sort.",
-        "Selecting a row selects the node in the scene; focusing a row previews it; selecting in the scene highlights and scrolls the row.",
-        "Cluster is never encoded by colour alone: clusters are spatial neighbourhoods with on-canvas names, and the type of a node is its shape (with a text legend).",
-        "Map controls: drag, wheel after focusing, or arrow / Shift+arrow / + / − keys on the focused map. Without WebGL an SVG flat map reflects the same filters and selection."
+        "Selecting a row selects the node in the scene; focusing a row previews it; selecting in the scene highlights and scrolls the row. The details card keeps one height whatever it shows, so the table never moves under the pointer.",
+        "Cluster is never encoded by colour alone: clusters are spatial neighbourhoods with on-canvas names, the type of a node is its shape (with a text legend), and the selected node gets a halo ring and an inverted label.",
+        "Map controls: drag, wheel after focusing, or arrow / Shift+arrow / + / − keys on the focused map. Buttons, layout switch and neighbour chips have hover, pressed and focus-visible states. Without WebGL an SVG flat map reflects the same filters and selection."
       ],
-      "reducedMotion": "Switching between the 3D and 2D layouts and focusing a node cut to the end state instead of animating. Nothing moves on its own.",
+      "reducedMotion": "Switching between the 3D and 2D layouts and focusing a node cut to the end state. No parallax, no pointer-following light, no selection pulses, pops or bumps: sizes and the halo change at once. Nothing moves on its own.",
       "performance": [
-        "Render on demand: frames are drawn only while the camera or the layout morph is moving, or when the selection changes.",
-        "Five draw calls for the whole graph; restyling rewrites instance colours/matrices and one vertex-colour buffer — no materials are created per node.",
-        "Both layouts are computed once (≈ 420 iterations over 43 nodes, a few milliseconds) and the labels are projected after each rendered frame, without React re-renders."
+        "Render on demand: frames are drawn only while the camera, the layout morph, a selection spring or the pointer parallax is moving — a resting map draws nothing (the scene is memoised so the page’s diagnostics poll cannot wake it).",
+        "Seven draw calls at most: one instanced mesh per node shape, one for all 74 links, one for the contact shadows, one for the selection halo; restyling rewrites instance attributes, never materials.",
+        "Both layouts are computed once (≈ 420 iterations over 43 nodes, a few milliseconds); labels are projected after each rendered frame without React re-renders; clearcoat only on the high quality profile."
       ],
-      "dataNote": "Simulated sample data: service names, dependencies and traffic figures are generated from a fixed seed and describe no real system.",
+      "dataNote": "Simulated sample data: service names, dependencies and traffic figures are generated from a fixed seed and describe no real system. Link thickness and pulse speed carry no data.",
       "path": "library/src/demos/3d/spatial-data",
       "files": [
         "index.tsx",
@@ -4853,10 +5329,11 @@
       "summary": "A five-beat launch page for a fictional organ builder's new chamber organ: a typographic hook, the room that shaped it, a pinned zoom through an arched window into the case, a playable specification and a still invitation to the first recital.",
       "highlights": [
         "Five beats with a colour script: paper → the dark oak case (beat 3) → paper. The arch is the recurring motif: hero window, zoom-through, closing outline.",
-        "Beat 3 is a CSS-sticky pinned scene with one scrubbed GSAP timeline: the arch mask grows from a window to full screen (a full-screen transition into the case), the façade layers dolly in and then part, with rest zones before and after.",
-        "Typographic full-bleed hook in condensed capitals that is painted at first paint; its lines leave through masks as it scrolls away, and the window beside it fills with light on load.",
-        "Dynamic navigation hides while reading down, returns on any upward scroll or keyboard focus, and marks the current section with aria-current.",
-        "SVG animation with meaning: sound rays draw across the hall section; pulling a stop raises its rank in a drawing to scale with a person."
+        "Light through the arch: the pointer is where the west window's light comes from. The warm glow leans toward it, light shafts between the ranks turn with it, each pipe's specular band slides across its cylinder (SVG gradientTransform), and the façade layers part in depth. Scroll speed is wind: the glow swells and the shafts brighten, then breathe out.",
+        "Pull a stop: drag a drawknob out against growing resistance until it clicks over its detent (the stop is drawn the moment it crosses), push it back the same way; release settles it on a spring.press token with the hand's velocity. A tap, Enter or Space still toggles it.",
+        "The drawn rank rises pipe by pipe, tallest first, landing with a spring.pop overshoot; it retires faster, in reverse order.",
+        "Beat 3 is a CSS-sticky pinned scene with one scrubbed GSAP timeline: the arch mask grows from a window to full screen, the façade layers dolly in and then part, with rest zones before and after. Pointer parallax uses the CSS translate property, so it composes with GSAP's transforms instead of fighting them.",
+        "One light direction for the DOM too: knob faces are domed from the upper left, and every control (knobs, links, the call to action) has a contact shadow and a soft shadow falling lower right that lift on hover, collapse when pressed and spring back on release."
       ],
       "technology": [
         "gsap",
@@ -4867,18 +5344,24 @@
       "uses": [
         "split-line-reveal"
       ],
+      "adapts": [
+        "parallax-depth-layers",
+        "press-depth-button"
+      ],
       "has3d": false,
       "accessibility": [
         "The page is a static document in beat order; every animated layer is decorative and aria-hidden, and the headline is real text in one copy.",
-        "Stops are toggle buttons (aria-pressed) with visible names; a polite live summary states which stops are drawn and how many pipes speak.",
+        "Stops are toggle buttons (aria-pressed) with visible names; dragging is an extra way in, never the only one: tap, Enter and Space toggle, and a polite live summary states which stops are drawn and how many pipes speak.",
+        "Stop rows keep touch-action: pan-y, so vertical swipes scroll the page and only a sideways drag pulls a knob; pointer light listens to mouse and pen only.",
         "A skip link passes the pinned sequence; navigation links and every control are reachable by keyboard and the hidden header reappears on focus.",
         "Text over the case interior sits on a solid panel; the call to action is a real link with its own focus ring."
       ],
-      "reducedMotion": "No pinning, mask growth, parallax or line exits: the case interior is shown as a still drawing with both captions in normal flow, the header never slides, sound rays are drawn from the start, stops change without easing and the room headline appears without its word reveal.",
+      "reducedMotion": "No pinning, mask growth, parallax, pointer light, wind or line exits: the case interior is a still drawing lit from the upper left with both captions in normal flow, the header never slides, sound rays are drawn from the start, stops change and ranks appear without easing, and controls press without springs.",
       "performance": [
         "Pinning is position: sticky; scroll work is a handful of scrubbed timelines animating transform, opacity and one mask size.",
-        "The scene is five SVG layers of plain shapes (about 60 pipes) with one gradient per layer; no filters or blur.",
-        "All tweens and triggers live in one useGSAP scope and are reverted on unmount; a ResizeObserver and fonts-ready listener refresh measurements."
+        "Pointer light and wind share one rAF loop that wakes on pointer or scroll input and sleeps once values settle; per frame it writes three custom properties per scene and six gradient transforms, skipping unchanged values.",
+        "The scene is SVG layers of plain shapes (about 60 pipes) with one gradient per layer; the shafts are one CSS gradient layer; no filters or blur.",
+        "Knob springs run in rAF only while a released knob settles; all tweens and triggers live in one useGSAP scope, and listeners, loops, a ResizeObserver and the fonts-ready listener are released on unmount."
       ],
       "path": "library/src/demos/cinematic/cinematic-landing",
       "files": [
@@ -4892,13 +5375,14 @@
       "id": "immersive-3d-hero",
       "name": "Kelda Ridge — night walks",
       "specialty": "cinematic",
-      "summary": "An immersive hero for a fictional guided night walk: one procedural WebGL landscape drawn as contour lines, an aurora sky and layered type, with the page's scroll carrying the camera from the lake, along the ridge and up to the sky before handing over to plain content.",
+      "summary": "An immersive hero for a fictional guided night walk: one procedural WebGL landscape drawn as contour lines, a dusk-to-aurora sky and layered type, with the page's scroll carrying the camera from the lake, along the ridge and up to the sky before handing over to plain content.",
       "highlights": [
-        "One persistent StudioCanvas behind four DOM slides: the page owns scroll progress (one ScrollTrigger on the window scroller) and the scene is a pure view of it — a damped camera on a Catmull-Rom path that requests frames only until it settles.",
-        "Rest zones are measured from the slides themselves, so each caption is read while the camera holds at its stop; viewpoint buttons reach every stop from the keyboard.",
-        "Procedural, theme-aware scene: a seeded height field shaded as iso-lines with fwidth anti-aliasing, a shader sky with aurora curtains, a star field and the walking route — colours come from the theme tokens and update live with the theme.",
-        "Poster first: an SVG ridgeline print in the same palette paints immediately and is the fallback without WebGL; quality scales terrain resolution and star count with the profile's density.",
-        "Layered DOM type (two weights at different depths) drifts apart as the hero leaves; nothing essential is drawn in the canvas."
+        "A colour script driven by scroll: the camera leaves the lake at dusk (afterglow behind the far fells), the stars come out along the ridge, and the aurora reaches full strength at the summit. The stage is always night, in both gallery themes, so the climax reads everywhere.",
+        "Aurora curtains with folds: a sinuous lower edge, pleats that glow where the ribbon turns edge-on, shimmering vertical rays and violet tops. Scrolling fast flares them (scroll velocity → brightness, attack fast, decay slow, soft-shouldered so nothing clips).",
+        "One light from the north sky: it rims north-facing slopes with aurora green, tints the lake's reflection, and in the DOM tints the top edges of the caption panels and controls while every shadow falls below.",
+        "Hands on the scene: the pointer aims a warm head-torch at the ground (a ray marched against the height field, lit in the terrain shader with a cone, falloff and facing); the camera sways ±1.5° with it and the layered title moves in depth with the sway.",
+        "Horizontal drag looks around ±20° with a rubber band past the limit; release keeps the throw's velocity and a spring.release token brings the view home. Look left / Look right buttons are the keyboard twin (a press glances, holding keeps looking).",
+        "One persistent StudioCanvas behind four DOM slides: the page owns scroll progress (one ScrollTrigger) and the scene damps toward it, requesting frames only until camera, look, torch and flare have settled. The SVG poster in the same palette paints first and cross-fades into the live scene."
       ],
       "technology": [
         "r3f",
@@ -4911,26 +5395,32 @@
       "uses": [
         "split-line-reveal"
       ],
+      "adapts": [
+        "shader-aurora-plane",
+        "press-depth-button"
+      ],
       "collaborates": [
         "3d"
       ],
       "has3d": true,
       "accessibility": [
-        "The canvas is labelled and described; every chapter is DOM text on a solid panel, in reading order, and the viewpoint buttons (aria-current) mirror the scroll camera.",
-        "Pause sky stops the only continuous animation (WCAG 2.2.2); Turn off 3D swaps the canvas for the poster at any time.",
-        "The canvas ignores pointer events, so scrolling and touch always belong to the page; no scroll-jacking.",
+        "The canvas is labelled and described (including the torch and the look-around); every chapter is DOM text on a solid panel in reading order, and the viewpoint buttons (aria-current) mirror the scroll camera.",
+        "Night-stage text uses fixed light-on-dark tokens checked against the brightest sky state; the hero copy sits on a scrim and the captions on 86 %-opaque panels.",
+        "The canvas ignores pointer events; the drag listens on the page with touch-action: pan-y pinch-zoom and only claims a pointer once the movement is clearly horizontal, so vertical swipes, the wheel and pinch zoom stay native.",
+        "Look left and Look right are real buttons (press glances, hold Space or Enter to keep looking); Pause sky stops the only continuous animation (WCAG 2.2.2) and Turn off 3D swaps the canvas for the poster at any time.",
         "The sample schedule is a real table with a caption that says the data is fictional."
       ],
-      "reducedMotion": "No scroll-driven travel and no sky animation: the scene sits in a static frame below the title, the viewpoint buttons cut the camera between the three stops (one rendered frame each, via the three-kit CameraRig) and the captions follow in normal flow.",
+      "reducedMotion": "No scroll-driven travel, entrance, sway, look-around or sky animation: the scene sits in a framed still below the title, the viewpoint buttons cut the camera between the three stops (and the colour script with it), the captions follow in normal flow and buttons change state without springs. The head-torch still answers the pointer, as light only.",
       "performance": [
-        "frameloop is \"always\" only while the sky plays and the canvas is on screen (StudioCanvas pauses offscreen); paused or reduced, it renders on demand when the camera moves.",
-        "Terrain segments = 220 × quality density (clamped 72–220) and stars = 2,600 × density; DPR follows the quality profile. One draw call each for terrain, sky, stars and route plus three cairns.",
-        "Geometries and materials are created imperatively and disposed on unmount; the ScrollTrigger, its ResizeObserver and font listener are reverted with the useGSAP scope."
+        "frameloop is \"always\" only while the sky plays and the canvas is on screen (StudioCanvas pauses offscreen); paused or reduced it renders on demand, and pointer, drag and scroll input request frames until things settle.",
+        "Terrain segments = 220 × quality density (clamped 72–220), stars = 2,600 × density; nine draw calls in all (sky, stars, far-fells ring, terrain, route, route halo, three cairns). The torch is one CPU ray march per rendered frame.",
+        "Geometries and materials are created imperatively and disposed on unmount; pointer listeners are removed on unmount; the ScrollTrigger, its ResizeObserver and font listener are reverted with the useGSAP scope."
       ],
       "dataNote": "The walk schedule (dates, meeting times, lengths and places) is fictional sample data written for this demo; the landscape is generated from a seeded noise function.",
       "path": "library/src/demos/cinematic/immersive-3d-hero",
       "files": [
         "index.tsx",
+        "palette.ts",
         "Poster.tsx",
         "Scene.tsx",
         "shaders.ts",
@@ -4945,11 +5435,11 @@
       "specialty": "cinematic",
       "summary": "A kinetic type piece staged as a late-night shipping forecast for a fictional coast: every cue uses a different type technique, and one pause control stills them all.",
       "highlights": [
+        "The pointer is a desk lamp: a warm pool of light follows it across the page, and the display type casts a contact shadow and a soft shadow away from it, with a rim on its lit side (em-scaled, so the biggest type stands highest). At rest the lamp sits upper left.",
+        "The tuning dial is the thing you handle: drag the needle (or press anywhere on the scale) and it follows with weight; release keeps the throw's velocity, friction slows it and a detent catches it on 97.4 with a spring.pop overshoot. Off-station the presenter's line blurs and jitters with static and the signal meter drops. It is a real slider: arrows step 0.1 MHz (stepping toward the station drops into its detent), Page Up/Down 1 MHz, Home/End the band's ends.",
+        "Entrance: the radio tunes itself in. The needle is thrown from 89.1, slowed by the same friction and caught by the same detent as a hand-thrown needle, and the line comes into focus as it locks.",
         "Variable-font axis choreography: wind force drives weight, width and optical size of each sea area (wght 380–800, wdth 100–77, opsz 12–96), scrubbed by scroll; scroll velocity leans the list like a gust.",
-        "Composes four recipes with the piece's own copy: variable-weight-wave (pointer and keyboard), scramble-decode (tuning in), split-line-reveal (sea state) and kinetic-marquee (gale warnings, mirrored to the global pause).",
-        "Type on an SVG path: the area names run along a drawn coastline as a slow, pausable ticker that borrows speed from scrolling.",
-        "A tuning dial needle sweeps onto the station as the hero scrolls away; a timecode gutter sticks beside each cue like a transcript.",
-        "The gallery font only exposes Bricolage's wght axis, so the demo declares the local three-axis cut under its own family name, scoped to this page."
+        "Composes four recipes with the piece's own copy: variable-weight-wave (pointer and keyboard), scramble-decode (tuning in), split-line-reveal (sea state) and kinetic-marquee (gale warnings, mirrored to the global pause). Type on an SVG path: the area names run along a drawn coastline as a slow, pausable ticker that borrows speed from scrolling."
       ],
       "technology": [
         "gsap",
@@ -4963,25 +5453,111 @@
         "split-line-reveal",
         "kinetic-marquee"
       ],
+      "adapts": [
+        "press-depth-button"
+      ],
       "has3d": false,
       "accessibility": [
         "One accessible copy of every animated line: the recipes expose their sentence once (aria-label or visually hidden copy), the coastline is an image with a title and a description listing the areas, and a plain list of areas follows it.",
-        "A visible Pause motion toggle (aria-pressed) in the sticky bar stops the idle weight wave, the coastline ticker and the marquee (WCAG 2.2.2).",
-        "The weight-wave headline is focusable and responds to arrow keys; every pointer-reactive moment has a keyboard or scroll equivalent.",
+        "The dial is a focusable slider named Tuning with aria-valuenow and a value text that says whether the station is clear, faint or static; the static effect is blur and jitter only, so the line keeps its colour contrast.",
+        "A visible Pause motion toggle (aria-pressed) in the sticky bar stops the idle weight wave, the coastline ticker, the marquee and the static jitter (WCAG 2.2.2).",
+        "The weight-wave headline is focusable and responds to arrow keys; every pointer-reactive moment has a keyboard or scroll equivalent. The dial keeps touch-action: pan-y, so vertical swipes scroll the page.",
         "Wind force is stated in words in every row; the axis changes only reinforce it. Gale rows add weight and signal colour plus the word \"gale\"."
       ],
-      "reducedMotion": "Everything is still: rows sit at their force axes without scrubbing or skew, the coastline shows one static run of names, the dial rests on the station, recipes show their final states, and the pause control is replaced by a note.",
+      "reducedMotion": "Everything is still: the lamp stays upper left with fixed shadows, the dial rests on the station (keys and drags set it directly, with no glide or static), rows sit at their force axes without scrubbing or skew, the coastline shows one static run of names, recipes show their final states, and the pause control is replaced by a note.",
       "performance": [
-        "Axis changes are confined to six short, nowrap display lines (one reflow per frame while scrubbing), driven by one scrubbed timeline; the gust uses a single quickTo on the list.",
-        "The coastline ticker and recipes run on useRafLoop, so they stop offscreen, in hidden tabs and when paused.",
-        "All triggers are created inside useGSAP and reverted on unmount; one ResizeObserver and a fonts-ready listener refresh them."
+        "The lamp is one viewport-sized sticky layer whose gradient centre moves, plus two custom properties for the shadows; its rAF loop wakes on pointer or scroll input and sleeps once the lamp has settled.",
+        "The dial runs on useRafLoop (asleep offscreen and in hidden tabs) and writes one transform, a readout and two custom properties, only when they change; static jitter is re-rolled about 20 times a second while detuned.",
+        "Axis changes are confined to six short, nowrap display lines (one reflow per frame while scrubbing), driven by one scrubbed timeline; the gust uses a single quickTo on the list. All triggers are created inside useGSAP and reverted on unmount."
       ],
       "path": "library/src/demos/cinematic/kinetic-typography",
       "files": [
         "index.tsx",
         "Coastline.tsx",
+        "Dial.tsx",
         "styles.module.css",
         "Winds.tsx",
+        "meta.ts"
+      ]
+    },
+    {
+      "id": "motion-studio",
+      "name": "Lead & Lag — motion studio",
+      "specialty": "cinematic",
+      "summary": "The one-page site of a fictional two-person motion studio, where the page is the portfolio: a glass loupe you throw across the manifesto on a light table, one lamp that lights the DOM and the WebGL glass alike, a cursor that reads the page, Lottie controls, a reel with a dancing Rive mascot and a Rive star rating.",
+      "highlights": [
+        "Built to the Immersive craft floor. Signature move, \"thrown, then landed\": whatever you move keeps your hand's velocity (spring.release), stretches a little along its travel and lands with a settle and a squash while its shadow tightens. The loupe, the archive film, the cursor ring and the reel's ball all move this way; even the manifesto's full stop is a ball that bounced down the words, drawn as onion-skin frames that squash on each contact and stretch in flight.",
+        "The hero is the liquid-glass-lens recipe as a loupe on a light table: drag or throw it over \"Nothing stops dead.\" The sheet under the glass (12-field guide, peg holes, an easing graph, a spring curve, a spacing chart and a timeline that plot the page's real motion tokens) is drawn through the lens's draw callback in the page's own palette tokens, and redrawn when the palette changes.",
+        "One lamp for DOM and canvas: at rest it hangs at the upper left, 38° up, the lens's own resting light; on fine pointers the visitor carries it. Each lit element gets the light's direction (--lx, --ly) from one rAF loop that sleeps when settled, so card, button, screen and rating-band shadows swing away from the pointer while the glass's highlight and shadow follow the same pointer in WebGL.",
+        "The cursor-follower recipe scoped to the whole page: a \"View\" disc over case studies, \"Drag\" over the archive film, \"Play\"/\"Pause\" over the reel screen, a magnet around the calls to action and round buttons, and a caret that lands between letters in paragraphs; it steps aside over the glass and the stars.",
+        "Lottie controls from the recipe's icon data: sun ⇄ moon switches a local night palette for the whole page, which spreads from the switch as a circle (a View Transition: the old page a still snapshot, the new one live underneath, the glass already in its night look and the sheet redrawn); the menu icon opens the narrow-screen menu, hearts save case studies to a shortlist shown under Contact, and play ⇄ pause runs the reel.",
+        "Two Rive state machines through RiveCanvas: Birb (birb.riv) looks up when the pointer comes in above its head, dances while the reel plays, and has Pause, Dance and Look up controls; \"How did this page feel?\" is rating_animation.riv under a native radio group, recoloured from the signal token with a luminosity blend.",
+        "Case cards lean toward the pointer with mass by size (the feature card leans 4° on spring.glide, the others 7° on spring.settle), lift toward the lamp, press within a frame and pop back; the hovered card plays its still. \"View\" flies the artwork out of the card into a modal case sheet (FLIP on spring.glide) and back, faster, on close.",
+        "Alive between inputs: scroll speed makes the \"Lag\" in the wordmark lag behind in onion-skin ghosts and skews the clients marquee (kinetic-marquee); the process playhead follows the page's own scroll through four keys, with no pinning, and each key it passes draws the studio's ball at that stage: the brief, Noor's key poses, Teo's inbetweens, the shipped curve."
+      ],
+      "technology": [
+        "r3f",
+        "three",
+        "glsl",
+        "canvas2d",
+        "lottie",
+        "rive",
+        "waapi",
+        "view-transitions",
+        "css",
+        "svg"
+      ],
+      "uses": [
+        "cursor-follower",
+        "liquid-glass-lens",
+        "lottie-micro-interactions",
+        "rive-state-machine",
+        "kinetic-marquee",
+        "split-line-reveal"
+      ],
+      "adapts": [
+        "tilt-parallax-card",
+        "press-depth-button",
+        "spotlight-border-card",
+        "expanding-card-detail"
+      ],
+      "collaborates": [
+        "3d",
+        "motion-lab"
+      ],
+      "has3d": true,
+      "accessibility": [
+        "Everything is reachable in reading order without the spectacle: the manifesto is a real heading, the canvas is labelled and described, every pointer interaction has a keyboard twin (the loupe moves with the arrow keys, Shift for bigger steps, Home to centre, plus a Centre button; the archive scrolls with the arrows; the reel has a labelled slider; the stars are native radios).",
+        "All controls are real buttons, links or inputs with visible focus rings and targets of at least 44 px; Lottie toggles expose aria-pressed (Night palette, Save, Play reel) or aria-expanded (Menu); state never relies on colour or motion alone.",
+        "Anything that moves by itself for more than five seconds can be paused: the reel only plays after Play, the marquee has Pause, Birb's idle loop has Pause; the entrance lasts under a second, never blocks input, and finishes at once on the first key, click or wheel.",
+        "The custom cursor is decoration on fine pointers only; the native cursor stays visible and the follower steps aside for keyboard use.",
+        "The case sheet is a native modal dialog (Escape or Close returns focus to the card); saves, copies, ratings and reel state are announced in polite live regions.",
+        "Both palettes were set for WCAG AA text contrast, including the always-dark archive and screening room; the studio, its people, clients, work and address are fictional and labelled as such."
+      ],
+      "reducedMotion": "No entrance, tilt, lift, lamp tracking, wordmark lag, card stills, playhead or custom cursor; the night palette switches at once, the process drawings are all drawn, the case sheet opens and closes with a 160 ms fade, the loupe follows the hand directly with no momentum or light motion, the archive stops where you let go, the marquee is static and Lottie icons jump to their end frames under a 160 ms cross-fade. Birb holds a still frame and the stars jump to their final frames. The reel and Birb's Dance and Look up are motion as content behind explicit controls: they still play when pressed, with shots changing by 160 ms cross-fades instead of travelling.",
+      "performance": [
+        "One WebGL canvas (the loupe), in a lazily imported chunk with three.js, mounted by StudioCanvas when near view and rendered on demand only while the glass or its light moves; an SVG poster of the same sheet paints first and is the no-WebGL fallback under the recipe's CSS glass.",
+        "The lottie-web light player and the Rive runtime and WASM load lazily from the page's own origin; Birb and the rating mount only when they come within 500 px of the viewport, and Rive stops drawing offscreen.",
+        "Every loop sleeps when settled: the lamp, card springs, wordmark lag, archive glide and cursor follower run only while something moves; the reel is one Web Animations timeline whose timecode is written to a text node per frame without React renders.",
+        "Motion is transform and opacity, with paint-only shadows on a handful of visible lit elements; the shadow layers under cards are pre-blurred and translated, and the type shot animates one glyph's weight and width."
+      ],
+      "path": "library/src/demos/cinematic/motion-studio",
+      "files": [
+        "index.tsx",
+        "Archive.tsx",
+        "art.tsx",
+        "content.ts",
+        "HeroGlass.tsx",
+        "light.ts",
+        "manifesto.ts",
+        "ManifestoSvg.tsx",
+        "Mascot.tsx",
+        "near.ts",
+        "Rating.tsx",
+        "Reel.tsx",
+        "stage.module.css",
+        "styles.module.css",
+        "Work.tsx",
         "meta.ts"
       ]
     },
@@ -4991,11 +5567,12 @@
       "specialty": "cinematic",
       "summary": "An editorial scroll story about how a fictional river carves, widens and furnishes its valley: stepped text in normal flow beside a sticky survey drawing that is scrubbed from stage to stage.",
       "highlights": [
-        "Sticky-graphic scrollytelling: the step text stays in the normal document flow, so it is also the reduced-motion and no-script version of the story.",
-        "The figure is a pure function of the stage t (0–4): meanders are a sine-generated curve whose angle grows, a neck cut-off leaves an oxbow lake, terraces and a channel scar appear — all redrawn from one scrubbed GSAP timeline with rest zones on every stage.",
-        "One ScrollTrigger (window scroller) owns the timeline; React state changes only when the current stage changes. The trigger refreshes after web fonts load and whenever the demo frame changes width.",
-        "A progress rail of named stage buttons (aria-current=\"step\") jumps to each stage and moves focus to its heading; a skip link passes the whole sequence.",
-        "At narrow widths the figure sticks above the text and the reading line moves below it."
+        "Sticky-graphic scrollytelling: the step text stays in the normal document flow, so it is also the reduced-motion and no-script version of the story. The figure is a pure function of the stage t (0–4), redrawn from one scrubbed GSAP timeline with rest zones on every stage.",
+        "Handle the figure: the section line A–A′ can be dragged (or the plan pressed to place it) and the inset redraws the valley's cross-section along it — the channel crossings (three across a loop at stage V), the oxbow lake as still water, the terraces. It follows the hand on a spring.press token, a flick keeps its velocity and glides to a soft stop, and the grip is a keyboard slider (arrows, Page Up/Down, Home/End).",
+        "An orchestrated entrance with a recurring move: the surveyor inks the title hill from its summit outward (stagger.base) while the river draws itself under \"Bend\"; the headline is there from the first paint.",
+        "Relief under a lamp: the pointer tilts the drawings like a relief model — every contour shifts by its own height (higher ground further, the river not at all); the plate casts a two-layer shadow from the upper-left light.",
+        "The river runs while you read: pale flecks travel downstream along the channel at a speed set by the scroll velocity, and stop when the reader does.",
+        "A progress rail of named stage buttons (aria-current=\"step\") jumps to each stage and moves focus to its heading; a skip link passes the whole sequence. At narrow widths the figure sticks above the text and the reading line moves below it."
       ],
       "technology": [
         "gsap",
@@ -5006,18 +5583,24 @@
       "uses": [
         "split-line-reveal"
       ],
+      "adapts": [
+        "svg-path-draw",
+        "parallax-depth-layers",
+        "press-depth-button"
+      ],
       "has3d": false,
       "accessibility": [
         "Every stage is a section with its own heading in reading order; the drawing has one text description and a visible caption naming the current stage.",
-        "Stage buttons have visible names that match their accessible names, carry aria-current and are at least 40 px tall; focus goes to the stage heading after a jump.",
-        "Nothing is conveyed by motion alone: each stage has its text, a \"look for\" note and a caption.",
+        "The section line's grip is a focusable slider (aria-valuenow 0–100) whose value text says what the line crosses (\"crosses the river twice and the oxbow lake\"); the inset label shows the same.",
+        "On touch the plan keeps touch-action: pan-y, so vertical swipes scroll the page; only the 44 px grip drags, and a tap on the plan places the line.",
+        "Stage buttons have visible names that match their accessible names, carry aria-current and are at least 40 px tall; focus goes to the stage heading after a jump. Nothing is conveyed by motion alone.",
         "Text uses theme tokens; the water colour passes 4.5:1 on all three surfaces in both themes."
       ],
-      "reducedMotion": "No sticky figure and no scrubbing: each stage gets its own still drawing next to its text, the rail follows the stage in view, buttons jump without smooth scrolling and the closing title appears without its word reveal.",
+      "reducedMotion": "No sticky figure, scrubbing, entrance, relief or current: each stage gets its own still plate next to its text (its section line still moves, set directly by key or drag with no glide), the rail follows the stage in view, buttons jump without smooth scrolling and the closing title appears without its word reveal.",
       "performance": [
-        "Scroll work is one scrubbed timeline; per frame the painter rewrites about twenty path attributes, skipping unchanged values. No layout reads inside the loop.",
-        "Geometry generation is O(n) apart from a small neck search (about 20k distance checks) and only runs while the stage changes.",
-        "useGSAP with revertOnUpdate kills the trigger and timeline on unmount or reduced-motion change; the ResizeObserver and font listener are released with it."
+        "Scroll work is one scrubbed timeline; per frame the painter rewrites about twenty path attributes, skipping unchanged values. Moving the section line recomputes only the cross-section (O(n) crossings on cached plan points) and rewrites eight attributes.",
+        "The section spring and the current run on useRafLoop (asleep offscreen and in hidden tabs); the relief loop wakes on pointer movement and sleeps once settled; the entrance is one createSequence cancelled on unmount.",
+        "useGSAP with revertOnUpdate kills the trigger and timeline on unmount or reduced-motion change; ResizeObservers and the font listener are released with it."
       ],
       "path": "library/src/demos/cinematic/scroll-narrative",
       "files": [
@@ -5035,11 +5618,14 @@
       "summary": "Interactive exploration of 327 sample coffee lots from four fictional regions: facet filters with counts, a linked scatter, histogram and ranked dot plot, two-dimensional brushing, drill-down from region to farm with a breadcrumb, an A/B comparison mode and a shareable URL.",
       "highlights": [
         "One selection drives every view: facets and the drill path define what is in view; altitude and score brushes select within it; the scatter, histogram, dot plot, summary sentence and table all read the same set.",
-        "Brushing works three ways — drag a rectangle on the scatter, drag across the histogram, or move the keyboard-operable range handles (the brush-linked-range technique, rebuilt generically for any domain).",
-        "Drill-down from regions to cooperatives to farms to lots with a breadcrumb; within a level, rows keep identity and glide to their new rank with interpolated values (the bar-race-transition technique), drawn as dots and percentile whiskers because cup scores cluster far from zero.",
+        "Signature move — a brush you can throw: held, the window follows the hand 1:1 and rubber-bands past the ends of the axis; released, it keeps the hand’s velocity, glides with friction (the selection follows it), bounces off an end and lands on the snapped value on the spring.release token. Keyboard steps and changes made elsewhere spring the drawing on spring.press / spring.settle. The selection is always the snapped value; only the drawing springs.",
+        "Brushing works three ways — draw a rectangle on the scatter (live: the selection follows the hand, then the rectangle springs onto the snapped ranges), drag across the histogram, or move the keyboard-operable range handles (the brush-linked-range technique, rebuilt generically for any domain).",
+        "A halo with dashed axis guides and exact readouts glides from mark to mark on spring.press as the pointer or the keyboard cursor moves; the pinned lot is lifted off the paper (one light, top left: its shadow falls down and right) and named by a tag.",
+        "Drill-down uses the flip-grid-reorder technique adapted to a ranked list: the children emerge from the row you chose — from its slot and from its mean, so the aggregate visibly splits into its parts — staggered by rank, while the old rows leave as aria-hidden ghosts; drilling up folds them back. Within a level, rows glide to their new rank with interpolated values (the bar-race-transition technique).",
+        "One entrance, once: marks sweep in by altitude band and bars rise from the zero line by bin, all finished by 280 ms; filters never replay it.",
+        "Every control has hover, pressed and focus states lit from the same direction: hover lifts toward the light, press sinks at once, release springs back on a token spring rendered as CSS linear() (the press-depth-button technique).",
         "Comparison mode (by process, variety or region) re-encodes marks as filled A / hollow B, plots each group’s share per bin so different group sizes compare fairly, turns the dot plot into dumbbells and adds a reconciled A − B table.",
-        "Every filter, brush, comparison, sort and pinned lot lives in the URL hash (replaceState, no history spam), so a view can be shared or restored after reload.",
-        "The summary is computed from the selection and words the altitude–score relation as an association in sample data, never as a cause."
+        "Every filter, brush, comparison, sort and pinned lot lives in the URL hash (replaceState, no history spam). The summary is computed from the selection and words the altitude–score relation as an association in sample data, never as a cause."
       ],
       "technology": [
         "d3",
@@ -5049,21 +5635,25 @@
       "uses": [],
       "adapts": [
         "brush-linked-range",
-        "bar-race-transition"
+        "bar-race-transition",
+        "flip-grid-reorder",
+        "press-depth-button"
       ],
       "has3d": false,
       "accessibility": [
-        "Keyboard access to points: the focused scatter is a slider over the selected lots in altitude order (arrows, Page Up/Down, Home/End), Enter pins a lot, Escape hides the readout; the lots table is the full alternative.",
-        "Each brush is three role=\"slider\" controls with value text in metres or points; Escape on a handle clears that brush.",
-        "Facets are native checkboxes with counts; comparison uses native selects; the breadcrumb is a nav landmark with aria-current.",
+        "Keyboard access to points: the focused scatter is a slider over the selected lots in altitude order (arrows, Page Up/Down, Home/End), starting from the hovered or pinned lot; Enter pins a lot, Escape hides the readout; a mouse click no longer moves that keyboard cursor. The lots table is the full alternative.",
+        "Each brush is three role=\"slider\" controls with value text in metres or points; Escape on a handle clears that brush. Readouts and tooltips appear at once — only their position glides.",
+        "Facets are native checkboxes with counts; comparison uses native selects; the breadcrumb is a nav landmark with aria-current, and after a breadcrumb jump focus moves to the new current level.",
+        "Drilling from a row moves focus to the first row of the new level; ghost rows are aria-hidden. “Show 25 more” moves focus to the first newly shown row; a pinned lot beyond the shown rows gets a “Show it” control.",
         "Process is shape as well as colour (circle, square, triangle); comparison groups are filled versus hollow; the histogram and dot plot have a bin table and per-row text names.",
-        "A polite status message reports the selection count after changes settle (debounced), never during a drag."
+        "Tables grow in the page and only scroll sideways inside their labelled region, so the wheel and touch scroll always reach the page. A polite status message reports the selection count after changes settle (debounced), never during a drag."
       ],
-      "reducedMotion": "Dot-plot rows jump to their new rank and value instead of gliding; brushing, drilling and comparison are unchanged because they follow the hand directly.",
+      "reducedMotion": "No entrance, no glide, no rubber band, no springs: brush windows, the scatter rectangle and the halo are drawn exactly at their values; dot-plot rows cut to their rank and value, and a level change cross-fades the new rows in 160 ms. Hover, press and pin states apply instantly. Brushing, drilling and comparison work the same.",
       "performance": [
-        "327 lots render as SVG marks; a brush move filters and re-renders in well under a frame.",
-        "Selections are memoised from the facets, path and brush ranges; the row tween is one rAF loop over at most a dozen rows.",
-        "The URL is written 150 ms after the last change with replaceState."
+        "327 lots render as SVG marks in one keyed list (a lot keeps its node as it enters or leaves the selection); a brush move filters and re-renders in well under a frame.",
+        "Springs, glides and the halo run in short rAF loops that write positions straight to the DOM and stop as soon as everything is at rest; all loops are cancelled on unmount. Hover and press states are CSS transitions on token springs (springToLinear), no JavaScript per frame.",
+        "The drill choreography is one rAF loop over at most a dozen rows plus their ghosts; the entrance is 361 CSS animations that end by 280 ms and are never re-applied.",
+        "The URL is written 150 ms after the last change with replaceState; the lots table renders 25 rows at a time."
       ],
       "dataNote": "Sample data (seed 1730): lots, farms, cooperatives and regions are invented; scores come from a generator with an altitude trend, process and variety effects, a farm effect and noise. Correlations describe the generator, not coffee.",
       "path": "library/src/demos/data/data-exploration",
@@ -5071,6 +5661,7 @@
         "index.tsx",
         "Breakdown.tsx",
         "data.ts",
+        "physics.ts",
         "RangeBrush.tsx",
         "Scatter.tsx",
         "styles.module.css",
@@ -5084,11 +5675,11 @@
       "summary": "End-of-day analytics for a fictional multi-asset fund: alerts first, rolling KPI figures, a growth-of-£100 chart that morphs between ranges and follows a brushable three-year history, allocation drift against target bands, return attribution that reconciles, and a sortable positions table.",
       "highlights": [
         "One window drives everything: range presets morph the chart (values and y-domain interpolated at a shared resolution, as in line-chart-morph); dragging the three-year brush (the brush-linked-range pattern) re-derives the KPIs, allocation and attribution directly, without tweening under the hand.",
-        "KPI figures roll digit by digit (the number-ticker technique) only on discrete changes; each tile pairs its value with a comparison and a period, and deltas carry ▲/▼ and a sign, with the gain/loss colours switchable for markets that show rises in red.",
+        "KPI figures roll digit by digit (the number-ticker technique) only on discrete changes, on exact geometry: every digit cell is the same height with no gaps and reels move in whole cells, so no frame shows a half digit at rest; the ticker’s classes are prefixed so they cannot collide with the brush strip. Each tile pairs its value with a comparison and a period; deltas carry ▲/▼ and a sign, with the gain/loss colours switchable for markets that show rises in red.",
+        "Essential profile throughout: token durations × 0.7 with standard easing (range morph 252 ms, digit roll 168 ms, bars 168 ms); held arrow keys and drags cut instead of rolling; buttons, segments, rows, sort headers and brush handles have instant pressed states and one-tick releases; the chart readout is the only raised surface.",
         "Alerts are derived from rules run on the data (drift beyond a ±2 pp band, a move beyond 3× the 60-day standard deviation, a drawdown watch with open/clear thresholds) and sit at the top, by urgency, with severity as word, shape and colour.",
         "Return attribution lists each sleeve’s contribution plus fees and compounding, so the rows reconcile exactly to the fund’s return.",
-        "Selecting a position plots it, rebased, against the fund; selecting a sleeve filters the table — linked views without a separate mode.",
-        "The chart, overview and KPI patterns are local, data-driven adaptations of the line-chart-morph, brush-linked-range and number-ticker recipes, whose components ship their own sample datasets."
+        "Selecting a position plots it, rebased, against the fund; selecting a sleeve filters the table — linked views without a separate mode."
       ],
       "technology": [
         "d3",
@@ -5107,14 +5698,15 @@
         "The chart is a focusable slider: ←/→ step a trading day, Page Up/Down a week, Home/End jump, Esc hides the readout; aria-valuetext reads the date and every series.",
         "The brush window and both of its edges are role=\"slider\" controls with date values; presets are a native radio group.",
         "A computed text summary sits under the chart and is announced politely after each committed range change (not while dragging); “View as table” shows the same values.",
-        "Positions: sortable headers expose aria-sort; one row button is in the tab order and ↑/↓/Home/End move between rows; the wide table scrolls inside its own labelled region with a frozen first column.",
+        "Positions: sortable headers expose aria-sort; one row button is in the tab order and ↑/↓/Home/End move between rows; the wide table scrolls sideways inside its own labelled region with a frozen first column, and never holds the wheel — page scrolling continues over every table.",
+        "Acknowledging an alert moves focus to its “Acknowledged” confirmation instead of dropping it on the page.",
         "Nothing relies on colour alone: series differ by weight and dash, severities by word and shape, deltas by sign and arrow, out-of-band sleeves by an icon and text."
       ],
-      "reducedMotion": "Range changes cut to the new chart instead of morphing, KPI digits swap without rolling and allocation bars jump; crosshair, brush and table behave the same.",
+      "reducedMotion": "Range changes cut to the new chart instead of morphing, KPI digits swap without rolling, allocation and attribution bars jump, and pressed states apply without a release transition; crosshair, brush and table behave the same.",
       "performance": [
         "Every range is resampled once to 640 points, so a morph frame is one array lerp per series and three path strings; the rAF loop runs only during a morph.",
-        "Brush drags recompute the window statistics (≤ 785 days) synchronously — well under a frame — and never start a tween.",
-        "Digit columns animate with transform-only WAAPI and collapse back to one cell when they finish."
+        "Brush drags recompute the window statistics (≤ 785 days) synchronously — well under a frame — and never start a tween or a bar transition.",
+        "Digit reels animate with transform-only WAAPI and collapse back to one cell when they finish; press states are CSS transitions only."
       ],
       "dataNote": "Simulated: a seeded five-sleeve factor model (seed 366) with fees, quarterly rebalancing and a 60/40 composite built from the same sleeves; twelve invented instruments follow their sleeve plus noise. Weekdays only, UTC. Not a real fund, not real prices, not advice.",
       "path": "library/src/demos/data/financial-dashboard",
@@ -5137,8 +5729,9 @@
         "The stream is stateless: every sample is a pure function of seed, agent and wall-clock second, so history, catch-up after a background tab and live ticks all agree.",
         "Anomaly rules run on the stream as it arrives — latency z-score against a frozen 2-minute baseline, a 10-second error rate, throughput against its own average — and every event states the rule and the numbers.",
         "Selecting an agent swaps the fleet chart for that agent’s p95 with its expected band and anomalous spans; switching the 1/5/15-minute window morphs values and domain together (the line-chart-morph technique, adapted locally because the recipe component ships its own dataset).",
-        "Restrained live emphasis: one ring per received tick on the status lamp, no tweening of live values, no re-sorting, nothing that flashes; the log freezes under pointer or focus and offers “Show N new”.",
-        "Designed states: connecting (before the first sample), live, paused with “N s behind”, stale, and an operator-paused agent with no samples rather than zeros."
+        "Calm by design (Essential): KPI numbers jump on purpose (no tweening of live values), no re-sorting, nothing flashes; the only self-moving element is one token-timed ring per received tick on the status lamp, stopped by Pause.",
+        "Crisp controls: Pause, the window segments, agent cells and buttons have hover, instant pressed and focus states with one-tick releases (Essential tokens × 0.7); an agent cell keeps its status bar and its selection ring together.",
+        "Designed states: connecting (before the first sample), live, paused with “N s behind”, stale, and an operator-paused agent with no samples rather than zeros; the log freezes under pointer or focus and offers “Show N new”."
       ],
       "technology": [
         "d3",
@@ -5156,9 +5749,9 @@
         "One polite status region announces new anomalies only, summarised, at most once every 15 seconds — never every tick.",
         "Status is word + shape + colour (square healthy, triangle degraded, octagon failing, bars paused); anomalies also carry a text chip.",
         "Agent cells are buttons with their full readout as text; “View as table” lists every agent’s current values; the chart is an image with a computed summary that is also printed below it.",
-        "The event log is a focusable scroll region that holds still while focused or hovered."
+        "The event log is a focusable scroll region that holds still while focused or hovered; at either end of the log the wheel carries on to the page (no overscroll containment)."
       ],
-      "reducedMotion": "The live lamp stops ringing, window changes cut instead of morphing, and nothing else animates; values still update every second unless paused.",
+      "reducedMotion": "The live lamp stops ringing, window changes cut instead of morphing, and pressed states apply without a release transition; values still update every second unless paused.",
       "performance": [
         "One 1 s interval drives everything; a tick appends 11 samples, runs three O(120) rules per agent and re-renders once.",
         "Windows are resampled to 240 points (max-preserving for latency so spikes survive); sparklines draw 60 points each.",
@@ -5180,11 +5773,13 @@
       "specialty": "data",
       "summary": "A fictional plateau’s 384 snow-depth sensors as instanced 3D bars where height is the reading, with an equivalent keyboard-navigable 2D heatmap and a table, a 30-day playback on request, and copy on when the flat view is the more accurate one.",
       "highlights": [
-        "Depth carries the data: 384 bars in one instanced draw call, heights interpolated between days (values, not pixels), rendered on demand only while something changes.",
+        "Depth carries the data: 384 bars in one instanced draw call, heights and colours interpolated together between days (values, not pixels), rendered on demand only while something changes.",
+        "Real light without bending the encoding: one light high in the north-west (the top left of the overview, the same direction the page’s controls cast their shadows). Top faces show the exact colour of the reading; side faces carry the form — shaded by the light, darkened near the ground (contact occlusion), with a lit top edge — and a soft shadow falls to the south-east on the ground only, never on a bar.",
         "The 2D map is not a lesser fallback but the accurate view: an ARIA grid with column letters and row numbers, values printed in each cell where they fit, and the same pinned sensor as the 3D scene.",
         "A toggle with plain copy on when 2D is more accurate (perspective, occlusion, exaggeration) and what 3D is for (seeing drifts as a landform); the vertical exaggeration is stated in the legend.",
         "One sequential hue, light-to-dark on light pages and dark-to-light on dark ones; offline sensors are hatched “no reading” cells and flat tiles, never zeros.",
-        "Three-kit composition: StudioCanvas (quality, lazy mount, fallback to the 2D map), OrbitInspect for pointer and keyboard orbit, CameraRig for the overview, from-the-west and near-plan presets."
+        "Controls are keys under the same light: hover lifts them, pressing sinks them at once, release springs back on the press spring (CSS linear() from springToLinear).",
+        "Three-kit composition: StudioCanvas (quality, lazy mount, fallback to the 2D map), OrbitInspect for pointer and keyboard orbit with inertia, CameraRig for the overview, from-the-west and near-plan presets."
       ],
       "technology": [
         "r3f",
@@ -5193,21 +5788,24 @@
         "css"
       ],
       "uses": [],
+      "adapts": [
+        "press-depth-button"
+      ],
       "collaborates": [
         "3d"
       ],
       "has3d": true,
       "accessibility": [
         "The 2D map is a role=\"grid\" with row and column headers: arrow keys move, Home/End jump along a row, Enter pins a sensor; every cell’s name includes its value and grid reference.",
-        "The 3D scene is keyboard-operable through OrbitInspect (arrows rotate, + / − zoom, 0 resets) and carries a computed description; the table lists all 384 values for the chosen day.",
+        "The 3D scene is keyboard-operable through OrbitInspect (arrows rotate, + / − zoom, 0 resets) and carries a computed description; the table lists all 384 values for the chosen day and never holds the wheel.",
         "Playback is off until requested, can be paused, and is announced once when it ends; manual day steps announce the day’s mean and deepest sensor.",
         "Without WebGL the scene falls back to the same 2D map, with a note saying why."
       ],
-      "reducedMotion": "Bar heights cut to the new day instead of rising or falling and camera presets cut instead of flying; playback still steps one day per 0.9 s when you press Play.",
+      "reducedMotion": "Bar heights and colours cut to the new day instead of rising or falling, camera presets cut instead of flying, and control presses apply without a spring; playback still steps one day per 0.9 s when you press Play.",
       "performance": [
-        "One InstancedMesh (384 boxes) plus one ground plane and one outline: three draw calls; matrices and colours are rewritten only when the day, hover or theme changes.",
-        "frameloop=\"demand\": frames are requested only during a height tween or camera move; the canvas mounts lazily near the viewport.",
-        "The 2D map is plain HTML (384 cells) with colours from a cached 341-step ramp."
+        "Three draw calls at rest (ground, shadow, one InstancedMesh of 384 boxes; the outline adds one while a bar is highlighted). The bar lighting is a few lines injected into an unlit material, so no lights, shadow maps or environment are computed.",
+        "The cast shadow is a 102 × 70 canvas redrawn only when heights change and blurred for free by linear texture filtering.",
+        "frameloop=\"demand\": frames are requested only during a height tween or camera move; the canvas mounts lazily near the viewport. The 2D map is plain HTML (384 cells) with colours from a cached 341-step ramp."
       ],
       "dataNote": "Simulated (seed 912): storm totals with settling, a fixed wind-redistribution field, late-month melt and noise on a 24 × 16 grid over 30 days; three sensors go offline for a while. The plateau, survey and readings are invented; dates in UTC.",
       "path": "library/src/demos/data/spatial-data-viz",
@@ -5224,44 +5822,51 @@
       "id": "animated-onboarding",
       "name": "Larder Kitchen Setup",
       "specialty": "product",
-      "summary": "A five-step workspace setup for a fictional kitchen app where every answer flies onto a ticket on the pass rail: shared-element view transitions, reward-early/punish-late validation, async steps with a morphing submit button, and a first real outcome at the end.",
+      "summary": "A five-step workspace setup for a fictional kitchen app where every answer flies onto a ticket hanging on the pass rail: step changes choreographed on the real elements (no snapshots), reward-early/punish-late validation, a ranked list you can drag, async steps with a morphing submit button, and a first real outcome at the end.",
       "highlights": [
-        "One question per step with honest progress (“Step 2 of 5” in the heading itself), Back at the top, Skip for now on every optional step, and only the kitchen name required.",
-        "Shared-element continuity with viewTransition(): the answer you gave (text field, role card, each chosen list, each connection) morphs into its line on the setup ticket while the step panel slides in the reading direction; Back reverses it.",
-        "Validation timing from the flows playbook: no errors while first typing, errors on blur or submit with aria-invalid and aria-describedby, cleared live as soon as the value is fixed, focus to the first problem.",
-        "Async steps use the morph-submit-button choreography (pill → circle with a decelerating arc → check or “!” → pill), re-implemented as a controlled button because the recipe is a sealed waitlist card.",
-        "Invite rows reflow with flip() when added or removed; a demo switch makes the next request fail so the error, retry and no-data-loss paths can be seen.",
-        "Resumable: the step lives in the URL hash (one history entry per step, so the browser Back button steps back) and the answers in sessionStorage.",
-        "First outcome: a skeleton hands off to tomorrow’s (sample) prep list, with one brief check-mark celebration."
+        "Signature move, built on real elements instead of View Transitions: the answer’s text detaches from its field (a small lift as anticipation), arcs over to its line on the ticket (x and y on two different token springs), changes from the question’s face to the ticket’s mono mid-flight and hands over to the real ticket line at the same pixel. Nothing is ever a bitmap, and the old and new step are never on screen together.",
+        "Overlap and follow-through: the leaving step’s parts exit fast and staggered, the next step’s parts arrive slower and staggered while the answer is still in the air, the landing stamps the line with a pop of ink and the ticket swings on its clip.",
+        "The ticket is alive: it hangs from a clip and swings on a spring when answers land, when the page scrolls (in proportion to the scroll speed) and when a pointer brushes across it.",
+        "Hands on: “What should Larder build first?” is pick-and-rank. Chosen lists rise to the top with FLIP; drag a grip and the card follows, its neighbours make room, and on release it springs into its slot keeping the throw’s velocity. The same grip moves with the arrow keys, and the ticket prints the ranking.",
+        "One question per step with honest progress (“Step 2 of 5” in the heading itself), Back at the top, Skip for now on every optional step, and only the kitchen name required. Validation: no errors while first typing, errors on blur or submit, cleared live once fixed, focus to the first problem.",
+        "Async steps use the morph-submit-button choreography (pill → circle with a decelerating arc → check or “!” → pill) as a controlled button; every control has depth: lifts on hover with a two-layer shadow, compresses on press, springs back.",
+        "Resumable: the step lives in the URL hash (one history entry per step, so the browser Back button steps back) and the answers in sessionStorage. First outcome: a skeleton hands off to tomorrow’s (sample) prep list row by row, with one brief check-mark celebration."
       ],
       "technology": [
-        "view-transitions",
         "waapi",
         "css",
         "svg"
       ],
       "uses": [],
+      "adapts": [
+        "morph-submit-button",
+        "drag-reorder-list",
+        "press-depth-button",
+        "skeleton-shimmer-handoff"
+      ],
       "collaborates": [
         "motion-lab"
       ],
       "has3d": false,
       "accessibility": [
-        "Focus moves to each new step’s heading, which announces “Step n of 5” and the question; the heading is the form’s accessible name.",
+        "Focus moves to each new step’s heading at the moment the step changes, which announces “Step n of 5” and the question; the heading is the form’s accessible name. The new step is interactive as soon as it is on screen.",
         "Choices are native radios and checkboxes inside labelled fieldsets; Enter on a choice advances, like Enter in a text field.",
+        "Ranking has a keyboard path: each chosen list has a grip button named with its priority (“Prep lists: priority 1 of 3”); Arrow Up/Down, Home and End move it, and each move is announced in a polite status line.",
         "Errors are text with an icon and a border change, never colour alone; field errors sit in polite live regions, request errors receive focus.",
         "The busy button stays focusable with aria-busy and aria-disabled; its label names the action and, for connections, the integration.",
-        "The ticket is a labelled aside with a definition list, so the summary of answers is available without the animation."
+        "The ticket is a labelled aside with a definition list, so the summary of answers is available without the animation; the flying copies are aria-hidden."
       ],
-      "reducedMotion": "Step changes become a 180 ms cross-fade (no slide or flight), the button swaps labels without morphing or shaking, the skeleton does not shimmer and the completion check is drawn statically.",
+      "reducedMotion": "Step changes become a 180 ms fade of the new step (no slide, flight, stamp or swing), controls do not lift or squash, the button swaps labels without morphing or shaking, ranking moves apply instantly (dragging still works under the pointer), the skeleton does not shimmer and the completion check is drawn statically.",
       "performance": [
-        "View transitions run on the compositor; only five elements are ever named, and names exist only on the two states being swapped.",
-        "Every WAAPI animation and timer is tracked and cancelled on phase change or unmount; durations stay at or under the slow token so input is never blocked for long.",
-        "No dependencies beyond React: the View Transitions API is feature-detected and the update simply happens instantly where it is missing."
+        "No View Transitions and no snapshots: exits, entrances and flights are WAAPI transform/opacity animations on real elements; the flying answer is one absolutely positioned text node per answer, removed on landing.",
+        "Every animation, timer and flyer of a step change is tracked and cancelled when another change interrupts it or on unmount; a double press while a step is leaving is ignored.",
+        "The ticket’s swing is one spring on a useRafLoop that sleeps at rest; the drag uses pointer capture and transforms only, and the drop’s spring runs only until it settles."
       ],
       "dataNote": "Larder, its integrations and the prep list are fictional sample content; requests are simulated and nothing leaves the page.",
       "path": "library/src/demos/product/animated-onboarding",
       "files": [
         "index.tsx",
+        "choreo.ts",
         "data.ts",
         "MorphButton.tsx",
         "styles.module.css",
@@ -5272,14 +5877,14 @@
       "id": "product-configurator",
       "name": "Hollin Drover Build Sheet",
       "specialty": "product",
-      "summary": "A lightweight bike configurator with no WebGL: a parametric SVG side elevation that redraws from the frame geometry, native radio groups, a running price, URL-shareable state and a link to the 3D Studio for the case where 3D is worth it.",
+      "summary": "A lightweight bike configurator with no WebGL: a parametric SVG side elevation you can handle (spin the cranks and wheels, touch a part to configure it) that redraws from the frame geometry, native radio groups, a running price, URL-shareable state and a link to the 3D Studio for the case where 3D is worth it.",
       "highlights": [
         "Choosing the cheaper technique on purpose: bikes are judged side-on, so a computed SVG elevation answers every question a 3D model would, with no download and no GPU budget.",
-        "The drawing is generated from a geometry table (stack, reach, angles, tyre width): changing size tweens the frame itself and its live dimension lines instead of swapping pictures.",
-        "Parts, paints and fitted extras change with cross-fades of layered SVG groups; paint is a colour transition on the tube strokes.",
-        "Page-owned state serialised to the URL hash (replaceState), restored on load and on hashchange; one polite status line per change; build code and price recomputed in the same frame.",
-        "An incompatibility handled in words: 45 mm tyres remove fenders with a visible notice and Undo, and the blocked option explains itself and offers a one-press fix.",
-        "Price total rolls with an odometer (the number-ticker recipe’s digit-column technique, re-implemented to accept any value because the recipe only plays its own preset series)."
+        "Hands on the drawing: drag the cranks round and the chain drives the rear wheel through a freehub (the wheel may overrun; turning it backwards drags the cranks), drag either wheel to spin it, and every part keeps the velocity it was let go with before bearing friction stops it (well within five seconds). The front hub is a dynamo: with lights fitted, the beam and tail light glow with the front wheel’s speed. “Hold to pedal” and “Spin front wheel” are the button and keyboard twins.",
+        "Parts light up and lift under the pointer (signal outline, lift, soft shadow) with a caption naming them; pressing a part opens and focuses the option group that changes it, and hovering or focusing an option group lights the same part, so the drawing and the form point at each other.",
+        "Every choice has a designed change on the drawing: a new paint flows down the tubes from the head tube, handlebars and fitted extras drop in on a spring while the old ones lift away, and size or tyre changes reshape the frame on a spring that carries its velocity into a quick second pick.",
+        "Pen-and-ink entrance: outlines and rims draw themselves, then the paint and dimensions wash in; option cards lift with a two-layer shadow, press in and sit down when chosen.",
+        "Page-owned state serialised to the URL hash (replaceState); one polite status line per change; an incompatibility handled in words (45 mm tyres remove fenders with Undo); the price rolls with the number-ticker digit-column technique."
       ],
       "technology": [
         "svg",
@@ -5287,6 +5892,11 @@
         "waapi"
       ],
       "uses": [],
+      "adapts": [
+        "number-ticker",
+        "svg-path-draw",
+        "press-depth-button"
+      ],
       "collaborates": [
         "3d",
         "motion-lab"
@@ -5294,16 +5904,16 @@
       "has3d": false,
       "accessibility": [
         "Every option group is a fieldset with a legend; options are native radios (checkboxes for independent extras) whose labels carry the name, note and price, so colour is never the only signal.",
-        "The drawing is role=\"img\" with a title and a description of the current build and its key dimensions; the overlaid dimension labels are aria-hidden duplicates of a visible geometry table.",
-        "Each change is announced once through a polite status line (\"Paint: Marigold. Total $1,950.\"); the rolling price digits are aria-hidden with the plain value in text.",
+        "The drawing is role=\"img\" with a title and a description of the current build and its key dimensions; dragging it is an enhancement: “Hold to pedal” (pointer, Space or Enter held) and “Spin front wheel” do the same from the keyboard, and every part it links to is an option group in the form.",
+        "Each change is announced once through a polite status line (\"Paint: Marigold. Total $1,950.\"); the rolling price digits and the part caption are aria-hidden duplicates of visible text.",
         "The blocked fender option stays focusable (aria-disabled) and is described by the reason plus a button that resolves the conflict.",
         "Sticky drawing on narrow screens: option inputs carry scroll-margin so a focused control is never hidden under it."
       ],
-      "reducedMotion": "The geometry tween, part cross-fades and paint transitions are skipped (state applies instantly); the price swaps without rolling.",
+      "reducedMotion": "No entrance, lift, drop, paint flow or geometry spring: state applies instantly and the price swaps without rolling. The wheels and cranks still turn while you drag them or hold “Pedal” (motion under your control) but stop the moment you let go; “Spin front wheel” turns it a quarter turn.",
       "performance": [
         "No WebGL, no model or image downloads: the drawing is about two hundred SVG elements computed from a dozen numbers.",
-        "The size tween re-renders the SVG for 360 ms through one requestAnimationFrame loop that is cancelled on retarget or unmount.",
-        "Cross-fades animate opacity and transform only; spokes and dimension lines use non-scaling strokes so they stay crisp at every width."
+        "Wheel, crank and pedal angles are written straight to rotation groups (and the chain’s dash offset) from one useRafLoop that sleeps when everything stands still; React never re-renders while they spin.",
+        "The geometry spring re-renders the SVG only until the numbers settle; the paint flow is one dash-offset animation per tube on a createSequence timeline; hover lifts are transform and filter on one group."
       ],
       "dataNote": "Hollin Cycles, the Drover, its geometry, prices and lead time are fictional sample data. The number of valid builds is computed from the option data.",
       "path": "library/src/demos/product/product-configurator",
@@ -5320,44 +5930,55 @@
       "id": "product-showcase",
       "name": "Pulse Product Page",
       "specialty": "product",
-      "summary": "A storytelling product page for the fictional Pulse speaker that is complete as a photo page and offers real-time 3D only on request: a colourway picker that recolours the 2D render and the 3D materials alike, numbered details in both modes, chapters that dolly in on each detail, and a specification table.",
+      "summary": "A storytelling product page for the fictional Pulse speaker that is complete as a photo page and offers real-time 3D only on request: a render lit by the pointer, a loupe you drag over the product, colourways that wipe in, numbered details in both modes, chapters that dolly and zoom on each detail, and a specification table.",
       "highlights": [
-        "Poster first: the studio render is the hero and the page never waits for WebGL; “Explore in 3D” lazy-loads a separate chunk with StudioCanvas, the device-appropriate model build from the asset manifest, orbit with limits, named camera presets and tracked hotspots.",
-        "One colourway picker for both modes: in 3D it drives PartController material overrides (the same values as the 3D Studio’s configurator); in 2D the single render is tinted in the browser, so four colourways cost no extra images.",
-        "The 2D tint isolates the hardware by hue and the shell by masks derived from the image itself (the grille’s convex hull, the driver disc, the strap’s column runs and stitching), then shades in linear light so highlights survive.",
-        "Details work in both modes: numbered DOM markers over the photo, the three-kit HotspotLayer over the model, the same data and descriptions; choosing one in 3D moves the camera to a preset that shows it.",
-        "Chapters open on the whole product and dolly in on their detail as they enter the viewport (a reveal that explains where the part is), then a semantic specification table that marks which values are measured from the model.",
-        "The stage, chapter frames and closing band take the colourway’s own paper tint, defined per theme so text contrast holds in light and dark."
+        "Poster first: the studio render is the hero and the page never waits for WebGL; “Explore in 3D” lazy-loads a separate chunk with StudioCanvas, the device-appropriate model build, orbit with limits, named camera presets and tracked hotspots, and brings the whole stage into view.",
+        "The pointer is the key light: the render leans toward it (≤ 4°, one spring per channel), a specular sheen masked to the product’s own silhouette sits under it, and the two-layer floor shadow (tight contact + wide ambient) slides away from it. At rest the light sits top-left.",
+        "Hands on the photo: a loupe rests in the corner of the stage. Drag it over the speaker for a 2× look; it keeps its throw, is pulled toward nearby details and settles on the closest one, whose marker rides its rim while the detail card springs up. Pressing it steps through the details, arrow keys move it, Escape docks it.",
+        "Colourways change with a wipe in the new colour: the newly tinted render and its paper sweep in from the left behind a band of the new accent; one picker drives the 2D tint and the 3D materials alike.",
+        "Entrance in one sequence: the headline rises word by word, the speaker settles onto its shadow on a spring, the numbered details pop in; everything is usable from the first frame. Chapters dolly in on their detail once, then zoom by at most 10 % with the scroll.",
+        "Every control has depth: buttons, swatches, markers and the loupe lift with a two-layer shadow on hover and compress on press, released on a spring sampled with springToLinear()."
       ],
       "technology": [
         "r3f",
         "three",
         "canvas2d",
-        "css"
+        "css",
+        "waapi"
       ],
       "uses": [],
+      "adapts": [
+        "tilt-parallax-card",
+        "press-depth-button",
+        "split-line-reveal"
+      ],
       "collaborates": [
-        "3d"
+        "3d",
+        "motion-lab"
       ],
       "has3d": true,
       "accessibility": [
         "Colourways are a radio group with written names and notes; the price change and colourway are announced once in a polite status line.",
         "Photo markers are buttons named “Detail n: …” with aria-expanded; their description appears in a polite live region. In 3D the kit’s hotspot buttons and the canvas’s own keyboard orbit take over.",
+        "The loupe is a button with a written hint: Enter or Space steps through the details (docked → 1 → 2 → 3 → docked), arrow keys move it (Shift for larger steps), Escape docks it; its name says which detail it is on. The markers are its twin.",
         "Every 3D action has a DOM button (camera views, zoom in and out, reset, back to photo); load progress and readiness are announced as text.",
-        "Without WebGL 2 the 3D button is replaced by a sentence saying why, and the photo stage is the marked fallback; every detail and the specification remain.",
-        "Image alt text says when the photo is a browser-tinted render rather than a separate photograph."
+        "Without WebGL 2 the 3D button is replaced by a sentence saying why, and the photo stage is the marked fallback; every detail, the loupe and the specification remain.",
+        "Image alt text says when the photo is a browser-tinted render rather than a separate photograph; the headline keeps one accessible label while its words animate."
       ],
-      "reducedMotion": "Chapters show their close-up immediately (no dolly or text rise), the poster swaps colourway without a cross-fade, and the 3D camera cuts between presets instead of travelling.",
+      "reducedMotion": "No tilt, moving light, entrance or scroll zoom; colourways cross-fade in 160 ms instead of wiping; the loupe and markers jump to their places without springs or throw (the loupe still moves under the user’s control); chapters show their close-up immediately and the 3D camera cuts between presets.",
       "performance": [
         "Nothing 3D is downloaded until the visitor asks: three.js, R3F and the 1.0–2.0 MB model (low-power, mobile or desktop build by device) arrive with the button press.",
         "The tinted posters are computed once in an idle callback from the one 66 KB render and cached as object URLs (revoked on unmount).",
-        "One canvas at most, render-on-demand, disposed with the viewer when returning to the photo."
+        "Light, tilt and loupe springs run on useRafLoop loops that sleep at rest and pause offscreen; they write custom properties and transforms only. Chapter zoom reads scroll progress in rAF and writes one custom property.",
+        "The 3D viewer composites in its own render surface (will-change: filter), so a canvas partly under the sticky gallery header is drawn whole; one canvas at most, render-on-demand, disposed with the viewer when returning to the photo."
       ],
       "dataNote": "Pulse, its maker, prices and most specifications are fictional sample content; the size is measured from the generated 3D model and the tinted colourway photos are computed from its single studio render.",
       "path": "library/src/demos/product/product-showcase",
       "files": [
         "index.tsx",
         "data.ts",
+        "Loupe.tsx",
+        "physics.ts",
         "recolour.ts",
         "styles.module.css",
         "Viewer3D.tsx",
@@ -5368,14 +5989,14 @@
       "id": "saas-landing",
       "name": "Tarn Landing Page",
       "specialty": "product",
-      "summary": "A conversion-focused landing page for a fictional webhook inbox: a split hero whose product view is a working DOM inbox (replay the failed delivery), an interactive capture → inspect → replay walkthrough, a differentiator argued with a comparison table, honest pricing with an animated billing toggle, and an FAQ that answers the uncomfortable questions.",
+      "summary": "A conversion-focused landing page for a fictional webhook inbox: a split hero whose product view is a working, lit DOM inbox (scrub yesterday’s deliveries on a timeline, then replay the failed one and watch it travel to your endpoint), an interactive capture → inspect → replay walkthrough, a differentiator argued with a comparison table, honest pricing with an animated billing toggle, and an FAQ that answers the uncomfortable questions.",
       "highlights": [
-        "Claim, clarifier, product view, action: “Replay yesterday’s webhooks against today’s code.” passes the competitor test; the clarifier names the category and audience; the hero product is real DOM UI that bleeds off the edge and can be used (Replay turns the 500 into a simulated 200).",
-        "Headline entrance composed from the split-line-reveal recipe (the one orchestrated motion above the fold); everything else responds to input.",
-        "Sections ordered by the visitor’s questions: demonstration → differentiator (a semantic table of what a provider re-send changes versus a replay) → ranked supporting capabilities as text, not cards → pricing → objections → the same first step again.",
-        "One morphing indicator, measured and moved with a CSS transform, drives the scroll-spy nav, the walkthrough tabs and the billing toggle; prices roll with the number-ticker digit-column technique and the change is announced once.",
-        "Pricing states the complete price, the unit, overage terms, trial behaviour and cancellation; one plan is recommended with a reason in words, and the saving (“2 months free”) is computed from the plan prices.",
-        "No fabricated proof: no logos, testimonials or user counts; every URL uses the reserved .example domain and every figure is labelled sample."
+        "Signature move, the replay: the stored payload leaves its row along a path drawn as an arc (svg-path-draw technique), travels it to the endpoint chip (offset-path), and on arrival the 500 chips squash and spring back as 200 (morph-submit-button pattern) with one small burst; the path retracts and the history keeps the original 500.",
+        "Hands on the product: yesterday is a strip you can scrub (brush-linked-range technique). Ticks sit at each delivery’s time of day (height = response time, colour = status); drag the playhead and the delivery under it is selected live, throw it and it keeps its velocity before settling on the nearest delivery. The list rows are its twin (the playhead glides to the row you pick, the row highlight slides with it) and the arrow keys step between deliveries.",
+        "The hero window is a lit object: it leans toward the pointer (≤ 2.6°, one token spring per channel, eased off while a button is held), a highlight and a lit border ring follow the pointer, it lifts on hover over a two-layer shadow (tight contact + wide ambient, light from the top-left), and it drifts a little slower than the page as you scroll.",
+        "One orchestrated entrance above the fold: the headline rises word by word (split-line-reveal), the window settles in as its shadow spreads, the timeline’s ticks grow and the playhead glides to the failed delivery. Everything is interactive from the first frame.",
+        "Every CTA has depth (hover lifts, press compresses within a frame, release springs back on a springToLinear() curve); the hero CTA alone is magnetic on fine pointers.",
+        "Claim, clarifier, product view, action: the headline passes the competitor test, sections are ordered by the visitor’s questions, pricing states the complete price, overage, trial and cancellation, and nothing is fabricated: no logos, testimonials or user counts; every URL uses the reserved .example domain and every figure is labelled sample."
       ],
       "technology": [
         "waapi",
@@ -5385,28 +6006,42 @@
       "uses": [
         "split-line-reveal"
       ],
+      "adapts": [
+        "tilt-parallax-card",
+        "spotlight-border-card",
+        "magnetic-button",
+        "svg-path-draw",
+        "morph-submit-button",
+        "brush-linked-range",
+        "press-depth-button",
+        "number-ticker",
+        "accordion-height-auto"
+      ],
       "collaborates": [
         "motion-lab"
       ],
       "has3d": false,
       "accessibility": [
+        "The timeline playhead is a role=\"slider\" with the delivery as its value text (“14:41:07, invoice.paid, 500 error”); Arrow keys, Page Up/Down, Home and End step between deliveries, and the list buttons (aria-pressed) select the same deliveries.",
         "Sticky section nav with aria-current, a disclosure menu on narrow screens (Esc closes, focus returns), and in-page links that move focus to the target heading and keep the URL linkable.",
         "The walkthrough is an ARIA tablist with roving tabindex and arrow keys; the billing period is a labelled radio group; the FAQ uses headings with aria-expanded buttons, arrow keys between questions and regions labelled by their question.",
-        "Status codes are text (200/500 plus “OK”/“error” for assistive technology), never colour alone; the comparison table says “changed” and “same” in words.",
+        "Status codes are text (200/500 plus “OK”/“error” for assistive technology), never colour alone; replay progress and its result are announced in a polite status line; the comparison table says “changed” and “same” in words.",
         "Production replays require a second, explicit confirmation announced as an alert (an irreversible action gets a review step).",
-        "The rolling price digits are aria-hidden; one polite status line reports the new billing period and Team price."
+        "The rolling price digits, the travelling payload, the path and the burst are aria-hidden; one polite status line reports the new billing period and Team price."
       ],
-      "reducedMotion": "The headline appears without the line reveal, sections are visible immediately, indicators jump instead of sliding, prices swap without rolling and FAQ answers open instantly.",
+      "reducedMotion": "No lean, moving light, scroll drift, magnetic pull or entrance: the headline appears without the reveal; the replay swaps the status after a short wait without the path, payload or burst; the playhead and row highlight jump instead of gliding (dragging still moves the playhead under the pointer); prices swap without rolling; indicators jump and FAQ answers open instantly.",
       "performance": [
-        "No animation library: WAAPI for the headline and price digits, CSS transitions for indicators, reveals and the accordion (grid rows 0fr → 1fr, no height measuring).",
-        "The indicator is measured only when the selection or its container size changes (ResizeObserver), then moved with a transform.",
-        "All imagery is the product’s own interface in DOM; nothing is downloaded beyond the page’s code."
+        "No animation library: WAAPI for the headline, replay and price digits, CSS transitions for presses, indicators, reveals and the accordion (grid rows 0fr → 1fr).",
+        "The hero light, the playhead and the magnet are springs on useRafLoop loops that start on input and sleep at rest; they write custom properties, transform or translate only, and pause offscreen.",
+        "The replay path and payload use one SVG path (pathLength = 1, no measuring) and offset-path, created per replay and released on unmount; the indicator and row highlight are measured only when the selection or container size changes.",
+        "Everything is the product’s own interface in DOM: nothing is downloaded beyond the page’s code, and the demo ships no dependencies."
       ],
       "dataNote": "Tarn is fictional. Payloads, delivery logs, URLs (.example), plans and prices are sample data; replays and sign-ups are simulated and nothing leaves the page.",
       "path": "library/src/demos/product/saas-landing",
       "files": [
         "index.tsx",
         "content.ts",
+        "HeroWindow.tsx",
         "Inbox.tsx",
         "parts.tsx",
         "styles.module.css",
@@ -5422,6 +6057,8 @@
       "highlights": [
         "Poster first: the post is complete as a photo with facts, caption, reactions and a “Download model (GLB)” link; the model (size shown on the button) loads only on request.",
         "One StudioCanvas for the whole feed, built from the three-kit: Model (orbit-token GLB), OrbitInspect, LightingRig and AnimationPlayer driving the model’s own Spin clip.",
+        "Real brass: a generated “observatory” environment (no HDRI download) gives the metal something to reflect — a warm softbox up and to the left (the page’s own light direction), a tall white strip, a cool strip behind, a soft warm wall behind the viewer and one small red head-torch that glints in the planet. The token’s faceted normals are re-computed with a 34° crease on a private copy (round surfaces smooth, studs and edges crisp) under a polished, clear-coated brass material; the token stands in a pool of light with a soft contact shadow and opens three-quarters round, like the photo.",
+        "Every control has depth: Interact, the view tools, Close 3D, the reactions and the RSVP chips lift towards the light on hover, press below rest in one frame and spring back; toggled ones sit pressed in. Before activation the photo tilts a few degrees towards the pointer and a glint, masked to the token, crosses the brass.",
         "The photo stays until the model reports loaded, then cross-fades; download progress is real bytes from the response stream.",
         "Close 3D, or scrolling a screen away, unmounts the canvas — the renderer is disposed and the cached model is evicted a second later.",
         "Other posts stay flat: a drawn meteor log and an event with an RSVP whose audience is stated and a real .ics calendar file."
@@ -5434,6 +6071,10 @@
         "css"
       ],
       "uses": [],
+      "adapts": [
+        "press-depth-button",
+        "tilt-parallax-card"
+      ],
       "collaborates": [
         "3d"
       ],
@@ -5445,10 +6086,12 @@
         "Without WebGL there is no Interact button: the photo is the fallback and says so, and the model download still works.",
         "Feed pattern with labelled articles; reactions are toggle buttons with text counts; the RSVP is a native radio group with a neutral “Not this time”."
       ],
-      "reducedMotion": "The token never spins on its own: the Spin button is the only way to start it, and the orbit has no damping tail (moves are direct). Reaction pops are removed; the poster cross-fade is near-instant.",
+      "reducedMotion": "The token never spins on its own: the Spin button is the only way to start it, and the orbit has no damping tail (moves are direct). The photo does not tilt or glint, controls change shadow and fill without moving, reaction pops are removed, and the poster cross-fade is near-instant.",
       "performance": [
         "Nothing 3D loads while scrolling: only the 2 kB manifest is fetched up front (for the honest file size and triangle count).",
         "frameloop=\"demand\": frames render only while the camera moves or the Spin clip plays.",
+        "The environment is one PMREM render of a handful of emissive panels, made once per open; the creased geometry and brass material are created on open and disposed on close, and the cached model is never mutated. The floor is one transparent quad and the contact shadow the kit’s blob quad (no shadow-map pass).",
+        "The photo’s tilt and glint are two CSS variables eased in a short rAF loop that sleeps when the pointer stops.",
         "The model is the 113 kB meshopt desktop build (5,280 triangles, no textures) — the only variant that exists for this asset.",
         "Headless verification uses software WebGL (SwiftShader); timings there say nothing about a real phone."
       ],
@@ -5466,23 +6109,33 @@
       "id": "campaign-landing",
       "name": "Campaign Landing",
       "specialty": "social",
-      "summary": "Mend March, a fictional city-wide repair challenge: a stitched-in kinetic hero, honest dates, a filterable gallery of last year’s mends, a pledge form with careful validation, a share-card generator and a café leaderboard clearly marked as sample data.",
+      "summary": "Mend March, a fictional city-wide repair challenge: a denim hero where you sew the saffron patch on yourself, honest dates, a gallery of last year’s mends you can turn over to see the “before”, a pledge whose key morphs while it saves, a share-card generator and a café leaderboard clearly marked as sample data.",
       "highlights": [
-        "Kinetic hero: the split-line-reveal headline rises in while a running stitch sews a saffron patch on, once, then the page is still.",
-        "Honest framing instead of pressure: real dates (1–31 March 2027) with no countdown, “no prizes, on purpose”, an opt-in gallery and a leaderboard that says nobody is behind.",
-        "Gallery filters reorder with FLIP (the motion module’s flip()): staying tiles glide, entering tiles scale in, DOM order stays the reading order, and the count is announced politely.",
-        "Pledge flow: errors on blur and on submit with aria-invalid / aria-describedby, focus to the first problem, no email, name optional, success state that takes focus.",
-        "Share card drawn on a 1080 px canvas from your pledge; Download PNG always works, “Share image…” appears only where navigator.canShare({ files }) says yes. Sharing never unlocks anything.",
-        "Leaderboard: bar-race pattern on one shared scale with Play/Pause and week buttons; an ordered list in rank order carries the same numbers."
+        "Signature — sew it yourself: drag the needle along the tailor’s-chalk line and the running stitch appears behind it (the svg-path-draw technique, driven by the pointer instead of a clock); drag back to unpick. The needle turns corners on a spring, settles into the nearest stitch when released, and its thread is a short verlet rope that trails and whips behind it; the last stitch ties it off and the patch settles onto the cloth. On first view the needle sews one side and hands over.",
+        "Every gesture has a twin: the needle is a slider (←/→ one stitch, Page Up/Down a side, Home/End), “Finish for me” plays the one-shot stitch from wherever you are, “Unpick” starts again.",
+        "Alive, lit from one top-left light: the denim has a twill weave, film grain and two indigo fields at different depths that follow the pointer (≤ 14 px), plus a work-lamp highlight that moves with it; the share card tilts towards the pointer and catches the light.",
+        "Gallery filters reorder with the flip-grid-reorder technique: staying photos glide (staggered, interruptible), leaving ones shrink and fade where they stood, new ones rise into the gap. Each photo lifts on hover, presses down, and turns over on a spring to its “before” side.",
+        "Pledge flow: errors on blur and on submit with aria-invalid / aria-describedby and focus to the first problem; the key collapses into a patch with a progress ring, draws a check, and a small burst of patches celebrates the person’s own pledge, once. No email, name optional, gallery opt-in.",
+        "Honest framing instead of pressure: real dates (1–31 March 2027) with no countdown, “no prizes, on purpose”, an opt-in gallery and a leaderboard (bar-race pattern on one shared scale, heavy rows on the glide spring) that says nobody is behind."
       ],
       "technology": [
         "waapi",
         "css",
         "svg",
-        "canvas2d"
+        "canvas2d",
+        "motion"
       ],
       "uses": [
         "split-line-reveal"
+      ],
+      "adapts": [
+        "svg-path-draw",
+        "flip-grid-reorder",
+        "morph-submit-button",
+        "grain-gradient-mesh",
+        "press-depth-button",
+        "tilt-parallax-card",
+        "reaction-burst"
       ],
       "collaborates": [
         "cinematic"
@@ -5490,25 +6143,28 @@
       "has3d": false,
       "accessibility": [
         "One h2 per section; the hero headline keeps a single accessible copy (split-line-reveal’s aria-label).",
-        "Filters are toggle buttons (aria-pressed); categories, thread colours and weeks are native radio groups styled as chips with visible focus.",
-        "Form errors are text (not colour alone), linked with aria-describedby and announced once as a polite summary.",
-        "The share-card canvas has a written equivalent that updates with its text; the leaderboard drawing is aria-hidden with a ranked list for assistive tech.",
-        "Focus rings switch to saffron on the denim hero so they keep contrast."
+        "The needle is a labelled slider with value text (“9 of 24 stitches sewn”, “Patch sewn on”) and a visible focus ring; dragging is never required — keys and the Finish/Unpick buttons do everything.",
+        "Gallery photos are toggle buttons (aria-pressed, “Show the before photo: …”) described by the side that is showing; filters are toggle buttons; categories, thread colours and weeks are native radio groups with visible focus.",
+        "Form errors are text (not colour alone), linked with aria-describedby and announced once as a polite summary; the submit key keeps focus and is aria-busy while saving, and the confirmation heading takes focus.",
+        "The share-card canvas has a written equivalent that updates with its text; the leaderboard drawing is aria-hidden with a ranked list for assistive tech. Focus rings switch to saffron on the denim hero."
       ],
-      "reducedMotion": "The headline appears at once and the patch is shown already stitched; filters swap tiles without gliding (entering tiles fade in 160 ms); the leaderboard swaps weeks without sliding or growing; the pledge check mark is drawn static.",
+      "reducedMotion": "No intro and no travel: the patch starts sewn, the needle and its thread jump to each new stitch and lie still, the denim does not follow the pointer and the share card stays flat. Gallery photos swap and cross-fade instead of gliding and turning (entering ones fade in 160 ms); the pledge key changes its label instead of morphing and there is no burst; keys change shadow and fill without moving; the leaderboard swaps weeks without sliding or growing. Dragging the needle still sews, because that motion is the person’s own.",
       "performance": [
-        "All motion is WAAPI or CSS transitions on transform, opacity and stroke-dashoffset; FLIP measures once per filter change.",
-        "The share card redraws only when its text or colour changes, and once more when webfonts are ready.",
-        "Every animation and timer is cancelled on unmount."
+        "The needle, its rope (16 points at a fixed 120 Hz) and the stitch mask are written straight into the SVG by one rAF loop that runs only while something moves and sleeps once the thread has settled.",
+        "The hero layers move with two CSS variables eased in one short rAF loop; the grain is one 128 px tile generated once. Lift shadows are opacity layers, so hovering a card never repaints a large shadow per frame.",
+        "All other motion is WAAPI, CSS transitions sampled from token springs, or Motion tweens on transform, opacity and stroke-dashoffset; FLIP measures once per filter change; every animation, timer and particle is cancelled or removed on unmount.",
+        "The share card redraws only when its text or colour changes, and once more when webfonts are ready."
       ],
-      "dataNote": "Sample content: the Mending Commons, its six cafés, every gallery entry and every leaderboard number (items per café per week of March 2026) are fictional. Pledges are not sent or stored.",
+      "dataNote": "Sample content: the Mending Commons, its six cafés, every gallery entry (before and after) and every leaderboard number (items per café per week of March 2026) are fictional. Pledges are not sent or stored.",
       "path": "library/src/demos/social/campaign-landing",
       "files": [
         "index.tsx",
         "data.ts",
         "Gallery.tsx",
+        "HeroBackdrop.tsx",
         "Leaderboard.tsx",
         "motifs.tsx",
+        "NeedlePatch.tsx",
         "PledgeForm.tsx",
         "ShareCard.tsx",
         "styles.module.css",
@@ -5519,37 +6175,47 @@
       "id": "creator-feed",
       "name": "Creator Feed",
       "specialty": "social",
-      "summary": "A risograph printer’s profile and field-note feed where every like, save, follow and comment answers in the same frame, reconciles with a simulated server, rolls back with a reason, and the feed ends with “You’re all caught up”.",
+      "summary": "A risograph printer’s profile and field-note feed where every print’s two ink plates slip out of register as the page moves and snap back when you pick a sheet up, and every like, save, follow and comment answers in the same frame, reconciles with a simulated server, rolls back with a reason, and the feed ends with “You’re all caught up”.",
       "highlights": [
-        "Optimistic toggles send the final intended state (debounced, with an idempotency key), reconcile counts with the server value and roll back visibly with a reason — switch on “Simulate failed requests” to watch it.",
-        "Like and save morph instead of swapping icons — the like-heart-morph technique rebuilt as a controlled toggle, so a rollback plays the same quiet reverse as an undo. The pinned note composes the reaction-burst recipe as-is.",
-        "Comments drawer: optimistic insertion with Sending… / Posted / Not posted + Retry and Edit, drafts kept per post, the audience stated before posting, focus trapped and returned.",
-        "Share uses navigator.share when the browser has it; otherwise a copy-link sheet with a polite confirmation (and a select-the-text fallback when the clipboard is blocked).",
-        "A chronological feed with a natural end; suggested reading sits after the caught-up marker, is labelled “not from accounts you follow” and can be hidden. “Hide like counts” is one tap away.",
-        "Ethics checklist (studio-social §9): no ticking or invented activity, counts labelled sample data, no gated content, unfollow as easy as follow, comment audience visible before posting."
+        "Signature — a registration field: each print is two stacked plates, and the coral plate lags 1–4 px behind pointer and scroll speed (one rAF loop, a spring per plate, transform only), settles a hair out at rest, and snaps into exact register on the quick press spring when its sheet is hovered, pressed or holds focus. The profile name’s coral copy is one more plate.",
+        "Physical and lit from one top-left light: posts and editions lift with a two-layer shadow (contact + ambient on its own opacity layer, so nothing large repaints); Follow, Like, Save, Share, comments, switches, tabs and the composed reaction chips all lift on hover, stamp down on press and spring back on a token spring.",
+        "Proofs carousel with momentum: drag it with a mouse and throw — it rubber-bands at the ends and a release spring carries the throw’s velocity to the next proof; touch and trackpads keep native scroll-snap; Previous/Next and ←/→ glide the same way.",
+        "Comments sheet you can throw away: drag its head down (right on the wide drawer) and release past 30 % or faster than 0.5 px/ms to dismiss at the speed of the throw; short of that it springs back. Close, Esc and the scrim do the same without a gesture.",
+        "Optimistic toggles send the final intended state (debounced, with an idempotency key), reconcile counts with the server value and roll back visibly with a reason — switch on “Simulate failed requests” to watch it. Like and save morph (the like-heart-morph technique as a controlled toggle); the pinned note composes the reaction-burst recipe.",
+        "Ethics checklist (studio-social §9): no ticking or invented activity, counts labelled sample data, no gated content, unfollow as easy as follow, comment audience visible before posting, a chronological feed with a natural end and hideable suggestions."
       ],
       "technology": [
         "svg",
         "waapi",
         "css",
-        "canvas2d"
+        "canvas2d",
+        "motion"
       ],
       "uses": [
         "reaction-burst"
+      ],
+      "adapts": [
+        "like-heart-morph",
+        "press-depth-button",
+        "grain-gradient-mesh",
+        "pull-to-reveal-sheet"
       ],
       "has3d": false,
       "accessibility": [
         "ARIA feed pattern: role=\"feed\" with labelled articles, aria-posinset/aria-setsize; Page Down / Page Up move between posts.",
         "Like, save, follow and the settings are toggle buttons (aria-pressed / role=\"switch\") with stable names; counts are text.",
         "Double-tap on a print likes it (touch and mouse) — a shortcut only; the Like button is always visible.",
-        "The proofs carousel scrolls natively with snap points, has Previous/Next buttons and a “1/3” position in words; the track is focusable for arrow-key scrolling.",
-        "Sheets are modal dialogs contained in the demo: the page behind is inert, Tab wraps inside, Esc and the scrim close, focus returns to the opener.",
+        "The proofs carousel has Previous/Next buttons, ←/→ and Home/End on the focused track, and a “1/3” position in words; dragging is never the only way to move it.",
+        "Sheets are modal dialogs contained in the demo: the page behind is inert, Tab wraps inside, Esc, the Close button and the scrim close it as well as the drag; focus returns to the opener.",
+        "Registration snaps for keyboard users too (a sheet holding focus comes into register); the drift is decorative and carries no information.",
         "Failures are shown next to the control and announced once in a polite status region; user-written text uses dir=\"auto\" (one comment is right-to-left)."
       ],
-      "reducedMotion": "Like and save cross-fade their fill in 160 ms (no spring, ring or rays); the double-tap heart and reaction particles are removed; sheets and new comments fade instead of sliding; the carousel jumps instead of smooth-scrolling.",
+      "reducedMotion": "The registration field never runs: every plate sits in register and nothing drifts. Posts and buttons change shadow and fill without travelling or springing; like and save cross-fade their fill in 160 ms (no spring, ring or rays); the double-tap heart and reaction particles are removed; sheets and new comments fade instead of sliding; carousel moves jump. Dragging the carousel or the sheet still follows the pointer, because that movement is the person’s own.",
       "performance": [
+        "The coral plates are separate SVG layers moved with translate3d by one rAF loop that sleeps as soon as every spring has settled; no React renders while it runs.",
+        "Lift shadows are pseudo-element layers whose opacity changes; the paper grain is one 128 px tile generated once with canvas2d.",
         "Prints are inline SVG (the halftone moon is a single path) with reserved 4:5 aspect ratios, so nothing shifts while the feed renders.",
-        "All motion is WAAPI on transform and opacity; every running sequence is cancelled on unmount or on the next toggle.",
+        "All other motion is WAAPI or Motion springs on transform and opacity; every running animation is cancelled on unmount or on the next input.",
         "The simulated server uses timers only; all of them are cleared on unmount."
       ],
       "dataNote": "Sample content: Ines Varga, Tidewater Print Club, Wrenmouth, every comment and every like/follower count are fictional. Requests go to an in-memory simulated server with ~0.7 s latency; nothing leaves the page.",
@@ -5557,8 +6223,10 @@
       "files": [
         "index.tsx",
         "data.ts",
+        "grain.ts",
         "MorphToggle.tsx",
         "Prints.tsx",
+        "registration.ts",
         "Sheet.tsx",
         "store.ts",
         "styles.module.css",
@@ -5569,13 +6237,13 @@
       "id": "interactive-poll",
       "name": "Interactive Poll",
       "specialty": "social",
-      "summary": "A community radio station’s listener polls: a single-choice poll with animated results, a multiple-choice poll with honest percentages and clearly labelled simulated live votes you can pause, a no-timer quiz with explanations, and a ranking poll whose ballot is a drag-to-reorder running order.",
+      "summary": "A community radio station’s listener polls under a tuning dial you can really turn: a single-choice poll whose rows become result bars, a multiple-choice poll with honest percentages and clearly labelled simulated live votes you can pause, a no-timer quiz with explanations, and a ranking poll whose ballot is a drag-to-reorder running order.",
       "highlights": [
-        "Single choice composes poll-result-bars: results grow from zero on one scale, your vote is marked in words, the result is announced once, and you can change your vote.",
-        "Multiple choice states its promises up front (results after voting, a real closing time) and explains why “of respondents” percentages don’t add up to 100.",
-        "Simulated live tallies are labelled as generated in your browser, finite (40 votes), pausable, and start paused under reduced motion — nothing pretends to be real activity.",
-        "Quiz: one question at a time, no timer, the same button turns from Check answer into Next question so focus never jumps; feedback is words and a mark, not colour.",
-        "Ranking composes drag-reorder-list as the ballot (pointer drag or Space + arrows + Space); sending adds your order to the sample ballots and shows average positions next to yours."
+        "The FM dial is a real tuner: drag or click the band and the needle follows with a pull into each 0.2 MHz detent; throw it and a release spring carries the velocity into the nearest detent, with a magnetic catch on 98.2. A signal meter (the same lit segments as the results) and a readout answer continuously; off-station it says so and offers “Back to 98.2”. Keyboard: ←/→, Page Up/Down, Home/End.",
+        "Single choice adapts the poll-result-bars technique flat inside the station’s cue card (no card in a card): rows turn into bars in place on the heavy glide spring, staggered, with percentages counting up; largest-remainder rounding, “Your vote” in words, one polite announcement, change your vote.",
+        "Multiple choice states its promises up front (results after voting, a real closing time) and explains why “of respondents” percentages don’t add up to 100; result segments light in a sweep. Simulated live tallies are labelled as generated in your browser, finite (40 votes), pausable, and start paused under reduced motion.",
+        "Lit from one top-left light: cue cards carry a two-layer shadow; every option row and button lifts on hover, presses below rest and springs back, and a chosen option sits pressed in.",
+        "Quiz: one question at a time, no timer, the same button turns from Check answer into Next question so focus never jumps; feedback is words and a mark, not colour. Ranking composes drag-reorder-list as the ballot (pointer drag with lift and spring, or Space + arrows + Space)."
       ],
       "technology": [
         "css",
@@ -5584,22 +6252,26 @@
         "svg"
       ],
       "uses": [
-        "poll-result-bars",
         "drag-reorder-list"
+      ],
+      "adapts": [
+        "poll-result-bars",
+        "press-depth-button"
       ],
       "has3d": false,
       "accessibility": [
-        "Each poll is a fieldset with its question as the legend; options are native radios or checkboxes with 48 px rows.",
-        "After voting, focus moves to the results heading; “Change my answer” returns focus to the first option. Results are announced once, politely.",
-        "Meter bars are aria-hidden; each row carries its label, percentage and count as text, and your picks are tagged “Your pick”.",
+        "The tuning dial is a slider with value text (“98.2 megahertz, Quay FM” / “92.4 megahertz, no station”), a visible focus ring and full keyboard control; the settled position is announced politely, never every frame.",
+        "Each poll is a fieldset with its question as the legend; options are native radios or checkboxes with 48 px rows and a visible focus ring.",
+        "After voting, focus moves to “Change vote” or the results heading; changing the answer returns focus to the options. Results are announced once, politely; bars are aria-hidden and every row carries its label, percentage and tags as text.",
         "The ranking ballot has a full keyboard path (Space to pick up, ↑/↓ to move, Space to drop, Esc to cancel) and the results are an ordered list."
       ],
-      "reducedMotion": "Result bars appear at their final width and meter segments switch without fading; simulated live votes start paused (Resume is still available); the ranking rows swap without gliding.",
+      "reducedMotion": "The needle jumps to each detent (dragging still follows the pointer); result bars appear at their final width with a 160 ms fade and the numbers are shown at once; meter segments switch without a sweep; buttons and options change shadow and fill without moving; simulated live votes start paused (Resume is still available); the ranking rows swap without gliding.",
       "performance": [
-        "Meters are 24 plain elements per row toggled by data attributes; the simulation updates React state once per 1.4 s and stops itself after 40 votes.",
-        "No canvas or WebGL; the only animation library loaded is Motion, inside the composed reorder list."
+        "The dial writes the needle transform, the readout and 12 segment attributes directly while it moves; React only re-renders when the detent changes.",
+        "Result bars are transform-only WAAPI animations on full-width fills in clipped tracks; the count-up reads each bar’s progress in one rAF loop that runs only while bars move.",
+        "Meters are plain elements toggled by data attributes; the simulation updates React state once per 1.4 s and stops itself after 40 votes."
       ],
-      "dataNote": "Sample content: Quay FM, The Early Edit and every count are fictional — 640 sample respondents, 312 sample ballots, and live votes generated in the browser from a seeded random sequence. Nothing is sent anywhere.",
+      "dataNote": "Sample content: Quay FM, The Early Edit and every count are fictional — 1,269 sample votes on the reading-spot poll, 640 sample respondents, 312 sample ballots, and live votes generated in the browser from a seeded random sequence. The dial plays nothing. Nothing is sent anywhere.",
       "path": "library/src/demos/social/interactive-poll",
       "files": [
         "index.tsx",
@@ -5607,7 +6279,9 @@
         "MultiPoll.tsx",
         "Quiz.tsx",
         "Ranking.tsx",
+        "SinglePoll.tsx",
         "styles.module.css",
+        "Tuner.tsx",
         "meta.ts"
       ]
     },
@@ -5615,13 +6289,14 @@
       "id": "stories",
       "name": "Stories",
       "specialty": "social",
-      "summary": "Mobile-first stories for a fictional harbour town: a tray of accounts, a full-screen viewer with segmented progress, tap zones, hold to pause, swipes between accounts and down to close — every one mirrored by a button and a key — plus a story embedded in the page.",
+      "summary": "Mobile-first stories for a fictional harbour town: a tray of accounts that opens into a full-screen viewer with segmented progress, tap zones, hold to pause, swipes between accounts and down to close — every one mirrored by a button and a key — on a desktop stage that takes the colour of the story, plus a story embedded in the page.",
       "highlights": [
+        "Signature: the ring you press grows into the viewer (a circular reveal from the ring’s own position) and the viewer closes back into it, faster than it opened.",
+        "A desktop stage, not just a phone in a void: a device with a lit bezel, a room that takes the colour of the card on screen (a registered colour property, so it blends between cards), the neighbouring accounts waiting on either side as dimmed peek cards you can click, and the keys set out as keycaps under the phone.",
+        "The page itself is composed for wide screens: masthead, tray and the gesture guide on the left, the embedded story on a lit stage on the right. The guide is a set of designed hints — a pictogram of each gesture with its button and keycaps — instead of a table.",
         "The current progress segment’s animation is the clock (the story-progress-segments technique): pausing it pauses the story; it stops for the Pause button, a held press, reply focus and a hidden tab.",
-        "Gestures with twins: tap left/right ↔ Previous/Next card buttons and ←/→; swipe sideways ↔ account buttons and Shift+←/→; hold ↔ Pause and Space; swipe down ↔ Close and Esc. Tap zones mirror in right-to-left layouts.",
-        "Swipes follow the finger with resistance at the ends and commit past 30 % of the width or 0.5 px/ms; short of that the card springs back.",
-        "A natural end: after the last account the viewer says “You’re all caught up” and nothing else plays. Rings show “3 new” or “Seen” in words, not only by colour.",
-        "The story-progress-segments recipe is composed as an embedded single story (a newsletter embed), themed to the harbour red."
+        "Gestures with twins: tap left/right ↔ Previous/Next card buttons and ←/→; swipe sideways ↔ peek cards, account buttons and Shift+←/→; hold ↔ Pause and Space; swipe down ↔ Close and Esc. Swipes follow the finger with resistance at the ends and commit past 30 % or 0.5 px/ms; short of that the card springs back. Tap zones mirror in right-to-left layouts.",
+        "Every control has depth: rings lift and press, head buttons, card arrows, Send and the account buttons lift on hover and press in on a token spring. A natural end: after the last account the viewer says “You’re all caught up” and nothing else plays."
       ],
       "technology": [
         "waapi",
@@ -5631,17 +6306,23 @@
       "uses": [
         "story-progress-segments"
       ],
+      "adapts": [
+        "expanding-card-detail",
+        "press-depth-button"
+      ],
       "has3d": false,
       "accessibility": [
-        "The viewer is a modal dialog contained in the demo: the page behind is inert and does not scroll, focus starts on Pause and returns to the ring that opened it.",
+        "The viewer is a modal dialog contained in the demo: the page behind is inert and does not scroll, focus starts on Pause and returns to the ring that opened it; the dialog is described by the keyboard keys.",
         "Each card is a labelled group (“Card 2 of 3 from Ellery Bakery, 3 h ago”) with real text; drawings have their own descriptions. Manual moves are announced politely, automatic ones are not.",
+        "Peek cards are real buttons named “Previous account: …” / “Next account: …”; the gesture guide is a list of text with decorative pictograms.",
         "The reply field is labelled, pauses the story while focused, and states that replies are private.",
-        "All controls are 44 px; focus rings turn flag-yellow on the dark viewer so they keep contrast."
+        "All controls are 44 px or larger; focus rings turn flag-yellow on the dark viewer so they keep contrast."
       ],
-      "reducedMotion": "No clock at all: cards never advance on their own (the Pause button is not needed and is removed), progress shows position statically, account changes cross-fade in 160 ms instead of sliding, and the embedded story waits for its step buttons.",
+      "reducedMotion": "No clock at all: cards never advance on their own (the Pause button is not needed and is removed), progress shows position statically, the viewer opens and closes with a 160 ms fade instead of the reveal, account changes cross-fade in 160 ms instead of sliding, the stage changes colour without blending, controls change fill without moving, and the embedded story waits for its step buttons.",
       "performance": [
         "Cards are DOM and inline SVG — nothing to download or preload, so the progress never runs ahead of content.",
-        "One WAAPI animation per visible card drives the clock; transforms only for drags and transitions; everything is cancelled on close."
+        "One WAAPI animation per visible card drives the clock; the open and close reveal is one clip-path animation; transforms only for drags and transitions; everything is cancelled on close.",
+        "The stage colour is a single registered custom property transition; peek cards and controls animate transform and opacity only."
       ],
       "dataNote": "Sample content: Port Ellery, its accounts, notices, times and the “214 hours” figure are fictional. Replies are not sent anywhere.",
       "path": "library/src/demos/social/stories",
@@ -5649,6 +6330,7 @@
         "index.tsx",
         "art.tsx",
         "data.ts",
+        "Hints.tsx",
         "styles.module.css",
         "Viewer.tsx",
         "meta.ts"

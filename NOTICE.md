@@ -1,6 +1,7 @@
 # Notices and attribution
 
-Maquettekit is MIT-licensed (see `LICENSE`). It contains no source code or prose copied from other projects. It
+Maquettekit is MIT-licensed (see `LICENSE`). It contains no source code or prose copied from other projects; the
+third-party assets it ships in the gallery are listed below with their licences. It
 depends on, or optionally loads, the third-party software below; each remains under its own licence. Nothing below is
 bundled inside the plugin directory (`plugins/maquettekit/`): runtime dependencies are installed by the user (`npm`) or by
 the explicit `maquettekit setup` command.
@@ -16,6 +17,17 @@ the explicit `maquettekit setup` command.
 | motion | MIT | |
 | gsap, @gsap/react | GreenSock Standard "No Charge" License — https://gsap.com/standard-license | Free to use, including commercially, under GreenSock's terms; not an OSI licence. Review the terms before shipping. |
 | d3 | ISC | |
+| @rive-app/canvas-lite | MIT | the gallery serves its `rive.wasm` / `rive_fallback.wasm` from its own origin (copied at build time by `scripts/copy-runtime-assets.mjs`) |
+| lottie-web | MIT | |
+
+## Third-party assets in the gallery
+
+| File | Source | Licence |
+| - | - | - |
+| `apps/gallery/public/rive/birb.riv`, `apps/gallery/public/rive/rating_animation.riv` | Rive's example files, [rive-app/rive-wasm](https://github.com/rive-app/rive-wasm) `js/examples/_frameworks/parcel_example_canvas/` | MIT, Copyright (c) 2020-2021 Rive |
+
+They are not part of the plugin; the `rive-state-machine` recipe loads them in the gallery and takes any `.riv` URL in
+your project.
 
 ## Optional tool dependencies (`maquettekit setup`)
 

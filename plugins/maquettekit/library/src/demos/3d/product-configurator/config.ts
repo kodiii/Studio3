@@ -30,6 +30,17 @@ export const STRAPS: Option[] = [
   { id: 'dyed', name: 'Dyed to match', note: 'Weave tinted towards the hardware colour.', price: 8, overrides: {} },
   { id: 'none', name: 'No strap', note: 'Strap and pins left out.', price: -9, overrides: {} },
 ];
+/**
+ * Always overridden (with values equal to the originals) so PartController clones these materials at load: the finish
+ * sweep patches the clones, and the ring's breathing writes to its clone. Originals are never touched.
+ */
+export const OWNED_MATERIALS: Overrides = {
+  'material:ShellMatte': { envMapIntensity: 1 },
+  'material:AccentAnodized': { envMapIntensity: 1 },
+  'material:StrapFabric': { envMapIntensity: 1 },
+  'material:LightEmissive': { envMapIntensity: 1 },
+};
+
 /** Parts removed by the "No strap" option. */
 export const STRAP_PARTS = ['Strap', 'StrapPinL', 'StrapPinR'] as const;
 

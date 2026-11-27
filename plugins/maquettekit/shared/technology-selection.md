@@ -77,6 +77,8 @@ Climb only when the rung below cannot do the job. Stop at the first rung that ca
 | Pinned, scrubbed, multi-track scroll scene | 4 | GSAP ScrollTrigger; pin with CSS `position: sticky` where possible |
 | Camera, uniforms or meshes in sync with page scroll | 4 or 2 → 5 | Scroll progress (ScrollTrigger or `useScrollProgress`) driving a ref; `invalidate()` (studio-3d `animation.md`) |
 | An object the user turns over, configures or explores | 5 | `StudioCanvas` or `createVanillaScene` |
+| Designer-made vector animation played in segments (animated icons, illustrations) | Lottie (`lottie-web` light SVG player, lazy) | `lottie-micro-interactions` (`LottieIcon`) |
+| Designer-made interactive animation with states and inputs (mascots, rich controls) | Rive (`@rive-app/canvas-lite`, lazy, WASM from your origin) | `rive-state-machine` (`RiveCanvas`) |
 
 Decision questions, in order:
 
@@ -87,6 +89,11 @@ Decision questions, in order:
 4. Layout position or size changes between states? `flip()`; in React with exits or drag, Motion `layout`.
 5. A pinned, scrubbed, multi-track scroll scene? GSAP ScrollTrigger.
 6. A three-dimensional object, or per-pixel generative imagery? Go to §2.
+7. Drawn and timed by a designer in an animation tool (Lottie JSON from After Effects or LottieFiles, a Rive file
+   with a state machine)? Play it with that runtime instead of re-creating it in code: Lottie for timeline
+   segments, Rive when inputs drive states. Meaning and controls stay in DOM (the canvas or SVG is decorative),
+   reduced motion shows the final frame of each state, and the runtime and its files load lazily from your own
+   origin.
 
 Bundle reasoning without numbers: do not quote library sizes from memory. If size matters to the decision, measure
 it in the project (`npm run build` output, the bundler's analyser) and quote what you measured.
@@ -95,11 +102,14 @@ it in the project (`npm run build` output, the bundler's analyser) and quote wha
 
 ### 2.1 First decide whether 3D is justified
 
-Real-time 3D is justified when the user gains something a still, a video or CSS cannot give: free inspection of an
-object, a configuration space too large to pre-render, spatial data that reads better with depth, or a generative
-surface that must react to input. If none applies, choose a static render, an image sequence, video or CSS 3D, and
-say so. The specialty's own criteria (studio-product `product-3d.md`, studio-cinematic `cinematic-3d.md`,
-studio-data's spatial-data guidance) are stricter and win for their surfaces.
+Real-time 3D is justified when the user gains something a still, a video or CSS cannot give: the subject in real
+light and material from any angle, handling it (turn, open, configure, explode, throw), a configuration space too
+large to pre-render, a space or object the story moves through, spatial data that reads better with depth, or a
+generative surface that must react to input. If none applies, choose a static render, an image sequence, video or
+CSS 3D, and say so. A decorative object unrelated to the subject (a glowing cube on a pricing page) never
+qualifies. The specialty's own criteria (studio-product `product-3d.md`, studio-cinematic `cinematic-3d.md`,
+studio-data's spatial-data guidance) add their conditions and win for their surfaces. Every real-time scene ships
+with a static fallback and inside the performance budget.
 
 ### 2.2 Options
 

@@ -1,6 +1,7 @@
 'use client';
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { scaleLinear } from 'd3';
+import { spring as SPRING, springToLinear, useStudioMotion } from '../../../motion';
 import { Breakdown, type Row } from './Breakdown';
 import { RangeBrush } from './RangeBrush';
 import { SCATTER_M, Scatter, type Mark } from './Scatter';
@@ -31,10 +32,31 @@ const COLS: readonly { key: SortKey; label: string; num?: boolean }[] = [
   { key: 'process', label: 'Process' }, { key: 'variety', label: 'Variety' },
 ];
 const H_MARGIN = { left: 40, right: 10 };
+/** Rows of the lots table shown per step; the table grows in the page instead of scrolling inside it. */
+const PAGE = 25;
+/** Token springs as CSS linear() curves: hover, press and release in the stylesheet run on real springs, no JS loop. */
+const SPRINGS: CSSProperties = (() => {
+  const out: Record<string, string> = {};
+  for (const k of ['press', 'settle', 'release'] as const) {
+    const sp = springToLinear(SPRING[k]);
+    out[`--de-${k}`] = sp.easing;
+    out[`--de-${k}-dur`] = `${sp.duration}ms`;
+  }
+  return out as CSSProperties;
+})();
 
 export default function DataExploration() {
   const uid = useId();
+  const { reduced } = useStudioMotion();
   const [st, setSt] = useState<ViewState>(DEFAULT_STATE);
+  // One entrance, once: marks sweep in by altitude and bars rise by bin, all inside 300 ms; never again after that.
+  const [entering, setEntering] = useState(true);
+  useEffect(() => { const id = window.setTimeout(() => setEntering(false), 600); return () => window.clearTimeout(id); }, []);
+  const [limit, setLimit] = useState(PAGE);
+  const tableRef = useRef<HTMLTableElement>(null);
+  const revealFrom = useRef<number | null>(null);
+  const crumbFocus = useRef(false);
+  const hereRef = useRef<HTMLSpanElement>(null);
   const [showBins, setShowBins] = useState(false);
   const [announce, setAnnounce] = useState('');
   const hydrated = useRef(false);
@@ -156,11 +178,26 @@ export default function DataExploration() {
     return () => window.clearTimeout(id);
   }, [headline]);
 
+  // "Show more" moves focus to the first newly shown row; a breadcrumb jump moves it to the new current level.
+  useEffect(() => {
+    const i = revealFrom.current;
+    revealFrom.current = null;
+    if (i === null) return;
+    tableRef.current?.querySelectorAll('tbody tr')[i]?.querySelector('button')?.focus();
+  }, [limit]);
+  useEffect(() => {
+    if (!crumbFocus.current) return;
+    crumbFocus.current = false;
+    hereRef.current?.focus();
+  }, [st.path]);
+  const pinIndex = st.pin ? sorted.findIndex((l) => l.id === st.pin) : -1;
+  const shownLots = sorted.slice(0, limit);
+
   const setCompare = (dim: CompareDim | 'off') => update({ cmp: dim === 'off' ? null : { dim, a: DIM_OPTIONS[dim][0].id, b: DIM_OPTIONS[dim][1].id } });
   const maxBin = Math.max(st.cmp ? 0.05 : 1, ...bins.map((b) => (st.cmp ? Math.max(b.a / Math.max(1, groupA.length), b.b / Math.max(1, groupB.length)) : b.all)));
 
   return (
-    <div className={s.root} data-compare={st.cmp ? '' : undefined}>
+    <div className={s.root} data-compare={st.cmp ? '' : undefined} data-reduced={reduced || undefined} style={SPRINGS}>
       <div className={s.wrap}>
         <header className={s.head}>
           <p className={s.kicker}>Four Valleys Cupping Table · fictional quality programme <span className={s.sample}>Sample data</span></p>
@@ -215,8 +252,8 @@ export default function DataExploration() {
             {[{ id: 'root', name: 'All regions' }, ...st.path.map((id) => ({ id, name: nodeName(id) }))].map((c, i, arr) => (
               <li key={c.id}>
                 {i < arr.length - 1
-                  ? <button type="button" className={s.crumbBtn} onClick={() => update({ path: st.path.slice(0, i) })}>{c.name}</button>
-                  : <span aria-current="location" className={s.crumbHere}>{c.name}</span>}
+                  ? <button type="button" className={s.crumbBtn} onClick={() => { crumbFocus.current = true; update({ path: st.path.slice(0, i) }); }}>{c.name}</button>
+                  : <span aria-current="location" className={s.crumbHere} tabIndex={-1} ref={hereRef}>{c.name}</span>}
               </li>
             ))}
           </ol>
@@ -237,7 +274,7 @@ export default function DataExploration() {
                 <li><span className={s.lgTrend} aria-hidden="true" />Least-squares line</li>
               </>)}
             </ul>
-            <Scatter lots={universe} inSel={inSel} markOf={markOf} alt={st.alt} score={st.score} pinned={st.pin}
+            <Scatter lots={universe} inSel={inSel} markOf={markOf} alt={st.alt} score={st.score} pinned={st.pin} entering={entering}
               onBrush={(alt, score) => update({ alt, score })} onPin={(pin) => update({ pin })} describe={describe} trend={st.cmp ? null : trend} />
             <p className={s.axisTitle}><span>Altitude, metres</span><span>Cup score, points (vertical)</span></p>
             <p className={s.stripLabel} id={`${uid}-alt`}>Altitude range — drag, or use the handles with arrow keys (Shift for 100 m)</p>
@@ -245,7 +282,7 @@ export default function DataExploration() {
               format={(v) => `${fmt.int.format(v)} m`} margin={{ left: SCATTER_M.left, right: SCATTER_M.right }} height={44}>
               {(x, _w, h) => {
                 const m = Math.max(1, ...altBins.map((b) => b.n));
-                return <svg width="100%" height={h} className={s.stripSvg} aria-hidden="true">{altBins.map((b) => <rect key={b.lo} x={x(b.lo) + 1} width={Math.max(0, x(b.lo + 100) - x(b.lo) - 2)} y={h - 4 - (b.n / m) * (h - 10)} height={(b.n / m) * (h - 10)} className={s.altBar} />)}</svg>;
+                return <svg width="100%" height={h} className={s.stripSvg} aria-hidden="true"><g className={s.bars} data-enter={entering || undefined}>{altBins.map((b, i) => <rect key={b.lo} x={x(b.lo) + 1} width={Math.max(0, x(b.lo + 100) - x(b.lo) - 2)} y={h - 4 - (b.n / m) * (h - 10)} height={(b.n / m) * (h - 10)} className={s.altBar} style={{ ['--i' as string]: Math.round((i * 10) / 13) }} />)}</g></svg>;
               }}
             </RangeBrush>
           </section>
@@ -277,12 +314,12 @@ export default function DataExploration() {
                           {bins.map((b) => <rect key={b.lo} x={x(b.lo) + 1.5} width={Math.max(0, x(b.lo + BIN) - x(b.lo) - 3)} y={yv(b.a / Math.max(1, groupA.length))} height={bottom - yv(b.a / Math.max(1, groupA.length))} className={s.barA} />)}
                           <path d={step} className={s.stepB} />
                         </>
-                      ) : bins.map((b) => (
-                        <g key={b.lo}>
+                      ) : <g className={s.bars} data-enter={entering || undefined}>{bins.map((b, i) => (
+                        <g key={b.lo} style={{ ['--i' as string]: Math.round((i * 10) / (NBINS - 1)) }}>
                           <rect x={x(b.lo) + 1} width={Math.max(0, x(b.lo + BIN) - x(b.lo) - 2)} y={yv(b.all)} height={bottom - yv(b.all)} className={s.barAll} />
                           <rect x={x(b.lo) + 1} width={Math.max(0, x(b.lo + BIN) - x(b.lo) - 2)} y={yv(b.sel)} height={bottom - yv(b.sel)} className={s.barSel} />
                         </g>
-                      ))}
+                      ))}</g>}
                     </svg>
                   );
                 }}
@@ -354,10 +391,10 @@ export default function DataExploration() {
         <section className={s.lots} aria-labelledby={`${uid}-tbl`}>
           <div className={s.lotsHead}>
             <h3 id={`${uid}-tbl`} className={s.panelTitle}>Selected lots</h3>
-            <p className={s.sub}>{selected.length} rows · same selection as the charts · sortable · <span className={s.sample}>Sample data</span></p>
+            <p className={s.sub}>{selected.length} lots · same selection as the charts · sortable · <span className={s.sample}>Sample data</span></p>
           </div>
-          <div className={s.tableBox} role="region" aria-labelledby={`${uid}-tbl`} tabIndex={0}>
-            <table className={`${s.table} ${s.lotTable}`}>
+          <div className={`${s.tableBox} ${s.lotBox}`} role="region" aria-labelledby={`${uid}-tbl`} tabIndex={0}>
+            <table ref={tableRef} className={`${s.table} ${s.lotTable}`}>
               <caption className={s.srOnly}>Selected sample lots; the pin button in each row pins that lot in every view.</caption>
               <thead>
                 <tr>
@@ -369,7 +406,7 @@ export default function DataExploration() {
                 </tr>
               </thead>
               <tbody>
-                {sorted.length ? sorted.map((l) => (
+                {shownLots.length ? shownLots.map((l) => (
                   <tr key={l.id} data-pinned={l.id === st.pin || undefined}>
                     <th scope="row"><button type="button" className={s.pinBtn} aria-pressed={l.id === st.pin} onClick={() => update({ pin: st.pin === l.id ? null : l.id })}>{l.id}</button></th>
                     <td>{nodeName(l.farm)} <span className={s.muted}>· {nodeName(l.region)}</span></td>
@@ -383,6 +420,20 @@ export default function DataExploration() {
               </tbody>
             </table>
           </div>
+          {sorted.length ? (
+            <div className={s.moreRow}>
+              <p className={s.hint}>Showing {Math.min(limit, sorted.length)} of {sorted.length} lots</p>
+              {sorted.length > limit ? (
+                <>
+                  <button type="button" className={s.btn} onClick={() => { revealFrom.current = limit; setLimit(limit + PAGE); }}>Show {Math.min(PAGE, sorted.length - limit)} more</button>
+                  <button type="button" className={s.linkBtn} onClick={() => { revealFrom.current = limit; setLimit(sorted.length); }}>Show all {sorted.length}</button>
+                </>
+              ) : sorted.length > PAGE ? <button type="button" className={s.linkBtn} onClick={() => setLimit(PAGE)}>Show the first {PAGE} only</button> : null}
+              {pinIndex >= limit ? (
+                <span className={s.hint}>Pinned lot {st.pin} is row {pinIndex + 1} in this order. <button type="button" className={s.linkBtn} onClick={() => { revealFrom.current = pinIndex; setLimit(Math.ceil((pinIndex + 1) / PAGE) * PAGE); }}>Show it</button></span>
+              ) : null}
+            </div>
+          ) : null}
         </section>
 
         <footer className={s.foot}>

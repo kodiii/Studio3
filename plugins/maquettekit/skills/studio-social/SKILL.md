@@ -85,8 +85,8 @@ its button and keyboard twin as you build it, not afterwards (`references/intera
 gesture velocity; celebration is brief and reserved for the person's own action. Content already moves in a
 feed, so ambient motion stays low.
 
-**6. 3D, only if earned.** Real-time 3D is justified when the object or the avatar is what people came to
-inspect or share, the post works as a poster without it, and the feed keeps one canvas. Load
+**6. 3D when it earns its place.** Real-time 3D fits when the object or the avatar is what people came to
+inspect, play with or share, the post works as a poster without it, and the feed keeps one canvas. Load
 `references/social-3d.md` and hand the scene to `studio-3d`. Otherwise use the poster, video or CSS
 alternative it lists.
 
@@ -110,6 +110,9 @@ Each is a checkable statement. A build that fails one is not finished.
       content labelled as such; nothing ticks or looks live without a real source.
 - [ ] Every gesture (swipe, drag, long-press, double-tap, pinch, pull) has a visible single-pointer
       alternative and a keyboard path (2.5.1, 2.5.7, 2.1.1).
+- [ ] Craft floor (Expressive, `shared/motion-craft.md` §1): at least one gesture is physical (follows the finger,
+      keeps its release velocity, resists at the ends); reactions and controls press in with depth and lit
+      shadows; something answers the pointer or the scroll continuously.
 - [ ] Auto-advancing or autoplaying content (stories, video, carousels) can be paused, does not advance under
       reduced motion, and never plays sound without opt-in.
 - [ ] Feeds reach a natural end or "You're up to date" marker; autoplay-next is controllable; the footer is

@@ -1,5 +1,7 @@
-/* Meridian atlas — cartographic paper: a fine survey grid, mono annotations, categorical colour only on data. */
-.root { --grid: color-mix(in srgb, var(--mk-ink, #11110f) 7%, transparent); }
+/* Meridian atlas — cartographic paper: a fine survey grid, mono annotations, categorical colour only on data.
+   One light from the upper left for the map and the page: shadows fall down and to the right. */
+.root { --grid: color-mix(in srgb, var(--mk-ink, #11110f) 7%, transparent); --shade: 44 34 20; }
+:global([data-theme='dark']) .root { --shade: 0 0 0; }
 
 .stage {
   position: relative;
@@ -15,7 +17,9 @@
     linear-gradient(90deg, var(--grid) 1px, transparent 1px);
   background-size: 32px 32px;
   background-position: -1px -1px;
+  box-shadow: inset 1px 1px 0 rgb(255 255 255 / 0.6), 2px 3px 0 -1px rgb(var(--shade) / 0.1), 10px 20px 44px -24px rgb(var(--shade) / 0.42);
 }
+:global([data-theme='dark']) .stage { box-shadow: inset 1px 1px 0 rgb(255 255 255 / 0.05), 10px 20px 44px -24px rgb(0 0 0 / 0.8); }
 :global([data-theme='dark']) .stage { background-color: #0e0e0c; }
 @container (width >= 40rem) { .stage { aspect-ratio: 16 / 11; } }
 .stage canvas:focus-visible { outline: 2px solid var(--mk-focus, #1d4ed8); outline-offset: -4px; }
@@ -60,7 +64,7 @@
 }
 .seg:first-of-type { border-radius: 999px 0 0 999px; }
 .seg:last-of-type { border-radius: 0 999px 999px 0; margin-left: -1px; }
-.seg:has(input:checked) { background: var(--mk-ink, #11110f); color: var(--mk-bg, #f3f0e8); }
+.seg:has(input:checked) { background: var(--mk-ink, #11110f); color: var(--mk-bg, #f3f0e8); transform: translateY(1px); box-shadow: inset 1px 1px 3px rgb(0 0 0 / 0.35), 1px 1px 0 rgb(var(--shade) / 0.12); }
 .seg:has(input:focus-visible) { outline: 2px solid var(--mk-focus, #1d4ed8); outline-offset: 2px; position: relative; z-index: 1; }
 
 .search {
@@ -75,6 +79,27 @@
 }
 .search::placeholder { color: var(--mk-ink-muted, #5c5a52); }
 
+.btn, .pill, .seg {
+  /* two shadows: a tight contact edge and a wide soft one; hover lifts (soft grows), press sinks (both collapse) */
+  box-shadow: inset 1px 1px 0 rgb(255 255 255 / 0.55), 1px 1.5px 0 rgb(var(--shade) / 0.22), 3px 6px 14px -6px rgb(var(--shade) / 0.32);
+  transform: translateY(0);
+  transition:
+    transform var(--release-dur, 400ms) var(--release-ease, ease),
+    box-shadow var(--release-dur, 400ms) var(--release-ease, ease),
+    background-color var(--mk-duration-fast, 160ms) var(--mk-ease-standard, ease);
+}
+:global([data-theme='dark']) :is(.btn, .pill, .seg) { box-shadow: inset 1px 1px 0 rgb(255 255 255 / 0.07), 1px 1.5px 0 rgb(0 0 0 / 0.6), 3px 6px 14px -6px rgb(0 0 0 / 0.7); }
+@media (hover: hover) {
+  :is(.btn, .pill:not(:disabled), .seg):hover { transform: translateY(-1.5px); box-shadow: inset 1px 1px 0 rgb(255 255 255 / 0.6), 1px 2.5px 0 rgb(var(--shade) / 0.16), 5px 11px 22px -8px rgb(var(--shade) / 0.4); }
+}
+:is(.btn, .pill:not(:disabled), .seg):active {
+  transform: translateY(1px);
+  box-shadow: inset 1px 1px 2px rgb(var(--shade) / 0.18), 0 0 0 rgb(var(--shade) / 0), 1px 2px 4px -2px rgb(var(--shade) / 0.25);
+  transition-duration: var(--mk-duration-instant, 90ms);
+  transition-timing-function: var(--mk-ease-standard, ease);
+}
+.root[data-reduced] :is(.btn, .pill, .seg) { transition: none; }
+@media (prefers-reduced-motion: reduce) { :is(.btn, .pill, .seg) { transition: none; } }
 .btn {
   display: inline-flex;
   align-items: center;
@@ -98,7 +123,7 @@
   font: 12px var(--mk-font-mono, ui-monospace, monospace);
 }
 .pill:hover:not(:disabled) { border-color: var(--mk-line-strong, #11110f); }
-.pill:disabled { color: var(--mk-ink-muted, #5c5a52); text-decoration: line-through; cursor: not-allowed; }
+.pill:disabled { color: var(--mk-ink-muted, #5c5a52); text-decoration: line-through; cursor: not-allowed; box-shadow: none; }
 
 .filter {
   display: flex;
@@ -164,3 +189,9 @@
   text-align: left;
 }
 .rowBtn[aria-pressed='true'] { font-weight: 700; }
+
+/* The details card keeps one height whatever it shows (nothing, a hover preview, a selection with its neighbour
+   lists), so the table below never moves under the pointer; long neighbour lists scroll inside the card. */
+.detail { display: flex; flex-direction: column; height: 26rem; }
+.detailBody { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.detailLists { flex: 1; min-height: 0; overflow-y: auto; padding: 2px 4px 6px 2px; margin: 0 -4px 0 -2px; }

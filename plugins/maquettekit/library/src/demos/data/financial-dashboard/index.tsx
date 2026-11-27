@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
+import { useStudioMotion } from '../../../motion';
 import { PerformanceChart, type ChartSeries, type Transition } from './PerformanceChart';
 import { RangeBrush } from './RangeBrush';
 import { Ticker } from './Ticker';
@@ -49,6 +50,7 @@ function SevIcon({ sev }: { sev: Severity }) {
 
 export default function FinancialDashboard() {
   const uid = useId();
+  const { reduced } = useStudioMotion();
   const [win, setWin] = useState<[number, number]>(() => presetWindow(DATA.dates, '1Y'));
   const [preset, setPreset] = useState<PresetId | 'custom'>('1Y');
   const [transition, setTransition] = useState<Transition>('cut');
@@ -61,6 +63,14 @@ export default function FinancialDashboard() {
   const [showTable, setShowTable] = useState(false);
   const [announce, setAnnounce] = useState('');
   const rowRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  // Acknowledging removes the button; focus moves to the confirmation in its place instead of falling to the page.
+  const ackRefs = useRef(new Map<string, HTMLParagraphElement>());
+  const ackFocus = useRef<string | null>(null);
+  useEffect(() => {
+    const id = ackFocus.current;
+    ackFocus.current = null;
+    if (id) ackRefs.current.get(id)?.focus();
+  }, [acked]);
   const [a, b] = win;
 
   const st = useMemo(() => windowStats(DATA, a, b), [a, b]);
@@ -143,7 +153,7 @@ export default function FinancialDashboard() {
   const attrMax = Math.max(1, ...attribution.rows.map((r) => Math.abs(r.pp)), Math.abs(attribution.fees), Math.abs(attribution.other));
 
   return (
-    <div className={s.root} data-gains={gains}>
+    <div className={s.root} data-gains={gains} data-reduced={reduced || undefined} data-scrub={transition === 'drag' || undefined}>
       <header className={s.bar}>
         <div className={`${s.wrap} ${s.barInner}`}>
           <div className={s.brand}>
@@ -182,8 +192,8 @@ export default function FinancialDashboard() {
                     <p className={s.alertRule}>{al.rule} <time dateTime={fmt.iso(al.at)}>Raised {fmt.date.format(al.at)}.</time></p>
                   </div>
                   {acked[al.id]
-                    ? <p className={s.ackDone}>Acknowledged {timeFmt.format(acked[al.id])} UTC</p>
-                    : <button type="button" className={s.btn} onClick={() => setAcked((x) => ({ ...x, [al.id]: Date.now() }))}>Acknowledge<span className={s.srOnly}>: {al.title}</span></button>}
+                    ? <p className={s.ackDone} tabIndex={-1} ref={(el) => { if (el) ackRefs.current.set(al.id, el); else ackRefs.current.delete(al.id); }}>Acknowledged {timeFmt.format(acked[al.id])} UTC</p>
+                    : <button type="button" className={s.btn} onClick={() => { ackFocus.current = al.id; setAcked((x) => ({ ...x, [al.id]: Date.now() })); }}>Acknowledge<span className={s.srOnly}>: {al.title}</span></button>}
                 </li>
               ))}
             </ul>

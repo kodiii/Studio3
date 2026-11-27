@@ -1,0 +1,215 @@
+/* Height-driven layout: the frame starts at 16:9, grows into whatever height the stage offers (a tall phone stage
+   turns it portrait) and never shrinks, so in a short host (a catalogue card) the frame stays whole and the toolbar
+   is what overflows. Auto margins centre the group when there is room and collapse when there is not. */
+.root {
+  container-type: inline-size;
+  width: 100%;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(10px, 1.8cqi, 16px);
+  padding: clamp(10px, 2.4cqi, 22px);
+  font-family: var(--mk-font-text, ui-sans-serif, system-ui, sans-serif);
+  color: var(--mk-ink, #11110f);
+}
+
+/* The stage. --lx / --ly / --lift are written per frame from the scene's one light, so this shadow, the WebGL glass
+   and the CSS glass all fall away from the same light. */
+.frame {
+  --lx: -0.473;
+  --ly: -0.63;
+  --lift: 0;
+  --shadow-a: 0.3;
+  position: relative;
+  flex: 1 0 auto;
+  aspect-ratio: 16 / 9;
+  max-height: calc(100cqi / 1.45); /* wide hosts stay landscape */
+  margin-top: auto;
+  overflow: hidden;
+  border-radius: var(--mk-radius-m, 10px);
+  background: var(--mk-surface, #fbf9f4);
+  box-shadow:
+    0 0 0 1px var(--mk-line, #11110f24),
+    calc(var(--lx) * -2px) calc(var(--ly) * -2px) 3px rgb(0 0 0 / calc(var(--shadow-a) * 0.35)),
+    calc(var(--lx) * -22px) calc(var(--ly) * -22px) 44px -20px rgb(0 0 0 / var(--shadow-a));
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+.frame[data-dark] { --shadow-a: 0.7; }
+.frame > [data-maquettekit-canvas] { position: absolute !important; inset: 0; min-height: 0 !important; }
+
+/* The lens: hit area, focus ring and keyboard control over the canvas (sized and placed by the engine). */
+.lens {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 1;
+  width: 0;
+  height: 0;
+  touch-action: none;
+  cursor: grab;
+  outline: none;
+  will-change: transform;
+}
+.lens:active { cursor: grabbing; }
+.lens:focus-visible { outline: 2px solid var(--mk-focus, #1d4ed8); outline-offset: 6px; }
+
+.page { position: absolute; inset: 0; }
+.page svg { display: block; width: 100%; height: 100%; }
+
+/* No WebGL: the lens becomes a CSS glass panel over the SVG page. Rims, bezel shade and sheen take the light direction;
+   frost, refraction and dispersion map to blur, bezel depth and coloured edge fringes. Clear at frost 0. */
+.frame[data-css-glass] .lens {
+  --sx: calc(50% + var(--lx) * 42%);
+  --sy: calc(50% + var(--ly) * 42%);
+  --sheen: rgb(255 255 255 / 0.3);
+  --veil: rgb(255 255 255 / 0.08);
+  --bezel: rgb(255 255 255 / 0.16);
+  --rim-shade: rgb(0 0 0 / 0.12);
+  --far: rgb(0 0 0 / 0.07);
+  --drop: rgb(0 0 0 / 0.2);
+  --edge: rgb(0 0 0 / 0.08);
+  background:
+    radial-gradient(130% 150% at var(--sx) var(--sy), var(--sheen), rgb(255 255 255 / 0.03) 40%, rgb(255 255 255 / 0) 70%),
+    linear-gradient(170deg, var(--veil), rgb(255 255 255 / 0) 60%);
+  /* Blur and saturate only: contrast() and brightness() in a backdrop filter can composite as a flat white patch in
+     software compositing, which is exactly where this fallback runs. */
+  -webkit-backdrop-filter: blur(calc(0.3px + var(--frost, 0) * 12px)) saturate(1.3);
+  backdrop-filter: blur(calc(0.3px + var(--frost, 0) * 12px)) saturate(1.3);
+  box-shadow:
+    0 0 0 1px var(--edge),
+    inset 0 0 0 1px rgb(255 255 255 / 0.42),
+    inset calc(var(--lx) * -1.5px) calc(var(--ly) * -1.5px) 0 0 rgb(255 255 255 / 0.75),
+    inset calc(var(--lx) * 1.5px) calc(var(--ly) * 1.5px) 0 0 var(--rim-shade),
+    inset 0 0 calc(5px + var(--refract, 1) * 14px) var(--bezel),
+    inset calc(var(--lx) * 9px) calc(var(--ly) * 9px) calc(10px + var(--refract, 1) * 10px) -4px var(--far),
+    inset calc(1px + var(--disperse, 0.5) * 2.5px) 0 calc(var(--disperse, 0.5) * 5px) calc(var(--disperse, 0.5) * -2px) rgb(255 70 40 / 0.4),
+    inset calc(-1px - var(--disperse, 0.5) * 2.5px) 0 calc(var(--disperse, 0.5) * 5px) calc(var(--disperse, 0.5) * -2px) rgb(40 110 255 / 0.4),
+    calc(var(--lx) * -3px) calc(var(--ly) * -3px) 4px var(--drop),
+    calc(var(--lx) * (-12px - var(--lift) * 16px)) calc(var(--ly) * (-12px - var(--lift) * 16px)) calc(18px + var(--lift) * 22px) var(--drop);
+}
+.frame[data-css-glass][data-dark] .lens {
+  --sheen: rgb(255 255 255 / 0.16);
+  --veil: rgb(255 255 255 / 0.04);
+  --bezel: rgb(255 255 255 / 0.1);
+  --rim-shade: rgb(0 0 0 / 0.4);
+  --far: rgb(0 0 0 / 0.22);
+  --drop: rgb(0 0 0 / 0.5);
+  --edge: rgb(255 255 255 / 0.07);
+}
+
+/* The kit's "no WebGL" note, set as a small badge so it does not sit over the middle of the page. */
+.frame [data-maquettekit-fallback] > p[role='status'] {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  z-index: 2;
+  max-width: calc(100% - 20px);
+  padding: 5px 10px !important;
+  border-radius: 999px;
+  background: var(--mk-surface, #fbf9f4);
+  box-shadow: 0 0 0 1px var(--mk-line, #11110f24);
+  font-size: 11.5px !important;
+  line-height: 1.35;
+  text-align: left !important;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 12px;
+  margin-bottom: auto;
+}
+.shapes {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--mk-surface-2, #e9e5da);
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.1), inset 0 0 0 1px var(--mk-line, #11110f24);
+}
+.shape,
+.centre {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 0 14px 0 11px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--mk-ink, #11110f);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.shape svg,
+.centre svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+.shape[aria-pressed='true'] {
+  background: var(--mk-surface, #fbf9f4);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.55),
+    0 0 0 1px var(--mk-line, #11110f24),
+    0 1px 2px rgb(0 0 0 / 0.14),
+    0 6px 14px -8px rgb(0 0 0 / 0.4);
+}
+.shape[aria-pressed='true'] svg { fill: color-mix(in srgb, currentColor 14%, transparent); }
+.centre {
+  background: var(--mk-surface, #fbf9f4);
+  box-shadow: 0 0 0 1px var(--mk-line, #11110f24), 0 1px 2px rgb(0 0 0 / 0.1);
+}
+.shape:focus-visible,
+.centre:focus-visible { outline: 2px solid var(--mk-focus, #1d4ed8); outline-offset: 2px; }
+.hint {
+  flex: 1 1 18rem;
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--mk-ink-muted, #5c5a52);
+}
+.keys { font-family: var(--mk-font-mono, ui-monospace, monospace); font-size: 0.75rem; letter-spacing: -0.01em; }
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (pointer: coarse) {
+  .shape, .centre { min-height: 44px; }
+}
+@container (max-width: 560px) {
+  .frame { max-height: calc(100cqi / 0.72); } /* narrow hosts may go portrait */
+  .shape { padding: 0 12px 0 9px; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .shape,
+  .centre {
+    transition:
+      background-color var(--mk-duration-fast, 160ms) var(--mk-ease-standard, ease),
+      box-shadow var(--mk-duration-fast, 160ms) var(--mk-ease-standard, ease),
+      transform var(--mk-duration-instant, 90ms) var(--mk-ease-standard, ease);
+  }
+  .shape:active,
+  .centre:active { transform: scale(0.96); }
+}

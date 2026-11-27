@@ -1,7 +1,7 @@
 'use client';
 /* Drawings for Larkwell Organ Works (fictional). Everything is procedural SVG; the scene colours are fixed
    "image" colours (the inside of an oak case), the line drawings use theme tokens. */
-import { useId } from 'react';
+import { useId, type CSSProperties } from 'react';
 import s from './styles.module.css';
 
 interface Pipe { x: number; w: number; h: number; base: number }
@@ -32,33 +32,39 @@ function pipe(p: Pipe, fill: string, mouth: string, key: string | number) {
   );
 }
 
-function Grad({ id, stops }: { id: string; stops: readonly [number, string][] }) {
-  return <linearGradient id={id} x1="0" x2="1" y1="0" y2="0">{stops.map(([o, c]) => <stop key={o} offset={o} stopColor={c} />)}</linearGradient>;
+/** A cylinder's shading across each pipe; `sheen` is how far its highlight follows the light (depth factor). */
+function Grad({ id, stops, sheen }: { id: string; stops: readonly [number, string][]; sheen: number }) {
+  return <linearGradient id={id} x1="0" x2="1" y1="0" y2="0" data-sheen={sheen}>{stops.map(([o, c]) => <stop key={o} offset={o} stopColor={c} />)}</linearGradient>;
 }
 
 const VB = { viewBox: '0 0 1600 1000', preserveAspectRatio: 'xMidYMax slice' } as const;
 
-/** The case interior in layers (back → front). Each layer is its own element so it can move in depth. */
+/**
+ * The case interior in layers (back → front). Each layer is its own element so it can move in depth; the page writes
+ * --lw-px / --lw-py (where the light is, from the pointer) and --lw-wind (scroll speed) on the [data-facade] root, and
+ * slides each gradient's highlight (data-sheen) toward the light.
+ */
 export function FacadeScene({ className }: { className?: string }) {
   const id = useId();
   const tin = `${id}tin`;
   const pale = `${id}pale`;
   return (
-    <div className={`${s.scene} ${className ?? ''}`} aria-hidden="true">
+    <div className={`${s.scene} ${className ?? ''}`} aria-hidden="true" data-facade="">
       <div className={s.glow} />
       <div className={s.layer} data-layer="back">
         <svg {...VB} focusable="false">{BACK.map((p, i) => pipe(p, '#a07b58', '#5b4330', i))}</svg>
       </div>
       <div className={s.layer} data-layer="mid">
         <svg {...VB} focusable="false">
-          <defs><Grad id={pale} stops={[[0, '#4c4339'], [0.34, '#a99a83'], [0.44, '#cdbfa7'], [0.62, '#6f6556'], [1, '#3e362e']]} /></defs>
+          <defs><Grad id={pale} sheen={0.7} stops={[[0, '#4c4339'], [0.34, '#a99a83'], [0.44, '#cdbfa7'], [0.62, '#6f6556'], [1, '#3e362e']]} /></defs>
           {MID.map((p, i) => pipe(p, `url(#${pale})`, '#231d17', i))}
         </svg>
       </div>
+      <div className={s.shafts} />
       {([['frontL', FRONT_LEFT, 30], ['frontR', FRONT_RIGHT, 1500]] as const).map(([key, list, post]) => (
         <div key={key} className={s.layer} data-layer={key}>
           <svg {...VB} focusable="false">
-            <defs><Grad id={`${tin}${key}`} stops={[[0, '#26211c'], [0.3, '#8f8371'], [0.4, '#d6c9b2'], [0.58, '#5a5145'], [1, '#211c17']]} /></defs>
+            <defs><Grad id={`${tin}${key}`} sheen={1} stops={[[0, '#26211c'], [0.3, '#8f8371'], [0.4, '#d6c9b2'], [0.58, '#5a5145'], [1, '#211c17']]} /></defs>
             <rect x={post} y="0" width="70" height="1000" fill="#241d16" />
             <path d={`M${post + 12} 0V1000M${post + 58} 0V1000`} stroke="#4a3c2d" strokeWidth="2" />
             {list.map((p, i) => pipe(p, `url(#${tin}${key})`, '#120f0c', i))}
@@ -67,8 +73,8 @@ export function FacadeScene({ className }: { className?: string }) {
       ))}
       <div className={s.layer} data-layer="impost">
         <svg {...VB} focusable="false">
-          <rect x="0" y="900" width="1600" height="100" fill="#1c1712" />
-          <path d="M0 907H1600M0 921H1600" stroke="#6b5a45" strokeWidth="2" />
+          <rect x="-200" y="900" width="2000" height="120" fill="#1c1712" />
+          <path d="M-200 907H1800M-200 921H1800" stroke="#6b5a45" strokeWidth="2" />
         </svg>
       </div>
     </div>
@@ -133,15 +139,15 @@ export function RankDiagram({ drawn }: { drawn: ReadonlySet<string> }) {
       {STOPS.map((st, c) => {
         const on = drawn.has(st.id);
         const x0 = c * colW + 18;
-        const pipes = Array.from({ length: 12 }, (_, i) => {
+        const pipes = (fill: boolean) => Array.from({ length: 12 }, (_, i) => {
           const h = r2((st.feet / 8) * H * Math.pow(0.5, i / 6));
           const w = r2(Math.max(3, 10 * Math.pow(0.8, i / 3) * (st.kind.includes('wood') ? 1.3 : 1)));
-          return <rect key={i} x={r2(x0 + (i * (colW - 30)) / 12)} y={r2(320 - h)} width={w} height={h} rx="1.5" />;
+          return <rect key={i} x={r2(x0 + (i * (colW - 30)) / 12)} y={r2(320 - h)} width={w} height={h} rx="1.5" style={fill ? ({ '--i': i } as CSSProperties) : undefined} />;
         });
         return (
           <g key={st.id} className={s.rank} data-on={on || undefined}>
-            <g className={s.rankGhost}>{pipes}</g>
-            <g className={s.rankFill} style={{ transformOrigin: '0 320px' }}>{pipes}</g>
+            <g className={s.rankGhost}>{pipes(false)}</g>
+            <g className={s.rankFill}>{pipes(true)}</g>
             <text className={s.rankLabel} x={x0} y="345">{st.pitch}</text>
           </g>
         );

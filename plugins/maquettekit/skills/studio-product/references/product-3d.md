@@ -31,6 +31,8 @@ Score the request. Real-time 3D needs **every** "must" and at least one "value" 
 | Value | The configuration space is too large to pre-render | Count: colours × materials × options. Under about 30 combinations, render images |
 | Value | Understanding depends on parts and assembly | Exploded view, cutaway, mechanism |
 | Value | Scale or placement matters and an AR hand-off is wanted | Furniture, appliances, fixtures |
+| Value | Material, finish or light response is what sells it | Glazes, metals, fabrics, glass: photos flatten how they catch moving light. Needs PBR materials, not a scan with baked lighting; offer lighting presets (daylight, room, lit at night) |
+| Value | Handling the object is part of its appeal | Turning it over, opening a lid, pressing the controls |
 
 If the user explicitly asks for 3D, build it, but still supply the "must" rows and say which "value" row applies
 (or that none does).

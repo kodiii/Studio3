@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "predev": "node ../../scripts/build-catalog.mjs",
+    "predev": "node ../../scripts/build-catalog.mjs && node ../../scripts/copy-runtime-assets.mjs",
     "dev": "NEXT_TELEMETRY_DISABLED=1 next dev -p 3333",
-    "prebuild": "node ../../scripts/build-catalog.mjs",
+    "prebuild": "node ../../scripts/build-catalog.mjs && node ../../scripts/copy-runtime-assets.mjs",
     "build": "NEXT_TELEMETRY_DISABLED=1 next build",
     "start": "NEXT_TELEMETRY_DISABLED=1 next start -p 3333",
     "typecheck": "tsc --noEmit -p tsconfig.json"

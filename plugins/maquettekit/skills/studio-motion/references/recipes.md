@@ -1,5 +1,15 @@
 # Recipes — find, adapt, author
 
+> **Quick card** — the must-dos from this file; read on for the reasons and the detail.
+>
+> - Search before writing: `maquettekit catalog search <query>` with `--tech`, `--category`, `--no-deps`; confirm every id you cite.
+> - Read the recipe's `meta.ts` in full: `reducedMotion`, `accessibility` and `performance` are requirements you inherit.
+> - Adapt rather than rewrite; import a recipe's named component (`CursorFollower`, `LottieIcon`, `RiveCanvas`, `LiquidGlassLens`) when one exists.
+> - Copy `motion/` once per project and keep recipe imports pointing at it; keep tokens and springs, never magic numbers.
+> - Serve runtime files (Rive WASM, `.riv`, models) from your own origin, never a CDN.
+> - Keep cleanup, reduced motion and the keyboard path when you change a recipe; rerun its gates.
+> - Author a new recipe only when nothing fits, to the contract in §4.
+
 The Component & Effect Library ships each effect as real source with metadata, a reduced-motion path and cleanup.
 Adapting a recipe beats writing from scratch: its accessibility, reduced-motion and cleanup work is already done
 and tested. Copying mechanics (files, imports, tokens, params → props) is `studio-components`'
@@ -15,7 +25,7 @@ and tested. Copying mechanics (files, imports, tokens, params → props) is `stu
   dependencies, complexity, intensity and the reduced-motion behaviour; `catalog.json` is the machine form.
 - Read `meta.ts` in full before choosing: `reducedMotion`, `accessibility` and `performance` are requirements.
 
-## 2. All recipes (42, from the catalogue at the time of writing)
+## 2. All recipes (46, from the catalogue at the time of writing)
 
 New recipes keep landing: confirm an id with `maquettekit catalog search` before citing it.
 
@@ -33,6 +43,7 @@ New recipes keep landing: confirm an id with `maquettekit catalog search` before
 | `orbit-inspect-controls` | camera | r3f, three | three, @react-three/fiber | product or furniture inspection |
 | `scroll-camera-dolly` | camera | r3f, three | three, @react-three/fiber | scrollytelling chapter |
 | `expanding-card-detail` | cards | motion, css, svg | motion | event or course listings |
+| `cursor-follower` | cursor | css, svg | — | portfolio or studio site: "View" and "Drag" labels, magnetic targets |
 | `bar-race-transition` | charts | d3, css | d3 | leaderboard over time |
 | `brush-linked-range` | charts | d3, svg, css | d3 | time-series explorer |
 | `line-chart-morph` | charts | d3, svg, css | d3 | analytics overview with a range switcher |
@@ -49,6 +60,7 @@ New recipes keep landing: confirm an id with `maquettekit catalog search` before
 | `scroll-pin-chapters` | scroll | gsap, css, svg | gsap, @gsap/react | process or how-it-works section |
 | `scroll-progress-rail` | scroll | css | — | long-form article |
 | `image-ripple-distortion` | shaders | r3f, three, glsl, canvas2d | three, @react-three/fiber | portfolio or exhibition carousel |
+| `liquid-glass-lens` | shaders | glsl, three, r3f, canvas2d | three, @react-three/fiber | draggable glass loupe over a hero or product detail, light that follows the pointer |
 | `particle-field-gpu` | shaders | r3f, three, glsl | three, @react-three/fiber | immersive hero background |
 | `shader-aurora-plane` | shaders | r3f, three, glsl | three, @react-three/fiber | immersive hero background |
 | `like-heart-morph` | social | svg, waapi, css | — | feed post actions |
@@ -63,6 +75,8 @@ New recipes keep landing: confirm an id with `maquettekit catalog search` before
 | `scramble-decode` | typography | css | — | hero kicker or status line |
 | `split-line-reveal` | typography | waapi, css | — | hero headline |
 | `variable-weight-wave` | typography | css | — | hero headline |
+| `lottie-micro-interactions` | vector-animation | lottie, svg, css | lottie-web | animated icon buttons whose hover is the first beat of the transition |
+| `rive-state-machine` | vector-animation | rive, css | @rive-app/canvas-lite | reactive mascot; animated rating control over native radios |
 
 House patterns worth knowing before you adapt one:
 
@@ -73,6 +87,9 @@ House patterns worth knowing before you adapt one:
 | Motion | `morphing-nav-pill` | `layoutId` prefixed with `useId()`, `transition={{ type: 'spring', ...spring[token] }}`, `{ duration: 0 }` when reduced |
 | GSAP | `scroll-pin-chapters`, `horizontal-scroll-gallery` | `useGSAP({ scope, dependencies: [reduced, …], revertOnUpdate: true })`, CSS sticky pinning, `ResizeObserver` → `refresh()`, early return when reduced |
 | R3F / GLSL | `shader-aurora-plane` | `StudioCanvas` with fallback; `frameloop` `always` only while animating; uniforms in `useMemo` |
+| Lottie | `lottie-micro-interactions` (`LottieIcon`) | Light SVG player imported lazily; one instance per icon, `destroy()` on unmount; segments played from the current frame so toggles reverse mid-way; colours from CSS classes mapped to tokens; reduced motion jumps to each segment's last frame |
+| Rive | `rive-state-machine` (`RiveCanvas`) | Runtime imported lazily; `RuntimeLoader.setWasmUrl`/`setWasmFallbackUrl` to your own origin before the first instance; drawing buffer from a `ResizeObserver` (DPR ≤ 2); stop rendering offscreen and when hidden; inputs set from DOM controls; `cleanup()` on unmount |
+| Spring physics on rAF | `cursor-follower`, `magnetic-button` | Sub-stepped springs that keep velocity, one read-then-write pass per frame on a `useRafLoop` that sleeps when settled; fine pointers only; off under reduced motion |
 
 ## 3. Adapting
 

@@ -11,15 +11,93 @@ semantic versioning. Plugin manifests (Claude Code and Codex) always carry the s
   light), reactive drivers with catalogue starting points, direct manipulation, and a five-line motion brief.
 - Experience Lab rubric question `motionUsefulness.craft`: scores whether a surface meets the craft floor of its
   profile (weight 0.5 Essential, 3 Expressive, 4 Immersive), so inert Expressive and Immersive builds lose points.
+- Experience Lab measures liveliness, not only excess: `motionUsefulness.pointerResponse` (a four-point pointer sweep
+  of the first viewport; an element counts when it takes three or more distinct styles, so a plain hover state does
+  not, and a canvas counts when it redraws with the pointer beyond its own change at rest) and
+  `motionUsefulness.scrollResponse` (three scroll steps; parallax or style change in two of them, so one-shot reveals
+  do not count). Weights 0 Essential, 2/1 Expressive, 3/2 Immersive; half the routes responding scores fully.
+- Eval cases `judge-3d-earned` (a ceramic lamp with a PBR model, a material per glaze and a lamp-on state, whose glaze
+  under changing light is the question: real-time 3D is the right answer, with its obligations) and `build-product-hero` (a launch-page hero graded on the craft floor: continuous
+  response, physical motion, light that responds, direct manipulation with a keyboard twin).
+- Library: categories `cursor` and `vector-animation`, technologies `rive` and `lottie`. `scripts/copy-runtime-assets.mjs`
+  (run before the gallery's dev and build) serves the Rive runtime's WASM from the gallery's own origin.
+- **Four recipes** (51 in the catalogue):
+  - `liquid-glass-lens`: a thick glass lens you drag over a page drawn in the theme's tokens. A GLSL pass gives refraction strongest at
+    the rim, smooth dispersion, a studio reflection, one pointer-driven light with a contact shadow and optional frost.
+    Throws keep their velocity, bounce off the edges and wobble; shapes morph. It is a keyboard control and renders zero
+    frames at rest, with a CSS-glass fallback. `LiquidGlassLens` takes any page through `draw`.
+  - `cursor-follower`: a physical custom cursor. The ring smears, squashes and wobbles on springs and takes the outline of
+    what it rests on (magnet, label disc, text caret); the native cursor is never hidden. It runs on fine pointers only and
+    is off under reduced motion. Its showcase includes a momentum archive strip. Named export `CursorFollower`.
+  - `lottie-micro-interactions`: six hand-animated icons authored as original Lottie data with a typed builder. Hover plays
+    the wind-up and a click continues from that frame; toggles reverse mid-way. Colours come from tokens through CSS, and
+    static fallbacks are rendered from the same data. Named export `LottieIcon`.
+  - `rive-state-machine`: Rive's MIT example files (a character and a star rating) on the lite runtime, imported lazily.
+    The WASM and files are served from our origin. Native radios sit over the stars, rendering stops offscreen, and reduced
+    motion shows still frames. Named export `RiveCanvas`.
+
+- **Flagship demo** `motion-studio` (Cinematic, 23 demos): Lead & Lag, the one-page site of a fictional motion studio
+  where the page is the portfolio. It composes the four new recipes with `kinetic-marquee` and `split-line-reveal`
+  under one lamp for DOM and WebGL and one signature move ("thrown, then landed"):
+  - a glass loupe thrown over the manifesto, drawn through the lens's `draw` callback in the page's tokens;
+  - a cursor that reads the page;
+  - Lottie controls for the night palette, which spreads from its switch as a View Transition;
+  - a reel with a dancing Rive mascot and a Rive star rating over native radios.
+
+  Every pointer interaction has a keyboard twin, and the page holds a reduced-motion form throughout.
 
 ### Changed
+- `kinetic-marquee`: Pause eases the rails to a stop, then the frame loop sleeps until Play (it used to keep running
+  at 60 fps while paused).
+- All 22 demos meet the craft floor for their profile. Every control has hover, focus and pressed states with depth and
+  light from one direction. Each demo has a continuous driver and a hands-on interaction with a keyboard twin:
+  - 3D: Pulse Night has a shared pointer light, a speaker you can turn and a detented dial; the configurator has release
+    inertia and a lit material sweep; the physics playground has lacquered wood on a plank bench; the particle field is the
+    hero with shader glow; the service atlas has lit nodes and weighted links.
+  - Product: a lit, tilting SaaS window with a scrubbable delivery timeline; a throwable loupe in the showcase; onboarding
+    answers that fly to the ticket; a bike drawing with turnable cranks and wheels.
+  - Social: sew the patch with the needle; prints that slip out of register; a tuner dial with detents; a stories stage;
+    reflective brass.
+  - Cinematic: Kelda Ridge with an aurora, a head-torch and look-around; a draggable cross-section in the narrative; a
+    desk-lamp light and throwable dial on the kinetic type; light through Larkwell's arch and stops pulled against
+    resistance.
+  - Data: a brush with fling and spring landing, a halo cursor and a staggered entrance in exploration; bars shaded from one
+    light with exact data colours on their tops. The Essential dashboards stay calm, with crisp press states.
 - `studio-motion` writes a motion brief before choosing technology, picks the lightest technology that delivers the
   brief in full, and treats the craft floor and velocity-carrying gestures as non-negotiables. Steps renumbered.
+- `studio-product`, `studio-cinematic`, `studio-social` and `studio-motion` list the craft floor for their profile
+  among their non-negotiables: direct manipulation with a keyboard and button twin, springs that keep release
+  velocity, lit press and lift, and continuous response to pointer or scroll.
 - Profiles: "pick the lowest profile that achieves the brief" is now "pick the profile the surface deserves and
   deliver it in full". `studio-product`, `studio-cinematic`, `studio-social`, `studio-data` and `studio-3d` point their
   motion and art-direction steps at the craft floor. No gate changed.
+- Profile table: Expressive surfaces now allow pointer-tracked light and tilt, up to three parallax layers, scroll-linked
+  and velocity response, driven ambient motion and an optional custom cursor (native cursor stays visible), and every
+  profile has a direct-manipulation row. Motion that follows the user's own pointer, drag or scroll does not count
+  toward the simultaneous-animation budget.
+- 3D criteria (`technology-selection.md` §2.1 and the studios' step 6): real light and material, handling the subject
+  and a space the story moves through now justify real-time 3D; "only if earned" became "when it earns its place".
+  A decorative object unrelated to the subject still never qualifies; the fallback and budget obligations are unchanged.
+  `product-3d.md` gains two value rows (material and light response; handling the object); material response needs
+  PBR materials rather than a scan with baked lighting, shown with lighting presets.
 
 ### Fixed
+- `studio-3d` `physics.md` §6 taught the pattern behind the physics playground crash: its drag example called
+  `setBodyType` and `setLinvel` from pointer handlers, through a ref that can still hold a freed body. The example now
+  queues changes into `useBeforePhysicsStep` and checks `world.getRigidBody(rb.handle) === rb` first, and takes the
+  throw velocity from the last 120 ms of samples.
+- Demos, found by an audit against the craft floor:
+  - Throwing a block crashed the physics playground. Its registry kept bodies Rapier had freed (`@react-three/rapier` never
+    calls a ref with `null`); event-driven changes now apply in `useBeforePhysicsStep`.
+  - The Pulse Night copy sat over the speaker and failed contrast; body text now measures at least 5.85:1 at every beat.
+  - The financial dashboard boxed every KPI digit because `.strip` was defined twice.
+  - Four data tables and one log trapped page scrolling with `overscroll-behavior: contain`.
+  - `reaction-burst` sized its canvas from the content box, so particles were stretched and spawned about 50 px off.
+  - The product showcase's 3D view drew a strip when opened partly under the sticky header; the viewer now has its own
+    render surface.
+  - Onboarding steps double-exposed and flew a blurry snapshot; answers now fly as live text on springs.
+  - The particle panel shifted 17 px on every cycle.
+  - Kelda Ridge's aurora read as smudges in the light theme; the journey is now staged at night in both themes.
 - CI's browser tests had failed on every run since 4.0.0. Two visual-regression references were captured with a newer
   Chromium than the one Playwright pins in CI (same layout, text about 3 % narrower); they are now CI's own renders.
 - The 3D camera test waited for the camera attribute to stop changing for 700 ms, so one slow software-rendered frame

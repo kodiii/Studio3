@@ -1,23 +1,48 @@
 'use client';
 import type { ThreeEvent } from '@react-three/fiber';
-import { Suspense, useCallback, useEffect, useId, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent } from 'react';
-import { useStudioMotion } from '../../../motion';
+import { Suspense, useCallback, useEffect, useId, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent } from 'react';
+import { duration, sec, spring as SPRING, springToLinear, useRafLoop, useStudioMotion } from '../../../motion';
 import {
-  AnimationPlayer, CameraRig, HotspotAnchors, HotspotLayer, HotspotList, LightingRig, Model, ModelBoundary, OrbitInspect, PartController,
+  AnimationPlayer, CameraRig, HotspotAnchors, HotspotLayer, HotspotList, Model, ModelBoundary, OrbitInspect, PartController,
   SceneFallback, StudioCanvas, defaultQualityProfiles, describeModelError, detectCapabilities, formatBytes, formatCount, resolveModelUrl,
   resolveModelVariant, useHotspotStore, useModelManifest, useModelProgress,
   type AnimationPlayerHandle, type AnimationState, type CameraPose, type CameraRigHandle, type LoadedModel, type OrbitInspectHandle,
   type PartControllerCore, type PartInfo, type QualityLevel,
 } from '../../../three';
+import type { Mesh, MeshStandardMaterial } from 'three';
 import {
-  BASE_PRICE, COLOURWAYS, EXPLODED_PULLBACK, FALLBACK_IMAGE, HARDWARE_FINISHES, HOTSPOTS, MANIFEST_URL, PRESETS, PRESET_ORDER, SCALE,
+  BASE_PRICE, COLOURWAYS, EXPLODED_PULLBACK, FALLBACK_IMAGE, HARDWARE_FINISHES, HOTSPOTS, MANIFEST_URL, OWNED_MATERIALS, PRESETS, PRESET_ORDER, SCALE,
   SHELL_FINISHES, STRAPS, STRAP_PARTS, formatDelta, formatPrice, mixHex, widen, type Option, type Overrides, type PresetId,
 } from './config';
 import { OptionCards, Segmented, Step } from './controls';
+import { GroundShadow, MaterialSweep, RingGlow, StudioLights, Turntable, type SweepHandle, type TurntableHandle } from './scene';
 import styles from './styles.module.css';
 
 const ZOOM_STEP = 1.18;
 const ORBIT_KEYS = new Set(['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', '+', '=', '-', '_']);
+/** The total counts between values instead of swapping (state updates animate, Essential floor and up). */
+function AnimatedPrice({ value, reduced }: { value: number; reduced: boolean }) {
+  const el = useRef<HTMLSpanElement>(null);
+  const s = useRef({ from: value, to: value, t: 1, shown: value });
+  const [shown, setShown] = useState(value);
+  const [running, setRunning] = useState(false);
+  useEffect(() => {
+    const st = s.current;
+    // Off screen there is nobody to watch it count (and the loop would pause mid-way): land on the value.
+    const r = el.current?.getBoundingClientRect();
+    const onScreen = !!r && r.bottom > 0 && r.top < window.innerHeight;
+    if (reduced || !onScreen || st.to === value) { st.from = st.to = st.shown = value; st.t = 1; setShown(value); setRunning(false); return; }
+    st.from = st.shown; st.to = value; st.t = 0; setRunning(true);
+  }, [value, reduced]);
+  useRafLoop(el, (dt) => {
+    const st = s.current;
+    st.t = Math.min(1, st.t + dt / sec(duration.moderate));
+    st.shown = st.from + (st.to - st.from) * (1 - (1 - st.t) ** 3);
+    setShown(Math.round(st.shown));
+    if (st.t >= 1) setRunning(false);
+  }, running);
+  return <span ref={el} aria-hidden="true" className={styles.total} data-total={value}>{formatPrice(shown)}</span>;
+}
 const pick = (list: Option[], id: string): Option => list.find((o) => o.id === id) ?? list[0];
 
 /** Every camera pose the rig can be asked for: the four presets plus a pulled-back twin of each for the exploded view. */
@@ -45,6 +70,14 @@ export default function ProductConfigurator() {
   const [still, setStill] = useState(false);
   const [webgl, setWebgl] = useState<boolean | null>(null);
   const [anim, setAnim] = useState<AnimationState>({ clip: null, time: 0, duration: 0, playing: false });
+  const [motion, setMotion] = useState(true);
+  const [ambient, setAmbient] = useState(false);
+  const [partsReady, setPartsReady] = useState(0);
+  const turntable = useRef<TurntableHandle>(null);
+  const sweep = useRef<SweepHandle>(null);
+  const ring = useRef<MeshStandardMaterial | null>(null);
+  const stage = useRef<HTMLDivElement>(null);
+  const explodeAmount = useRef(() => core.current?.explodeAmount ?? 0);
   const orbit = useRef<OrbitInspectHandle>(null);
   const rig = useRef<CameraRigHandle>(null);
   const player = useRef<AnimationPlayerHandle>(null);
@@ -67,6 +100,7 @@ export default function ProductConfigurator() {
 
   const overrides = useMemo(() => {
     const merged: Record<string, object> = {};
+    for (const [k, v] of Object.entries(OWNED_MATERIALS)) if (v) merged[k] = v;
     const add = (o: Overrides) => { for (const [k, v] of Object.entries(o)) merged[k] = { ...merged[k], ...v }; };
     add(colour.overrides); add(shell.overrides); add(hardware.overrides);
     if (strap.id === 'dyed') add({ 'material:StrapFabric': { color: mixHex(colour.swatch?.[1] ?? '#ffffff', '#ffffff', 0.38) } });
@@ -83,7 +117,14 @@ export default function ProductConfigurator() {
   const visibleParts = parts.filter((p) => !hidden.includes(p.name));
 
   const onLoaded = useCallback((m: LoadedModel) => { setLoaded(m); setError(null); }, []);
-  const onPartsReady = useCallback((list: PartInfo[], c: PartControllerCore) => { core.current = c; setParts(list); }, []);
+  const onPartsReady = useCallback((list: PartInfo[], c: PartControllerCore) => {
+    core.current = c;
+    setParts(list);
+    let mat: MeshStandardMaterial | null = null;
+    c.root.getObjectByName('StatusLight')?.traverse((o) => { if ((o as Mesh).isMesh && !mat) mat = (o as Mesh).material as MeshStandardMaterial; });
+    ring.current = mat;
+    setPartsReady((n) => n + 1);
+  }, []);
   useEffect(() => { setLoaded(null); setParts([]); core.current = null; }, [url, attempt]);
 
   // Pointer → part (hover highlight, click selection). Clicks that ended a drag are orbiting, not picking.
@@ -100,6 +141,25 @@ export default function ProductConfigurator() {
 
   // The user taking the camera (drag, wheel, keys, zoom buttons) leaves the named preset.
   const leavePreset = useCallback(() => setPreset(null), []);
+  // ←/→ on the focused view push the turntable (it coasts and eases out, like a drag released); captured before
+  // OrbitInspect's own step so the keyboard twin feels like the hand. ↑/↓, +/−, 0 stay with OrbitInspect.
+  useEffect(() => {
+    const el = stage.current;
+    if (!el) return;
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.target as Element).tagName !== 'CANVAS' || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+      const dir = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+      if (!dir) return;
+      e.preventDefault();
+      e.stopPropagation();
+      turntable.current?.push(dir);
+      setPreset(null);
+    };
+    el.addEventListener('keydown', onKey, { capture: true });
+    return () => el.removeEventListener('keydown', onKey, { capture: true });
+  }, []);
+  /** Every option change is laid down by the finish sweep (captured before the new values reach the materials). */
+  const choose = (set: (id: string) => void) => (id: string) => { sweep.current?.begin(); turntable.current?.touch(); set(id); };
   const onStagePointerDown = (e: ReactPointerEvent<HTMLDivElement>) => { press.current = { x: e.clientX, y: e.clientY }; };
   const onStagePointerUp = (e: ReactPointerEvent<HTMLDivElement>) => {
     const p = press.current; press.current = null;
@@ -108,6 +168,7 @@ export default function ProductConfigurator() {
   const onStageKey = (e: ReactKeyboardEvent<HTMLDivElement>) => { if ((e.target as Element).tagName === 'CANVAS' && ORBIT_KEYS.has(e.key)) leavePreset(); if (e.key === 'Escape') { setSelected(null); setAnnotation(null); } };
 
   const reset = () => {
+    sweep.current?.begin(); turntable.current?.touch();
     setColourId(COLOURWAYS[0].id); setShellId(SHELL_FINISHES[0].id); setHardwareId(HARDWARE_FINISHES[0].id); setStrapId(STRAPS[0].id);
     setExplode(0); setAnnotation(null); setSelected(null);
     if (preset === 'hero') rig.current?.goTo('hero'); else setPreset('hero');
@@ -123,9 +184,12 @@ export default function ProductConfigurator() {
   const description = `The Pulse portable speaker in ${colour.name}: ${shell.name.toLowerCase()} shell, ${hardware.name.toLowerCase()} hardware, ${strap.id === 'none' ? 'no strap' : `${strap.name.toLowerCase()} strap`}${exploded ? `, exploded ${Math.round(explode * 100)} percent` : ''}.`;
   const facts = summary.map((s) => ({ label: s.label, value: s.value })).concat([{ label: 'Total', value: formatPrice(total) }]);
   const loading = live && !!url && !loaded;
+  const release = useMemo(() => springToLinear(SPRING.press), []);
+  const pressStyle = { '--release-ease': release.easing, '--release-dur': `${release.duration}ms` } as CSSProperties;
+  const shadowVersion = `${url}#${attempt}#${hidden.join(',')}#${loaded ? 1 : 0}`;
 
   return (
-    <div className="bg-bg pb-20 text-ink" data-configurator="">
+    <div className={`${styles.root} bg-bg pb-20 text-ink`} data-configurator="" style={pressStyle}>
       {/* ── Masthead ───────────────────────────────────────────── */}
       <header className="mx-auto max-w-[1280px] px-4 pt-6 @3xl:px-8 @3xl:pt-10">
         <div className="flex items-baseline justify-between gap-4 border-b border-line pb-3">
@@ -150,7 +214,7 @@ export default function ProductConfigurator() {
         {/* ── Stage ─────────────────────────────────────────────── */}
         <section aria-label="Product view" className="min-w-0 @5xl:sticky @5xl:top-[60px] @5xl:self-start">
           <div
-            className={styles.stage} data-stage-state={live ? 'live' : 'still'}
+            ref={stage} className={styles.stage} data-stage-state={live ? 'live' : 'still'}
             onPointerDown={onStagePointerDown} onPointerUp={onStagePointerUp} onKeyDown={onStageKey}
             onWheel={(e) => { if (document.activeElement === e.target && (e.target as Element).tagName === 'CANVAS') leavePreset(); }}
           >
@@ -171,16 +235,21 @@ export default function ProductConfigurator() {
                 />
               }
             >
-              <LightingRig preset="studio-soft" shadowRadius={1.5} />
-              <OrbitInspect ref={orbit} target={[0, 0.75, 0]} minDistance={2.4} maxDistance={11} />
+              <StudioLights />
+              {/* No damping lag: the view follows the hand 1:1, the Turntable adds the inertia after release. */}
+              <OrbitInspect ref={orbit} target={[0, 0.75, 0]} minDistance={2.4} maxDistance={11} damping={0} />
               <CameraRig ref={rig} presets={RIG_POSES} preset={rigPreset} smoothTime={0.55} onInterrupt={leavePreset} />
+              <Turntable ref={turntable} reduced={reduced} motion={motion} rig={rig} onSway={setAmbient} />
+              <RingGlow material={ring} motion={motion && ambient} reduced={reduced} />
               {url ? (
                 <ModelBoundary resetKey={`${url}#${attempt}`} onError={setError}>
                   <Suspense fallback={null}>
                     <Model key={attempt} src={url} scale={SCALE} castShadow onLoaded={onLoaded} onError={setError} onPointerMove={onPartMove} onPointerOut={() => setHover(null)} onClick={onPartClick} />
                     <PartController root={loaded?.scene ?? null} overrides={overrides} hidden={hidden} explode={explode} highlight={hover} selected={selected} onReady={onPartsReady} />
                     <AnimationPlayer ref={player} root={loaded?.scene ?? null} clips={loaded?.animations ?? []} clip="KnobTurn" loop={false} onState={setAnim} />
-                    <HotspotAnchors store={store} hotspots={hotspots} root={loaded?.scene ?? null} />
+                    <HotspotAnchors store={store} hotspots={hotspots} root={loaded?.scene ?? null} occlude={!ambient} />
+                    <GroundShadow root={loaded?.scene ?? null} version={shadowVersion} explodeAmount={explodeAmount} />
+                    <MaterialSweep ref={sweep} root={loaded?.scene ?? null} ready={partsReady} reduced={reduced} />
                   </Suspense>
                 </ModelBoundary>
               ) : null}
@@ -216,11 +285,14 @@ export default function ProductConfigurator() {
             <Segmented
               name={`${uid}view`} legend="Camera view" value={preset} disabled={!live}
               options={PRESET_ORDER.map((id) => ({ id, label: PRESETS[id].label }))}
-              onChange={(id) => { if (id === preset) rig.current?.goTo(rigPreset ?? id); setPreset(id as PresetId); }}
+              onChange={(id) => { turntable.current?.touch(); if (id === preset) rig.current?.goTo(rigPreset ?? id); setPreset(id as PresetId); }}
             />
             <div className="flex gap-1">
-              <button type="button" className={styles.iconButton} aria-label="Zoom in" disabled={!live} onClick={() => { orbit.current?.zoom(ZOOM_STEP); leavePreset(); }}>+</button>
-              <button type="button" className={styles.iconButton} aria-label="Zoom out" disabled={!live} onClick={() => { orbit.current?.zoom(1 / ZOOM_STEP); leavePreset(); }}>−</button>
+              {live && !reduced ? (
+                <button type="button" className={styles.iconButton} onClick={() => setMotion((m) => !m)}>{motion ? 'Pause motion' : 'Play motion'}</button>
+              ) : null}
+              <button type="button" className={styles.iconButton} aria-label="Zoom in" disabled={!live} onClick={() => { turntable.current?.touch(); orbit.current?.zoom(ZOOM_STEP); leavePreset(); }}>+</button>
+              <button type="button" className={styles.iconButton} aria-label="Zoom out" disabled={!live} onClick={() => { turntable.current?.touch(); orbit.current?.zoom(1 / ZOOM_STEP); leavePreset(); }}>−</button>
             </div>
           </div>
           <p className="mt-2 text-[13px] leading-snug text-muted">
@@ -228,7 +300,7 @@ export default function ProductConfigurator() {
               ? 'This browser cannot show the 3D view, so a still render is shown. Every option below still applies to the summary.'
               : still
                 ? 'Showing the still render. Options still apply to the summary.'
-                : <>Drag to turn it, click a part to name it. With the view focused, arrow keys rotate and <kbd className="font-mono">+</kbd> / <kbd className="font-mono">−</kbd> zoom. {preset ? `View: ${PRESETS[preset].label}.` : 'Custom view.'}</>}
+                : <>Drag or flick to turn it, click a part to name it. With the view focused, ← → spin it, ↑ ↓ tilt, <kbd className="font-mono">+</kbd> / <kbd className="font-mono">−</kbd> zoom. {preset ? `View: ${PRESETS[preset].label}.` : 'Custom view.'}{!reduced && motion ? ' Left alone, the studio sways and the ring breathes.' : ''}</>}
           </p>
           {manifestError ? <p role="alert" className="mt-2 text-[13px] text-danger">The model list could not be loaded: {manifestError.message}</p> : null}
         </section>
@@ -236,21 +308,21 @@ export default function ProductConfigurator() {
         {/* ── Configuration ─────────────────────────────────────── */}
         <form aria-label="Configure Pulse" className="min-w-0" onSubmit={(e) => e.preventDefault()}>
           <Step n="01" title="Colourway" value={colour.name}>
-            <OptionCards name={`${uid}colour`} legend="Colourway" value={colourId} onChange={setColourId}
+            <OptionCards name={`${uid}colour`} legend="Colourway" value={colourId} onChange={choose(setColourId)}
               options={COLOURWAYS.map((o) => ({ id: o.id, name: o.name, note: o.note, swatch: o.swatch, meta: formatDelta(o.price) }))} />
           </Step>
 
           <Step n="02" title="Finish">
             <p className="mk-label mb-2 mt-0 text-muted" id={`${uid}shell-h`}>Shell</p>
-            <OptionCards name={`${uid}shell`} legend="Shell finish" value={shellId} onChange={setShellId}
+            <OptionCards name={`${uid}shell`} legend="Shell finish" value={shellId} onChange={choose(setShellId)}
               options={SHELL_FINISHES.map((o) => ({ id: o.id, name: o.name, note: o.note, meta: formatDelta(o.price) }))} />
             <p className="mk-label mb-2 mt-4 text-muted">Hardware — dial, trim ring, badge, pins</p>
-            <OptionCards name={`${uid}hw`} legend="Hardware finish" value={hardwareId} onChange={setHardwareId} columns={1}
+            <OptionCards name={`${uid}hw`} legend="Hardware finish" value={hardwareId} onChange={choose(setHardwareId)} columns={1}
               options={HARDWARE_FINISHES.map((o) => ({ id: o.id, name: o.name, note: o.note, meta: formatDelta(o.price) }))} />
           </Step>
 
           <Step n="03" title="Strap" value={strap.name}>
-            <OptionCards name={`${uid}strap`} legend="Strap" value={strapId} onChange={setStrapId} columns={1}
+            <OptionCards name={`${uid}strap`} legend="Strap" value={strapId} onChange={choose(setStrapId)} columns={1}
               options={STRAPS.map((o) => ({ id: o.id, name: o.name, note: o.note, meta: formatDelta(o.price) }))} />
           </Step>
 
@@ -258,7 +330,7 @@ export default function ProductConfigurator() {
             <div className="grid gap-4">
               <label className="grid gap-1.5 text-[13.5px]">
                 <span className="flex justify-between"><span>Exploded view</span><span className="font-mono text-[12px] text-muted">{explode === 0 ? 'assembled' : `${Math.round(explode * 100)}%`}</span></span>
-                <input type="range" className={styles.range} min={0} max={100} step={1} value={Math.round(explode * 100)} disabled={!live}
+                <input type="range" className={styles.range} style={{ '--fill': `${Math.round(explode * 100)}%` } as CSSProperties} min={0} max={100} step={1} value={Math.round(explode * 100)} disabled={!live}
                   onChange={(e) => setExplode(Number(e.target.value) / 100)} aria-valuetext={explode === 0 ? 'Assembled' : `${Math.round(explode * 100)} percent apart`} />
               </label>
               <div className="flex flex-wrap items-center gap-3">
@@ -310,12 +382,12 @@ export default function ProductConfigurator() {
               ))}
             </dl>
             <div className="mt-4 flex items-end justify-between gap-3">
-              <p className="m-0" aria-live="polite" aria-atomic="true"><span className="mk-sr-only">Total </span><span className={styles.total} data-total={total}>{formatPrice(total)}</span></p>
+              <p className="m-0" aria-live="polite" aria-atomic="true"><span className="mk-sr-only">Total {formatPrice(total)}</span><AnimatedPrice value={total} reduced={reduced} /></p>
               <button type="button" className={styles.iconButton} onClick={reset}>Reset</button>
             </div>
             <p className="mb-0 mt-3 text-[12.5px] leading-snug text-muted">Base {formatPrice(BASE_PRICE)}. Pulse and kiln.audio are fictional; nothing here is for sale.</p>
             <label className="mt-3 flex min-h-9 items-center gap-2 border-t border-line pt-3 text-[13px]">
-              <input type="checkbox" checked={still} onChange={(e) => setStill(e.target.checked)} disabled={webgl === false} />
+              <input type="checkbox" className={styles.check} checked={still} onChange={(e) => setStill(e.target.checked)} disabled={webgl === false} />
               Show the still render instead of 3D
             </label>
             {variant && live ? (

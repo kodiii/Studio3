@@ -1,5 +1,6 @@
 'use client';
-import { useEffect, useId, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useState, type CSSProperties } from 'react';
+import { spring as SPRING, springToLinear, useStudioMotion } from '../../../motion';
 import { StudioCanvas, formatCount, useCanvasDiagnostics } from '../../../three';
 import { BarField, PRESETS, type Preset } from './BarField';
 import { Heatmap } from './Heatmap';
@@ -8,6 +9,9 @@ import s from './styles.module.css';
 
 const DATA = simulate();
 const VIEWS: readonly { id: Preset; label: string }[] = [{ id: 'overview', label: 'Overview' }, { id: 'windward', label: 'From the west' }, { id: 'plan', label: 'Near plan' }];
+/** The press spring as a CSS linear() curve: controls spring back on release without a JS loop. */
+const PRESS = springToLinear(SPRING.press);
+const ROOT_STYLE = { '--sd-press': PRESS.easing, '--sd-press-dur': `${PRESS.duration}ms` } as CSSProperties;
 
 function useTheme(): 'light' | 'dark' {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
@@ -24,6 +28,7 @@ function useTheme(): 'light' | 'dark' {
 
 export default function SpatialDataViz() {
   const uid = useId();
+  const { reduced } = useStudioMotion();
   const theme = useTheme();
   const pal = useMemo(() => palette(theme), [theme]);
   const [mode, setMode] = useState<'3d' | '2d'>('3d');
@@ -64,7 +69,7 @@ export default function SpatialDataViz() {
   const heatmap = <Heatmap values={values} pal={pal} active={hovered} selected={selected} onActive={setHovered} onSelect={setSelected} label={mapLabel} />;
 
   return (
-    <div className={s.root}>
+    <div className={s.root} data-reduced={reduced || undefined} style={ROOT_STYLE}>
       <div className={s.wrap}>
         <header className={s.head}>
           <p className={s.kicker}>Saddleback Plateau · fictional survey <span className={s.sim}>Simulated data</span></p>

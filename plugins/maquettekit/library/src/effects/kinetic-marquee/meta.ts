@@ -28,7 +28,7 @@ export const meta: EffectMeta = {
   ],
   reducedMotion: 'No loop runs: both rails are static, skew is removed and the pause control is replaced by a "motion off" note.',
   performance: [
-    'One rAF loop (useRafLoop, paused offscreen) writes one transform per rail; nothing is laid out per frame.',
+    'One rAF loop (useRafLoop, paused offscreen) writes one transform per rail; nothing is laid out per frame. Pause eases the rails to a stop, then the loop sleeps until Play.',
     'Scroll and pointer listeners are passive and only accumulate a delta that the loop consumes.',
     'Copies are created from a ResizeObserver measurement: just enough to cover the container plus one.',
   ],

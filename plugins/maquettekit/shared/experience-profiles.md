@@ -64,25 +64,28 @@ token values, do not hard-code new numbers.
 | Max simultaneous animations | 1 | 3 | 6 |
 | Typical UI transition (token `base`, 240 ms) | about 170 ms | 240 ms | 300 ms |
 | Longest single UI transition | `moderate` (360 ms, scaled) | `slow` (560 ms) | `cinematic` (900 ms); `epic` (1400 ms) only in scripted, skippable sequences |
-| Easing | `standard`, `exit`; no overshoot | adds `enter`, `emphasized`; springs `press`, `settle` | all tokens; springs incl. `glide`, `release`; `pop` only for celebratory feedback |
+| Easing | `standard`, `exit`; no overshoot | adds `enter`, `emphasized`, `anticipate`; springs `press`, `settle`, `release` (gestures keep their velocity) | all tokens; springs incl. `glide`; `pop` and `overshoot` for celebratory feedback |
 | Entrance animation on load | None, or one opacity fade | One orchestrated sequence above the fold | Scripted intro allowed if skippable and under about 3 s to usable content |
-| Scroll-triggered reveals | None | Sparse; once per element, never re-triggering | Yes, including scrubbed sequences |
-| Pinning / scrubbed scroll | No | At most one short pinned section | Yes, with escape (see studio-cinematic) |
-| Parallax | No | Subtle: one layer, ≤ 10 % relative travel | Multi-layer |
-| Hover effects | Colour/outline only | Plus small transform, reveal of secondary actions | Plus pointer-tracked effects (tilt, magnetic, spotlight) |
+| Scroll-triggered reveals | None | Yes, once per element, never re-triggering; groups staggered; scroll-linked progress and velocity response allowed | Yes, including scrubbed sequences |
+| Pinning / scrubbed scroll | No | Short pinned or scrubbed sections, each left by normal scrolling | Yes, with escape (see studio-cinematic) |
+| Parallax | No | Up to three layers, ≤ 20 % relative travel | Multi-layer, depth-mapped |
+| Hover and pointer response | Colour/outline; an immediate pressed state | Pointer-tracked effects (tilt, magnetic, spotlight, light that follows the pointer) and reveal of secondary actions, all lit from one direction | Plus contextual cursor states and scene-wide response to the pointer |
 | Page/route transitions | Instant or a ≤ 200 ms cross-fade | Shared-element or directional transition | Full-screen staged transitions |
 | Layout animation (reorder, expand) | Instant or ≤ 200 ms | FLIP/layout animation | Same, may add secondary motion |
-| CSS 3D transforms | No | Small accents (card flip, depth stack) | Yes |
-| Real-time 3D / WebGL | Only when 3D *is* the function (a viewer the user came for) | When justified by the specialty's criteria; one canvas | Encouraged where it serves the story; still one canvas per view |
-| Ambient/background animation | No | Rare, subtle, pausable | Yes, pausable |
+| CSS 3D transforms | No | Yes, for cards and objects with depth (flip, tilt, depth stack) | Yes |
+| Real-time 3D / WebGL | Only when 3D *is* the function (a viewer the user came for) | When it shows the subject better than images can: real light and material, handling it, a spatial story (`technology-selection.md` §2.1); one canvas, static fallback | Encouraged: the subject in real light, handled directly; one canvas per view, static fallback |
+| Ambient/background animation | No | Subtle and pausable, driven by something (pointer, scroll, data, time) rather than a blind loop | Yes, pausable |
 | Sound | No | No by default; opt-in feedback sounds only on request | Opt-in only, off by default, with a visible toggle |
 | Autoplay video/animation | No | Muted, short, pausable; poster under reduced motion | Muted, pausable; poster under reduced motion |
-| Custom cursor | No | No | Optional on fine pointers only; native cursor stays functional |
+| Custom cursor | No | Optional on fine pointers as an augmentation; the native cursor stays visible | Optional on fine pointers, with contextual states (label, magnet, text); the native cursor stays functional |
+| Direct manipulation | Drag or reorder where the task benefits; always with a button or keyboard twin | At least one hands-on interaction with a physical response (drag, scrub, swipe, throw) | The main subject can be handled: turned, thrown, scrubbed, configured |
 | Feedback latency target | Next frame | Next frame; the animation may continue after | Next frame; the animation may continue after |
 
 **Reading the table.** "Max simultaneous animations" counts independently perceived motions, not DOM nodes: a
 staggered list is one; a list, a counter and a background drift are three. Feedback latency is the same in
-every profile: richness is added after the response, never in front of it.
+every profile: richness is added after the response, never in front of it. Motion that follows the user's own
+pointer, drag or scroll is response, not ambient motion, and does not count toward the simultaneous budget. Each
+profile also has a craft floor, a minimum as binding as these limits (`motion-craft.md` §1).
 
 ## 4. Per-specialty defaults
 

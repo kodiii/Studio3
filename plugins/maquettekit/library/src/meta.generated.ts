@@ -7,6 +7,7 @@ import { meta as e_brushLinkedRange } from './effects/brush-linked-range/meta';
 import { meta as e_cameraPresetRig } from './effects/camera-preset-rig/meta';
 import { meta as e_commandMenuReveal } from './effects/command-menu-reveal/meta';
 import { meta as e_cssCubeCarousel } from './effects/css-cube-carousel/meta';
+import { meta as e_cursorFollower } from './effects/cursor-follower/meta';
 import { meta as e_dotGridPointerField } from './effects/dot-grid-pointer-field/meta';
 import { meta as e_dragReorderList } from './effects/drag-reorder-list/meta';
 import { meta as e_expandingCardDetail } from './effects/expanding-card-detail/meta';
@@ -22,6 +23,8 @@ import { meta as e_kineticMarquee } from './effects/kinetic-marquee/meta';
 import { meta as e_layeredDepthStack } from './effects/layered-depth-stack/meta';
 import { meta as e_likeHeartMorph } from './effects/like-heart-morph/meta';
 import { meta as e_lineChartMorph } from './effects/line-chart-morph/meta';
+import { meta as e_liquidGlassLens } from './effects/liquid-glass-lens/meta';
+import { meta as e_lottieMicroInteractions } from './effects/lottie-micro-interactions/meta';
 import { meta as e_magneticButton } from './effects/magnetic-button/meta';
 import { meta as e_morphSubmitButton } from './effects/morph-submit-button/meta';
 import { meta as e_morphingNavPill } from './effects/morphing-nav-pill/meta';
@@ -34,6 +37,7 @@ import { meta as e_pressDepthButton } from './effects/press-depth-button/meta';
 import { meta as e_progressOrbitLoader } from './effects/progress-orbit-loader/meta';
 import { meta as e_pullToRevealSheet } from './effects/pull-to-reveal-sheet/meta';
 import { meta as e_reactionBurst } from './effects/reaction-burst/meta';
+import { meta as e_riveStateMachine } from './effects/rive-state-machine/meta';
 import { meta as e_scrambleDecode } from './effects/scramble-decode/meta';
 import { meta as e_scrollCameraDolly } from './effects/scroll-camera-dolly/meta';
 import { meta as e_scrollPinChapters } from './effects/scroll-pin-chapters/meta';
@@ -55,6 +59,7 @@ import { meta as d__3d_spatialData } from './demos/3d/spatial-data/meta';
 import { meta as d_cinematic_cinematicLanding } from './demos/cinematic/cinematic-landing/meta';
 import { meta as d_cinematic_immersive3dHero } from './demos/cinematic/immersive-3d-hero/meta';
 import { meta as d_cinematic_kineticTypography } from './demos/cinematic/kinetic-typography/meta';
+import { meta as d_cinematic_motionStudio } from './demos/cinematic/motion-studio/meta';
 import { meta as d_cinematic_scrollNarrative } from './demos/cinematic/scroll-narrative/meta';
 import { meta as d_data_dataExploration } from './demos/data/data-exploration/meta';
 import { meta as d_data_financialDashboard } from './demos/data/financial-dashboard/meta';
@@ -78,6 +83,7 @@ export const effectMetas: readonly EffectMeta[] = [
   e_cameraPresetRig,
   e_commandMenuReveal,
   e_cssCubeCarousel,
+  e_cursorFollower,
   e_dotGridPointerField,
   e_dragReorderList,
   e_expandingCardDetail,
@@ -93,6 +99,8 @@ export const effectMetas: readonly EffectMeta[] = [
   e_layeredDepthStack,
   e_likeHeartMorph,
   e_lineChartMorph,
+  e_liquidGlassLens,
+  e_lottieMicroInteractions,
   e_magneticButton,
   e_morphSubmitButton,
   e_morphingNavPill,
@@ -105,6 +113,7 @@ export const effectMetas: readonly EffectMeta[] = [
   e_progressOrbitLoader,
   e_pullToRevealSheet,
   e_reactionBurst,
+  e_riveStateMachine,
   e_scrambleDecode,
   e_scrollCameraDolly,
   e_scrollPinChapters,
@@ -129,6 +138,7 @@ export const demoMetas: readonly DemoMeta[] = [
   d_cinematic_cinematicLanding,
   d_cinematic_immersive3dHero,
   d_cinematic_kineticTypography,
+  d_cinematic_motionStudio,
   d_cinematic_scrollNarrative,
   d_data_dataExploration,
   d_data_financialDashboard,

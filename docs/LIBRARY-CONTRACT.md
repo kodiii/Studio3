@@ -68,8 +68,13 @@ those into errors.
     it. When the recipe is a natural UI primitive (a ticker, a toggle, a list, a chart), also export a content-agnostic
     named component with typed data/callback props (`export function NumberTicker({ value, format })`) and make the
     default export a thin wrapper that feeds it sample content — demos and apps then import the named export instead of
-    re-implementing the technique.
-12. **Dependencies** listed in `meta.dependencies` must match the imports exactly (react/react-dom are implicit).
+    re-implementing the technique. The named component may live in a sibling file and be re-exported from `index.tsx`
+    (`RiveCanvas` in `rive-state-machine`, `CursorFollower` in `cursor-follower`).
+12. **Runtime files from your own origin.** A recipe that loads binaries or data at run time (a WASM runtime, a
+    `.riv` or model file) takes their URLs as props with defaults under the app's public folder and never falls back
+    to a CDN. The gallery serves committed assets from `apps/gallery/public/` and copies runtime binaries from
+    `node_modules` before dev and build (`scripts/copy-runtime-assets.mjs`).
+13. **Dependencies** listed in `meta.dependencies` must match the imports exactly (react/react-dom are implicit).
     Pick the lightest tool: CSS → WAAPI/`createSequence` → Motion (React state/gesture/layout animation) → GSAP
     (scrubbed scroll timelines, pinning, complex sequencing) → three.js/R3F (genuine 3D only).
 

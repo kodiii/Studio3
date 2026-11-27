@@ -77,7 +77,8 @@ export function RangeBrush({ dates, values, win, minSpan, describedBy, onChange,
       : ev.key === 'PageDown' ? -5 : ev.key === 'PageUp' ? 5 : ev.key === 'Home' ? -n : ev.key === 'End' ? n : 0;
     if (!d) return;
     ev.preventDefault();
-    onChange(apply(part, win, d), 'key');
+    // A held key repeats faster than any transition could finish: treat auto-repeat like a drag (cut, no roll).
+    onChange(apply(part, win, d), ev.repeat ? 'drag' : 'key');
   };
   const onTrackDown = (ev: PointerEvent<HTMLDivElement>) => {
     if (ev.button !== 0 || sw <= 0) return;

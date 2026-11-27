@@ -8,6 +8,8 @@
   --lw-axes: var(--mk-font-display, ui-sans-serif, system-ui, sans-serif);
   --lw-case: #1c1712;
   --lw-case-ink: #f2ebdf;
+  /* One light: the hall's west window, upper left. Shadows fall to the lower right, two layers each (contact + soft). */
+  --lw-shadow-ink: 17 17 15;
   --lw-arch: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 160'%3E%3Cpath d='M0 160V50A50 50 0 0 1 100 50V160Z'/%3E%3C/svg%3E");
   position: relative;
   overflow-x: clip;
@@ -73,7 +75,13 @@
   color: var(--mk-ink-muted, #5c5a52);
   text-decoration: none;
 }
-.navLink:hover { color: var(--mk-ink, #11110f); }
+.navLink {
+  transition: color var(--mk-duration-fast, 160ms) var(--mk-ease-standard, ease), border-color var(--mk-duration-fast, 160ms) var(--mk-ease-standard, ease),
+    translate var(--lw-press-dur, 300ms) var(--lw-press, ease);
+}
+.navLink:hover { color: var(--mk-ink, #11110f); border-bottom-color: var(--mk-line-strong, #11110f); }
+.navLink:active { translate: 0 1px; transition-duration: var(--mk-duration-instant, 90ms); }
+.navLink:focus-visible, .brand:focus-visible { outline: 2px solid var(--mk-focus, #1d4ed8); outline-offset: 2px; }
 .navLink[aria-current] { color: var(--mk-ink, #11110f); border-bottom-color: var(--mk-signal, #bf2f09); }
 
 /* ── Beat 1: hook ───────────────────────────────────────────── */
@@ -115,15 +123,45 @@
   -webkit-mask: var(--lw-arch) center / 100% 100% no-repeat;
   mask: var(--lw-arch) center / 100% 100% no-repeat;
 }
+.heroWindow::after { content: ''; position: absolute; inset: 0; pointer-events: none; box-shadow: inset 12px 16px 28px -10px rgb(0 0 0 / 0.6); }
 @container (max-width: 60rem) { .heroWindow { height: min(46svh, 28rem); } .heroFigure { justify-items: start; } }
 .caption { max-width: 34ch; text-align: end; }
 .heroFigure .caption { justify-self: end; }
 
 /* The case interior (shared by the hero window and the turn) */
-.scene { position: absolute; inset: 0; overflow: clip; background: var(--lw-case); }
-.glow { position: absolute; inset: 0; background: radial-gradient(120% 72% at 50% 94%, #eaa75a 0%, #b8692f 24%, #5a3419 50%, #1c1712 78%); }
+.scene { --lw-px: -0.35; --lw-py: -0.3; --lw-wind: 0; position: absolute; inset: 0; overflow: clip; background: var(--lw-case); }
+/* The warm light behind the pipes leans toward the pointer and swells with the wind (scroll speed). */
+.glow {
+  position: absolute;
+  inset: -10%;
+  background: radial-gradient(120% 72% at 50% 94%, #eaa75a 0%, #b8692f 24%, #5a3419 50%, #1c1712 78%);
+  translate: calc(var(--lw-px) * 4%) calc(var(--lw-py) * 2%);
+  scale: calc(1 + var(--lw-wind) * 0.08);
+  opacity: calc(0.86 + var(--lw-wind) * 0.14);
+  transform-origin: 50% 100%;
+}
+/* Light shafts from the window, between the inner ranks and the façade pipes: their angle follows the pointer. */
+.shafts {
+  position: absolute;
+  inset: -40% -60%;
+  pointer-events: none;
+  background: repeating-linear-gradient(90deg, transparent 0 5%, rgb(255 205 140 / 0.1) 7.5%, rgb(255 218 168 / 0.34) 9.6%, rgb(255 205 140 / 0.1) 11.5%, transparent 14% 22%);
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, rgb(0 0 0 / 0.7) 40%, transparent 78%);
+  mask-image: linear-gradient(180deg, #000 0%, rgb(0 0 0 / 0.7) 40%, transparent 78%);
+  mix-blend-mode: screen;
+  transform-origin: 30% 0%;
+  rotate: calc(-22deg + var(--lw-px) * 9deg);
+  translate: calc(var(--lw-px) * 6%) 0;
+  opacity: calc(0.62 + var(--lw-wind) * 0.38);
+  will-change: transform;
+}
 .layer { position: absolute; inset: 0; transform-origin: 50% 100%; will-change: transform; }
 .layer svg { display: block; width: 100%; height: 100%; }
+/* Depth: far ranks barely move, the façade moves most (the CSS translate property composes with GSAP's transform). */
+.layer[data-layer='back'] { translate: calc(var(--lw-px) * -0.5%) calc(var(--lw-py) * -0.3%); }
+.layer[data-layer='mid'] { translate: calc(var(--lw-px) * -1.2%) calc(var(--lw-py) * -0.6%); }
+.layer[data-layer='frontL'], .layer[data-layer='frontR'] { translate: calc(var(--lw-px) * -2.4%) calc(var(--lw-py) * -1%); }
+.layer[data-layer='impost'] { translate: calc(var(--lw-px) * -2.8%) calc(var(--lw-py) * -1.2%); }
 
 /* ── Beat 2: the room ───────────────────────────────────────── */
 .room {
@@ -176,7 +214,14 @@
   color: var(--mk-ink, #11110f);
   text-decoration: none;
 }
-.skip:hover { background: var(--mk-ink, #11110f); color: var(--mk-bg, #f3f0e8); }
+.skip {
+  box-shadow: 1px 1px 1px rgb(var(--lw-shadow-ink) / 0.12), 4px 6px 14px -8px rgb(var(--lw-shadow-ink) / 0.3);
+  transition: translate var(--lw-press-dur, 300ms) var(--lw-press, ease), box-shadow var(--mk-duration-fast, 160ms) var(--mk-ease-standard, ease),
+    background-color var(--mk-duration-fast, 160ms) var(--mk-ease-standard, ease), color var(--mk-duration-fast, 160ms) var(--mk-ease-standard, ease);
+}
+.skip:hover { translate: 0 -1px; background: var(--mk-ink, #11110f); color: var(--mk-bg, #f3f0e8); box-shadow: 1px 2px 2px rgb(var(--lw-shadow-ink) / 0.14), 6px 10px 20px -8px rgb(var(--lw-shadow-ink) / 0.4); }
+.skip:active { translate: 0 1px; box-shadow: inset 1px 2px 3px rgb(0 0 0 / 0.3); transition-duration: var(--mk-duration-instant, 90ms); }
+.skip:focus-visible { outline: 2px solid var(--mk-focus, #1d4ed8); outline-offset: 3px; }
 
 /* ── Beat 3: the turn ───────────────────────────────────────── */
 .turn { position: relative; height: 300svh; scroll-margin-top: 44px; }
@@ -251,37 +296,67 @@
   color: inherit;
   font: inherit;
   text-align: start;
-  cursor: pointer;
+  cursor: grab;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--mk-duration-fast, 160ms) var(--mk-ease-standard, ease);
 }
+.stopBtn:hover { background: color-mix(in oklab, var(--mk-surface-2, #e9e5da) 55%, transparent); }
+.stopBtn[data-dragging] { cursor: grabbing; }
 .stopBtn:focus-visible { outline: 2px solid var(--mk-focus, #1d4ed8); outline-offset: 2px; }
+/* The drawknob: a turned face on a shank. --pull is its travel in px (0 in, 14 out): CSS sets the rest positions,
+   the drag and its release spring write it inline. Pulled toward you, its shadow lengthens away from the window. */
+.stopBtn { --pull: 0; }
+.stopBtn[aria-pressed='true'] { --pull: 14; }
 .knob {
+  --out: calc(var(--pull) / 14);
   position: relative;
   display: grid;
   place-items: center;
   width: 3.25rem;
   height: 3.25rem;
-  border: 1px solid var(--mk-line-strong, #11110f);
-  border-radius: 50%;
-  background: var(--mk-surface, #fbf9f4);
-  font-family: var(--mk-font-serif, Georgia, serif);
-  font-size: 0.95rem;
-  font-style: italic;
-  transition: translate var(--mk-duration-moderate, 360ms) var(--mk-ease-emphasized, ease), background-color var(--mk-duration-fast, 160ms) linear, color var(--mk-duration-fast, 160ms) linear;
+  translate: calc(var(--pull) * 1px) 0;
+  transition: translate var(--lw-press-dur, 300ms) var(--lw-press, ease);
 }
+.stopBtn[aria-pressed='true'] .knob { transition-timing-function: var(--lw-pop, ease); transition-duration: var(--lw-pop-dur, 500ms); }
+.stopBtn[data-dragging] .knob { transition: none; }
 .knob::before {
   content: '';
   position: absolute;
   top: 50%;
-  right: 100%;
-  width: 0;
-  height: 8px;
+  right: calc(100% - 2px);
+  width: calc(var(--pull) * 1px + 2px);
+  height: 9px;
   translate: 0 -50%;
-  background: var(--mk-ink-muted, #5c5a52);
-  transition: width var(--mk-duration-moderate, 360ms) var(--mk-ease-emphasized, ease);
+  border-radius: 2px 0 0 2px;
+  background: linear-gradient(180deg, #d9cdb8 0%, #9c8d76 45%, #5d5244 100%);
+  box-shadow: 1px 2px 2px rgb(var(--lw-shadow-ink) / 0.25);
 }
-.stopBtn:hover .knob { background: var(--mk-surface-2, #e9e5da); }
-.stopBtn[aria-pressed='true'] .knob { translate: 12px 0; background: var(--mk-ink, #11110f); color: var(--mk-bg, #f3f0e8); }
-.stopBtn[aria-pressed='true'] .knob::before { width: 12px; }
+.knobFace {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border: 1px solid var(--mk-line-strong, #11110f);
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 28%, #fff 0%, var(--mk-surface, #fbf9f4) 38%, var(--mk-surface-2, #e9e5da) 100%);
+  color: var(--mk-ink, #11110f);
+  font-family: var(--mk-font-serif, Georgia, serif);
+  font-size: 0.95rem;
+  font-style: italic;
+  box-shadow:
+    inset -2px -3px 5px rgb(var(--lw-shadow-ink) / 0.12),
+    calc(1px + var(--out) * 2px) calc(1px + var(--out) * 2px) calc(1px + var(--out) * 2px) rgb(var(--lw-shadow-ink) / calc(0.3 - var(--out) * 0.08)),
+    calc(4px + var(--out) * 8px) calc(6px + var(--out) * 10px) calc(10px + var(--out) * 14px) calc(-6px) rgb(var(--lw-shadow-ink) / calc(0.22 + var(--out) * 0.14));
+  transition: background-color var(--mk-duration-fast, 160ms) linear, color var(--mk-duration-fast, 160ms) linear, scale var(--lw-press-dur, 300ms) var(--lw-press, ease);
+}
+.stopBtn:hover .knobFace { background: radial-gradient(circle at 34% 28%, #fff 0%, var(--mk-surface, #fbf9f4) 30%, color-mix(in oklab, var(--mk-surface-2, #e9e5da) 80%, var(--mk-ink, #11110f)) 100%); }
+.stopBtn:active:not([data-dragging]) .knobFace { scale: 0.95; transition-duration: var(--mk-duration-instant, 90ms); }
+.stopBtn[aria-pressed='true'] .knobFace {
+  background: radial-gradient(circle at 34% 28%, color-mix(in oklab, var(--mk-ink, #11110f) 55%, #fff) 0%, var(--mk-ink, #11110f) 46%);
+  color: var(--mk-bg, #f3f0e8);
+}
 .stopText { display: grid; gap: 4px; min-width: 0; padding-left: 12px; }
 .stopName { font-family: var(--mk-font-serif, Georgia, serif); font-size: clamp(1.35rem, 1rem + 1.1cqi, 1.85rem); line-height: 1.1; }
 .stopPitch { color: var(--mk-signal, #bf2f09); }
@@ -293,9 +368,16 @@
 .person circle, .person path { fill: none; stroke: var(--mk-ink-muted, #5c5a52); stroke-width: 2; stroke-linecap: round; }
 .person text { font-family: var(--mk-font-mono, ui-monospace, monospace); font-size: 15px; fill: var(--mk-ink-muted, #5c5a52); }
 .rankGhost rect { fill: none; stroke: var(--mk-ink-muted, #5c5a52); stroke-width: 1; stroke-dasharray: 3 4; }
-.rankFill rect { fill: var(--mk-ink, #11110f); }
-.rankFill { scale: 1 0; transition: scale var(--mk-duration-slow, 560ms) var(--mk-ease-emphasized, ease); }
-.rank[data-on] .rankFill { scale: 1 1; }
+.rankFill rect {
+  fill: var(--mk-ink, #11110f);
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  scale: 1 0;
+  /* Exit: quicker, tallest last (reverse order). */
+  transition: scale var(--mk-duration-base, 240ms) var(--mk-ease-exit, ease) calc((11 - var(--i, 0)) * 12ms);
+}
+/* Entrance: the rank rises pipe by pipe, tallest first, and overshoots a little as it lands (spring.pop). */
+.rank[data-on] .rankFill rect { scale: 1 1; transition: scale var(--lw-pop-dur, 600ms) var(--lw-pop, ease) calc(var(--i, 0) * 26ms); }
 .rankLabel { font-family: var(--mk-font-mono, ui-monospace, monospace); font-size: 16px; fill: var(--mk-ink-muted, #5c5a52); }
 .rank[data-on] .rankLabel { fill: var(--mk-signal, #bf2f09); font-weight: 600; }
 .summary { margin: 0; padding-top: 12px; border-top: 1px solid var(--mk-line, #11110f24); font-size: 0.9375rem; line-height: 1.5; }
@@ -326,7 +408,13 @@
   font-weight: 600;
   text-decoration: none;
 }
-.cta:hover { background: var(--mk-signal, #bf2f09); color: var(--mk-on-signal, #fff); }
+.cta {
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.16), 1px 2px 2px rgb(var(--lw-shadow-ink) / 0.28), 8px 14px 26px -12px rgb(var(--lw-shadow-ink) / 0.5);
+  transition: translate var(--lw-press-dur, 300ms) var(--lw-press, ease), box-shadow var(--mk-duration-fast, 160ms) var(--mk-ease-standard, ease),
+    background-color var(--mk-duration-fast, 160ms) var(--mk-ease-standard, ease), color var(--mk-duration-fast, 160ms) var(--mk-ease-standard, ease);
+}
+.cta:hover { translate: 0 -2px; background: var(--mk-signal, #bf2f09); color: var(--mk-on-signal, #fff); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.22), 1px 2px 2px rgb(var(--lw-shadow-ink) / 0.2), 12px 20px 32px -14px rgb(var(--lw-shadow-ink) / 0.55); }
+.cta:active { translate: 0 1px; box-shadow: inset 1px 2px 4px rgb(0 0 0 / 0.32); transition-duration: var(--mk-duration-instant, 90ms); }
 .cta:focus-visible { outline: 2px solid var(--mk-focus, #1d4ed8); outline-offset: 3px; }
 .fine { max-width: 56ch; margin: 0; font-size: 0.8125rem; line-height: 1.5; color: var(--mk-ink-muted, #5c5a52); }
 .archOutline { width: min(100%, 18rem); height: auto; justify-self: end; }
@@ -340,3 +428,5 @@
 .root[data-mode='static'] .turnScene { position: relative; inset: auto; height: 70svh; -webkit-mask: none; mask: none; order: 1; }
 .root[data-mode='static'] .capA { position: static; translate: none; max-width: none; }
 .root[data-mode='static'] .capB { position: static; order: 2; max-width: 40rem; }
+.root[data-mode='static'] :is(.knob, .knobFace, .rankFill rect, .cta, .skip, .navLink) { transition: none; }
+.root[data-mode='static'] :is(.cta, .skip):is(:hover, :active) { translate: none; }

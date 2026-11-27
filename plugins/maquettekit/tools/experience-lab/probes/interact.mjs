@@ -15,7 +15,7 @@ import { pageDetectFallback } from '../../visual-director/three-d/diagnostics.mj
 import { installPageHelpers } from '../../visual-director/page/helpers.mjs';
 import { instrument3D } from '../../visual-director/three-d/instrument.mjs';
 import { loadAxeSource, AXE_TAGS } from '../../visual-director/checks/a11y.mjs';
-import { pageHoverCandidates, pageSnapHover, pageTabGeometry, pageLatencyCandidates, pageFormsList, pageFormArm, pageFormAfter, pageNotFound } from './page.mjs';
+import { pageHoverCandidates, pageSnapHover, pageTabGeometry, pageLatencyCandidates, pageFormsList, pageFormArm, pageFormAfter, pageNotFound, pageLivelinessPoints, pageLiveSnap, pageLiveCanvas, pageLiveDescribe } from './page.mjs';
 
 const msg = (err) => String(/** @type {any} */ (err)?.message ?? err).split('\n')[0];
 export const PIXEL_THRESHOLD = 0.001; // share of pixels that must change between two frames to count as motion
@@ -69,7 +69,6 @@ export async function motionFrames(page, n, canvas) {
         await page.evaluate(() => window.scrollTo(0, 0));
       }
     }
-    const r5 = (x) => (x == null ? null : Math.round(x * 100000) / 100000);
     return { available: true, diffs: d.map(r5), continuous: d.every((x) => x != null && x > PIXEL_THRESHOLD), canvasDiffs: cd ? cd.map(r5) : null, canvasContinuous: cd ? cd.every((x) => x != null && x > PIXEL_THRESHOLD) : null };
   } catch (err) { return { available: false, reason: `pixel sampling failed: ${msg(err)}` }; }
 }
@@ -174,6 +173,107 @@ export async function probeHover(page, url, { max = 8 } = {}) {
     }
     return { status: 'measured', sampled: results.filter((r) => !r.error).length, results };
   } catch (err) { return { status: 'unavailable', reason: `hover probe failed: ${msg(err)}` }; }
+}
+
+const r5 = (x) => (x == null ? null : Math.round(x * 100000) / 100000);
+const pct = (x) => `${(x * 100).toFixed(2)}%`;
+
+/**
+ * Liveliness: does anything answer the pointer or the scroll continuously, beyond entrances and discrete hover states?
+ * Pointer (not on touch viewports): the pointer sweeps four points of the first viewport that are not over controls,
+ * settling 450 ms at each. An element responds when its style fingerprint (transform, filter, shadow, background,
+ * opacity, inline style) takes at least three distinct values across the four points — a hover state toggles between
+ * two. Elements that change while the pointer rests are excluded. A canvas responds when at least two of three moves
+ * change its pixels by more than twice its own change at rest.
+ * Scroll: three steps of up to 160 px with a 700 ms settle; an element is scroll-linked when it moves by a different
+ * amount than the scroll (parallax) or its fingerprint changes, in at least two steps (one-shot reveals change once);
+ * fixed/sticky elements and elements that keep changing at rest are excluded.
+ * @param {import('playwright').Page} page @param {{ touch?: boolean }} [o]
+ */
+export async function probeLiveliness(page, { touch = false } = {}) {
+  const pointer = touch ? { status: 'unavailable', reason: 'touch viewport: no hovering pointer' } : await pointerLiveliness(page);
+  const scroll = await scrollLiveliness(page);
+  await page.evaluate(() => { document.querySelectorAll('[data-s3xl-live]').forEach((e) => e.removeAttribute('data-s3xl-live')); window.scrollTo({ top: 0, behavior: 'instant' }); }).catch(() => {});
+  return { pointer, scroll };
+}
+
+/** @param {import('playwright').Page} page */
+async function pointerLiveliness(page) {
+  try {
+    const tools = await pngTools();
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+    await page.waitForTimeout(150);
+    const pts = await page.evaluate(pageLivelinessPoints);
+    if (pts.length < 4) return { status: 'unavailable', reason: 'no area free of controls to sweep in the first viewport' };
+    const canvas = tools ? await page.evaluate(pageLiveCanvas) : null;
+    const shot = async () => (tools && canvas ? tools.PNG.sync.read(await page.screenshot({ caret: 'hide' })) : null);
+    await page.mouse.move(pts[0].x, pts[0].y, { steps: 4 }); await page.waitForTimeout(450);
+    const first = await page.evaluate(pageLiveSnap, { reset: true }); const firstF = await shot();
+    await page.waitForTimeout(350);
+    const rest = await page.evaluate(pageLiveSnap, {}); const restF = await shot();
+    const ambient = new Set(Object.keys(rest.items).filter((id) => rest.items[id].f !== first.items[id]?.f));
+    const ambientPx = firstF && restF ? imgDiff(tools, firstF, restF, canvas) ?? 0 : 0;
+    /** @type {Map<string, Set<string>>} */ const seen = new Map();
+    const note = (snap) => { for (const [id, v] of Object.entries(snap.items)) { if (ambient.has(id)) continue; let s = seen.get(id); if (!s) seen.set(id, (s = new Set())); s.add(v.f); } };
+    note(rest);
+    const canvasDiffs = []; let prevF = restF;
+    for (let k = 1; k < pts.length; k++) {
+      await page.mouse.move(pts[k].x, pts[k].y, { steps: 8 }); await page.waitForTimeout(450);
+      note(await page.evaluate(pageLiveSnap, {}));
+      const f = await shot();
+      if (prevF && f) canvasDiffs.push(imgDiff(tools, prevF, f, canvas) ?? 0);
+      prevF = f;
+    }
+    const vp = page.viewportSize() ?? { width: 1280, height: 720 };
+    const ids = [...seen].filter(([, s]) => s.size >= 3).map(([id]) => id);
+    const elements = ids.length ? await page.evaluate(pageLiveDescribe, ids) : [];
+    const bar = Math.max(PIXEL_THRESHOLD, ambientPx * 2);
+    const canvasResponds = canvasDiffs.length >= 2 && canvasDiffs.filter((d) => d > bar).length >= 2;
+    await page.mouse.move(vp.width - 3, vp.height - 3, { steps: 2 });
+    const responds = elements.length > 0 || canvasResponds;
+    const summary = responds
+      ? [elements.length ? `${elements.length} element(s) follow the pointer (${elements.slice(0, 3).join(', ')})` : '', canvasResponds ? `the canvas redraws with the pointer (${canvasDiffs.map(pct).join(', ')} vs ${pct(ambientPx)} at rest)` : ''].filter(Boolean).join('; ')
+      : `nothing follows the pointer across ${pts.length} points${ambient.size ? ` (${ambient.size} element(s) changing on their own were ignored)` : ''}`;
+    return { status: 'measured', responds, elements: elements.slice(0, 8), canvas: canvas ? { diffs: canvasDiffs.map(r5), atRest: r5(ambientPx), responds: canvasResponds } : null, ignoredAmbient: ambient.size, summary };
+  } catch (err) { return { status: 'unavailable', reason: `pointer probe failed: ${msg(err)}` }; }
+}
+
+/** @param {import('playwright').Page} page */
+async function scrollLiveliness(page) {
+  try {
+    const avail = await page.evaluate(() => document.documentElement.scrollHeight - innerHeight);
+    if (avail < 240) return { status: 'not-applicable', reason: `the page scrolls ${Math.max(0, avail)} px` };
+    const step = Math.max(80, Math.min(160, Math.floor(avail / 3)));
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' })); await page.waitForTimeout(300);
+    const snaps = [await page.evaluate(pageLiveSnap, { reset: true, withTop: true })];
+    for (let k = 1; k <= 3; k++) {
+      await page.evaluate((y) => window.scrollTo({ top: y, behavior: 'instant' }), k * step);
+      await page.waitForTimeout(700);
+      snaps.push(await page.evaluate(pageLiveSnap, { withTop: true }));
+    }
+    await page.waitForTimeout(350);
+    const rest = await page.evaluate(pageLiveSnap, { withTop: true });
+    const last = snaps[3];
+    const ambient = new Set(Object.keys(last.items).filter((id) => rest.items[id] && (rest.items[id].f !== last.items[id].f || Math.abs((rest.items[id].top ?? 0) - (last.items[id].top ?? 0)) > 1)));
+    /** @type {Map<string, number>} */ const hits = new Map();
+    let moved = 0;
+    for (let k = 1; k <= 3; k++) {
+      const a = snaps[k - 1]; const b = snaps[k]; const d = b.scrollY - a.scrollY;
+      if (Math.abs(d) < 1) continue;
+      moved++;
+      for (const [id, y] of Object.entries(b.items)) {
+        const x = a.items[id];
+        if (!x || ambient.has(id)) continue;
+        if (Math.abs((y.top ?? 0) - ((x.top ?? 0) - d)) > 2 || y.f !== x.f) hits.set(id, (hits.get(id) ?? 0) + 1);
+      }
+    }
+    if (moved < 2) return { status: 'unavailable', reason: 'programmatic scrolling did not move the page (scroll may be hijacked)' };
+    const ids = [...hits].filter(([, n]) => n >= 2).map(([id]) => id);
+    const elements = ids.length ? await page.evaluate(pageLiveDescribe, ids) : [];
+    const responds = elements.length > 0;
+    return { status: 'measured', responds, step, elements: elements.slice(0, 8), ignoredAmbient: ambient.size,
+      summary: responds ? `${elements.length} element(s) track the scroll (${elements.slice(0, 3).join(', ')})` : `nothing tracks the scroll across ${moved} steps of ${step} px` };
+  } catch (err) { return { status: 'unavailable', reason: `scroll probe failed: ${msg(err)}` }; }
 }
 
 /** Click up to `max` safe controls twice each; report the slowest interaction (INP-style worst case). */

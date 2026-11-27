@@ -3,8 +3,12 @@
  * Share-card generator: a 1080 × 1080 canvas redrawn from the form, downloadable as a PNG and shareable as a file
  * where the browser supports it (navigator.canShare({ files })). The canvas has a written equivalent that updates
  * with the text; drawing waits for the page fonts so the PNG matches the preview.
+ * The preview is a printed card on the table: on a fine pointer it tilts up to 6° towards the pointer and a soft
+ * highlight slides across it, easing back flat when the pointer leaves (tilt-parallax-card technique). Reduced
+ * motion: the card stays flat.
  */
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState, type PointerEvent } from 'react';
+import { useRafLoop, useStudioMotion } from '../../../motion';
 import styles from './styles.module.css';
 
 const THREADS = [
@@ -76,8 +80,34 @@ function draw(canvas: HTMLCanvasElement, item: string, thread: Thread, fonts: { 
 }
 
 export function ShareCard({ item: initial }: { item: string }) {
+  const { reduced } = useStudioMotion();
   const uid = useId();
   const canvas = useRef<HTMLCanvasElement>(null);
+  const tilt = useRef<HTMLDivElement>(null);
+  const want = useRef({ x: 0, y: 0, on: 0 });
+  const now = useRef({ x: 0, y: 0, on: 0 });
+  const [tilting, setTilting] = useState(false);
+  const onTiltMove = (e: PointerEvent<HTMLDivElement>) => {
+    if (reduced || e.pointerType !== 'mouse') return;
+    const r = e.currentTarget.getBoundingClientRect();
+    want.current = { x: (e.clientX - r.left) / r.width - 0.5, y: (e.clientY - r.top) / r.height - 0.5, on: 1 };
+    setTilting(true);
+  };
+  const onTiltLeave = () => { want.current = { x: 0, y: 0, on: 0 }; setTilting(true); };
+  useRafLoop(tilt, (dt) => {
+    const k = 1 - Math.exp(-dt * 9);
+    const n = now.current, w = want.current;
+    n.x += (w.x - n.x) * k; n.y += (w.y - n.y) * k; n.on += (w.on - n.on) * k;
+    const el = tilt.current;
+    if (el) {
+      el.style.setProperty('--ry', `${(n.x * 12).toFixed(2)}deg`);
+      el.style.setProperty('--rx', `${(-n.y * 12).toFixed(2)}deg`);
+      el.style.setProperty('--gx', `${((n.x + 0.5) * 100).toFixed(1)}%`);
+      el.style.setProperty('--gy', `${((n.y + 0.5) * 100).toFixed(1)}%`);
+      el.style.setProperty('--glare', n.on.toFixed(3));
+    }
+    if (Math.abs(w.x - n.x) < 0.001 && Math.abs(w.y - n.y) < 0.001 && Math.abs(w.on - n.on) < 0.002) setTilting(false);
+  }, tilting && !reduced);
   const [item, setItem] = useState(initial);
   const [thread, setThread] = useState<Thread>('saffron');
   const [canShareFiles, setCanShareFiles] = useState(false);
@@ -153,8 +183,13 @@ export function ShareCard({ item: initial }: { item: string }) {
         </div>
         <p className={styles.small} aria-live="polite">{note || 'Your card is made in this browser; nothing is uploaded.'}</p>
       </div>
-      <canvas ref={canvas} width={SIZE} height={SIZE} className={styles.canvas} role="img"
-        aria-label={`Share card preview: I’m mending my ${text}. Mend March, 1 to 31 March 2027. The Mending Commons.`} />
+      <div className={styles.cardStage} onPointerMove={onTiltMove} onPointerLeave={onTiltLeave}>
+        <div ref={tilt} className={styles.cardTilt}>
+          <canvas ref={canvas} width={SIZE} height={SIZE} className={styles.canvas} role="img"
+            aria-label={`Share card preview: I’m mending my ${text}. Mend March, 1 to 31 March 2027. The Mending Commons.`} />
+          <span className={styles.cardGlare} aria-hidden="true" />
+        </div>
+      </div>
     </div>
   );
 }

@@ -9,6 +9,29 @@
     toggle.setAttribute('aria-pressed', String(paused));
     toggle.textContent = paused ? 'Resume animations' : 'Pause animations';
   });
+  // The hero band answers the pointer (a light that follows it on a damped loop that sleeps when settled) and the
+  // scroll (a gentle parallax). Both are off under reduced motion; the light also needs a hovering pointer.
+  var band = document.querySelector('.band');
+  if (band && !reduce) {
+    if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+      var tx = 50, ty = 50, lx = 50, ly = 50, raf = 0;
+      var tick = function () {
+        lx += (tx - lx) * 0.25; ly += (ty - ly) * 0.25;
+        band.style.setProperty('--lx', lx.toFixed(1) + '%'); band.style.setProperty('--ly', ly.toFixed(1) + '%');
+        raf = Math.abs(tx - lx) + Math.abs(ty - ly) > 0.1 ? requestAnimationFrame(tick) : 0;
+      };
+      window.addEventListener('pointermove', function (e) {
+        var r = band.getBoundingClientRect();
+        tx = ((e.clientX - r.left) / r.width) * 100; ty = ((e.clientY - r.top) / r.height) * 100;
+        if (!raf) raf = requestAnimationFrame(tick);
+      }, { passive: true });
+    }
+    var queued = false;
+    window.addEventListener('scroll', function () {
+      if (queued) return; queued = true;
+      requestAnimationFrame(function () { queued = false; band.style.transform = 'translate3d(0,' + (window.scrollY * -0.12).toFixed(1) + 'px,0)'; });
+    }, { passive: true });
+  }
   // Disclosure: aria-expanded always mirrors what is shown.
   document.querySelectorAll('[aria-controls][aria-expanded]').forEach(function (b) {
     var panel = document.getElementById(b.getAttribute('aria-controls'));

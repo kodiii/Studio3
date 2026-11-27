@@ -89,9 +89,10 @@ continuity between states (shared elements, layout changes), one orchestrated en
 tactility: controls and cards with weight, light and a spring under the hand. Meet the craft floor for the
 profile; repeated flows stay Essential. Use motion tokens; honour reduced motion.
 
-**6. 3D, only if earned.** Real-time 3D is justified when **all** hold: the product is a physical or spatial
-object; the user needs to inspect or configure it from angles a few images cannot cover; the configuration
-space is too large to pre-render; and a static fallback plus the performance budget are in place. Then load
+**6. 3D when it earns its place.** Use real-time 3D when the product is a physical or spatial object and seeing
+it in real light and material, from any angle, or handling it (turn, open, configure, explode) sells it better
+than a few images can, or when the configuration space is too large to pre-render. A static fallback and the
+performance budget are always required. A decorative object unrelated to the product never qualifies. Then load
 `references/product-3d.md` and hand the scene to `studio-3d` with the contract in that file. Otherwise use the
 lightweight alternative it lists: image sequence, CSS 3D (`flip-card-3d`, `layered-depth-stack`), video, or a
 static render.
@@ -114,6 +115,10 @@ Each is a checkable statement. A build that fails one is not finished.
 - [ ] Exactly one primary action per view; secondary actions are visibly secondary.
 - [ ] Every interactive component implements rest, hover, focus-visible, active, disabled and, where async,
       loading, success and error.
+- [ ] Craft floor (Expressive, `shared/motion-craft.md` §1; repeated flows stay Essential): one direct-manipulation
+      interaction on the product itself (drag, scrub, swipe or reorder) on a spring that keeps its velocity, with
+      arrow keys and a button doing the same; controls press in and lift with two-layer shadows lit from one
+      direction; at least one element answers the pointer or the scroll continuously.
 - [ ] Every async surface has designed empty, loading, error and partial states.
 - [ ] Forms: visible labels, errors on blur or submit (never while first typing), messages that say how to fix,
       no data lost on error.

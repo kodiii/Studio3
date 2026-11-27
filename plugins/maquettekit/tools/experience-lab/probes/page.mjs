@@ -627,3 +627,72 @@ export function pageCanvasInfo() {
   }
   return { instrumented: true, requested, obtained: glCanvases.length, contextTypes: Array.from(new Set(S.contexts.map((c) => c.type))), canvases };
 }
+
+// ---- liveliness: continuous response to the pointer and to scrolling ------------------------------------------
+
+/** Up to four sweep points across the first viewport that are not over a control (canvases allowed). */
+export function pageLivelinessPoints() {
+  const W = innerWidth; const Hh = innerHeight;
+  const CONTROL = 'a[href],button,input,select,textarea,label,summary,[role="button"],[role="link"],[role="slider"],[role="tab"],[role="radio"],[role="checkbox"],[role="switch"],[role="menuitem"],[tabindex]:not([tabindex="-1"]),[contenteditable="true"]';
+  for (const fy of [0.4, 0.55, 0.28, 0.7]) {
+    const pts = [];
+    for (const fx of [0.14, 0.38, 0.62, 0.86]) {
+      const x = Math.round(W * fx); const y = Math.round(Hh * fy);
+      const el = document.elementFromPoint(x, y);
+      if (!el || (el.localName !== 'canvas' && el.closest(CONTROL))) continue;
+      pts.push({ x, y });
+    }
+    if (pts.length === 4) return pts;
+  }
+  return [];
+}
+
+/**
+ * Style fingerprints of the elements in the first viewport. `reset` tags them (data-s3xl-live) so later snapshots
+ * compare the same elements; `withTop` skips fixed/sticky elements and records each element's viewport top (scroll).
+ * @param {{ reset?: boolean, withTop?: boolean, max?: number }} o
+ */
+export function pageLiveSnap(o) {
+  if (o.reset) {
+    document.querySelectorAll('[data-s3xl-live]').forEach((e) => e.removeAttribute('data-s3xl-live'));
+    const SKIP = new Set(['script', 'style', 'noscript', 'template', 'link', 'meta', 'br', 'head', 'title']);
+    const pinned = (el) => { for (let a = el; a && a !== document.documentElement; a = a.parentElement) { const p = getComputedStyle(a).position; if (p === 'fixed' || p === 'sticky') return true; } return false; };
+    let n = 0;
+    for (const el of Array.from(document.body.querySelectorAll('*'))) {
+      if (n >= (o.max ?? 600)) break;
+      if (SKIP.has(el.localName) || el.closest('[aria-hidden="true"] svg *')) continue;
+      const r = el.getBoundingClientRect();
+      if (r.width < 4 || r.height < 4 || r.bottom < 0 || r.top > innerHeight || r.right < 0 || r.left > innerWidth) continue;
+      if (o.withTop && pinned(el)) continue;
+      el.setAttribute('data-s3xl-live', String(n++));
+    }
+  }
+  /** @type {Record<string, { f: string, top?: number }>} */ const items = {};
+  document.querySelectorAll('[data-s3xl-live]').forEach((el) => {
+    const cs = getComputedStyle(el);
+    const bg = cs.backgroundImage;
+    const f = [cs.transform, cs.translate, cs.rotate, cs.scale, cs.filter, cs.boxShadow, cs.backgroundPosition, cs.opacity, cs.clipPath, bg.length > 400 ? bg.slice(0, 400) : bg, el.getAttribute('style') ?? ''].join('|');
+    items[/** @type {string} */ (el.getAttribute('data-s3xl-live'))] = o.withTop ? { f, top: Math.round(el.getBoundingClientRect().top * 10) / 10 } : { f };
+  });
+  return { scrollY: Math.round(scrollY), items };
+}
+
+/** The largest visible canvas in the first viewport (viewport px), for pixel checks of canvas-drawn response. */
+export function pageLiveCanvas() {
+  let best = null; let area = 0;
+  for (const c of Array.from(document.querySelectorAll('canvas'))) {
+    const r = c.getBoundingClientRect();
+    const w = Math.min(innerWidth, r.right) - Math.max(0, r.left); const h = Math.min(innerHeight, r.bottom) - Math.max(0, r.top);
+    if (w < 80 || h < 80 || w * h <= area) continue;
+    area = w * h; best = { x: Math.max(0, r.left), y: Math.max(0, r.top), width: w, height: h };
+  }
+  return best;
+}
+
+/** Selectors of tagged elements, keeping only the outermost of nested ones. @param {string[]} ids */
+export function pageLiveDescribe(ids) {
+  const H = /** @type {any} */ (window).__S3VD__;
+  const set = new Set(ids);
+  const els = ids.map((id) => document.querySelector(`[data-s3xl-live="${id}"]`)).filter(Boolean);
+  return els.filter((el) => { for (let a = el.parentElement; a; a = a.parentElement) if (set.has(a.getAttribute('data-s3xl-live') ?? '')) return false; return true; }).map((el) => H.sel(el));
+}

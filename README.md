@@ -19,7 +19,7 @@ Maquettekit is not a prompt collection. It gives your coding agent working infra
 - **14 skills** that tell the agent *how* a professional studio works — briefs, art direction, motion, 3D, review, launch, matching a mockup.
 - **A CLI** (`maquettekit`) that the skills drive: a design-system generator, a Playwright-based visual reviewer with 3D
   diagnostics, an interaction-quality assessor, and a glTF optimisation pipeline.
-- **A component & effect library** of tested recipes (WAAPI/CSS, Motion, GSAP, D3, three.js/R3F) and full demos —
+- **A component & effect library** of tested recipes (WAAPI/CSS, Motion, GSAP, D3, three.js/R3F, Rive, Lottie) and full demos —
   shipped as source inside the plugin, browsable in the gallery.
 
 Ask for a premium SaaS page, a cinematic launch site, a trading dashboard, a social feed or a 3D product
@@ -203,8 +203,8 @@ npm run dev          # http://localhost:3333
 ```
 
 The gallery is a Next.js app that runs the library's real source: a searchable, filterable recipe catalogue with live
-previews of all 47 recipes, parameters, device-width preview, reduced-motion and theme toggles, and a code viewer with
-copy; a page per studio with its demos (22 in total); and a dedicated 3D gallery (model viewer with camera presets, materials, lighting, animation
+previews of all 51 recipes, parameters, device-width preview, reduced-motion and theme toggles, and a code viewer with
+copy; a page per studio with its demos (23 in total); and a dedicated 3D gallery (model viewer with camera presets, materials, lighting, animation
 playback, quality levels with the real variant sizes, renderer statistics and fallback preview).
 
 ### Deploy the gallery (Vercel)
