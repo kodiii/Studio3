@@ -8,70 +8,54 @@
  *
  * Material and light: the brass is shown in a generated "observatory" environment (no HDRI download): a warm softbox
  * up and to the left — the same top-left light as the page — a tall strip on the right, a cool strip behind, a warm
- * floor bounce and one small red head-torch, so the metal has something to reflect. The token's faceted normals are
- * re-computed with a crease angle on a private copy (round surfaces go smooth, edges and stud facets stay crisp) and
- * it gets a polished brass finish with a light clear coat; both are disposed and the shared cache untouched. It
- * stands on a lit floor with a soft contact shadow. Before activation the photo tilts towards the pointer and catches
- * a glint (masked to the token). Reduced motion: no tilt or glint.
+ * floor bounce and one small red head-torch, so the metal has something to reflect. The token's smooth, creased
+ * normals come from the model itself; here it only gets a polished brass finish with a light clear coat (disposed on
+ * unmount, shared cache untouched). It stands on a lit floor with a soft contact shadow. The scene values live in
+ * tokenScene.ts, which the poster is rendered from too (scripts/render-orbit-token-poster.mjs), so the photo and the
+ * first 3D frame line up. Before activation the photo tilts towards the pointer and catches a glint (masked to the
+ * token). Reduced motion: no tilt or glint.
  */
 import { Suspense, useCallback, useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
 import { useThree } from '@react-three/fiber';
-import { AdditiveBlending, Color, MeshPhysicalMaterial, type BufferGeometry, type Material, type Mesh, type MeshStandardMaterial } from 'three';
-import { toCreasedNormals } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { AdditiveBlending, Color, MeshPhysicalMaterial, type Material, type Mesh, type MeshStandardMaterial } from 'three';
 import { useRafLoop, useStudioMotion } from '../../../motion';
 import {
   AnimationPlayer, LightingRig, Model, ModelBoundary, OrbitInspect, StudioCanvas, describeModelError, detectCapabilities, formatBytes, formatCount,
-  useModelManifest, useModelProgress, type AnimationPlayerHandle, type AnimationState, type LightingPreset, type LoadedModel, type OrbitInspectHandle,
+  useModelManifest, useModelProgress, type AnimationPlayerHandle, type AnimationState, type LoadedModel, type OrbitInspectHandle,
 } from '../../../three';
+import { BRASS, CAMERA, MODEL_SCALE, OBSERVATORY, TARGET } from './tokenScene';
 import styles from './styles.module.css';
 
 const MANIFEST = '/models/orbit-token.manifest.json';
 const GLB = '/models/orbit-token.desktop.glb';
 const POSTER = '/models/orbit-token.png';
+/** The 1024 px fallback image has the same framing: sharper on dense screens. */
+const POSTER_SRCSET = '/models/orbit-token.png 512w, /models/orbit-token.webp 1024w';
 const ALT = 'The One Orbit token: a brass coin with a ringed planet at its centre and twelve faceted studs around the rim.';
 const STEP = Math.PI / 8;
 
-/** A generated environment for brass: bright shapes on a dark room, keyed from the top left like the page. */
-const OBSERVATORY: LightingPreset = {
-  label: 'Observatory brass', description: 'Warm softbox top left, a tall white strip right, a cool strip behind, a soft warm wall behind the viewer, a red head-torch.', exposure: 1.02,
-  ambient: { color: '#9fb0d8', intensity: 0.08 },
-  key: { color: '#fff1dc', intensity: 2.4, position: [-4, 6, 4] },
-  fill: { color: '#9db4ff', intensity: 0.35, position: [5, 2, 3] },
-  rim: { color: '#cfe0ff', intensity: 1.6, position: [3.5, 3, -5] },
-  env: { room: '#070a12', intensity: 1.15, panels: [
-    { color: '#fff2dc', intensity: 18, position: [-4.5, 5, 3], size: [5, 2.2] },
-    { color: '#ffffff', intensity: 24, position: [5.5, 2.5, 1.5], size: [0.9, 6] },
-    { color: '#bcd0ff', intensity: 10, position: [-5, 2.5, -3.5], size: [0.8, 5] },
-    { color: '#ffd9a0', intensity: 3, position: [0, -5, 2], size: [10, 3] },
-    { color: '#ffe6c2', intensity: 2.6, position: [0.5, 1.6, 7], size: [9, 4.5] },
-    { color: '#ff4a3a', intensity: 3.5, position: [-2.5, 0.6, 5], size: [0.28, 0.28] },
-  ] },
-};
-const CREASE = (34 * Math.PI) / 180;
-const BRASS = new Color(0.88, 0.68, 0.32); // linear working space
+const BRASS_COLOR = new Color(...BRASS.color); // linear working space
 
-/** Polished brass on a private copy of the token: creased normals + a physical material; everything is restored and disposed. */
+/** Polished brass on the token: a physical material swapped in, and the original restored and the copy disposed. */
 function BrassFinish({ model }: { model: LoadedModel | null }) {
   const invalidate = useThree((st) => st.invalidate);
   useEffect(() => {
     if (!model) return;
-    const made: { mesh: Mesh; geo: BufferGeometry; mat: Material; prevGeo: BufferGeometry; prevMat: Material | Material[] }[] = [];
+    const made: { mesh: Mesh; mat: Material; prevMat: Material | Material[] }[] = [];
     model.scene.traverse((o) => {
       const mesh = o as Mesh;
       if (!mesh.isMesh) return;
-      const geo = toCreasedNormals(mesh.geometry, CREASE);
       const src = mesh.material as MeshStandardMaterial;
       const mat = new MeshPhysicalMaterial({
-        color: BRASS, metalness: 1, roughness: 0.3, clearcoat: 0.4, clearcoatRoughness: 0.1, envMapIntensity: 1.25,
-        side: src.side,
+        color: BRASS_COLOR, metalness: BRASS.metalness, roughness: BRASS.roughness, clearcoat: BRASS.clearcoat,
+        clearcoatRoughness: BRASS.clearcoatRoughness, envMapIntensity: BRASS.envMapIntensity, side: src.side,
       });
-      made.push({ mesh, geo, mat, prevGeo: mesh.geometry, prevMat: mesh.material });
-      mesh.geometry = geo;
+      made.push({ mesh, mat, prevMat: mesh.material });
       mesh.material = mat;
     });
     invalidate();
     return () => {
-      for (const m of made) { m.mesh.geometry = m.prevGeo; m.mesh.material = m.prevMat; m.geo.dispose(); m.mat.dispose(); }
+      for (const m of made) { m.mesh.material = m.prevMat; m.mat.dispose(); }
     };
   }, [model, invalidate]);
   return null;
@@ -187,7 +171,7 @@ export function TokenViewer({ onActiveChange }: { onActiveChange?: (active: bool
         onPointerMove={onFrameMove} onPointerLeave={onFrameLeave}>
         <div ref={tilt} className={styles.posterTilt} style={{ '--poster': `url(${POSTER})` } as CSSProperties}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={POSTER} alt={live ? '' : ALT} aria-hidden={live || undefined} className={styles.poster} decoding="async" />
+          <img src={POSTER} srcSet={POSTER_SRCSET} sizes="(max-width: 640px) 88vw, 575px" alt={live ? '' : ALT} aria-hidden={live || undefined} className={styles.poster} decoding="async" />
           <span className={styles.posterGlint} aria-hidden="true" />
         </div>
         {active ? (
@@ -195,7 +179,7 @@ export function TokenViewer({ onActiveChange }: { onActiveChange?: (active: bool
             label="One Orbit token, interactive 3D view"
             description={`${ALT} Drag sideways or use the arrow keys to turn it; plus and minus zoom; 0 resets.`}
             lazy={false}
-            camera={{ fov: 30, near: 0.05, far: 40, position: [1.3, 0.98, 3.12] }}
+            camera={CAMERA}
             className={styles.canvas}
             style={{ position: 'absolute', inset: 0 }}
             onSceneError={setError}
@@ -203,10 +187,10 @@ export function TokenViewer({ onActiveChange }: { onActiveChange?: (active: bool
           >
             <LightingRig preset={OBSERVATORY} shadow="blob" groundY={0} shadowRadius={0.62} shadowOpacity={0.6} />
             <Floor />
-            <OrbitInspect ref={orbit} target={[0, 0.63, 0]} minDistance={1.9} maxDistance={6} minPolarAngle={0.35} maxPolarAngle={Math.PI - 0.35} onChange={onOrbitChange} />
+            <OrbitInspect ref={orbit} target={TARGET} minDistance={1.9} maxDistance={6} minPolarAngle={0.35} maxPolarAngle={Math.PI - 0.35} onChange={onOrbitChange} />
             <ModelBoundary resetKey={attempt} onError={setError}>
               <Suspense fallback={null}>
-                <Model src={GLB} scale={20} onLoaded={setModel} />
+                <Model src={GLB} scale={MODEL_SCALE} onLoaded={setModel} />
                 <AnimationPlayer ref={player} root={model?.scene ?? null} clips={model?.animations ?? []} clip="Spin" loop onState={setAnim} />
                 <BrassFinish model={model} />
               </Suspense>

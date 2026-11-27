@@ -6101,6 +6101,7 @@
         "index.tsx",
         "art.tsx",
         "styles.module.css",
+        "tokenScene.ts",
         "TokenViewer.tsx",
         "meta.ts"
       ]
