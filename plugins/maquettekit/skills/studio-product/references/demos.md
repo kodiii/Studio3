@@ -16,8 +16,9 @@ maquettekit catalog show saas-landing
 maquettekit catalog show saas-landing --source
 ```
 
-`product-configurator` shares its id with a 3D demo, which `catalog show` and `catalog install` return; open
-`demos/product/product-configurator/` directly.
+`product-configurator` shares its id with a 3D demo, so the bare id is refused as ambiguous: use the qualified id
+`product/product-configurator` with `catalog show` and `catalog install`
+(`maquettekit catalog show product/product-configurator`).
 
 ## 1. Overview
 

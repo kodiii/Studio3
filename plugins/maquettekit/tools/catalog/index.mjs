@@ -4,6 +4,9 @@ import path from 'node:path';
 import { parseArgs } from '../lib/args.mjs';
 import { PLUGIN_ROOT } from '../lib/resolve.mjs';
 import { UserError } from '../lib/log.mjs';
+import { findItem, qualifiedId } from './lookup.mjs';
+
+export { findItem, qualifiedId };
 
 export const help = `maquettekit catalog — search the Component & Effect Library
 
@@ -22,7 +25,9 @@ export const help = `maquettekit catalog — search the Component & Effect Libra
       module each that registers <mk-<id>> (attributes = params), plus its CSS and a demo page. Every recipe has
       client behaviour, so there is no static HTML/CSS export. Needs vite, react, react-dom (setup --only export).
 
-Recipes live in <plugin>/library/src/effects/<id>/ and demos in <plugin>/library/src/demos/<specialty>/<id>/.`;
+Recipes live in <plugin>/library/src/effects/<id>/ and demos in <plugin>/library/src/demos/<specialty>/<id>/.
+Demo ids repeat across specialties, so a demo can be named <specialty>/<id> (e.g. cinematic/cinematic-landing);
+a bare id that matches several demos is an error that lists the qualified ids.`;
 
 export function loadCatalog() {
   const file = path.join(PLUGIN_ROOT, 'library', 'catalog.json');
@@ -64,8 +69,8 @@ export async function main(argv) {
   const cat = loadCatalog();
   if (sub === 'list') {
     const kind = args.kind ?? 'effects';
-    if (args.json) { console.log(JSON.stringify(cat[kind], null, 2)); return 0; }
-    if (kind === 'demos') for (const d of cat.demos) console.log(`${d.specialty.padEnd(10)} ${d.id.padEnd(26)} ${d.name}`);
+    if (args.json) { console.log(JSON.stringify(kind === 'demos' ? cat.demos.map((d) => ({ qualifiedId: qualifiedId(d), ...d })) : cat[kind], null, 2)); return 0; }
+    if (kind === 'demos') for (const d of cat.demos) console.log(`${qualifiedId(d).padEnd(36)} ${d.name}`);
     else for (const e of cat.effects) console.log(row(e));
     return 0;
   }
@@ -81,12 +86,13 @@ export async function main(argv) {
   }
   if (sub === 'show') {
     const id = rest[0];
-    const item = cat.effects.find((e) => e.id === id) ?? cat.demos.find((d) => d.id === id);
-    if (!item) throw new UserError(`No effect or demo with id "${id}". Try: maquettekit catalog search ${id ?? ''}`);
+    const found = findItem(cat, id);
+    if (!found) throw new UserError(`No effect or demo with id "${id}". Try: maquettekit catalog search ${id ?? ''}`);
+    const item = found.kind === 'demo' ? { qualifiedId: found.id, ...found.item } : found.item;
     const dir = path.join(PLUGIN_ROOT, item.path);
     const sources = args.source ? Object.fromEntries(item.files.map((f) => [f, fs.readFileSync(path.join(dir, f), 'utf8')])) : undefined;
     if (args.json) { console.log(JSON.stringify({ ...item, directory: dir, sources }, null, 2)); return 0; }
-    console.log(`${item.name}  (${item.id})\n${item.description ?? item.summary}\n\nDirectory: ${dir}\nFiles: ${item.files.join(', ')}`);
+    console.log(`${item.name}  (${found.id})\n${item.description ?? item.summary}\n\nDirectory: ${dir}\nFiles: ${item.files.join(', ')}`);
     if (item.dependencies) console.log(`Dependencies: ${item.dependencies.map((d) => `${d.name}@${d.version}`).join(', ') || 'none'}`);
     if (item.params) console.log(`Params: ${item.params.map((p) => `${p.key} (${p.type}, default ${JSON.stringify(p.default)})`).join('; ')}`);
     if (item.reducedMotion) console.log(`Reduced motion: ${item.reducedMotion}`);
@@ -99,7 +105,7 @@ export async function main(argv) {
     const r = installItems(cat, rest, { into: typeof args.into === 'string' ? args.into : undefined, project: typeof args.project === 'string' ? args.project : undefined, force: !!args.force, apply: !args['dry-run'] });
     if (args.json) { console.log(JSON.stringify(r, null, 2)); return 0; }
     const verb = r.applied ? 'Installed' : 'Would install';
-    console.log(`${verb} ${r.items.map((i) => i.id).join(', ')} into ${r.into}`);
+    console.log(`${verb} ${r.items.map((i) => i.qualifiedId ?? i.id).join(', ')} into ${r.into}`);
     console.log(`  files: ${r.counts.create} new, ${r.counts.overwrite} overwritten, ${r.counts.identical} unchanged${r.counts.conflict ? `, ${r.counts.conflict} CONFLICT (use --force)` : ''}`);
     for (const f of r.files.filter((x) => x.action !== 'identical')) console.log(`    ${f.action.padEnd(9)} ${f.path}`);
     if (r.installCommand) console.log(`  npm packages to add:\n    ${r.installCommand}`);

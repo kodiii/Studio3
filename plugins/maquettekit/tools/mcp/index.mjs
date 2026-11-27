@@ -50,13 +50,13 @@ export const TOOLS = [
   {
     name: 'catalog_show', title: 'Show a recipe or demo',
     description: 'Metadata for one effect or demo: parameters, accessibility, reduced-motion and performance notes, files, and (with include_source) every source file. Read accessibility and reducedMotion as requirements.',
-    inputSchema: { type: 'object', properties: { id: str, include_source: { type: 'boolean', default: false } }, required: ['id'], additionalProperties: false },
+    inputSchema: { type: 'object', properties: { id: { ...str, description: 'Effect id, or demo id; demo ids repeat across specialties, so pass <specialty>/<id> (e.g. cinematic/cinematic-landing)' }, include_source: { type: 'boolean', default: false } }, required: ['id'], additionalProperties: false },
     annotations: RO,
     async run(a) {
-      const { loadCatalog } = await import('../catalog/index.mjs');
-      const cat = loadCatalog();
-      const item = cat.effects.find((e) => e.id === a.id) ?? cat.demos.find((d) => d.id === a.id);
-      if (!item) throw new UserError(`No effect or demo with id "${a.id}". Use catalog_search first.`);
+      const { loadCatalog, findItem } = await import('../catalog/index.mjs');
+      const found = findItem(loadCatalog(), a.id);
+      if (!found) throw new UserError(`No effect or demo with id "${a.id}". Use catalog_search first.`);
+      const item = found.kind === 'demo' ? { qualifiedId: found.id, ...found.item } : found.item;
       const dir = path.join(PLUGIN_ROOT, item.path);
       return { ...item, directory: dir, ...(a.include_source ? { sources: Object.fromEntries(item.files.map((f) => [f, fs.readFileSync(path.join(dir, f), 'utf8')])) } : {}) };
     },
