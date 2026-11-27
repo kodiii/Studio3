@@ -35,8 +35,6 @@ const HeroGlass = lazy(() => import('./HeroGlass'));
 const recipe = <T,>(m: EffectMeta, overrides: ParamValues = {}): T => resolveParams(m.params, overrides) as unknown as T;
 const THEME_ICON = ICONS.theme.build(2);
 const MENU_ICON = ICONS.menu.build(2);
-/** Over the always-dark bands the follower takes light ink, whatever the page palette. */
-const DARK_ZONE_CURSOR = { '--cursor-ring': '#f1ebde', '--cursor-dot': '#ff6a3d', '--cursor-fill': '#ff6a3d', '--cursor-on-fill': '#11110f', '--cursor-halo': '#0b0a08' } as CSSProperties;
 const POP = springToLinear(spring.pop);
 const PRESS = springToLinear(spring.press);
 
@@ -140,19 +138,19 @@ export default function MotionStudio() {
   const process = useRef<HTMLDivElement>(null);
   const workRef = useRef<HTMLElement>(null);
   const contactRef = useRef<HTMLElement>(null);
-  const themeWrap = useRef<HTMLSpanElement>(null);
+  const themeButton = useRef<HTMLButtonElement>(null);
   const galleryDark = useGalleryDark();
   const [night, setNight] = useState(false);
   const [menu, setMenu] = useState(false);
   const [saved, setSaved] = useState<ReadonlySet<CaseId>>(() => new Set());
   const [status, setStatus] = useState('');
   const [reelPlaying, setReelPlaying] = useState(false);
-  const [darkZone, setDarkZone] = useState(false);
   const [sheet, setSheet] = useState<{ theme: Theme | null; version: number }>({ theme: null, version: 0 });
 
   useEffect(() => { setNight(galleryDark); }, [galleryDark]);
 
-  // The palette is local tokens on the root; the texture under the glass is drawn from whatever they resolve to.
+  // The palette is local tokens on the root; the texture under the glass is drawn from whatever they resolve to, and
+  // the lens re-reads its glass look (env, shadow, caustics) from them whenever this version (its drawKey) bumps.
   useLayoutEffect(() => {
     const el = root.current;
     if (el) setSheet((x) => ({ theme: readTheme(el), version: x.version + 1 }));
@@ -166,10 +164,6 @@ export default function MotionStudio() {
     });
     return () => { alive = false; };
   }, []);
-  // The lens recipe re-reads its glass look (env, shadow, caustics) on theme mutations of <html>; a local palette
-  // switch tells it through a custom property there (removed on unmount).
-  useEffect(() => { document.documentElement.style.setProperty('--ll-palette', night ? 'night' : 'day'); }, [night]);
-  useEffect(() => () => { document.documentElement.style.removeProperty('--ll-palette'); }, []);
 
   usePageLight(root, !reduced);
   useWordmarkLag(brand, !reduced);
@@ -211,7 +205,7 @@ export default function MotionStudio() {
   // them or under reduced motion). The old page is a still snapshot, the new one is live underneath the circle.
   const switchPalette = (next: boolean) => {
     const doc = document as Document & { startViewTransition?: (cb: () => void) => { ready: Promise<void> } };
-    const btn = themeWrap.current?.getBoundingClientRect();
+    const btn = themeButton.current?.getBoundingClientRect();
     if (reduced || !doc.startViewTransition || !btn) { setNight(next); return; }
     const x = btn.left + btn.width / 2, y = btn.top + btn.height / 2;
     const r = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y));
@@ -268,9 +262,7 @@ export default function MotionStudio() {
           </ul>
         </nav>
         <span className={s.headerEnd} data-enter="">
-          <span ref={themeWrap} className={s.iconWrap} data-cursor="magnet">
-            <LottieIcon animationData={THEME_ICON} segments={ICONS.theme.segments} grid={24} size={24} label="Night palette" pressed={night} onToggle={switchPalette} className={s.iconButton} />
-          </span>
+          <LottieIcon ref={themeButton} data-cursor="magnet" animationData={THEME_ICON} segments={ICONS.theme.segments} grid={24} size={24} label="Night palette" pressed={night} onToggle={switchPalette} className={s.iconButton} />
           <span className={s.menuWrap}>
             <LottieIcon animationData={MENU_ICON} segments={ICONS.menu.segments} grid={24} size={24} label="Menu" kind="disclosure" controls="ll-menu" pressed={menu} onToggle={setMenu} className={s.iconButton} />
           </span>
@@ -320,7 +312,7 @@ export default function MotionStudio() {
         </section>
 
         {/* ── Archive: a strip of film ────────────────────────────────────────────────────────────────────────── */}
-        <section id="ll-archive" className={s.archive} aria-labelledby="ll-archive-h" onPointerEnter={() => setDarkZone(true)} onPointerLeave={() => setDarkZone(false)}>
+        <section id="ll-archive" className={s.archive} aria-labelledby="ll-archive-h" data-cursor-area="">
           <header className={s.sectionHead}>
             <p className={s.index}>02 — Archive <span aria-hidden="true">·</span> 2017–2024</p>
             <h2 id="ll-archive-h" className={s.archiveTitle}>Ten years on one strip.</h2>
@@ -352,7 +344,7 @@ export default function MotionStudio() {
         </section>
 
         {/* ── The screening room: reel and mascot ─────────────────────────────────────────────────────────────── */}
-        <section id="ll-reel" className={s.room} aria-labelledby="ll-reel-h" onPointerEnter={() => setDarkZone(true)} onPointerLeave={() => setDarkZone(false)}>
+        <section id="ll-reel" className={s.room} aria-labelledby="ll-reel-h" data-cursor-area="">
           <header className={s.sectionHead}>
             <p className={s.index}>04 — Reel <span aria-hidden="true">·</span> a sample cut</p>
             <h2 id="ll-reel-h" className={s.roomTitle}>Lights down. Birb dances.</h2>
@@ -403,7 +395,7 @@ export default function MotionStudio() {
         </section>
       </main>
 
-      <CursorFollower scope={root} renderLabel={renderLabel} style={darkZone ? DARK_ZONE_CURSOR : undefined} />
+      <CursorFollower scope={root} renderLabel={renderLabel} />
     </div>
   );
 }

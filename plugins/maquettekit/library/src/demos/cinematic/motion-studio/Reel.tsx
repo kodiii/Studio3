@@ -323,23 +323,21 @@ export function Reel({ onPlaying }: { onPlaying: (playing: boolean) => void }) {
           <p className={s.posterHint}>Press play. Birb has been waiting.</p>
         </div>
         <span className={s.vignette} />
-        {/* Keyed, so the cursor follower meets a new element (and reads the new label) when the state flips. */}
-        <span key={playing ? 'pause' : 'play'} className={s.hit} data-cursor-label={playing ? 'Pause' : 'Play'} />
+        <span className={s.hit} data-cursor-label={playing ? 'Pause' : 'Play'} />
       </div>
 
       <div className={s.transport}>
-        <span className={s.playWrap} data-cursor="magnet">
-          <LottieIcon
-            animationData={PLAY}
-            segments={ICONS.play.segments}
-            grid={24}
-            size={40}
-            label="Play reel"
-            pressed={playing}
-            onToggle={toggle}
-            className={s.playButton}
-          />
-        </span>
+        <LottieIcon
+          data-cursor="magnet"
+          animationData={PLAY}
+          segments={ICONS.play.segments}
+          grid={24}
+          size={40}
+          label="Play reel"
+          pressed={playing}
+          onToggle={toggle}
+          className={s.playButton}
+        />
         <span className={s.timecode} aria-hidden="true"><span ref={(el) => { if (el && !tc.current) { tc.current = document.createTextNode(timecode(0)); el.appendChild(tc.current); } }} /><span className={s.tcTotal}> / {timecode(REEL_MS)}</span></span>
         <div className={s.scrub}>
           <input

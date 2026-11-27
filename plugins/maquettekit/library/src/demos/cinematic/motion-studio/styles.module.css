@@ -123,8 +123,7 @@
 }
 .navLink:hover::after { transform: scaleX(1); transform-origin: 0 50%; transition: transform var(--mk-duration-moderate, 360ms) var(--mk-ease-emphasized, ease); }
 .headerEnd { display: inline-flex; align-items: center; gap: 2px; }
-.iconWrap, .menuWrap { display: inline-grid; border-radius: 50%; }
-.menuWrap { display: none; }
+.menuWrap { display: none; border-radius: 50%; }
 .iconButton {
   width: 44px;
   height: 44px;
@@ -391,7 +390,8 @@
 .cardOpen:focus-visible { outline: 2px solid var(--mk-focus); outline-offset: 5px; border-radius: 6px; }
 .cardClient { font-family: var(--mk-font-display); font-size: clamp(1.375rem, 2.4cqi, 1.75rem); font-weight: 720; letter-spacing: -0.03em; line-height: 1.05; }
 .cardLine { font-size: 0.96875rem; line-height: 1.4; color: var(--mk-ink-muted); }
-.saveWrap { position: absolute; top: 12px; right: 12px; z-index: 3; display: inline-grid; border-radius: 50%; }
+/* Doubled class: placed over the card, ahead of the LottieIcon button reset (position: relative). */
+.save.save { position: absolute; top: 12px; right: 12px; z-index: 3; }
 .save {
   width: 44px;
   height: 44px;
@@ -589,6 +589,8 @@
 .archive {
   --mk-ink: #f1ebde; --mk-ink-muted: #b0a998; --mk-line: #f1ebde26; --mk-line-strong: #f1ebde; --mk-focus: #8ab4ff;
   --mk-signal: #ff6a3d;
+  /* The cursor follower takes the band's ink and signal (data-cursor-area); these two it does not redefine. */
+  --cursor-on-fill: #11110f; --cursor-halo: #0b0a08;
   --ll-frame-accent: #d4380d;
   margin-top: clamp(80px, 11cqi, 148px);
   padding: clamp(56px, 8cqi, 96px) 0 clamp(40px, 6cqi, 72px);
@@ -759,6 +761,7 @@
   --mk-bg: #0b0a08; --mk-surface: #171613; --mk-surface-2: #23211c; --mk-ink: #f1ebde; --mk-ink-muted: #ada695;
   --mk-line: #f1ebde24; --mk-line-strong: #f1ebde; --mk-focus: #8ab4ff; --mk-signal: #ff6a3d; --mk-on-signal: #11110f;
   --mk-accent: var(--mk-signal);
+  --cursor-halo: #0b0a08; /* the follower's label halo, darker than the room's surface (data-cursor-area) */
   --ll-shadow: 0 0 0;
   --ll-shadow-a: 2.2;
   margin-top: clamp(80px, 11cqi, 148px);

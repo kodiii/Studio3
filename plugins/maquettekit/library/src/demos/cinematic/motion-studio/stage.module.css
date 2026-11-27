@@ -196,7 +196,6 @@
   align-items: center;
   gap: 4px 16px;
 }
-.playWrap { display: inline-grid; border-radius: 50%; }
 .playButton {
   width: 60px;
   height: 60px;

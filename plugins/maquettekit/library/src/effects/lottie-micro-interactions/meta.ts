@@ -16,6 +16,7 @@ export const meta: EffectMeta = {
     'like and save actions in a feed',
     'notification opt-in bell',
     'replacing static icon sets with animated ones that share one data format with After Effects exports',
+    'icons that are also cursor magnets or View Transition origins: the ref and data-* / aria-* props reach the button itself',
   ],
   dependencies: [{ name: 'lottie-web', version: '^5.13.0' }],
   params: [
@@ -30,6 +31,7 @@ export const meta: EffectMeta = {
     'State never relies on colour or motion alone: the shapes differ (lines vs cross, outline vs filled, slashed vs ringing bell, sun vs moon), the like count and "Playing / Paused" are real text, and the animated drawing is aria-hidden.',
     'Keyboard: Enter and Space toggle; focus-visible previews the same wind-up as hover; each timeline lane is a labelled native slider (arrow keys step one frame, leaving the lane plays the icon home).',
     'Targets are at least 44 px; focus rings use --mk-focus; colours map to tokens, and forced-colors mode redraws the icons in system colours.',
+    'aria-* props (aria-describedby, aria-keyshortcuts …) pass through to the button, while the state it owns (aria-pressed or aria-expanded, aria-controls, its name) always wins, so a pass-through can never desynchronise it.',
   ],
   reducedMotion: 'Hover and focus previews are off and nothing travels: a state change jumps the Lottie to the final frame of its segment (goToAndStop) under a 160 ms cross-fade, the queue opens without sliding and the cover swaps sun for moon with a fade. Scrubbing still works because it is direct manipulation.',
   performance: [

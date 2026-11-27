@@ -37,6 +37,9 @@ function glassLook(t: Theme): GlassLook {
     : { dark: false, envLo: mix(p.paper, p.ink, 0.62), envHi: mix(p.paper, p.ink, 0.34), light: '#fffaf2', shadow: '#4d5160', shadowAmount: 0.34, caustic: 0.14 };
 }
 
+const sameLook = (a: GlassLook, b: GlassLook): boolean =>
+  (Object.keys(a) as (keyof GlassLook)[]).every((k) => a[k] === b[k]);
+
 export interface LensHandle {
   /** Glide the lens back to the centre of the stage. */
   recentre(): void;
@@ -54,8 +57,17 @@ export interface LiquidGlassLensProps {
   followLight: boolean;
   /** Draws the page under the glass in CSS pixels (the context is pre-scaled to the drawing buffer). */
   draw: (g: CanvasRenderingContext2D, width: number, height: number) => void;
-  /** Change it to redraw the page texture (theme, fonts or content changed). */
+  /**
+   * Change it to redraw the page texture (theme, fonts or content changed). The glass look (studio colours, shadow,
+   * caustics) is re-read from the frame's theme tokens at the same time, so a palette switched locally on an ancestor
+   * reaches the glass too; document theme changes (`<html>` class / data-theme / style, OS scheme) need no key.
+   */
   drawKey: unknown;
+  /**
+   * Where the lens first rests, as fractions of the stage: `{ x: 0.5, y: 0.5 }` is the centre. Read once, on mount
+   * (clamped so the lens stays inside the stage). Default `{ x: 0.56, y: 0.6 }`.
+   */
+  initialPosition?: { x: number; y: number };
   /** The same page as DOM/SVG, shown under a CSS glass panel when WebGL is unavailable. */
   fallback: ReactNode;
   /** Accessible name of the scene; the lens itself is named "Glass lens". */
@@ -72,13 +84,17 @@ export interface LiquidGlassLensProps {
  * with a CSS glass fallback. The lens is a keyboard control too (arrows, Shift+arrows, Home).
  */
 export function LiquidGlassLens({
-  shape, refraction, dispersion, frost, followLight, draw, drawKey, fallback, label, description, describedBy, className, ref,
+  shape, refraction, dispersion, frost, followLight, draw, drawKey, initialPosition, fallback, label, description, describedBy, className, ref,
 }: LiquidGlassLensProps) {
   const { reduced } = useStudioMotion();
   const ownHint = useId();
   const frame = useRef<HTMLDivElement>(null);
   const handle = useRef<HTMLDivElement>(null);
-  const [engine] = useState(() => new LensEngine());
+  const [engine] = useState(() => {
+    const e = new LensEngine();
+    if (initialPosition && Number.isFinite(initialPosition.x) && Number.isFinite(initialPosition.y)) e.home = { fx: initialPosition.x, fy: initialPosition.y };
+    return e;
+  });
   const wake = useRef<(() => void) | null>(null);
   const onFrame = useRef<(() => void) | null>(null);
   const drawRef = useRef(draw);
@@ -89,7 +105,13 @@ export function LiquidGlassLens({
   const themeVersion = useThemeVersion();
   const kick = useCallback(() => wake.current?.(), []);
 
-  useEffect(() => { if (frame.current) setLook(glassLook(readTheme(frame.current))); }, [themeVersion]);
+  // Re-read on document theme changes and whenever the page is redrawn: a local palette (tokens on an ancestor) has
+  // no document-level signal, but its owner changes drawKey to redraw the page in it.
+  useEffect(() => {
+    if (!frame.current) return;
+    const next = glassLook(readTheme(frame.current));
+    setLook((cur) => (sameLook(cur, next) ? cur : next));
+  }, [themeVersion, drawKey]);
   useEffect(() => { engine.reduced = reduced; engine.follow = followLight; kick(); }, [engine, reduced, followLight, kick]);
   const first = useRef(true);
   useEffect(() => { engine.setShape(shape, first.current); first.current = false; kick(); }, [engine, shape, kick]);

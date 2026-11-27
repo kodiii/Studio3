@@ -66,6 +66,8 @@ export class LensEngine {
   R = 80;
   reduced = false;
   follow = true;
+  /** Where the first `setSize` places the lens, as fractions of the stage (clamped inside it). */
+  home = { fx: 0.56, fy: 0.6 };
   private x = make(0);
   private y = make(0);
   private mode: 'rest' | 'drag' | 'glide' | 'seek' = 'rest';
@@ -91,9 +93,9 @@ export class LensEngine {
     this.R = clamp(Math.min(w, h) * 0.2, 40, 132);
     if (!this.placed) {
       this.placed = true;
-      // Resting spot: across the display word and the edge of the sun, where there is most to bend.
-      snap(this.x, w * 0.56);
-      snap(this.y, h * 0.6);
+      // Resting spot (default: across the display word and the edge of the sun, where there is most to bend).
+      snap(this.x, w * clamp(this.home.fx, 0, 1));
+      snap(this.y, h * clamp(this.home.fy, 0, 1));
       // Arrival: the glass is set down onto the page, its shadow tightening as it lands.
       if (!this.reduced) this.lift.x = 1.2;
     } else if (this.w > 0 && this.h > 0) {

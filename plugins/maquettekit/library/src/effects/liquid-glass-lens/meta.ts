@@ -15,6 +15,7 @@ export const meta: EffectMeta = {
     'product detail loupe over packaging or a label',
     'image inspection: drag a magnifier-style glass across a chart, map or scan',
     'glass control surface (tab bar, toolbar) prototype over live content',
+    'a loupe that starts where the content needs it (initialPosition) on a page with its own local palette',
   ],
   dependencies: [
     { name: 'three', version: '^0.187.0' },
@@ -38,6 +39,7 @@ export const meta: EffectMeta = {
     'frameloop="demand": frames render only while the lens is held, gliding or settling, or while the light eases after the pointer; at rest nothing renders.',
     'One full-frame quad and one draw call. Pixels away from the lens and its shadow take a single texture read; the lens itself takes 6, 9 or 12 spectral taps by quality level.',
     'The page texture is drawn once at the drawing-buffer size (CSS size × the profile\'s DPR cap), with mipmaps for frost; it is redrawn only on theme, font or resize changes (debounced) and disposed each time.',
+    'The glass look (studio colours, shadow, caustics) is read from the theme tokens resolved on the lens frame: again on document theme changes and whenever drawKey changes, so a palette switched locally on an ancestor reaches the glass with no global signal. An unchanged look triggers no re-render.',
     'The lens physics runs in the R3F frame loop (or a rAF loop that pauses offscreen in the fallback) and stops when everything has settled.',
   ],
   preview: { height: 620 },

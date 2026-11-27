@@ -704,7 +704,9 @@
         "\"View\" labels on case-study cards",
         "\"Drag\" affordance on carousels and timelines",
         "magnetic calls to action in a hero",
-        "editorial long-reads with a text caret"
+        "editorial long-reads with a text caret",
+        "Play / Pause labels over media that change under a resting pointer",
+        "always-dark bands that hand the follower their own colours (data-cursor-area)"
       ],
       "dependencies": [],
       "params": [
@@ -774,7 +776,9 @@
         "One useRafLoop runs only while something moves and goes back to sleep once every spring is at rest; it also pauses offscreen and in hidden tabs.",
         "Target rects, the scope rect and the layer origin are cached when a target is entered and refreshed at the start of the next frame after scroll or resize; every frame reads before it writes, and nothing is measured after a write.",
         "Position, squash and stretch, press and presence are transforms and opacity. The outline morph writes the geometry of one SVG rect, only while a morph is moving, and identical values are never re-written.",
-        "Listeners are passive and installed only on fine-pointer devices with motion allowed; unmount removes them and clears every translate written to a magnet."
+        "Listeners are passive and installed only on fine-pointer devices with motion allowed; unmount removes them and clears every translate written to a magnet.",
+        "One MutationObserver watches only the hovered target's data-cursor, data-cursor-label and disabled attributes, so a label that changes under a still pointer updates at once; it moves with the target and is disconnected on unmount. A ref handle's refresh() re-reads what is under the pointer for any other change.",
+        "A [data-cursor-area] section hands the follower its colours (its own --cursor-* properties, or the --mk-* tokens it redefines): its computed style is read once per area entered and written to the two layers as custom properties."
       ],
       "preview": {
         "height": 1000
@@ -2300,7 +2304,8 @@
         "hero over a headline or key visual",
         "product detail loupe over packaging or a label",
         "image inspection: drag a magnifier-style glass across a chart, map or scan",
-        "glass control surface (tab bar, toolbar) prototype over live content"
+        "glass control surface (tab bar, toolbar) prototype over live content",
+        "a loupe that starts where the content needs it (initialPosition) on a page with its own local palette"
       ],
       "dependencies": [
         {
@@ -2369,6 +2374,7 @@
         "frameloop=\"demand\": frames render only while the lens is held, gliding or settling, or while the light eases after the pointer; at rest nothing renders.",
         "One full-frame quad and one draw call. Pixels away from the lens and its shadow take a single texture read; the lens itself takes 6, 9 or 12 spectral taps by quality level.",
         "The page texture is drawn once at the drawing-buffer size (CSS size × the profile's DPR cap), with mipmaps for frost; it is redrawn only on theme, font or resize changes (debounced) and disposed each time.",
+        "The glass look (studio colours, shadow, caustics) is read from the theme tokens resolved on the lens frame: again on document theme changes and whenever drawKey changes, so a palette switched locally on an ancestor reaches the glass with no global signal. An unchanged look triggers no re-render.",
         "The lens physics runs in the R3F frame loop (or a rAF loop that pauses offscreen in the fallback) and stops when everything has settled."
       ],
       "preview": {
@@ -2413,7 +2419,8 @@
         "media player play / pause",
         "like and save actions in a feed",
         "notification opt-in bell",
-        "replacing static icon sets with animated ones that share one data format with After Effects exports"
+        "replacing static icon sets with animated ones that share one data format with After Effects exports",
+        "icons that are also cursor magnets or View Transition origins: the ref and data-* / aria-* props reach the button itself"
       ],
       "dependencies": [
         {
@@ -2474,7 +2481,8 @@
         "Every icon is a real button with a constant accessible name: toggles expose aria-pressed (Play, Like, Save, New-episode alerts, Night mode); the queue button is a disclosure with aria-expanded and aria-controls, and its panel leaves the accessibility tree when closed.",
         "State never relies on colour or motion alone: the shapes differ (lines vs cross, outline vs filled, slashed vs ringing bell, sun vs moon), the like count and \"Playing / Paused\" are real text, and the animated drawing is aria-hidden.",
         "Keyboard: Enter and Space toggle; focus-visible previews the same wind-up as hover; each timeline lane is a labelled native slider (arrow keys step one frame, leaving the lane plays the icon home).",
-        "Targets are at least 44 px; focus rings use --mk-focus; colours map to tokens, and forced-colors mode redraws the icons in system colours."
+        "Targets are at least 44 px; focus rings use --mk-focus; colours map to tokens, and forced-colors mode redraws the icons in system colours.",
+        "aria-* props (aria-describedby, aria-keyshortcuts …) pass through to the button, while the state it owns (aria-pressed or aria-expanded, aria-controls, its name) always wins, so a pass-through can never desynchronise it."
       ],
       "reducedMotion": "Hover and focus previews are off and nothing travels: a state change jumps the Lottie to the final frame of its segment (goToAndStop) under a 160 ms cross-fade, the queue opens without sliding and the cover swaps sun for moon with a fade. Scrubbing still works because it is direct manipulation.",
       "performance": [
